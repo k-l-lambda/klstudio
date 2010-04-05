@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!DOCTYPE boost_serialization>
+<boost_serialization signature="serialization::archive" version="5">
+<Tanx_GameConfig class_id="0" tracking_level="0" version="5">
+	<Title>Cube Tetris</Title>
+	<IconFileName>logo window.ico</IconFileName>
+	<HostScriptName>Tetris.game.lua</HostScriptName>
+	<SceneType class_id="1" tracking_level="0" version="0">
+		<Generic>1</Generic>
+		<ExteriorClose>1</ExteriorClose>
+		<ExteriorFar>0</ExteriorFar>
+		<ExteriorRealFar>0</ExteriorRealFar>
+		<Interior>0</Interior>
+	</SceneType>
+	<WorldSettings class_id="2" tracking_level="0" version="0">
+		<SolverType class_id="3" tracking_level="0" version="0">
+			<name>4ITERS_MEDIUM</name>
+		</SolverType>
+		<BroadPhaseWorldSize>12000</BroadPhaseWorldSize>
+		<BroadPhaseQuerySize>1024</BroadPhaseQuerySize>
+		<ContactRestingVelocity>3.40282e+038</ContactRestingVelocity>
+		<BroadPhaseBorderBehaviour class_id="4" tracking_level="0" version="0">
+			<name>DO_NOTHING</name>
+		</BroadPhaseBorderBehaviour>
+		<UseKdTree>0</UseKdTree>
+		<AutoUpdateKdTree>1</AutoUpdateKdTree>
+		<CollisionTolerance>0.1</CollisionTolerance>
+		<ExpectedMaxLinearVelocity>200</ExpectedMaxLinearVelocity>
+		<SizeOfToiEventQueue>250</SizeOfToiEventQueue>
+		<ExpectedMinPsiDeltaTime>0.033333335</ExpectedMinPsiDeltaTime>
+		<ContactPointGeneration class_id="5" tracking_level="0" version="0">
+			<name>REJECT_MANY</name>
+		</ContactPointGeneration>
+		<EnableDeactivation>1</EnableDeactivation>
+		<SimulationType class_id="6" tracking_level="0" version="0">
+			<name>CONTINUOUS</name>
+		</SimulationType>
+		<EnableSimulationIslands>1</EnableSimulationIslands>
+		<MinDesiredIslandSize>64</MinDesiredIslandSize>
+	</WorldSettings>
+	<KeyboardExclusive>0</KeyboardExclusive>
+	<MouseExclusive>1</MouseExclusive>
+	<JoystickExclusive>1</JoystickExclusive>
+	<EnableOis>1</EnableOis>
+	<EnableCegui>1</EnableCegui>
+</Tanx_GameConfig>
+</boost_serialization>
+

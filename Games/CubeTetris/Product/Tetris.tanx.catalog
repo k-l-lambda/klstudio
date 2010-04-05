@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!DOCTYPE boost_serialization>
+<boost_serialization signature="serialization::archive" version="5">
+<Tanx_CatalogConfig class_id="0" tracking_level="0" version="1">
+	<Title>Cube Tetris</Title>
+	<Author>K.L.</Author>
+	<Version>beta 2009.12.28</Version>
+	<Description>A 3D Tetris game.</Description>
+	<ResourceDirectory>.</ResourceDirectory>
+	<GamePath>Tetris.game</GamePath>
+	<IconFile>Logo.ico</IconFile>
+	<OverallConfigurationFile>Overall.cfg</OverallConfigurationFile>
+</Tanx_CatalogConfig>
+</boost_serialization>
+

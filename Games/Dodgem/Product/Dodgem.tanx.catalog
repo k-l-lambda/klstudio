@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!DOCTYPE boost_serialization>
+<boost_serialization signature="serialization::archive" version="5">
+<Tanx_CatalogConfig class_id="0" tracking_level="0" version="1">
+	<Title>Dodgem</Title>
+	<Author>K.L.</Author>
+	<Version>pre-alpha</Version>
+	<Description></Description>
+	<ResourceDirectory>.</ResourceDirectory>
+	<GamePath>Dodgem.game</GamePath>
+	<IconFile></IconFile>
+	<OverallConfigurationFile></OverallConfigurationFile>
+</Tanx_CatalogConfig>
+</boost_serialization>
+

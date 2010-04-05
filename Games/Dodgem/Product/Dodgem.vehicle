@@ -1,0 +1,653 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!DOCTYPE boost_serialization>
+<boost_serialization signature="serialization::archive" version="5">
+<Tanx_VehicleLibrary class_id="0" tracking_level="0" version="0">
+	<Name>Dodgem</Name>
+	<VehicleMap class_id="1" tracking_level="0" version="0">
+		<count>3</count>
+		<item_version>0</item_version>
+		<item class_id="2" tracking_level="0" version="0">
+			<first>CarYXZ</first>
+			<second class_id="3" tracking_level="0" version="3">
+				<ChassisOrientation class_id="12" tracking_level="0" version="0">
+					<up>Vector3(0, 1, 0)</up>
+					<front>Vector3(1, 0, 0)</front>
+					<right>Vector3(0, 0, 1)</right>
+				</ChassisOrientation>
+				<TorqueRollFactor>0.625</TorqueRollFactor>
+				<TorquePitchFactor>0.5</TorquePitchFactor>
+				<TorqueYawFactor>0.34999999</TorqueYawFactor>
+				<ExtraTorqueFactor>-0.5</ExtraTorqueFactor>
+				<MaxVelocityForPositionalFriction>0</MaxVelocityForPositionalFriction>
+				<ChassisUnitInertiaYaw>1</ChassisUnitInertiaYaw>
+				<ChassisUnitInertiaRoll>1</ChassisUnitInertiaRoll>
+				<ChassisUnitInertiaPitch>1</ChassisUnitInertiaPitch>
+				<FrictionEqualizer>0.5</FrictionEqualizer>
+				<NormalClippingAngle>0.1</NormalClippingAngle>
+				<MaxFrictionSolverMassRatio>30</MaxFrictionSolverMassRatio>
+				<WheelParams class_id="13" tracking_level="0" version="0">
+					<count>4</count>
+					<item_version>0</item_version>
+					<item class_id="14" tracking_level="0" version="0">
+						<Radius>0.40000001</Radius>
+						<Mass>10</Mass>
+						<Width>0.2</Width>
+						<Friction>1.5</Friction>
+						<ViscosityFriction>0.25</ViscosityFriction>
+						<MaxFriction>3</MaxFriction>
+						<SlipAngle>0</SlipAngle>
+						<ForceFeedbackMultiplier>0.1</ForceFeedbackMultiplier>
+						<MaxContactBodyAcceleration>20</MaxContactBodyAcceleration>
+						<Axle>0</Axle>
+					</item>
+					<item>
+						<Radius>0.40000001</Radius>
+						<Mass>10</Mass>
+						<Width>0.2</Width>
+						<Friction>1.5</Friction>
+						<ViscosityFriction>0.25</ViscosityFriction>
+						<MaxFriction>3</MaxFriction>
+						<SlipAngle>0</SlipAngle>
+						<ForceFeedbackMultiplier>0.1</ForceFeedbackMultiplier>
+						<MaxContactBodyAcceleration>20</MaxContactBodyAcceleration>
+						<Axle>0</Axle>
+					</item>
+					<item>
+						<Radius>0.40000001</Radius>
+						<Mass>10</Mass>
+						<Width>0.2</Width>
+						<Friction>1.5</Friction>
+						<ViscosityFriction>0.25</ViscosityFriction>
+						<MaxFriction>3</MaxFriction>
+						<SlipAngle>0</SlipAngle>
+						<ForceFeedbackMultiplier>0.1</ForceFeedbackMultiplier>
+						<MaxContactBodyAcceleration>20</MaxContactBodyAcceleration>
+						<Axle>1</Axle>
+					</item>
+					<item>
+						<Radius>0.40000001</Radius>
+						<Mass>10</Mass>
+						<Width>0.2</Width>
+						<Friction>1.5</Friction>
+						<ViscosityFriction>0.25</ViscosityFriction>
+						<MaxFriction>3</MaxFriction>
+						<SlipAngle>0</SlipAngle>
+						<ForceFeedbackMultiplier>0.1</ForceFeedbackMultiplier>
+						<MaxContactBodyAcceleration>20</MaxContactBodyAcceleration>
+						<Axle>1</Axle>
+					</item>
+				</WheelParams>
+				<DriverInput class_id="15" tracking_level="0" version="0">
+					<m_Data class_id="16" tracking_level="0" version="1">
+						<px class_id="4" tracking_level="1" version="0" object_id="_0">
+							<DriverInputConfig class_id="17" tracking_level="0" version="0"></DriverInputConfig>
+							<SlopeChangePointX>0.80000001</SlopeChangePointX>
+							<InitialSlope>0.69999999</InitialSlope>
+							<DeadZone>0</DeadZone>
+							<AutoReverse>1</AutoReverse>
+						</px>
+					</m_Data>
+				</DriverInput>
+				<Steering class_id="18" tracking_level="0" version="0">
+					<m_Data class_id="19" tracking_level="0" version="1">
+						<px class_id="5" tracking_level="1" version="0" object_id="_1">
+							<SteeringConfig class_id="20" tracking_level="0" version="0"></SteeringConfig>
+							<MaxSteeringAngle>0.61000001</MaxSteeringAngle>
+							<MaxSpeedFullSteeringAngle>31.200001</MaxSpeedFullSteeringAngle>
+							<DoesWheelSteer>
+								<count>4</count>
+								<item_version>0</item_version>
+								<item>1</item>
+								<item>1</item>
+								<item>0</item>
+								<item>0</item>
+							</DoesWheelSteer>
+						</px>
+					</m_Data>
+				</Steering>
+				<Engine class_id="22" tracking_level="0" version="0">
+					<m_Data class_id="23" tracking_level="0" version="1">
+						<px class_id="6" tracking_level="1" version="0" object_id="_2">
+							<EngineConfig class_id="24" tracking_level="0" version="0"></EngineConfig>
+							<MinRPM>500</MinRPM>
+							<OptRPM>5500</OptRPM>
+							<MaxRPM>7500</MaxRPM>
+							<MaxTorque>500</MaxTorque>
+							<TorqueFactorAtMinRPM>0.80000001</TorqueFactorAtMinRPM>
+							<TorqueFactorAtMaxRPM>0.80000001</TorqueFactorAtMaxRPM>
+							<ResistanceFactorAtMinRPM>0.050000001</ResistanceFactorAtMinRPM>
+							<ResistanceFactorAtOptRPM>0.1</ResistanceFactorAtOptRPM>
+							<ResistanceFactorAtMaxRPM>0.30000001</ResistanceFactorAtMaxRPM>
+							<ClutchSlipRPM>2000</ClutchSlipRPM>
+						</px>
+					</m_Data>
+				</Engine>
+				<Transmission class_id="25" tracking_level="0" version="0">
+					<m_Data class_id="26" tracking_level="0" version="1">
+						<px class_id="7" tracking_level="1" version="0" object_id="_3">
+							<TransmissionConfig class_id="27" tracking_level="0" version="0"></TransmissionConfig>
+							<DownshiftRPM>3500</DownshiftRPM>
+							<UpshiftRPM>6500</UpshiftRPM>
+							<ClutchDelayTime>0</ClutchDelayTime>
+							<ReverseGearRatio>1</ReverseGearRatio>
+							<GearsRatio>
+								<count>4</count>
+								<item_version>0</item_version>
+								<item>2</item>
+								<item>1.5</item>
+								<item>1</item>
+								<item>0.75</item>
+							</GearsRatio>
+							<WheelsTorqueRatio>
+								<count>4</count>
+								<item_version>0</item_version>
+								<item>0.2</item>
+								<item>0.2</item>
+								<item>0.30000001</item>
+								<item>0.30000001</item>
+							</WheelsTorqueRatio>
+							<VehicleTopSpeed>130</VehicleTopSpeed>
+							<WheelRadius>0.40000001</WheelRadius>
+							<MaxEngineRpm>7500</MaxEngineRpm>
+						</px>
+					</m_Data>
+				</Transmission>
+				<Brake class_id="29" tracking_level="0" version="0">
+					<m_Data class_id="30" tracking_level="0" version="1">
+						<px class_id="8" tracking_level="1" version="0" object_id="_4">
+							<BrakeConfig class_id="31" tracking_level="0" version="0"></BrakeConfig>
+							<WheelBrakingProperties class_id="32" tracking_level="0" version="0">
+								<count>4</count>
+								<item_version>0</item_version>
+								<item class_id="33" tracking_level="0" version="0">
+									<MaxBreakingTorque>1500</MaxBreakingTorque>
+									<MinPedalInputToBlock>0.89999998</MinPedalInputToBlock>
+									<IsConnectedToHandbrake>0</IsConnectedToHandbrake>
+								</item>
+								<item>
+									<MaxBreakingTorque>1500</MaxBreakingTorque>
+									<MinPedalInputToBlock>0.89999998</MinPedalInputToBlock>
+									<IsConnectedToHandbrake>0</IsConnectedToHandbrake>
+								</item>
+								<item>
+									<MaxBreakingTorque>1500</MaxBreakingTorque>
+									<MinPedalInputToBlock>0.89999998</MinPedalInputToBlock>
+									<IsConnectedToHandbrake>1</IsConnectedToHandbrake>
+								</item>
+								<item>
+									<MaxBreakingTorque>1500</MaxBreakingTorque>
+									<MinPedalInputToBlock>0.89999998</MinPedalInputToBlock>
+									<IsConnectedToHandbrake>1</IsConnectedToHandbrake>
+								</item>
+							</WheelBrakingProperties>
+							<WheelsMinTimeToBlock>1000</WheelsMinTimeToBlock>
+						</px>
+					</m_Data>
+				</Brake>
+				<Suspension class_id="34" tracking_level="0" version="0">
+					<m_Data class_id="35" tracking_level="0" version="1">
+						<px class_id="9" tracking_level="1" version="0" object_id="_5">
+							<SuspensionConfig class_id="36" tracking_level="0" version="0">
+								<WheelParams class_id="37" tracking_level="0" version="0">
+									<count>4</count>
+									<item_version>0</item_version>
+									<item class_id="38" tracking_level="0" version="0">
+										<HardpointChassisSpace>Vector3(-1.5, 0.44999999, -1.1)</HardpointChassisSpace>
+										<DirectionChassisSpace>Vector3(0, -1, 0)</DirectionChassisSpace>
+										<Length>0.34999999</Length>
+									</item>
+									<item>
+										<HardpointChassisSpace>Vector3(-1.5, 0.44999999, 1.1)</HardpointChassisSpace>
+										<DirectionChassisSpace>Vector3(0, -1, 0)</DirectionChassisSpace>
+										<Length>0.34999999</Length>
+									</item>
+									<item>
+										<HardpointChassisSpace>Vector3(1.5, 0.44999999, -1.1)</HardpointChassisSpace>
+										<DirectionChassisSpace>Vector3(0, -1, 0)</DirectionChassisSpace>
+										<Length>0.34999999</Length>
+									</item>
+									<item>
+										<HardpointChassisSpace>Vector3(1.5, 0.44999999, 1.1)</HardpointChassisSpace>
+										<DirectionChassisSpace>Vector3(0, -1, 0)</DirectionChassisSpace>
+										<Length>0.34999999</Length>
+									</item>
+								</WheelParams>
+							</SuspensionConfig>
+							<WheelSpringParams class_id="39" tracking_level="0" version="0">
+								<count>4</count>
+								<item_version>0</item_version>
+								<item class_id="40" tracking_level="0" version="0">
+									<Strength>50</Strength>
+									<DampingCompression>3</DampingCompression>
+									<DampingRelaxation>3</DampingRelaxation>
+								</item>
+								<item>
+									<Strength>50</Strength>
+									<DampingCompression>3</DampingCompression>
+									<DampingRelaxation>3</DampingRelaxation>
+								</item>
+								<item>
+									<Strength>50</Strength>
+									<DampingCompression>3</DampingCompression>
+									<DampingRelaxation>3</DampingRelaxation>
+								</item>
+								<item>
+									<Strength>50</Strength>
+									<DampingCompression>3</DampingCompression>
+									<DampingRelaxation>3</DampingRelaxation>
+								</item>
+							</WheelSpringParams>
+						</px>
+					</m_Data>
+				</Suspension>
+				<Aerodynamics class_id="41" tracking_level="0" version="0">
+					<m_Data class_id="42" tracking_level="0" version="1">
+						<px class_id="10" tracking_level="1" version="0" object_id="_6">
+							<AerodynamicsConfig class_id="43" tracking_level="0" version="0"></AerodynamicsConfig>
+							<AirDensity>1.3</AirDensity>
+							<FrontalArea>1</FrontalArea>
+							<DragCoefficient>0.69999999</DragCoefficient>
+							<LiftCoefficient>-0.30000001</LiftCoefficient>
+							<ExtraGravityws>Vector3(0, -5, 0)</ExtraGravityws>
+						</px>
+					</m_Data>
+				</Aerodynamics>
+				<Tyremarks class_id="44" tracking_level="0" version="0">
+					<MinTyremarkEnergy>100</MinTyremarkEnergy>
+					<MaxTyremarkEnergy>1000</MaxTyremarkEnergy>
+				</Tyremarks>
+				<VelocityDamper class_id="45" tracking_level="0" version="0">
+					<m_Data class_id="46" tracking_level="0" version="1">
+						<px class_id="11" tracking_level="1" version="0" object_id="_7">
+							<VelocityDamperConfig class_id="47" tracking_level="0" version="0"></VelocityDamperConfig>
+							<NormalSpinDamping>0</NormalSpinDamping>
+							<CollisionSpinDamping>4</CollisionSpinDamping>
+							<CollisionThreshold>1</CollisionThreshold>
+						</px>
+					</m_Data>
+				</VelocityDamper>
+			</second>
+		</item>
+		<item>
+			<first>CarYZX</first>
+			<second>
+				<ChassisOrientation>
+					<up>Vector3(0, 1, 0)</up>
+					<front>Vector3(0, 0, -1)</front>
+					<right>Vector3(1, 0, 0)</right>
+				</ChassisOrientation>
+				<TorqueRollFactor>0.625</TorqueRollFactor>
+				<TorquePitchFactor>0.5</TorquePitchFactor>
+				<TorqueYawFactor>0.34999999</TorqueYawFactor>
+				<ExtraTorqueFactor>-0.5</ExtraTorqueFactor>
+				<MaxVelocityForPositionalFriction>0</MaxVelocityForPositionalFriction>
+				<ChassisUnitInertiaYaw>1</ChassisUnitInertiaYaw>
+				<ChassisUnitInertiaRoll>1</ChassisUnitInertiaRoll>
+				<ChassisUnitInertiaPitch>1</ChassisUnitInertiaPitch>
+				<FrictionEqualizer>0.5</FrictionEqualizer>
+				<NormalClippingAngle>0.1</NormalClippingAngle>
+				<MaxFrictionSolverMassRatio>30</MaxFrictionSolverMassRatio>
+				<WheelParams>
+					<count>4</count>
+					<item_version>0</item_version>
+					<item>
+						<Radius>0.40000001</Radius>
+						<Mass>10</Mass>
+						<Width>0.2</Width>
+						<Friction>1.5</Friction>
+						<ViscosityFriction>0.25</ViscosityFriction>
+						<MaxFriction>3</MaxFriction>
+						<SlipAngle>0</SlipAngle>
+						<ForceFeedbackMultiplier>0.1</ForceFeedbackMultiplier>
+						<MaxContactBodyAcceleration>20</MaxContactBodyAcceleration>
+						<Axle>0</Axle>
+					</item>
+					<item>
+						<Radius>0.40000001</Radius>
+						<Mass>10</Mass>
+						<Width>0.2</Width>
+						<Friction>1.5</Friction>
+						<ViscosityFriction>0.25</ViscosityFriction>
+						<MaxFriction>3</MaxFriction>
+						<SlipAngle>0</SlipAngle>
+						<ForceFeedbackMultiplier>0.1</ForceFeedbackMultiplier>
+						<MaxContactBodyAcceleration>20</MaxContactBodyAcceleration>
+						<Axle>0</Axle>
+					</item>
+					<item>
+						<Radius>0.40000001</Radius>
+						<Mass>10</Mass>
+						<Width>0.2</Width>
+						<Friction>1.5</Friction>
+						<ViscosityFriction>0.25</ViscosityFriction>
+						<MaxFriction>3</MaxFriction>
+						<SlipAngle>0</SlipAngle>
+						<ForceFeedbackMultiplier>0.1</ForceFeedbackMultiplier>
+						<MaxContactBodyAcceleration>20</MaxContactBodyAcceleration>
+						<Axle>1</Axle>
+					</item>
+					<item>
+						<Radius>0.40000001</Radius>
+						<Mass>10</Mass>
+						<Width>0.2</Width>
+						<Friction>1.5</Friction>
+						<ViscosityFriction>0.25</ViscosityFriction>
+						<MaxFriction>3</MaxFriction>
+						<SlipAngle>0</SlipAngle>
+						<ForceFeedbackMultiplier>0.1</ForceFeedbackMultiplier>
+						<MaxContactBodyAcceleration>20</MaxContactBodyAcceleration>
+						<Axle>1</Axle>
+					</item>
+				</WheelParams>
+				<DriverInput>
+					<m_Data>
+						<px class_id_reference="4" object_id="_8">
+							<DriverInputConfig></DriverInputConfig>
+							<SlopeChangePointX>0.80000001</SlopeChangePointX>
+							<InitialSlope>0.69999999</InitialSlope>
+							<DeadZone>0</DeadZone>
+							<AutoReverse>1</AutoReverse>
+						</px>
+					</m_Data>
+				</DriverInput>
+				<Steering>
+					<m_Data>
+						<px class_id_reference="5" object_id="_9">
+							<SteeringConfig></SteeringConfig>
+							<MaxSteeringAngle>0.61000001</MaxSteeringAngle>
+							<MaxSpeedFullSteeringAngle>31.200001</MaxSpeedFullSteeringAngle>
+							<DoesWheelSteer>
+								<count>4</count>
+								<item_version>0</item_version>
+								<item>1</item>
+								<item>1</item>
+								<item>0</item>
+								<item>0</item>
+							</DoesWheelSteer>
+						</px>
+					</m_Data>
+				</Steering>
+				<Engine>
+					<m_Data>
+						<px class_id_reference="6" object_id="_10">
+							<EngineConfig></EngineConfig>
+							<MinRPM>500</MinRPM>
+							<OptRPM>5500</OptRPM>
+							<MaxRPM>7500</MaxRPM>
+							<MaxTorque>500</MaxTorque>
+							<TorqueFactorAtMinRPM>0.80000001</TorqueFactorAtMinRPM>
+							<TorqueFactorAtMaxRPM>0.80000001</TorqueFactorAtMaxRPM>
+							<ResistanceFactorAtMinRPM>0.050000001</ResistanceFactorAtMinRPM>
+							<ResistanceFactorAtOptRPM>0.1</ResistanceFactorAtOptRPM>
+							<ResistanceFactorAtMaxRPM>0.30000001</ResistanceFactorAtMaxRPM>
+							<ClutchSlipRPM>2000</ClutchSlipRPM>
+						</px>
+					</m_Data>
+				</Engine>
+				<Transmission>
+					<m_Data>
+						<px class_id_reference="7" object_id="_11">
+							<TransmissionConfig></TransmissionConfig>
+							<DownshiftRPM>3500</DownshiftRPM>
+							<UpshiftRPM>6500</UpshiftRPM>
+							<ClutchDelayTime>0</ClutchDelayTime>
+							<ReverseGearRatio>1</ReverseGearRatio>
+							<GearsRatio>
+								<count>4</count>
+								<item_version>0</item_version>
+								<item>2</item>
+								<item>1.5</item>
+								<item>1</item>
+								<item>0.75</item>
+							</GearsRatio>
+							<WheelsTorqueRatio>
+								<count>4</count>
+								<item_version>0</item_version>
+								<item>0.2</item>
+								<item>0.2</item>
+								<item>0.30000001</item>
+								<item>0.30000001</item>
+							</WheelsTorqueRatio>
+							<VehicleTopSpeed>130</VehicleTopSpeed>
+							<WheelRadius>0.40000001</WheelRadius>
+							<MaxEngineRpm>7500</MaxEngineRpm>
+						</px>
+					</m_Data>
+				</Transmission>
+				<Brake>
+					<m_Data>
+						<px class_id_reference="8" object_id="_12">
+							<BrakeConfig></BrakeConfig>
+							<WheelBrakingProperties>
+								<count>4</count>
+								<item_version>0</item_version>
+								<item>
+									<MaxBreakingTorque>1500</MaxBreakingTorque>
+									<MinPedalInputToBlock>0.89999998</MinPedalInputToBlock>
+									<IsConnectedToHandbrake>0</IsConnectedToHandbrake>
+								</item>
+								<item>
+									<MaxBreakingTorque>1500</MaxBreakingTorque>
+									<MinPedalInputToBlock>0.89999998</MinPedalInputToBlock>
+									<IsConnectedToHandbrake>0</IsConnectedToHandbrake>
+								</item>
+								<item>
+									<MaxBreakingTorque>1500</MaxBreakingTorque>
+									<MinPedalInputToBlock>0.89999998</MinPedalInputToBlock>
+									<IsConnectedToHandbrake>1</IsConnectedToHandbrake>
+								</item>
+								<item>
+									<MaxBreakingTorque>1500</MaxBreakingTorque>
+									<MinPedalInputToBlock>0.89999998</MinPedalInputToBlock>
+									<IsConnectedToHandbrake>1</IsConnectedToHandbrake>
+								</item>
+							</WheelBrakingProperties>
+							<WheelsMinTimeToBlock>1000</WheelsMinTimeToBlock>
+						</px>
+					</m_Data>
+				</Brake>
+				<Suspension>
+					<m_Data>
+						<px class_id_reference="9" object_id="_13">
+							<SuspensionConfig>
+								<WheelParams>
+									<count>4</count>
+									<item_version>0</item_version>
+									<item>
+										<HardpointChassisSpace>Vector3(-1.1, 0.44999999, 1.5)</HardpointChassisSpace>
+										<DirectionChassisSpace>Vector3(0, -1, 0)</DirectionChassisSpace>
+										<Length>0.34999999</Length>
+									</item>
+									<item>
+										<HardpointChassisSpace>Vector3(1.1, 0.44999999, 1.5)</HardpointChassisSpace>
+										<DirectionChassisSpace>Vector3(0, -1, 0)</DirectionChassisSpace>
+										<Length>0.34999999</Length>
+									</item>
+									<item>
+										<HardpointChassisSpace>Vector3(-1.1, 0.44999999, -1.5)</HardpointChassisSpace>
+										<DirectionChassisSpace>Vector3(0, -1, 0)</DirectionChassisSpace>
+										<Length>0.34999999</Length>
+									</item>
+									<item>
+										<HardpointChassisSpace>Vector3(1.1, 0.44999999, -1.5)</HardpointChassisSpace>
+										<DirectionChassisSpace>Vector3(0, -1, 0)</DirectionChassisSpace>
+										<Length>0.34999999</Length>
+									</item>
+								</WheelParams>
+							</SuspensionConfig>
+							<WheelSpringParams>
+								<count>4</count>
+								<item_version>0</item_version>
+								<item>
+									<Strength>50</Strength>
+									<DampingCompression>3</DampingCompression>
+									<DampingRelaxation>3</DampingRelaxation>
+								</item>
+								<item>
+									<Strength>50</Strength>
+									<DampingCompression>3</DampingCompression>
+									<DampingRelaxation>3</DampingRelaxation>
+								</item>
+								<item>
+									<Strength>50</Strength>
+									<DampingCompression>3</DampingCompression>
+									<DampingRelaxation>3</DampingRelaxation>
+								</item>
+								<item>
+									<Strength>50</Strength>
+									<DampingCompression>3</DampingCompression>
+									<DampingRelaxation>3</DampingRelaxation>
+								</item>
+							</WheelSpringParams>
+						</px>
+					</m_Data>
+				</Suspension>
+				<Aerodynamics>
+					<m_Data>
+						<px class_id_reference="10" object_id="_14">
+							<AerodynamicsConfig></AerodynamicsConfig>
+							<AirDensity>1.3</AirDensity>
+							<FrontalArea>1</FrontalArea>
+							<DragCoefficient>0.69999999</DragCoefficient>
+							<LiftCoefficient>-0.30000001</LiftCoefficient>
+							<ExtraGravityws>Vector3(0, -5, 0)</ExtraGravityws>
+						</px>
+					</m_Data>
+				</Aerodynamics>
+				<Tyremarks>
+					<MinTyremarkEnergy>100</MinTyremarkEnergy>
+					<MaxTyremarkEnergy>1000</MaxTyremarkEnergy>
+				</Tyremarks>
+				<VelocityDamper>
+					<m_Data>
+						<px class_id_reference="11" object_id="_15">
+							<VelocityDamperConfig></VelocityDamperConfig>
+							<NormalSpinDamping>0</NormalSpinDamping>
+							<CollisionSpinDamping>4</CollisionSpinDamping>
+							<CollisionThreshold>1</CollisionThreshold>
+						</px>
+					</m_Data>
+				</VelocityDamper>
+			</second>
+		</item>
+		<item>
+			<first>Dodgem</first>
+			<second>
+				<ChassisOrientation>
+					<up>Vector3(0, 1, 0)</up>
+					<front>Vector3(0, 0, -1)</front>
+					<right>Vector3(1, 0, 0)</right>
+				</ChassisOrientation>
+				<TorqueRollFactor>0.625</TorqueRollFactor>
+				<TorquePitchFactor>0.5</TorquePitchFactor>
+				<TorqueYawFactor>0.34999999</TorqueYawFactor>
+				<ExtraTorqueFactor>-0.5</ExtraTorqueFactor>
+				<MaxVelocityForPositionalFriction>0</MaxVelocityForPositionalFriction>
+				<ChassisUnitInertiaYaw>1</ChassisUnitInertiaYaw>
+				<ChassisUnitInertiaRoll>1</ChassisUnitInertiaRoll>
+				<ChassisUnitInertiaPitch>1</ChassisUnitInertiaPitch>
+				<FrictionEqualizer>0.5</FrictionEqualizer>
+				<NormalClippingAngle>0.1</NormalClippingAngle>
+				<MaxFrictionSolverMassRatio>30</MaxFrictionSolverMassRatio>
+				<WheelParams>
+					<count>4</count>
+					<item_version>0</item_version>
+					<item>
+						<Radius>0.40000001</Radius>
+						<Mass>10</Mass>
+						<Width>0.2</Width>
+						<Friction>1.5</Friction>
+						<ViscosityFriction>0.25</ViscosityFriction>
+						<MaxFriction>3</MaxFriction>
+						<SlipAngle>0</SlipAngle>
+						<ForceFeedbackMultiplier>0.1</ForceFeedbackMultiplier>
+						<MaxContactBodyAcceleration>20</MaxContactBodyAcceleration>
+						<Axle>0</Axle>
+					</item>
+					<item>
+						<Radius>0.40000001</Radius>
+						<Mass>10</Mass>
+						<Width>0.2</Width>
+						<Friction>1.5</Friction>
+						<ViscosityFriction>0.25</ViscosityFriction>
+						<MaxFriction>3</MaxFriction>
+						<SlipAngle>0</SlipAngle>
+						<ForceFeedbackMultiplier>0.1</ForceFeedbackMultiplier>
+						<MaxContactBodyAcceleration>20</MaxContactBodyAcceleration>
+						<Axle>0</Axle>
+					</item>
+					<item>
+						<Radius>0.40000001</Radius>
+						<Mass>10</Mass>
+						<Width>0.2</Width>
+						<Friction>1.5</Friction>
+						<ViscosityFriction>0.25</ViscosityFriction>
+						<MaxFriction>3</MaxFriction>
+						<SlipAngle>0</SlipAngle>
+						<ForceFeedbackMultiplier>0.1</ForceFeedbackMultiplier>
+						<MaxContactBodyAcceleration>20</MaxContactBodyAcceleration>
+						<Axle>1</Axle>
+					</item>
+					<item>
+						<Radius>0.40000001</Radius>
+						<Mass>10</Mass>
+						<Width>0.2</Width>
+						<Friction>1.5</Friction>
+						<ViscosityFriction>0.25</ViscosityFriction>
+						<MaxFriction>3</MaxFriction>
+						<SlipAngle>0</SlipAngle>
+						<ForceFeedbackMultiplier>0.1</ForceFeedbackMultiplier>
+						<MaxContactBodyAcceleration>20</MaxContactBodyAcceleration>
+						<Axle>1</Axle>
+					</item>
+				</WheelParams>
+				<DriverInput>
+					<m_Data>
+						<px class_id_reference="4" object_id_reference="_8"></px>
+					</m_Data>
+				</DriverInput>
+				<Steering>
+					<m_Data>
+						<px class_id_reference="5" object_id_reference="_9"></px>
+					</m_Data>
+				</Steering>
+				<Engine>
+					<m_Data>
+						<px class_id_reference="6" object_id_reference="_10"></px>
+					</m_Data>
+				</Engine>
+				<Transmission>
+					<m_Data>
+						<px class_id_reference="7" object_id_reference="_11"></px>
+					</m_Data>
+				</Transmission>
+				<Brake>
+					<m_Data>
+						<px class_id_reference="8" object_id_reference="_12"></px>
+					</m_Data>
+				</Brake>
+				<Suspension>
+					<m_Data>
+						<px class_id_reference="9" object_id_reference="_13"></px>
+					</m_Data>
+				</Suspension>
+				<Aerodynamics>
+					<m_Data>
+						<px class_id_reference="10" object_id_reference="_14"></px>
+					</m_Data>
+				</Aerodynamics>
+				<Tyremarks>
+					<MinTyremarkEnergy>100</MinTyremarkEnergy>
+					<MaxTyremarkEnergy>1000</MaxTyremarkEnergy>
+				</Tyremarks>
+				<VelocityDamper>
+					<m_Data>
+						<px class_id_reference="11" object_id_reference="_15"></px>
+					</m_Data>
+				</VelocityDamper>
+			</second>
+		</item>
+	</VehicleMap>
+</Tanx_VehicleLibrary>
+</boost_serialization>
+

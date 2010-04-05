@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!DOCTYPE boost_serialization>
+<boost_serialization signature="serialization::archive" version="5">
+<Tanx_UnitLibrary class_id="0" tracking_level="0" version="0">
+	<Name>Dodgem</Name>
+	<UnitMap class_id="1" tracking_level="0" version="0">
+		<count>3</count>
+		<item_version>0</item_version>
+		<item class_id="2" tracking_level="0" version="0">
+			<first>AiCar</first>
+			<second class_id="3" tracking_level="0" version="2">
+				<Nodes class_id="4" tracking_level="0" version="0">
+					<count>1</count>
+					<item_version>6</item_version>
+					<item class_id="5" tracking_level="0" version="6">
+						<Name></Name>
+						<Appearances class_id="13" tracking_level="0" version="0">
+							<count>1</count>
+							<item_version>0</item_version>
+							<item class_id="14" tracking_level="0" version="0">
+								<m_Data class_id="15" tracking_level="0" version="1">
+									<px class_id="6" tracking_level="1" version="2" object_id="_0">
+										<AppearanceConfig class_id="16" tracking_level="0" version="2">
+											<Name></Name>
+											<Translation>Vector3(0, 0, 0)</Translation>
+											<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
+											<Visible>1</Visible>
+											<CastShadows>1</CastShadows>
+										</AppearanceConfig>
+										<MeshName>dodgem.mesh</MeshName>
+										<Scale>Vector3(0.001, 0.001, 0.001)</Scale>
+										<MaterialMap class_id="17" tracking_level="0" version="0">
+											<count>9</count>
+											<item_version>0</item_version>
+											<item class_id="18" tracking_level="0" version="0">
+												<first>0</first>
+												<second>Dodgem/DodgemMesh/AiCar/E002FARJ</second>
+											</item>
+											<item>
+												<first>1</first>
+												<second>Dodgem/DodgemMesh/AiCar/E002CROM</second>
+											</item>
+											<item>
+												<first>2</first>
+												<second>Dodgem/DodgemMesh/AiCar/E002NGMT</second>
+											</item>
+											<item>
+												<first>3</first>
+												<second>Dodgem/DodgemMesh/AiCar/E002EMBE</second>
+											</item>
+											<item>
+												<first>4</first>
+												<second>Dodgem/DodgemMesh/AiCar/E002OSCU</second>
+											</item>
+											<item>
+												<first>5</first>
+												<second>Dodgem/DodgemMesh/AiCar/E002NGBR</second>
+											</item>
+											<item>
+												<first>6</first>
+												<second>Dodgem/DodgemMesh/AiCar/E002ASI</second>
+											</item>
+											<item>
+												<first>7</first>
+												<second>Dodgem/DodgemMesh/AiCar/E002CREM</second>
+											</item>
+											<item>
+												<first>8</first>
+												<second>Dodgem/DodgemMesh/AiCar/E002CRIS</second>
+											</item>
+										</MaterialMap>
+									</px>
+								</m_Data>
+							</item>
+						</Appearances>
+					</item>
+				</Nodes>
+				<RigidBodies class_id="19" tracking_level="0" version="0">
+					<count>1</count>
+					<item_version>9</item_version>
+					<item class_id="20" tracking_level="0" version="9">
+						<NodeName>0</NodeName>
+						<Translate>Vector3(0, 0, 0)</Translate>
+						<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
+						<LocalLinearVelocity>Vector3(0, 0, 0)</LocalLinearVelocity>
+						<LocalAngularVelocity>Vector3(0, 0, 0)</LocalAngularVelocity>
+						<MotionType class_id="27" tracking_level="0" version="0">
+							<name>BOX_INERTIA</name>
+						</MotionType>
+						<QualityType class_id="28" tracking_level="0" version="0">
+							<name>MOVING</name>
+						</QualityType>
+						<CollisionResponse class_id="29" tracking_level="0" version="0">
+							<name>SIMPLE_CONTACT</name>
+						</CollisionResponse>
+						<DeactivatorType class_id="30" tracking_level="0" version="0">
+							<name>NEVER</name>
+						</DeactivatorType>
+						<SolverDeactivation class_id="31" tracking_level="0" version="0">
+							<name>LOW</name>
+						</SolverDeactivation>
+						<Shape class_id="32" tracking_level="0" version="0">
+							<m_Data class_id="33" tracking_level="0" version="1">
+								<px class_id="26" tracking_level="1" version="0" object_id="_1">
+									<Shape class_id="34" tracking_level="0" version="1">
+										<Scale>Vector3(1, 1, 1)</Scale>
+									</Shape>
+									<PackageName>dodgem.shape</PackageName>
+								</px>
+							</m_Data>
+						</Shape>
+						<Mass>500</Mass>
+						<Centroid>Vector3(0, 0, 0)</Centroid>
+						<LinearDamping>0</LinearDamping>
+						<AngularDamping>0.050000001</AngularDamping>
+						<GravityFactor>1</GravityFactor>
+						<Friction>0.60000002</Friction>
+						<Restitution>0.40000001</Restitution>
+						<MaxLinearVelocity>200</MaxLinearVelocity>
+						<MaxAngularVelocity>200</MaxAngularVelocity>
+						<AllowedPenetrationDepth>-1</AllowedPenetrationDepth>
+						<CollisionFilterInfo>0</CollisionFilterInfo>
+					</item>
+				</RigidBodies>
+				<Constraints class_id="35" tracking_level="0" version="0">
+					<count>0</count>
+					<item_version>0</item_version>
+				</Constraints>
+				<HostScriptName>AiCar.agent.lua</HostScriptName>
+			</second>
+		</item>
+		<item>
+			<first>Car1</first>
+			<second>
+				<Nodes>
+					<count>1</count>
+					<item_version>6</item_version>
+					<item>
+						<Name></Name>
+						<Appearances>
+							<count>1</count>
+							<item_version>0</item_version>
+							<item>
+								<m_Data>
+									<px class_id_reference="6" object_id="_2">
+										<AppearanceConfig>
+											<Name></Name>
+											<Translation>Vector3(0, 0, 0)</Translation>
+											<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
+											<Visible>1</Visible>
+											<CastShadows>1</CastShadows>
+										</AppearanceConfig>
+										<MeshName>Prefab_Cube</MeshName>
+										<Scale>Vector3(0.024, 0.017999999, 0.035999998)</Scale>
+										<MaterialMap>
+											<count>1</count>
+											<item_version>0</item_version>
+											<item>
+												<first>0</first>
+												<second>Dodgem/Car1</second>
+											</item>
+										</MaterialMap>
+									</px>
+								</m_Data>
+							</item>
+						</Appearances>
+					</item>
+				</Nodes>
+				<RigidBodies>
+					<count>1</count>
+					<item_version>9</item_version>
+					<item>
+						<NodeName>0</NodeName>
+						<Translate>Vector3(0, 0, 0)</Translate>
+						<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
+						<LocalLinearVelocity>Vector3(0, 0, 0)</LocalLinearVelocity>
+						<LocalAngularVelocity>Vector3(0, 0, 0)</LocalAngularVelocity>
+						<MotionType>
+							<name>BOX_INERTIA</name>
+						</MotionType>
+						<QualityType>
+							<name>MOVING</name>
+						</QualityType>
+						<CollisionResponse>
+							<name>SIMPLE_CONTACT</name>
+						</CollisionResponse>
+						<DeactivatorType>
+							<name>SPATIAL</name>
+						</DeactivatorType>
+						<SolverDeactivation>
+							<name>LOW</name>
+						</SolverDeactivation>
+						<Shape>
+							<m_Data>
+								<px class_id="21" tracking_level="1" version="1" object_id="_3">
+									<Shape>
+										<Scale>Vector3(1, 1, 1)</Scale>
+									</Shape>
+									<Extents>Vector3(2.4000001, 1.8, 3.5999999)</Extents>
+									<Hollow>0</Hollow>
+									<Thickness>0</Thickness>
+								</px>
+							</m_Data>
+						</Shape>
+						<Mass>750</Mass>
+						<Centroid>Vector3(0, 0, 0)</Centroid>
+						<LinearDamping>0</LinearDamping>
+						<AngularDamping>0.050000001</AngularDamping>
+						<GravityFactor>1</GravityFactor>
+						<Friction>0.5</Friction>
+						<Restitution>0.40000001</Restitution>
+						<MaxLinearVelocity>200</MaxLinearVelocity>
+						<MaxAngularVelocity>200</MaxAngularVelocity>
+						<AllowedPenetrationDepth>-1</AllowedPenetrationDepth>
+						<CollisionFilterInfo>0</CollisionFilterInfo>
+					</item>
+				</RigidBodies>
+				<Constraints>
+					<count>0</count>
+					<item_version>0</item_version>
+				</Constraints>
+				<HostScriptName></HostScriptName>
+			</second>
+		</item>
+		<item>
+			<first>Dodgem</first>
+			<second>
+				<Nodes>
+					<count>1</count>
+					<item_version>6</item_version>
+					<item>
+						<Name></Name>
+						<Appearances>
+							<count>2</count>
+							<item_version>0</item_version>
+							<item>
+								<m_Data>
+									<px class_id_reference="6" object_id="_4">
+										<AppearanceConfig>
+											<Name></Name>
+											<Translation>Vector3(0, 0, 0)</Translation>
+											<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
+											<Visible>1</Visible>
+											<CastShadows>1</CastShadows>
+										</AppearanceConfig>
+										<MeshName>dodgem.mesh</MeshName>
+										<Scale>Vector3(0.001, 0.001, 0.001)</Scale>
+										<MaterialMap>
+											<count>0</count>
+											<item_version>0</item_version>
+										</MaterialMap>
+									</px>
+								</m_Data>
+							</item>
+							<item>
+								<m_Data>
+									<px class_id="12" tracking_level="1" version="0" object_id="_5">
+										<AppearanceConfig>
+											<Name>RearMirror</Name>
+											<Translation>Vector3(0, 0, 0)</Translation>
+											<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
+											<Visible>1</Visible>
+											<CastShadows>1</CastShadows>
+										</AppearanceConfig>
+										<Normal>Vector3(0, 0.1, 1)</Normal>
+										<Point>Vector3(0, 0, 0.2)</Point>
+									</px>
+								</m_Data>
+							</item>
+						</Appearances>
+					</item>
+				</Nodes>
+				<RigidBodies>
+					<count>1</count>
+					<item_version>9</item_version>
+					<item>
+						<NodeName>0</NodeName>
+						<Translate>Vector3(0, 0, 0)</Translate>
+						<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
+						<LocalLinearVelocity>Vector3(0, 0, 0)</LocalLinearVelocity>
+						<LocalAngularVelocity>Vector3(0, 0, 0)</LocalAngularVelocity>
+						<MotionType>
+							<name>BOX_INERTIA</name>
+						</MotionType>
+						<QualityType>
+							<name>MOVING</name>
+						</QualityType>
+						<CollisionResponse>
+							<name>SIMPLE_CONTACT</name>
+						</CollisionResponse>
+						<DeactivatorType>
+							<name>NEVER</name>
+						</DeactivatorType>
+						<SolverDeactivation>
+							<name>LOW</name>
+						</SolverDeactivation>
+						<Shape>
+							<m_Data>
+								<px class_id_reference="26" object_id="_6">
+									<Shape>
+										<Scale>Vector3(1, 1, 1)</Scale>
+									</Shape>
+									<PackageName>dodgem.shape</PackageName>
+								</px>
+							</m_Data>
+						</Shape>
+						<Mass>600</Mass>
+						<Centroid>Vector3(0, 0, 0)</Centroid>
+						<LinearDamping>0</LinearDamping>
+						<AngularDamping>0.2</AngularDamping>
+						<GravityFactor>1</GravityFactor>
+						<Friction>0.60000002</Friction>
+						<Restitution>0.40000001</Restitution>
+						<MaxLinearVelocity>200</MaxLinearVelocity>
+						<MaxAngularVelocity>200</MaxAngularVelocity>
+						<AllowedPenetrationDepth>-1</AllowedPenetrationDepth>
+						<CollisionFilterInfo>0</CollisionFilterInfo>
+					</item>
+				</RigidBodies>
+				<Constraints>
+					<count>0</count>
+					<item_version>0</item_version>
+				</Constraints>
+				<HostScriptName></HostScriptName>
+			</second>
+		</item>
+	</UnitMap>
+</Tanx_UnitLibrary>
+</boost_serialization>
+

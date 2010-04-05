@@ -1,0 +1,69 @@
+
+particle_system	Tetris/Fireworks
+{
+	material					Tetris/Flare
+	point_rendering				false
+	particle_width				0.4
+	particle_height				0.4
+	cull_each					false
+	quota						1000
+	emit_emitter_quota			6
+	billboard_type				point
+
+	// Emitter that emits multiple Point emitters with name 'explosion'
+	emitter Box
+	{
+		name					mainEmitter
+		width					4
+		height					4
+		depth					4
+		emit_emitter			explosion
+		angle					15
+		emission_rate			0.3
+		time_to_live			5
+		direction				0 1 0
+		velocity				9
+		colour_range_start		0.6 0.6 0
+		colour_range_end		1 1 0.4
+	}
+
+	// This Point emitter is emitted by the Box emitter and emits billboard particles itself
+	emitter Point
+	{
+		name					explosion
+		angle					180
+		emission_rate			800
+		time_to_live			4
+		direction				0 1 0
+		velocity				1.4
+		duration				0.1
+		repeat_delay_min		3
+		repeat_delay_max		5
+	}
+
+	// Make em float downwards
+	affector LinearForce
+	{
+		force_vector			0 -1.2 0
+		force_application		add
+	}
+
+	// Give em some nice colours
+	affector ColourInterpolator
+	{
+		time0					0
+		colour0					0.4	0	0
+
+		time1					0.1
+		colour1					1	0	0
+
+		time2					0.4
+		colour2					0.2	1	0
+
+		time3					0.75
+		colour3					0	1	0.2
+
+		time4					0.9
+		colour4					0	0	1
+	}
+}

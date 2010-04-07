@@ -413,7 +413,7 @@
 	</SkyDome>
 	<AmbientLight>ColourValue(0.30000001, 0.30000001, 0.30000001, 1)</AmbientLight>
 	<ShadowTechnique class_id="43" tracking_level="0" version="0">
-		<name>NONE</name>
+		<name>STENCIL_ADDITIVE</name>
 	</ShadowTechnique>
 	<ShadowColor>ColourValue(0.30000001, 0.30000001, 0.30000001, 1)</ShadowColor>
 	<Gravity>Vector3(0, -9.8000002, 0)</Gravity>

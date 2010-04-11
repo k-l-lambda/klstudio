@@ -104,6 +104,19 @@ material Tetris/WellWallWithTitle
 				scale			0.1111111 0.016666667
 				scroll_anim		0 0.018
 			}
+
+			texture_unit
+			{
+				colour_op_ex	modulate src_texture src_current
+				texture			"cylinder background.png"
+				scale			0.1111111 0.016666667
+				scroll_anim		0 0.018
+			}
+
+			texture_unit
+			{
+				colour_op_ex	modulate src_manual src_current 0.7 0.7 0.7
+			}
 		}
 
 		pass

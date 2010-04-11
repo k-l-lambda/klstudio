@@ -28,8 +28,9 @@
 .header {
 	font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
 	font-weight: bold;
-	font-size: 18px;
+	font-size: 14px;
 	color: #787878;
+	list-style-type: disc;
 }
 .copyright {
 	float: right;
@@ -40,7 +41,11 @@
 }
 .hover {
 	font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
-	font-size: 18px;
+	font-size: 14px;
+	color: #777;
+	list-style-type: square;
+}
+.hover_link {
 	color: #777;
 }
 </style>
@@ -51,7 +56,7 @@
 <div class="main_container">
     <table width="800" border="0" align="center">
       <tr>
-        <td><img src="res/images/K.L. Stuidio Logo small.png"></td>
+        <td><a href="index.html"><img src="res/images/K.L. Stuidio Logo small.png"></a></td>
       </tr>
       <tr>
         <td height="160" align="center"><img src="res/images/To Create a Playful World.png" width="640" height="48"></td>
@@ -61,15 +66,21 @@
 		<div style="margin: 0 auto">
      <P class="copyright">
 			 &copy; 2010 K.L. Studio<BR>
-			</P>
+		  </P>
    	  		<div class="footer_col">
                 <ul>
                     <li class="header">Projects</li>
-                    <li><a href="projects/Tanx/Tanx.html" class="hover">Tanx</a></li>
+                  <li class="hover"><a href="projects/Tanx/Tanx.html" class="hover_link">Tanx</a></li>
+                </ul>
+            </div>
+   	  		<div class="footer_col">
+                <ul>
+                  <li class="header">About Us</li>
+                  <li class="hover"><a href="about.html" class="hover_link">Contacts</a></li>
                 </ul>
             </div>
    		</div>
-    </div>
+  </div>
 </div>
 </body>
 

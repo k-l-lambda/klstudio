@@ -9,6 +9,8 @@
 
 Tanx.log("[Dodgem\\AiCar.agent.lua]: parsed.")
 
+Tanx.dofile"Automobile.lua"
+
 
 iif = iif or function(condition, truepart, falsepart)
 	if condition then
@@ -62,8 +64,9 @@ host =
 	postCreate = function(agent)
 		g_Agent = agent
 
-		local action = Tanx.VehicleBook.getSingleton():at"Dodgem/Dodgem":make(agent:getMainBody())
-		g_Driver = action:get().m_deviceStatus:toDerived()
+		--local action = Tanx.VehicleBook.getSingleton():at"Dodgem/Dodgem":make(agent:getMainBody())
+		--g_Driver = action:get().m_deviceStatus:toDerived()
+		g_PlayerAutomobile = Automobile(g_Agent:getMainBody(), "Dodgem/Dodgem")
 
 		g_Time = 0
 	end,
@@ -71,8 +74,8 @@ host =
 	onStep = function(elapsed)
 		local driver = chaseTarget(g_Target)
 
-		g_Driver.m_positionX = driver.x
-		g_Driver.m_positionY = driver.y
+		g_PlayerAutomobile.Driver.m_positionX = driver.x
+		g_PlayerAutomobile.Driver.m_positionY = driver.y
 
 		g_Time = g_Time + elapsed
 	end,

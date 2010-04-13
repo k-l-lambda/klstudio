@@ -10,6 +10,7 @@
 Tanx.log("[Dodgem\\Dodgem.game.lua]: parsed.")
 
 Tanx.dofile"VehicleCamera.lua"
+Tanx.dofile"Automobile.lua"
 
 
 function initialize(game)
@@ -30,10 +31,11 @@ function initialize(game)
 	game:getWorld():loadScene(scene, game:getResourcePackage())
 
 	local car1 = game:getWorld():createAgent("Dodgem/Dodgem", "car1", Tanx.RigidBodyState.make(Tanx.Vector3(0, 0.8, 0)))
-	local action = Tanx.VehicleBook.getSingleton():at"Dodgem/Dodgem":make(car1:get():getMainBody())
-	g_Car1Action = action
+	--local action = Tanx.VehicleBook.getSingleton():at"Dodgem/Dodgem":make(car1:get():getMainBody())
+	--g_Car1Action = action
+	g_PlayerAutomobile = Automobile(car1:get():getMainBody(), "Dodgem/Dodgem")
 
-	g_Driver = action:get().m_deviceStatus:toDerived()
+	--g_Driver = action:get().m_deviceStatus:toDerived()
 
 	local params = Tanx.ParameterMap()
 	params:at"target":assign(car1)
@@ -60,26 +62,27 @@ function onStep(elapsed)
 
 	-- player control
 	do
-		g_Driver.m_positionX = 0
-		g_Driver.m_positionY = 0
-		g_Driver.m_handbrakeButtonPressed:set(g_Keyboard ~= nil and g_Keyboard:isKeyDown(OIS.KeyCode.SPACE))
-		g_Driver.m_reverseButtonPressed:set(g_Keyboard ~= nil and g_Keyboard:isKeyDown(OIS.KeyCode.LCONTROL))
+		local driver = g_PlayerAutomobile.Driver
+		driver.m_positionX = 0
+		driver.m_positionY = 0
+		driver.m_handbrakeButtonPressed:set(g_Keyboard ~= nil and g_Keyboard:isKeyDown(OIS.KeyCode.SPACE))
+		driver.m_reverseButtonPressed:set(g_Keyboard ~= nil and g_Keyboard:isKeyDown(OIS.KeyCode.LCONTROL))
 
 		if g_Keyboard then
 			if g_Keyboard:isKeyDown(OIS.KeyCode.W) then
-				g_Driver.m_positionY = g_Driver.m_positionY + 1
+				driver.m_positionY = driver.m_positionY + 1
 			end
 
 			if g_Keyboard:isKeyDown(OIS.KeyCode.S) then
-				g_Driver.m_positionY = g_Driver.m_positionY - 1
+				driver.m_positionY = driver.m_positionY - 1
 			end
 
 			if g_Keyboard:isKeyDown(OIS.KeyCode.A) then
-				g_Driver.m_positionX = g_Driver.m_positionX - 1
+				driver.m_positionX = driver.m_positionX - 1
 			end
 
 			if g_Keyboard:isKeyDown(OIS.KeyCode.D) then
-				g_Driver.m_positionX = g_Driver.m_positionX + 1
+				driver.m_positionX = driver.m_positionX + 1
 			end
 		end
 	end

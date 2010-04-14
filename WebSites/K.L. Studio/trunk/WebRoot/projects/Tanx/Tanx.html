@@ -131,13 +131,23 @@ body {
 				}
 				else
 				{
-					var subMessage = tanxjs.util.getPluginVersion() ? "This demo requires a newer version of the K.L.'s Tanx plugin." : "This demo requires the K.L.'s Tanx plugin to be installed.";
-					document.write(
-						'<div style="background: lightblue; width: 100%; height: 100%; text-align:center;">' +
-						'	<img src="demos/res/Cover_Tetris.png" style="width:100%; max-width:640px">' +
-						'	<br/><br/>' + subMessage + '<br/>' +
-						'</div>'
-					);
+					if(tanxjs.util.IsMSIE())
+						document.write(
+							'<div style="background: LemonChiffon; width: 100%; height: 100%; text-align:center;">' +
+							'	<img src="demos/res/Cover_Tetris.png" style="width:100%; max-width:640px">' +
+							'	<br/><br/>Sorry, your current browser of "Windows Internet Explorer" hasn\'t been supported yet, please try to view this page via <a href="http://www.google.com/chrome">Google Chrome</a> or <a href="http://www.mozillaonline.com/">Firefox</a>.<br/>' +
+							'</div>'
+						);
+					else
+					{
+						var subMessage = tanxjs.util.getPluginVersion() ? "This demo requires a newer version of the K.L.'s Tanx plugin." : "This demo requires the K.L.'s Tanx plugin to be installed.";
+						document.write(
+							'<div style="background: lightblue; width: 100%; height: 100%; text-align:center;">' +
+							'	<img src="demos/res/Cover_Tetris.png" style="width:100%; max-width:640px">' +
+							'	<br/><br/>' + subMessage + '<br/>' +
+							'</div>'
+						);
+					}
 				}
 			</script>
 		</div>
@@ -185,6 +195,16 @@ body {
     <td><p><a href="Demos/ThreeBody.html"><strong>Three Body</strong></a></p>
       <p>A simulation of <a href="http://en.wikipedia.org/wiki/Three-body_problem">three-body physics system</a>.</p></td>
     <td><a href="Demos/ThreeBody.html"><img src="Demos/res/thumbnail_Threebody.png" width="160" height="128" /></a></td>
+  </tr>
+  <tr>
+    <td><p><a href="Demos/Pool.html"><strong>Pool</strong></a> <font class="demo_version">(test)</font></p>
+      <p>A simple scene of pool game.</p></td>
+    <td><a href="Demos/Pool.html"><img src="Demos/res/thumbnail_Pool.png" width="160" height="128" /></a></td>
+  </tr>
+  <tr>
+    <td><p><a href="Demos/Test.html"><strong>General Test</strong></a> <font class="demo_version">(test)</font></p>
+      <p>A simple scene for general test.</p></td>
+    <td><a href="Demos/Test.html"><img src="Demos/res/thumbnail_Test.png" width="160" height="128" /></a></td>
   </tr>
 </table>
 

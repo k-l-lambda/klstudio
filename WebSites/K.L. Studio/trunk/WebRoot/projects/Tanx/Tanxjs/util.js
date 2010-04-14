@@ -66,3 +66,10 @@ tanxjs.util.requiredVersionAvailable = function(requiredVersion)
 
 	return true;
 };
+
+
+tanxjs.util.IsMSIE = function() {
+	var ua = navigator.userAgent.toLowerCase();
+	var msie = /msie/.test(ua) && !/opera/.test(ua);
+	return msie;
+};

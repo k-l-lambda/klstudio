@@ -21,21 +21,12 @@ function initialize(game)
 
 	game:getWorld():reset()
 
-	-- load unit and vehicle library
-	Tanx.UnitBook.getSingleton():loadLibrary(game:getResourcePackage():get():open("Dodgem.unit"):get())
-	Tanx.VehicleBook.getSingleton():loadLibrary(game:getResourcePackage():get():open("Dodgem.vehicle"):get())
-
 	-- load scene
-	local scene = Tanx.SceneConfig()
-	Tanx.GenericArchive.load(game:getResourcePackage():get():open("Park.scene"):get(), scene)
+	local scene = game:getResourcePackage():get():getResource("Park.scene")
 	game:getWorld():loadScene(scene, game:getResourcePackage())
 
 	local car1 = game:getWorld():createAgent("Dodgem/Dodgem", "car1", Tanx.RigidBodyState.make(Tanx.Vector3(0, 0.8, 0)))
-	--local action = Tanx.VehicleBook.getSingleton():at"Dodgem/Dodgem":make(car1:get():getMainBody())
-	--g_Car1Action = action
 	g_PlayerAutomobile = Automobile(car1:get():getMainBody(), "Dodgem/Dodgem")
-
-	--g_Driver = action:get().m_deviceStatus:toDerived()
 
 	local params = Tanx.ParameterMap()
 	params:at"target":assign(car1)

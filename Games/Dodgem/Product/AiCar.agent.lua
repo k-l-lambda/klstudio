@@ -77,6 +77,8 @@ host =
 		g_PlayerAutomobile.Driver.m_positionX = driver.x
 		g_PlayerAutomobile.Driver.m_positionY = driver.y
 
+		g_PlayerAutomobile:step(elapsed)
+
 		g_Time = g_Time + elapsed
 	end,
 }

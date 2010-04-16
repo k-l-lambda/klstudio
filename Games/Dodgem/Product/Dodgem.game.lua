@@ -78,12 +78,7 @@ function onStep(elapsed)
 		end
 	end
 
-	--[[if g_Car1Action then
-		local rpm = g_Car1Action:get():calcRPM()
-		local kmph = g_Car1Action:get():calcKMPH()
-		local mph = g_Car1Action:get():calcMPH()
-		Tanx.log(string.format("[Dodgem\\Dodgem.game.lua]: car1 rpm: %f, kmph: %f, mph: %f.", rpm, kmph, mph))
-	end]]
+	g_PlayerAutomobile:step(elapsed)
 end
 
 

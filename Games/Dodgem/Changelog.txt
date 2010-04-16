@@ -1,0 +1,15 @@
+TODO:
+	vehicle sound
+	AI: back off when blocking
+	refine vehicle following camera
+
+
+
+2010.4.16	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Product/Automobile.lua: Automobile:step added.
+
+	+	ChangeLog.txt: created.
+
+
+------------------------------------------------------- Dodgem ChangeLog -------------------------------------------------------

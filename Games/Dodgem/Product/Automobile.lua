@@ -12,11 +12,20 @@ Tanx.log("[Dodgem\\Automobile.lua]: parsed.")
 
 class "Automobile"
 
-	function Automobile:__init(chassis, vehiclemakername)
+	function Automobile:__init(chassis, vehiclemakername, soundsources)
 		local maker = Tanx.VehicleBook.getSingleton():at(vehiclemakername)
 
+		self.Chassis = chassis
 		self.VehicleAction = maker:make(chassis)
 		self.Driver = self.VehicleAction:get().m_deviceStatus:toDerived()
+
+		self.SoundSources = soundsources or {}
+
+		if self.SoundSources.Engine then
+			self.SoundSources.Engine:get():setLooping(true)
+			self.SoundSources.Engine:get():setGain(0)
+			self.SoundSources.Engine:get():play()
+		end
 	end
 
 	function Automobile:step(elapsed)
@@ -25,4 +34,13 @@ class "Automobile"
 		self.MPH = self.VehicleAction:get():calcMPH()
 
 		--Tanx.log(string.format("[Dodgem\\Automobile.lua]: rpm: %f, kmph: %f, mph: %f.", self.RPM, self.KMPH, self.MPH))
+
+		if self.SoundSources.Engine then
+			local position = self.Chassis:get():getPosition()
+			local velocity = self.Chassis:get():getLinearVelocity()
+
+			self.SoundSources.Engine:get():setPosition(position.x, position.y, position.z)
+			self.SoundSources.Engine:get():setVelocity(velocity.x, velocity.y, velocity.z)
+			self.SoundSources.Engine:get():setGain(self.RPM / 2000)
+		end
 	end

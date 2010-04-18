@@ -1,5 +1,6 @@
 TODO:
 	vehicle sound
+		play sound in agent host script
 	AI: back off when blocking
 	refine vehicle following camera
 

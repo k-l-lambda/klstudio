@@ -25,8 +25,10 @@ function initialize(game)
 	local scene = game:getResourcePackage():get():getResource("Park.scene")
 	game:getWorld():loadScene(scene, game:getResourcePackage())
 
+	local enginesound = openalpp.Source.new(openalpp.Sample.new(g_Game:getResourcePackage():get():open"engine.wav":get()):get())
+
 	local car1 = game:getWorld():createAgent("Dodgem/Dodgem", "car1", Tanx.RigidBodyState.make(Tanx.Vector3(0, 0.8, 0)))
-	g_PlayerAutomobile = Automobile(car1:get():getMainBody(), "Dodgem/Dodgem")
+	g_PlayerAutomobile = Automobile(car1:get():getMainBody(), "Dodgem/Dodgem", {Engine = enginesound})
 
 	local params = Tanx.ParameterMap()
 	params:at"target":assign(car1)
@@ -45,6 +47,10 @@ function initialize(game)
 		local rearview = game:getWindow():addViewport(g_MainCamera:getRearCamera(), 1, 0.3, 0.01, 0.4, 0.2)
 		rearview:setBackgroundColour(Ogre.ColourValue(0.2, 0.3, 0.5))
 	end
+
+	-- create sound listener
+	g_SoundListener = openalpp.Listener.new()
+	updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera())
 end
 
 
@@ -79,6 +85,8 @@ function onStep(elapsed)
 	end
 
 	g_PlayerAutomobile:step(elapsed)
+
+	updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera(), elapsed)
 end
 
 
@@ -86,4 +94,22 @@ function windowClosing(window)
 	g_Game:exit()
 
 	return false
+end
+
+
+function updateSoundListenerByCamera(listener, camera, elapsed)
+	elapsed = elapsed or 1
+
+	local position = camera:getRealPosition()
+	local direction = camera:getRealDirection()
+	local up = camera:getRealUp()
+
+	g_LastPosition = g_LastPosition or position
+	local velocity = (position - g_LastPosition) / elapsed
+
+	listener:get():setPosition(position.x, position.y, position.z)
+	listener:get():setOrientation(direction.x, direction.y, direction.z, up.x, up.y, up.z)
+	listener:get():setVelocity(velocity.x, velocity.y, velocity.z)
+
+	g_LastPosition = position
 end

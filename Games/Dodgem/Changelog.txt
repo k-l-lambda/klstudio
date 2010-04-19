@@ -1,9 +1,17 @@
 TODO:
+	collision sound
 	vehicle sound
-		play sound in agent host script
+		wheel sound
 	AI: back off when blocking
 	refine vehicle following camera
 
+
+
+2010.4.19	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Sound in agent host script implemented.
+
+	|	3D sound effect implemented.
 
 
 2010.4.16	K.L.	<xxxK.L.xxx@gmail.com>

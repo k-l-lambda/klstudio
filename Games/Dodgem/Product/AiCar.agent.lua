@@ -64,9 +64,8 @@ host =
 	postCreate = function(agent)
 		g_Agent = agent
 
-		--local action = Tanx.VehicleBook.getSingleton():at"Dodgem/Dodgem":make(agent:getMainBody())
-		--g_Driver = action:get().m_deviceStatus:toDerived()
-		g_PlayerAutomobile = Automobile(g_Agent:getMainBody(), "Dodgem/Dodgem")
+		local enginesound = openalpp.Source.new(Tanx.ScriptSpace:resource():getResource"engine_e.wav":get())
+		g_PlayerAutomobile = Automobile(g_Agent:getMainBody(), "Dodgem/Dodgem", {Engine = enginesound})
 
 		g_Time = 0
 	end,

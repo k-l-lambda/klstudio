@@ -25,7 +25,7 @@ function initialize(game)
 	local scene = game:getResourcePackage():get():getResource("Park.scene")
 	game:getWorld():loadScene(scene, game:getResourcePackage())
 
-	local enginesound = openalpp.Source.new(openalpp.Sample.new(g_Game:getResourcePackage():get():open"engine.wav":get()):get())
+	local enginesound = openalpp.Source.new(g_Game:getResourcePackage():get():getResource"engine.wav":get())
 
 	local car1 = game:getWorld():createAgent("Dodgem/Dodgem", "car1", Tanx.RigidBodyState.make(Tanx.Vector3(0, 0.8, 0)))
 	g_PlayerAutomobile = Automobile(car1:get():getMainBody(), "Dodgem/Dodgem", {Engine = enginesound})

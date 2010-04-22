@@ -4,39 +4,10 @@
 		<link rel="bookmark" href="res/Pool.ico" type="image/x-icon" />
 		<link rel="icon" href="res/Pool.ico" type="image/x-icon" />
 		<link rel="shortcut icon" href="res/Pool.ico" type="image/x-icon" />
-	</head>
-	<body>
 		<script type="text/javascript" src="../Tanxjs/util.js"></script>
-		<div style="width: 100%; height: 96%;">
-			<script type="text/javascript">
-				if(tanxjs.util.requiredVersionAvailable("0.1.0.2"))
-				{
-					document.write(
-						'<embed type="application/x-klstudio.tanx" style="width: 100%; height: 100%;" src="res/Pool.tanxzip" game="Pool.scene">'
-					);
-				}
-				else
-				{
-					if(tanxjs.util.IsMSIE())
-						document.write(
-							'<div style="background: LemonChiffon; width: 100%; height: 100%; text-align:center;">' +
-							'	<img src="res/Cover_Pool.png" style="width:100%; max-width:640px">' +
-							'	<br/><br/>Sorry, your current browser of "Windows Internet Explorer" hasn\'t been supported yet, please try to view this page via <a href="http://www.google.com/chrome">Google Chrome</a> or <a href="http://www.mozillaonline.com/">Firefox</a>.<br/>' +
-							'</div>'
-						);
-					else
-					{
-						var subMessage = tanxjs.util.getPluginVersion() ? "This page requires a newer version of the K.L.'s Tanx plugin." : "This page requires the K.L.'s Tanx plugin to be installed.";
-						document.write(
-							'<div style="background: lightblue; width: 100%; height: 100%; text-align:center;">' +
-							'	<img src="res/Cover_Pool.png" style="width:100%; max-width:640px">' +
-							'	<br/><br/>' + subMessage + '<br/>' +
-							'	<a href="../tanx.html">Click here to download.</a>' +
-							'</div>'
-						);
-					}
-				}
-			</script>
-		</div>
+		<script type="text/javascript" src="js/demo_template.js"></script>
+	</head>
+	<body onload="init()">
+		<div id="tanx" style="width: 100%; height: 98%;" requestVersion="0.1.0.2" package="res/Pool.tanxzip" game="Pool.scene" />
 	</body>
 </html>

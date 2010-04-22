@@ -25,6 +25,18 @@ tanxjs.util.getPluginVersion = function()
 			description = plugin.description;
 		}
 	}
+	else if(tanxjs.util.IsMSIE())
+	{
+		try
+		{
+			var activeXObject = new ActiveXObject('TanxPluginHost.TanxPluginHostControl');
+			description = activeXObject.description;
+		}
+		catch(e)
+		{
+			// Tanx plugin was not found.
+		}
+	}
 
 	if(description)
 	{

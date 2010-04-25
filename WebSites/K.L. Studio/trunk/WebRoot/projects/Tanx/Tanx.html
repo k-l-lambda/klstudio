@@ -122,15 +122,24 @@ body {
 	  <script type="text/javascript" src="Tanxjs/util.js"></script>
 		<div style="width: 100%; height: 100%;">
 		  <script type="text/javascript">
-				if(tanxjs.util.requiredVersionAvailable("0.3.1.10"))
+				if(tanxjs.util.requiredVersionAvailable("0.3.1.11"))
 				{
-					document.write(
-						'<object classid="CLSID:E8C87B51-B729-41bc-8510-404ACB3225B5" style="width: 100%; height: 480px;">' +
-						'	<param name="type" value="application/x-klstudio.tanx" />' +
-						'	<param name="src" value="demos/res/CubeTetris.tanxzip" />' +
-						'	<param name="game" value="TetrisScreenSaver.game" />' +
-						'</object>'
-					);
+					if(tanxjs.util.IsMSIE())
+					{
+						document.write(
+							'<object classid="CLSID:E8C87B51-B729-41bc-8510-404ACB3225B5" style="width: 100%; height: 480px;">' +
+							'	<param name="type" value="application/x-klstudio.tanx" />' +
+							'	<param name="src" value="demos/res/CubeTetris.tanxzip" />' +
+							'	<param name="game" value="TetrisScreenSaver.game" />' +
+							'</object>'
+						);
+					}
+					else
+					{
+						document.write(
+							'<embed type="application/x-klstudio.tanx" style="width: 100%; height: 480px;" src="demos/res/CubeTetris.tanxzip" game="TetrisScreenSaver.game" />'
+							);
+					}
 				}
 				else
 				{

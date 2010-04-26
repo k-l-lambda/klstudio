@@ -9,6 +9,8 @@ TODO:
 
 2010.4.26	K.L.	<xxxK.L.xxx@gmail.com>
 
+	>	AiCar.agent.lua: refined chasing algorithm.
+
 	+	Automobile.lua: class 'AutomobileCollisionListener' added.
 
 

@@ -32,9 +32,7 @@ local function computeOrientationVector(orientation, rel_position)
 	return v:normalisedCopy()
 end
 
-local function chaseTarget(target)
-	--return {x = math.sin(g_Time * 0.4), y = 0.3}
-
+local function chaseTarget(target, driverstate)
 	--[[local orientagnle = computeOrientationAngle(g_Agent:getMainBody():get():getOrientation(), g_Target:get():getMainBody():get():getPosition() - g_Agent:getMainBody():get():getPosition())
 	orientagnle = orientagnle / (math.pi * 2)
 	orientagnle = orientagnle - math.floor(orientagnle)
@@ -44,6 +42,12 @@ local function chaseTarget(target)
 	orientagnle = orientagnle * math.pi * 2]]
 
 	local orientvector = computeOrientationVector(g_Agent:getMainBody():get():getOrientation(), g_Target:get():getMainBody():get():getPosition() - g_Agent:getMainBody():get():getPosition())
+
+	local reverse = orientvector.y < iif(driverstate.y < 0, -0.3, -0.7)
+	if reverse then
+		return {x = iif(orientvector.x > 0, 1, -1), y = -1}
+	end
+
 	local x = math.pow(math.abs(orientvector.x), 0.3)
 	x = iif(orientvector.x > 0, x, -x)
 	local y = math.pow((orientvector.y + 1) / 2, 4.2) + 0.1
@@ -72,7 +76,7 @@ host =
 	end,
 
 	onStep = function(elapsed)
-		local driver = chaseTarget(g_Target)
+		local driver = chaseTarget(g_Target, {x = g_Automobile.Driver.m_positionX, y = g_Automobile.Driver.m_positionY})
 
 		g_Automobile.Driver.m_positionX = driver.x
 		g_Automobile.Driver.m_positionY = driver.y

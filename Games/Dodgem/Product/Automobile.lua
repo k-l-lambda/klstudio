@@ -69,11 +69,11 @@ class "AutomobileCollisionListener" (Tanx.CollisionListener)
 	end
 
 	function AutomobileCollisionListener:contactPointConfirmedCallback(event)
-		if event.m_collidableB:getShape():getType() ~= Havok.hkpShapeType.BOX then
+		--[[if event.m_collidableB:getShape():getType() ~= Havok.hkpShapeType.BOX then
 			Tanx.log(string.format("AutomobileCollisionListener:contactPointConfirmedCallback: A shape type: %d, B shape type: %d, projected velocity: %f, contace point: %s.",
 				event.m_collidableA:getShape():getType(), event.m_collidableB:getShape():getType(), event.m_projectedVelocity, tostring(Tanx.madp(event.m_contactPoint:getPosition()))))
 		end
-		--[[if self.Sounds then
+		if self.Sounds then
 			local rba = event.m_collidableA:getRigidBody()
 			local rbb = event.m_collidableB:getRigidBody()
 			if rba and rbb and (rba:isFixed():get() or rbb:isFixed():get()) and event.m_collidableB:getShape():getType() == Havok.hkpShapeType.BOX then

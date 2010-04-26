@@ -64,13 +64,15 @@ host =
 		g_Target = params:at"target":get()
 
 		g_EngineSoundFile = params:at"EngineSound":get()
+		g_CollisionBoxSoundFile = params:at"CollisionBoxSound":get()
+		g_CollisionConvexSoundFile = params:at"CollisionConvexSound":get()
 	end,
 
 	postCreate = function(agent)
 		g_Agent = agent
 
-		local enginesound = openalpp.Source.new(Tanx.ScriptSpace:resource():getResource(g_EngineSoundFile):get())
-		g_Automobile = Automobile(g_Agent:getMainBody(), "Dodgem/Dodgem", {Engine = enginesound})
+		local loadsound = function(filename) return openalpp.Source.new(Tanx.ScriptSpace:resource():getResource(filename):get()); end
+		g_Automobile = Automobile(g_Agent:getMainBody(), "Dodgem/Dodgem", {Engine = loadsound(g_EngineSoundFile), CollisionBox = loadsound(g_CollisionBoxSoundFile), CollisionConvex = loadsound(g_CollisionConvexSoundFile)})
 
 		g_Time = 0
 	end,

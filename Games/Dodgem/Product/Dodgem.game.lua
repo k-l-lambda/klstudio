@@ -28,16 +28,20 @@ function initialize(game)
 	local scene = game:getResourcePackage():get():getResource("Park.scene")
 	game:getWorld():loadScene(scene, game:getResourcePackage())
 
-	local enginesound = openalpp.Source.new(g_Game:getResourcePackage():get():getResource"engine.wav":get())
+	local sound_engine = openalpp.Source.new(g_Game:getResourcePackage():get():getResource"engine.wav":get())
+	local sound_collision3 = openalpp.Source.new(g_Game:getResourcePackage():get():getResource"collision3.wav":get())
+	local sound_collision2 = openalpp.Source.new(g_Game:getResourcePackage():get():getResource"collision2.wav":get())
 
 	local car1 = game:getWorld():createAgent("Dodgem/Dodgem", "car1", Tanx.RigidBodyState.make(Tanx.Vector3(0, 0.8, 0)))
-	g_PlayerAutomobile = Automobile(car1:get():getMainBody(), "Dodgem/Dodgem", {Engine = enginesound})
+	g_PlayerAutomobile = Automobile(car1:get():getMainBody(), "Dodgem/Dodgem", {Engine = sound_engine, CollisionBox = sound_collision3, CollisionConvex = sound_collision2})
 	table.insert(g_AutomobileList, g_PlayerAutomobile)
 
 	-- create AI cars
 	local aiparams = Tanx.ParameterMap()
 	aiparams:at"target":assign(car1)
 	aiparams:at"EngineSound":assign("engine_e.wav")
+	aiparams:at"CollisionBoxSound":assign("collision3.wav")
+	aiparams:at"CollisionConvexSound":assign("collision2.wav")
 
 	local i
 	for i = 1, 5 do
@@ -111,16 +115,18 @@ end
 function updateSoundListenerByCamera(listener, camera, elapsed)
 	elapsed = elapsed or 1
 
-	local position = camera:getRealPosition()
+	--local position = camera:getRealPosition()
+	local position = g_PlayerAutomobile.Chassis:get():getPosition()
+	local velocity = g_PlayerAutomobile.Chassis:get():getLinearVelocity()
 	local direction = camera:getRealDirection()
 	local up = camera:getRealUp()
 
-	g_LastPosition = g_LastPosition or position
-	local velocity = (position - g_LastPosition) / elapsed
+	--g_LastPosition = g_LastPosition or position
+	--local velocity = (position - g_LastPosition) / elapsed
 
 	listener:get():setPosition(position.x, position.y, position.z)
 	listener:get():setOrientation(direction.x, direction.y, direction.z, up.x, up.y, up.z)
 	listener:get():setVelocity(velocity.x, velocity.y, velocity.z)
 
-	g_LastPosition = position
+	--g_LastPosition = position
 end

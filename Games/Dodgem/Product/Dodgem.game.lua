@@ -13,6 +13,9 @@ Tanx.dofile"VehicleCamera.lua"
 Tanx.dofile"Automobile.lua"
 
 
+g_AutomobileList ={}
+
+
 function initialize(game)
 	g_Game = game
 	g_World = game:getWorld()
@@ -29,15 +32,19 @@ function initialize(game)
 
 	local car1 = game:getWorld():createAgent("Dodgem/Dodgem", "car1", Tanx.RigidBodyState.make(Tanx.Vector3(0, 0.8, 0)))
 	g_PlayerAutomobile = Automobile(car1:get():getMainBody(), "Dodgem/Dodgem", {Engine = enginesound})
+	table.insert(g_AutomobileList, g_PlayerAutomobile)
 
-	local params = Tanx.ParameterMap()
-	params:at"target":assign(car1)
+	-- create AI cars
+	local aiparams = Tanx.ParameterMap()
+	aiparams:at"target":assign(car1)
+	aiparams:at"EngineSound":assign("engine_e.wav")
 
 	local i
 	for i = 1, 5 do
-		game:getWorld():createAgent("Dodgem/AiCar", "aicar%index", Tanx.RigidBodyState.make(Tanx.Vector3((i - 3) * 8, 0.8, 20)), game:getResourcePackage(), params)
+		local agent = game:getWorld():createAgent("Dodgem/AiCar", "aicar%index", Tanx.RigidBodyState.make(Tanx.Vector3((i - 3) * 8, 0.8, 20)), game:getResourcePackage(), aiparams)
 	end
 
+	-- create main camera
 	do
 		g_MainCamera = VehicleCamera(car1, g_World, "Main", {Radius = 7, AspectRatio = game:getWindow():getWidth() / game:getWindow():getHeight(), RearCamera = {}})
 
@@ -84,7 +91,11 @@ function onStep(elapsed)
 		end
 	end
 
-	g_PlayerAutomobile:step(elapsed)
+	--g_PlayerAutomobile:step(elapsed)
+	local i
+	for i = 1, table.maxn(g_AutomobileList) do
+		g_AutomobileList[i]:step(elapsed)
+	end
 
 	updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera(), elapsed)
 end

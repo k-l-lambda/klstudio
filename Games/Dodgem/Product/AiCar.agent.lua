@@ -58,14 +58,15 @@ host =
 		g_World = world
 
 		g_Target = params:at"target":get()
-		--Tanx.log("[Dodgem\\AiCar.agent.lua]: target: " .. g_Target:get():getName())
+
+		g_EngineSoundFile = params:at"EngineSound":get()
 	end,
 
 	postCreate = function(agent)
 		g_Agent = agent
 
-		local enginesound = openalpp.Source.new(Tanx.ScriptSpace:resource():getResource"engine_e.wav":get())
-		g_PlayerAutomobile = Automobile(g_Agent:getMainBody(), "Dodgem/Dodgem", {Engine = enginesound})
+		local enginesound = openalpp.Source.new(Tanx.ScriptSpace:resource():getResource(g_EngineSoundFile):get())
+		g_Automobile = Automobile(g_Agent:getMainBody(), "Dodgem/Dodgem", {Engine = enginesound})
 
 		g_Time = 0
 	end,
@@ -73,10 +74,10 @@ host =
 	onStep = function(elapsed)
 		local driver = chaseTarget(g_Target)
 
-		g_PlayerAutomobile.Driver.m_positionX = driver.x
-		g_PlayerAutomobile.Driver.m_positionY = driver.y
+		g_Automobile.Driver.m_positionX = driver.x
+		g_Automobile.Driver.m_positionY = driver.y
 
-		g_PlayerAutomobile:step(elapsed)
+		g_Automobile:step(elapsed)
 
 		g_Time = g_Time + elapsed
 	end,

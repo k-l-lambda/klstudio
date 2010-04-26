@@ -7,6 +7,11 @@ TODO:
 
 
 
+2010.4.26	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Automobile.lua: class 'AutomobileCollisionListener' added.
+
+
 2010.4.19	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	Sound in agent host script implemented.

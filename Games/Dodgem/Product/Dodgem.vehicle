@@ -603,37 +603,177 @@
 				</WheelParams>
 				<DriverInput>
 					<m_Data>
-						<px class_id_reference="4" object_id_reference="_8"></px>
+						<px class_id_reference="4" object_id="_16">
+							<DriverInputConfig></DriverInputConfig>
+							<SlopeChangePointX>0.80000001</SlopeChangePointX>
+							<InitialSlope>0.69999999</InitialSlope>
+							<DeadZone>0</DeadZone>
+							<AutoReverse>1</AutoReverse>
+						</px>
 					</m_Data>
 				</DriverInput>
 				<Steering>
 					<m_Data>
-						<px class_id_reference="5" object_id_reference="_9"></px>
+						<px class_id_reference="5" object_id="_17">
+							<SteeringConfig></SteeringConfig>
+							<MaxSteeringAngle>0.61000001</MaxSteeringAngle>
+							<MaxSpeedFullSteeringAngle>31.200001</MaxSpeedFullSteeringAngle>
+							<DoesWheelSteer>
+								<count>4</count>
+								<item_version>0</item_version>
+								<item>1</item>
+								<item>1</item>
+								<item>0</item>
+								<item>0</item>
+							</DoesWheelSteer>
+						</px>
 					</m_Data>
 				</Steering>
 				<Engine>
 					<m_Data>
-						<px class_id_reference="6" object_id_reference="_10"></px>
+						<px class_id_reference="6" object_id="_18">
+							<EngineConfig></EngineConfig>
+							<MinRPM>500</MinRPM>
+							<OptRPM>5500</OptRPM>
+							<MaxRPM>8500</MaxRPM>
+							<MaxTorque>500</MaxTorque>
+							<TorqueFactorAtMinRPM>0.80000001</TorqueFactorAtMinRPM>
+							<TorqueFactorAtMaxRPM>0.80000001</TorqueFactorAtMaxRPM>
+							<ResistanceFactorAtMinRPM>0.050000001</ResistanceFactorAtMinRPM>
+							<ResistanceFactorAtOptRPM>0.1</ResistanceFactorAtOptRPM>
+							<ResistanceFactorAtMaxRPM>0.30000001</ResistanceFactorAtMaxRPM>
+							<ClutchSlipRPM>2000</ClutchSlipRPM>
+						</px>
 					</m_Data>
 				</Engine>
 				<Transmission>
 					<m_Data>
-						<px class_id_reference="7" object_id_reference="_11"></px>
+						<px class_id_reference="7" object_id="_19">
+							<TransmissionConfig></TransmissionConfig>
+							<DownshiftRPM>3500</DownshiftRPM>
+							<UpshiftRPM>6500</UpshiftRPM>
+							<ClutchDelayTime>0</ClutchDelayTime>
+							<ReverseGearRatio>1</ReverseGearRatio>
+							<GearsRatio>
+								<count>4</count>
+								<item_version>0</item_version>
+								<item>2</item>
+								<item>1.5</item>
+								<item>1</item>
+								<item>0.75</item>
+							</GearsRatio>
+							<WheelsTorqueRatio>
+								<count>4</count>
+								<item_version>0</item_version>
+								<item>0.2</item>
+								<item>0.2</item>
+								<item>0.30000001</item>
+								<item>0.30000001</item>
+							</WheelsTorqueRatio>
+							<VehicleTopSpeed>130</VehicleTopSpeed>
+							<WheelRadius>0.40000001</WheelRadius>
+							<MaxEngineRpm>7500</MaxEngineRpm>
+						</px>
 					</m_Data>
 				</Transmission>
 				<Brake>
 					<m_Data>
-						<px class_id_reference="8" object_id_reference="_12"></px>
+						<px class_id_reference="8" object_id="_20">
+							<BrakeConfig></BrakeConfig>
+							<WheelBrakingProperties>
+								<count>4</count>
+								<item_version>0</item_version>
+								<item>
+									<MaxBreakingTorque>1500</MaxBreakingTorque>
+									<MinPedalInputToBlock>0.89999998</MinPedalInputToBlock>
+									<IsConnectedToHandbrake>0</IsConnectedToHandbrake>
+								</item>
+								<item>
+									<MaxBreakingTorque>1500</MaxBreakingTorque>
+									<MinPedalInputToBlock>0.89999998</MinPedalInputToBlock>
+									<IsConnectedToHandbrake>0</IsConnectedToHandbrake>
+								</item>
+								<item>
+									<MaxBreakingTorque>1500</MaxBreakingTorque>
+									<MinPedalInputToBlock>0.89999998</MinPedalInputToBlock>
+									<IsConnectedToHandbrake>1</IsConnectedToHandbrake>
+								</item>
+								<item>
+									<MaxBreakingTorque>1500</MaxBreakingTorque>
+									<MinPedalInputToBlock>0.89999998</MinPedalInputToBlock>
+									<IsConnectedToHandbrake>1</IsConnectedToHandbrake>
+								</item>
+							</WheelBrakingProperties>
+							<WheelsMinTimeToBlock>1000</WheelsMinTimeToBlock>
+						</px>
 					</m_Data>
 				</Brake>
 				<Suspension>
 					<m_Data>
-						<px class_id_reference="9" object_id_reference="_13"></px>
+						<px class_id_reference="9" object_id="_21">
+							<SuspensionConfig>
+								<WheelParams>
+									<count>4</count>
+									<item_version>0</item_version>
+									<item>
+										<HardpointChassisSpace>Vector3(-1.1, 0.44999999, 1.5)</HardpointChassisSpace>
+										<DirectionChassisSpace>Vector3(0, -1, 0)</DirectionChassisSpace>
+										<Length>0.34999999</Length>
+									</item>
+									<item>
+										<HardpointChassisSpace>Vector3(1.1, 0.44999999, 1.5)</HardpointChassisSpace>
+										<DirectionChassisSpace>Vector3(0, -1, 0)</DirectionChassisSpace>
+										<Length>0.34999999</Length>
+									</item>
+									<item>
+										<HardpointChassisSpace>Vector3(-1.1, 0.44999999, -1.5)</HardpointChassisSpace>
+										<DirectionChassisSpace>Vector3(0, -1, 0)</DirectionChassisSpace>
+										<Length>0.34999999</Length>
+									</item>
+									<item>
+										<HardpointChassisSpace>Vector3(1.1, 0.44999999, -1.5)</HardpointChassisSpace>
+										<DirectionChassisSpace>Vector3(0, -1, 0)</DirectionChassisSpace>
+										<Length>0.34999999</Length>
+									</item>
+								</WheelParams>
+							</SuspensionConfig>
+							<WheelSpringParams>
+								<count>4</count>
+								<item_version>0</item_version>
+								<item>
+									<Strength>50</Strength>
+									<DampingCompression>3</DampingCompression>
+									<DampingRelaxation>3</DampingRelaxation>
+								</item>
+								<item>
+									<Strength>50</Strength>
+									<DampingCompression>3</DampingCompression>
+									<DampingRelaxation>3</DampingRelaxation>
+								</item>
+								<item>
+									<Strength>50</Strength>
+									<DampingCompression>3</DampingCompression>
+									<DampingRelaxation>3</DampingRelaxation>
+								</item>
+								<item>
+									<Strength>50</Strength>
+									<DampingCompression>3</DampingCompression>
+									<DampingRelaxation>3</DampingRelaxation>
+								</item>
+							</WheelSpringParams>
+						</px>
 					</m_Data>
 				</Suspension>
 				<Aerodynamics>
 					<m_Data>
-						<px class_id_reference="10" object_id_reference="_14"></px>
+						<px class_id_reference="10" object_id="_22">
+							<AerodynamicsConfig></AerodynamicsConfig>
+							<AirDensity>1.3</AirDensity>
+							<FrontalArea>1</FrontalArea>
+							<DragCoefficient>0.69999999</DragCoefficient>
+							<LiftCoefficient>-0.30000001</LiftCoefficient>
+							<ExtraGravityws>Vector3(0, -5, 0)</ExtraGravityws>
+						</px>
 					</m_Data>
 				</Aerodynamics>
 				<Tyremarks>
@@ -642,7 +782,12 @@
 				</Tyremarks>
 				<VelocityDamper>
 					<m_Data>
-						<px class_id_reference="11" object_id_reference="_15"></px>
+						<px class_id_reference="11" object_id="_23">
+							<VelocityDamperConfig></VelocityDamperConfig>
+							<NormalSpinDamping>0</NormalSpinDamping>
+							<CollisionSpinDamping>4</CollisionSpinDamping>
+							<CollisionThreshold>1</CollisionThreshold>
+						</px>
 					</m_Data>
 				</VelocityDamper>
 			</second>

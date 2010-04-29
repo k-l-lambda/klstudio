@@ -1,9 +1,13 @@
 TODO:
-	vehicle sound
-		wheel sound
+	wheel sound
 	AI: back off when blocking
 	refine vehicle following camera
 
+
+
+2010.4.29	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Dodgem tail added.
 
 
 2010.4.26	K.L.	<xxxK.L.xxx@gmail.com>

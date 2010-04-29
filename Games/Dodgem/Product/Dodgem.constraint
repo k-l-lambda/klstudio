@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!DOCTYPE boost_serialization>
+<boost_serialization signature="serialization::archive" version="5">
+<Tanx_ConstraintLibrary class_id="0" tracking_level="0" version="1">
+	<Name>Dodgem</Name>
+	<DataMap class_id="5" tracking_level="0" version="0">
+		<count>5</count>
+		<item_version>0</item_version>
+		<item class_id="6" tracking_level="0" version="0">
+			<first>TailJoint0</first>
+			<second class_id="7" tracking_level="0" version="1">
+				<px class_id="2" tracking_level="1" version="0" object_id="_0">
+					<ConstraintData class_id="8" tracking_level="0" version="0"></ConstraintData>
+					<PivotA>Vector3(0, 1.4, -2.7)</PivotA>
+					<PivotB>Vector3(0, 0, 0)</PivotB>
+					<RestLength>0.039999999</RestLength>
+				</px>
+			</second>
+		</item>
+		<item>
+			<first>TailJoint0_f</first>
+			<second>
+				<px class_id="3" tracking_level="1" version="0" object_id="_1">
+					<ConstraintData></ConstraintData>
+					<Translate>Vector3(0, 1.4, -2.7)</Translate>
+					<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
+				</px>
+			</second>
+		</item>
+		<item>
+			<first>TailJoint1</first>
+			<second>
+				<px class_id_reference="2" object_id="_2">
+					<ConstraintData></ConstraintData>
+					<PivotA>Vector3(0, 0, 0)</PivotA>
+					<PivotB>Vector3(0, 0, 0)</PivotB>
+					<RestLength>0.80000001</RestLength>
+				</px>
+			</second>
+		</item>
+		<item>
+			<first>TailJoint2</first>
+			<second>
+				<px class_id_reference="2" object_id="_3">
+					<ConstraintData></ConstraintData>
+					<PivotA>Vector3(0, 0, 0)</PivotA>
+					<PivotB>Vector3(0, 0, 0)</PivotB>
+					<RestLength>1.9</RestLength>
+				</px>
+			</second>
+		</item>
+		<item>
+			<first>TailJoint2_l</first>
+			<second>
+				<px class_id_reference="2" object_id="_4">
+					<ConstraintData></ConstraintData>
+					<PivotA>Vector3(0, 0, 0)</PivotA>
+					<PivotB>Vector3(0, 0, 0)</PivotB>
+					<RestLength>3.2</RestLength>
+				</px>
+			</second>
+		</item>
+	</DataMap>
+</Tanx_ConstraintLibrary>
+</boost_serialization>
+

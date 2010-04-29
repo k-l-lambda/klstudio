@@ -41,7 +41,9 @@ local function chaseTarget(target, driverstate)
 	end
 	orientagnle = orientagnle * math.pi * 2]]
 
-	local orientvector = computeOrientationVector(g_Agent:getMainBody():get():getOrientation(), g_Target:get():getMainBody():get():getPosition() - g_Agent:getMainBody():get():getPosition())
+	local tbodies = target:get():getBodies()
+	local body = target:get():getBodies():at(iif(tbodies:size() >= 3, 2, 0))
+	local orientvector = computeOrientationVector(g_Agent:getMainBody():get():getOrientation(), body:get():getPosition() - g_Agent:getMainBody():get():getPosition())
 
 	local reverse = orientvector.y < iif(driverstate.y < 0, -0.3, -0.7)
 	if reverse then
@@ -52,7 +54,7 @@ local function chaseTarget(target, driverstate)
 	x = iif(orientvector.x > 0, x, -x)
 	local y = math.pow((orientvector.y + 1) / 2, 4.2) + 0.1
 
-	return {x = -x, y = y}
+	return {x = -x, y = y * 0.3}
 end
 
 

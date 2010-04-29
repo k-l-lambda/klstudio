@@ -1,4 +1,5 @@
 TODO:
+	class Dodgem, move collision sound effects into
 	wheel sound
 	AI: back off when blocking
 	refine vehicle following camera

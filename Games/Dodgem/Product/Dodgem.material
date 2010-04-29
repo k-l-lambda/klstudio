@@ -27,6 +27,87 @@ material Dodgem/Car1
 	}
 }
 
+
+material Dodgem/TailBall/Red0
+{
+	technique
+	{
+		pass
+		{
+			ambient		1 0.8 0
+			diffuse		1 0.8 0
+			specular	1 1 1 12
+		}
+	}
+}
+
+material Dodgem/TailBall/Red1
+{
+	technique
+	{
+		pass
+		{
+			ambient		1 0.4 0
+			diffuse		1 0.4 0
+			specular	1 1 1 12
+		}
+	}
+}
+
+material Dodgem/TailBall/Red2
+{
+	technique
+	{
+		pass
+		{
+			ambient		1 0 0
+			diffuse		1 0 0
+			specular	1 1 1 12
+		}
+	}
+}
+
+
+material Dodgem/TailBall/Green0
+{
+	technique
+	{
+		pass
+		{
+			ambient		0 0.3 1
+			diffuse		0 0.3 1
+			specular	1 1 1 12
+		}
+	}
+}
+
+material Dodgem/TailBall/Green1
+{
+	technique
+	{
+		pass
+		{
+			ambient		0 1 1
+			diffuse		0 1 1
+			specular	1 1 1 12
+		}
+	}
+}
+
+material Dodgem/TailBall/Green2
+{
+	technique
+	{
+		pass
+		{
+			ambient		0 1 0
+			diffuse		0 1 0
+			specular	1 1 1 12
+		}
+	}
+}
+
+
 material Dodgem/DodgemMesh/Material_#148/E002FARJ
 {
     technique

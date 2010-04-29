@@ -92,8 +92,12 @@
 										<MeshName>Prefab_Sphere</MeshName>
 										<Scale>Vector3(0.002, 0.002, 0.002)</Scale>
 										<MaterialMap>
-											<count>0</count>
+											<count>1</count>
 											<item_version>0</item_version>
+											<item>
+												<first>0</first>
+												<second>Dodgem/TailBall/Green0</second>
+											</item>
 										</MaterialMap>
 									</px>
 								</m_Data>
@@ -118,8 +122,12 @@
 										<MeshName>Prefab_Sphere</MeshName>
 										<Scale>Vector3(0.003, 0.003, 0.003)</Scale>
 										<MaterialMap>
-											<count>0</count>
+											<count>1</count>
 											<item_version>0</item_version>
+											<item>
+												<first>0</first>
+												<second>Dodgem/TailBall/Green1</second>
+											</item>
 										</MaterialMap>
 									</px>
 								</m_Data>
@@ -144,8 +152,12 @@
 										<MeshName>Prefab_Sphere</MeshName>
 										<Scale>Vector3(0.016, 0.016, 0.016)</Scale>
 										<MaterialMap>
-											<count>0</count>
+											<count>1</count>
 											<item_version>0</item_version>
+											<item>
+												<first>0</first>
+												<second>Dodgem/TailBall/Green2</second>
+											</item>
 										</MaterialMap>
 									</px>
 								</m_Data>
@@ -422,8 +434,12 @@
 										<MeshName>Prefab_Sphere</MeshName>
 										<Scale>Vector3(0.0020000001, 0.0020000001, 0.0020000001)</Scale>
 										<MaterialMap>
-											<count>0</count>
+											<count>1</count>
 											<item_version>0</item_version>
+											<item>
+												<first>0</first>
+												<second>Dodgem/TailBall/Red0</second>
+											</item>
 										</MaterialMap>
 									</px>
 								</m_Data>
@@ -448,8 +464,12 @@
 										<MeshName>Prefab_Sphere</MeshName>
 										<Scale>Vector3(0.003, 0.003, 0.003)</Scale>
 										<MaterialMap>
-											<count>0</count>
+											<count>1</count>
 											<item_version>0</item_version>
+											<item>
+												<first>0</first>
+												<second>Dodgem/TailBall/Red1</second>
+											</item>
 										</MaterialMap>
 									</px>
 								</m_Data>
@@ -474,8 +494,12 @@
 										<MeshName>Prefab_Sphere</MeshName>
 										<Scale>Vector3(0.0080000004, 0.0080000004, 0.0080000004)</Scale>
 										<MaterialMap>
-											<count>0</count>
+											<count>1</count>
 											<item_version>0</item_version>
+											<item>
+												<first>0</first>
+												<second>Dodgem/TailBall/Red2</second>
+											</item>
 										</MaterialMap>
 									</px>
 								</m_Data>

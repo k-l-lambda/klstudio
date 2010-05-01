@@ -13,7 +13,7 @@
 					<count>4</count>
 					<item_version>6</item_version>
 					<item class_id="5" tracking_level="0" version="6">
-						<Name></Name>
+						<Name>chassis</Name>
 						<Appearances class_id="13" tracking_level="0" version="0">
 							<count>1</count>
 							<item_version>0</item_version>
@@ -135,7 +135,7 @@
 						</Appearances>
 					</item>
 					<item>
-						<Name>tail2</Name>
+						<Name>tail</Name>
 						<Appearances>
 							<count>1</count>
 							<item_version>0</item_version>
@@ -169,7 +169,7 @@
 					<count>4</count>
 					<item_version>9</item_version>
 					<item class_id="20" tracking_level="0" version="9">
-						<NodeName>0</NodeName>
+						<NodeName>chassis</NodeName>
 						<Translate>Vector3(0, 0, 0)</Translate>
 						<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
 						<LocalLinearVelocity>Vector3(0, 0, 0)</LocalLinearVelocity>
@@ -302,7 +302,7 @@
 						<CollisionFilterInfo>0</CollisionFilterInfo>
 					</item>
 					<item>
-						<NodeName>tail2</NodeName>
+						<NodeName>tail</NodeName>
 						<Translate>Vector3(0, 0.60000002, -3.5999999)</Translate>
 						<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
 						<LocalLinearVelocity>Vector3(0, 0, 0)</LocalLinearVelocity>
@@ -376,7 +376,7 @@
 					<count>4</count>
 					<item_version>6</item_version>
 					<item>
-						<Name></Name>
+						<Name>chassis</Name>
 						<Appearances>
 							<count>2</count>
 							<item_version>0</item_version>
@@ -477,7 +477,7 @@
 						</Appearances>
 					</item>
 					<item>
-						<Name>tail2</Name>
+						<Name>tail</Name>
 						<Appearances>
 							<count>1</count>
 							<item_version>0</item_version>
@@ -511,7 +511,7 @@
 					<count>4</count>
 					<item_version>9</item_version>
 					<item>
-						<NodeName>0</NodeName>
+						<NodeName>chassis</NodeName>
 						<Translate>Vector3(0, 0, 0)</Translate>
 						<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
 						<LocalLinearVelocity>Vector3(0, 0, 0)</LocalLinearVelocity>
@@ -644,7 +644,7 @@
 						<CollisionFilterInfo>0</CollisionFilterInfo>
 					</item>
 					<item>
-						<NodeName>tail2</NodeName>
+						<NodeName>tail</NodeName>
 						<Translate>Vector3(0, 0.60000002, -3.5999999)</Translate>
 						<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
 						<LocalLinearVelocity>Vector3(0, 0, 0)</LocalLinearVelocity>

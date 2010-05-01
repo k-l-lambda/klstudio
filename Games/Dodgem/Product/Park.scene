@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <!DOCTYPE boost_serialization>
 <boost_serialization signature="serialization::archive" version="5">
-<Tanx_SceneConfig class_id="0" tracking_level="0" version="9">
+<Tanx_SceneConfig class_id="0" tracking_level="0" version="10">
 	<Name>Park</Name>
-	<Constraints class_id="4" tracking_level="0" version="0">
+	<Constraints class_id="5" tracking_level="0" version="0">
 		<count>0</count>
 		<item_version>0</item_version>
 	</Constraints>
-	<Units class_id="5" tracking_level="0" version="0">
+	<Units class_id="6" tracking_level="0" version="0">
 		<Name>Dodgem</Name>
-		<UnitMap class_id="6" tracking_level="0" version="0">
+		<UnitMap class_id="7" tracking_level="0" version="0">
 			<count>1</count>
 			<item_version>0</item_version>
-			<item class_id="7" tracking_level="0" version="0">
+			<item class_id="8" tracking_level="0" version="0">
 				<first>Pool</first>
-				<second class_id="8" tracking_level="0" version="2">
-					<Nodes class_id="9" tracking_level="0" version="0">
+				<second class_id="9" tracking_level="0" version="2">
+					<Nodes class_id="10" tracking_level="0" version="0">
 						<count>5</count>
 						<item_version>6</item_version>
-						<item class_id="10" tracking_level="0" version="6">
+						<item class_id="11" tracking_level="0" version="6">
 							<Name></Name>
-							<Appearances class_id="18" tracking_level="0" version="0">
+							<Appearances class_id="19" tracking_level="0" version="0">
 								<count>1</count>
 								<item_version>0</item_version>
-								<item class_id="19" tracking_level="0" version="0">
-									<m_Data class_id="20" tracking_level="0" version="1">
-										<px class_id="11" tracking_level="1" version="2" object_id="_0">
-											<AppearanceConfig class_id="21" tracking_level="0" version="2">
+								<item class_id="20" tracking_level="0" version="0">
+									<m_Data class_id="21" tracking_level="0" version="1">
+										<px class_id="12" tracking_level="1" version="2" object_id="_0">
+											<AppearanceConfig class_id="22" tracking_level="0" version="2">
 												<Name></Name>
 												<Translation>Vector3(0, 0, 0)</Translation>
 												<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
@@ -35,10 +35,10 @@
 											</AppearanceConfig>
 											<MeshName>Prefab_Cube</MeshName>
 											<Scale>Vector3(1.6, 0.01, 1.6)</Scale>
-											<MaterialMap class_id="22" tracking_level="0" version="0">
+											<MaterialMap class_id="23" tracking_level="0" version="0">
 												<count>1</count>
 												<item_version>0</item_version>
-												<item class_id="23" tracking_level="0" version="0">
+												<item class_id="24" tracking_level="0" version="0">
 													<first>0</first>
 													<second>Dodgem/Ground</second>
 												</item>
@@ -55,7 +55,7 @@
 								<item_version>0</item_version>
 								<item>
 									<m_Data>
-										<px class_id_reference="11" object_id="_1">
+										<px class_id_reference="12" object_id="_1">
 											<AppearanceConfig>
 												<Name></Name>
 												<Translation>Vector3(0, 0, 0)</Translation>
@@ -81,7 +81,7 @@
 								<item_version>0</item_version>
 								<item>
 									<m_Data>
-										<px class_id_reference="11" object_id="_2">
+										<px class_id_reference="12" object_id="_2">
 											<AppearanceConfig>
 												<Name></Name>
 												<Translation>Vector3(0, 0, 0)</Translation>
@@ -107,7 +107,7 @@
 								<item_version>0</item_version>
 								<item>
 									<m_Data>
-										<px class_id_reference="11" object_id="_3">
+										<px class_id_reference="12" object_id="_3">
 											<AppearanceConfig>
 												<Name></Name>
 												<Translation>Vector3(0, 0, 0)</Translation>
@@ -133,7 +133,7 @@
 								<item_version>0</item_version>
 								<item>
 									<m_Data>
-										<px class_id_reference="11" object_id="_4">
+										<px class_id_reference="12" object_id="_4">
 											<AppearanceConfig>
 												<Name></Name>
 												<Translation>Vector3(0, 0, 0)</Translation>
@@ -153,34 +153,34 @@
 							</Appearances>
 						</item>
 					</Nodes>
-					<RigidBodies class_id="24" tracking_level="0" version="0">
+					<RigidBodies class_id="25" tracking_level="0" version="0">
 						<count>5</count>
 						<item_version>9</item_version>
-						<item class_id="25" tracking_level="0" version="9">
+						<item class_id="26" tracking_level="0" version="9">
 							<NodeName>0</NodeName>
 							<Translate>Vector3(0, 0, 0)</Translate>
 							<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
 							<LocalLinearVelocity>Vector3(0, 0, 0)</LocalLinearVelocity>
 							<LocalAngularVelocity>Vector3(0, 0, 0)</LocalAngularVelocity>
-							<MotionType class_id="32" tracking_level="0" version="0">
+							<MotionType class_id="33" tracking_level="0" version="0">
 								<name>FIXED</name>
 							</MotionType>
-							<QualityType class_id="33" tracking_level="0" version="0">
+							<QualityType class_id="34" tracking_level="0" version="0">
 								<name>FIXED</name>
 							</QualityType>
-							<CollisionResponse class_id="34" tracking_level="0" version="0">
+							<CollisionResponse class_id="35" tracking_level="0" version="0">
 								<name>SIMPLE_CONTACT</name>
 							</CollisionResponse>
-							<DeactivatorType class_id="35" tracking_level="0" version="0">
+							<DeactivatorType class_id="36" tracking_level="0" version="0">
 								<name>SPATIAL</name>
 							</DeactivatorType>
-							<SolverDeactivation class_id="36" tracking_level="0" version="0">
+							<SolverDeactivation class_id="37" tracking_level="0" version="0">
 								<name>LOW</name>
 							</SolverDeactivation>
-							<Shape class_id="37" tracking_level="0" version="0">
-								<m_Data class_id="38" tracking_level="0" version="1">
-									<px class_id="26" tracking_level="1" version="1" object_id="_5">
-										<Shape class_id="39" tracking_level="0" version="1">
+							<Shape class_id="38" tracking_level="0" version="0">
+								<m_Data class_id="39" tracking_level="0" version="1">
+									<px class_id="27" tracking_level="1" version="1" object_id="_5">
+										<Shape class_id="40" tracking_level="0" version="1">
 											<Scale>Vector3(1, 1, 1)</Scale>
 										</Shape>
 										<Extents>Vector3(160, 1, 160)</Extents>
@@ -224,7 +224,7 @@
 							</SolverDeactivation>
 							<Shape>
 								<m_Data>
-									<px class_id_reference="26" object_id="_6">
+									<px class_id_reference="27" object_id="_6">
 										<Shape>
 											<Scale>Vector3(1, 1, 1)</Scale>
 										</Shape>
@@ -269,7 +269,7 @@
 							</SolverDeactivation>
 							<Shape>
 								<m_Data>
-									<px class_id_reference="26" object_id="_7">
+									<px class_id_reference="27" object_id="_7">
 										<Shape>
 											<Scale>Vector3(1, 1, 1)</Scale>
 										</Shape>
@@ -314,7 +314,7 @@
 							</SolverDeactivation>
 							<Shape>
 								<m_Data>
-									<px class_id_reference="26" object_id="_8">
+									<px class_id_reference="27" object_id="_8">
 										<Shape>
 											<Scale>Vector3(1, 1, 1)</Scale>
 										</Shape>
@@ -359,7 +359,7 @@
 							</SolverDeactivation>
 							<Shape>
 								<m_Data>
-									<px class_id_reference="26" object_id="_9">
+									<px class_id_reference="27" object_id="_9">
 										<Shape>
 											<Scale>Vector3(1, 1, 1)</Scale>
 										</Shape>
@@ -382,7 +382,7 @@
 							<CollisionFilterInfo>0</CollisionFilterInfo>
 						</item>
 					</RigidBodies>
-					<Constraints class_id="40" tracking_level="0" version="0">
+					<Constraints class_id="41" tracking_level="0" version="0">
 						<count>0</count>
 						<item_version>0</item_version>
 					</Constraints>
@@ -392,14 +392,14 @@
 		</UnitMap>
 	</Units>
 	<HostScriptName>Park.scene.lua</HostScriptName>
-	<SkyBox class_id="41" tracking_level="0" version="0">
-		<Enable>0</Enable>
-		<MaterialName></MaterialName>
+	<SkyBox class_id="42" tracking_level="0" version="0">
+		<Enable>1</Enable>
+		<MaterialName>Dodgem/SkyBox</MaterialName>
 		<Distance>5000</Distance>
 		<DrawFirst>1</DrawFirst>
 		<Orientation>Quaternion(1, 0, 0, 0)</Orientation>
 	</SkyBox>
-	<SkyDome class_id="42" tracking_level="0" version="0">
+	<SkyDome class_id="43" tracking_level="0" version="0">
 		<Enable>0</Enable>
 		<MaterialName></MaterialName>
 		<Curvature>10</Curvature>
@@ -412,7 +412,7 @@
 		<YSegmentsKeep>-1</YSegmentsKeep>
 	</SkyDome>
 	<AmbientLight>ColourValue(0.30000001, 0.30000001, 0.30000001, 1)</AmbientLight>
-	<ShadowTechnique class_id="43" tracking_level="0" version="0">
+	<ShadowTechnique class_id="44" tracking_level="0" version="0">
 		<name>STENCIL_ADDITIVE</name>
 	</ShadowTechnique>
 	<ShadowColor>ColourValue(0.30000001, 0.30000001, 0.30000001, 1)</ShadowColor>

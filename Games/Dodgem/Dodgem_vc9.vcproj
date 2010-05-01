@@ -126,6 +126,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Product\Dodgem.lua"
+					>
+				</File>
+				<File
 					RelativePath=".\Product\Park.scene.lua"
 					>
 				</File>

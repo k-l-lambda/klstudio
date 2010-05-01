@@ -1,9 +1,15 @@
 TODO:
-	class Dodgem, move collision sound effects into
+	tail collsion particle FX
 	wheel sound
 	AI: back off when blocking
 	refine vehicle following camera
 
+
+
+2010.5.1	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Dodgem.lua: tail sound added.
+	+	Dodgem.lua: created.
 
 
 2010.4.29	K.L.	<xxxK.L.xxx@gmail.com>

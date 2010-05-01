@@ -9,16 +9,8 @@
 
 Tanx.log("[Dodgem\\AiCar.agent.lua]: parsed.")
 
-Tanx.dofile"Automobile.lua"
-
-
-iif = iif or function(condition, truepart, falsepart)
-	if condition then
-		return truepart
-	end
-
-	return falsepart
-end
+Tanx.dofile"Core:utility.lua"
+Tanx.dofile"Dodgem.lua"
 
 
 local function computeOrientationAngle(orientation, rel_position)
@@ -52,9 +44,9 @@ local function chaseTarget(target, driverstate)
 
 	local x = math.pow(math.abs(orientvector.x), 0.3)
 	x = iif(orientvector.x > 0, x, -x)
-	local y = math.pow((orientvector.y + 1) / 2, 4.2) + 0.1
+	local y = math.pow((orientvector.y + 1) / 2, 4.2) + 0.2
 
-	return {x = -x, y = y * 0.3}
+	return {x = -x, y = y * 0.6}
 end
 
 
@@ -64,28 +56,23 @@ host =
 		g_World = world
 
 		g_Target = params:at"target":get()
-
-		g_EngineSoundFile = params:at"EngineSound":get()
-		g_CollisionBoxSoundFile = params:at"CollisionBoxSound":get()
-		g_CollisionConvexSoundFile = params:at"CollisionConvexSound":get()
 	end,
 
 	postCreate = function(agent)
 		g_Agent = agent
 
-		local loadsound = function(filename) return openalpp.Source.new(Tanx.ScriptSpace:resource():getResource(filename):get()); end
-		g_Automobile = Automobile(g_Agent:getMainBody(), "Dodgem/Dodgem", {Engine = loadsound(g_EngineSoundFile), CollisionBox = loadsound(g_CollisionBoxSoundFile), CollisionConvex = loadsound(g_CollisionConvexSoundFile)})
+		g_Car = Dodgem(g_Agent:getMainBody(), "Dodgem/Dodgem", {Engine = "EngineEnemy"})
 
 		g_Time = 0
 	end,
 
 	onStep = function(elapsed)
-		local driver = chaseTarget(g_Target, {x = g_Automobile.Driver.m_positionX, y = g_Automobile.Driver.m_positionY})
+		local driver = chaseTarget(g_Target, {x = g_Car.Driver.m_positionX, y = g_Car.Driver.m_positionY})
 
-		g_Automobile.Driver.m_positionX = driver.x
-		g_Automobile.Driver.m_positionY = driver.y
+		g_Car.Driver.m_positionX = driver.x
+		g_Car.Driver.m_positionY = driver.y
 
-		g_Automobile:step(elapsed)
+		g_Car:step(elapsed)
 
 		g_Time = g_Time + elapsed
 	end,

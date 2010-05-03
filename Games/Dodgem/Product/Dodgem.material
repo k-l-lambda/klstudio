@@ -33,6 +33,25 @@ material Dodgem/SkyBox
 }
 
 
+material Dodgem/Spark
+{
+	technique
+	{
+		pass
+		{
+			lighting	off
+			scene_blend	add
+			depth_write	off
+
+			texture_unit
+			{
+				texture	flaretrail.png
+			}
+		}
+	}
+}
+
+
 material Dodgem/Car1
 {
 	technique

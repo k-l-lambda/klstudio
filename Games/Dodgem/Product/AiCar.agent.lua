@@ -58,10 +58,10 @@ host =
 		g_Target = params:at"target":get()
 	end,
 
-	postCreate = function(agent)
-		g_Agent = agent
+	postCreate = function(controller)
+		g_Agent = controller:agent()
 
-		g_Car = Dodgem(g_Agent:getMainBody(), "Dodgem/Dodgem", {Engine = "EngineEnemy"})
+		g_Car = Dodgem(g_World, g_Agent:getMainBody(), "Dodgem/Dodgem", {Engine = "EngineEnemy"})
 
 		g_Time = 0
 	end,

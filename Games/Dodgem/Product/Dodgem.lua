@@ -14,7 +14,7 @@ Tanx.dofile"Automobile.lua"
 
 
 function loadSounds()
-	local loadsound = function(filename) return openalpp.Source.new(Tanx.ScriptSpace:resource():getResource(filename):get()); end
+	local loadsound = function(filename) return openalpp.Source.new(Tanx.ScriptSpace:resource():get():getResource(filename):get()); end
 
 	return {
 		Engine = loadsound"engine.wav",
@@ -28,7 +28,9 @@ end
 
 class "Dodgem" (Automobile)
 
-	function Dodgem:__init(chassis, vehiclemakername, soundconfig)
+	function Dodgem:__init(world, chassis, vehiclemakername, soundconfig)
+		self.World = world
+
 		soundconfig = soundconfig or {}
 
 		g_SoundSources = g_SoundSources or loadSounds()
@@ -50,6 +52,28 @@ class "Dodgem" (Automobile)
 		self.Chassis:get():addCollisionListener(self.CollisionListener)
 
 		self.ChassisId = self.Chassis:get():getRigidBody():get():getUid()
+
+		local exist, sparksnode = pcall(function() return self.Chassis:get():getNode():getChild"Sparks" end)
+		if exist then
+			self.ChassisSparks = sparksnode:toDerived():getAttachedObject(0):toDerived()
+			self.ChassisSparks:getEmitter(0):setEnabled(false)
+		end
+
+		self.ChassisSparksTime = 0
+	end
+
+	function Dodgem:step(elapsed)
+		Automobile.step(self, elapsed)
+
+		if self.ChassisSparks and self.ChassisSparksTime > 0 then
+			self.ChassisSparksTime = self.ChassisSparksTime - elapsed
+
+			--Tanx.log("Dodgem:step: ChassisSparksTime: " .. self.ChassisSparksTime)
+
+			if self.ChassisSparksTime <= 0 then
+				self.ChassisSparks:getEmitter(0):setEnabled(false)
+			end
+		end
 	end
 
 	function Dodgem:contactPointConfirmedCallback(event)
@@ -65,6 +89,9 @@ class "Dodgem" (Automobile)
 		local rbb = event.m_collidableB:getRigidBody()
 		if rba and rbb then
 			local position = Tanx.madp(event.m_contactPoint:getPosition())
+			local velocity = Tanx.madp(target:getOwner():toDerived():getAngularVelocity())
+
+			local emit_spark = false
 
 			if target:getShape():getType() == Havok.hkpShapeType.BOX then
 				local sound = self.SoundSources.CollisionBox
@@ -75,10 +102,12 @@ class "Dodgem" (Automobile)
 					local volume = math.abs(event.m_projectedVelocity) ^ 2 * 3
 
 					sound:get():setPosition(position.x, position.y, position.z)
-					sound:get():setVelocity(0, 0, 0)
+					sound:get():setVelocity(velocity.x, velocity.y, velocity.z)
 					sound:get():setGain(volume)
 					sound:get():play()
 				end
+
+				self:emitChassisSparks(position, math.abs(event.m_projectedVelocity) * 4)
 			elseif targetname == "chassis" and self.ChassisId < target:getOwner():getUid() then
 				local sound = self.SoundSources.CollisionConvex
 				if sound then
@@ -87,22 +116,47 @@ class "Dodgem" (Automobile)
 						local volume = vel * 0.1
 
 						sound:get():setPosition(position.x, position.y, position.z)
-						sound:get():setVelocity(0, 0, 0)
+						sound:get():setVelocity(velocity.x, velocity.y, velocity.z)
 						sound:get():setGain(volume)
 						sound:get():play()
 					end
 				end
+
+				--emit_spark = true
+
+				self:emitChassisSparks(position, math.abs(event.m_projectedVelocity) * 10)
 			elseif targetname == "tail" then
 				local sound = self.SoundSources.CollisionTail
 				if sound then
 					local volume = math.abs(event.m_projectedVelocity) ^ 2 * 0.04
 
 					sound:get():setPosition(position.x, position.y, position.z)
-					sound:get():setVelocity(0, 0, 0)
+					sound:get():setVelocity(velocity.x, velocity.y, velocity.z)
 					sound:get():setGain(volume)
 					sound:get():play()
 				end
+
+				--emit_spark = true
+
+				self:emitChassisSparks(position, math.abs(event.m_projectedVelocity) * 16)
 			end
+
+			if emit_spark and self.World.createAgent then
+				self.World:createAgent("Dodgem/Sparks", "spark%index", Tanx.RigidBodyState.make(position, Tanx.Quaternion.IDENTITY, velocity), Tanx.ScriptSpace:resource())
+			end
+		end
+	end
+
+	function Dodgem:emitChassisSparks(position, rate, duration)
+		duration = duration or 0.1
+
+		if self.ChassisSparks then
+			self.ChassisSparksTime = duration
+			self.ChassisSparks:getEmitter(0):setEmissionRate(rate)
+			self.ChassisSparks:getEmitter(0):setEnabled(true)
+
+			local localposition = self.Chassis:get():getOrientation():Inverse() * (position - self.Chassis:get():getPosition())
+			self.ChassisSparks:getParentNode():setPosition(localposition)
 		end
 	end
 

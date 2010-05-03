@@ -86,6 +86,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Product\Dodgem.particle"
+				>
+			</File>
+			<File
 				RelativePath=".\Product\dodgem.shape"
 				>
 			</File>
@@ -131,6 +135,10 @@
 				</File>
 				<File
 					RelativePath=".\Product\Park.scene.lua"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\Sparks.agent.lua"
 					>
 				</File>
 				<File

@@ -1,0 +1,31 @@
+
+particle_system	Dodgem/Sparks
+{
+	material					Dodgem/Spark
+	point_rendering				false
+	particle_width				0.4
+	particle_height				0.4
+	cull_each					false
+	quota						1000
+	billboard_type				oriented_self
+
+	emitter Point
+	{
+		name					explosion
+		angle					180
+		emission_rate			8
+		time_to_live			0.4
+		direction				0 1 0
+		velocity_min			2
+		velocity_max			3
+		colour_range_start		0.6 0.6 0.6
+		colour_range_end		1 1 1
+	}
+
+	affector ColourFader
+	{
+		red		-0.5
+		green	-1
+		blue	-2
+	}
+}

@@ -4,7 +4,7 @@
 <Tanx_UnitLibrary class_id="0" tracking_level="0" version="0">
 	<Name>Dodgem</Name>
 	<UnitMap class_id="1" tracking_level="0" version="0">
-		<count>2</count>
+		<count>3</count>
 		<item_version>0</item_version>
 		<item class_id="2" tracking_level="0" version="0">
 			<first>AiCar</first>
@@ -378,7 +378,7 @@
 					<item>
 						<Name>chassis</Name>
 						<Appearances>
-							<count>2</count>
+							<count>3</count>
 							<item_version>0</item_version>
 							<item>
 								<m_Data>
@@ -414,6 +414,20 @@
 									</px>
 								</m_Data>
 							</item>
+							<item>
+								<m_Data>
+									<px class_id="9" tracking_level="1" version="0" object_id="_10">
+										<AppearanceConfig>
+											<Name>Sparks</Name>
+											<Translation>Vector3(0, 0, 0)</Translation>
+											<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
+											<Visible>1</Visible>
+											<CastShadows>0</CastShadows>
+										</AppearanceConfig>
+										<TemplateName>Dodgem/Sparks</TemplateName>
+									</px>
+								</m_Data>
+							</item>
 						</Appearances>
 					</item>
 					<item>
@@ -423,7 +437,7 @@
 							<item_version>0</item_version>
 							<item>
 								<m_Data>
-									<px class_id_reference="6" object_id="_10">
+									<px class_id_reference="6" object_id="_11">
 										<AppearanceConfig>
 											<Name></Name>
 											<Translation>Vector3(0, 0, 0)</Translation>
@@ -453,7 +467,7 @@
 							<item_version>0</item_version>
 							<item>
 								<m_Data>
-									<px class_id_reference="6" object_id="_11">
+									<px class_id_reference="6" object_id="_12">
 										<AppearanceConfig>
 											<Name></Name>
 											<Translation>Vector3(0, 0, 0)</Translation>
@@ -483,7 +497,7 @@
 							<item_version>0</item_version>
 							<item>
 								<m_Data>
-									<px class_id_reference="6" object_id="_12">
+									<px class_id_reference="6" object_id="_13">
 										<AppearanceConfig>
 											<Name></Name>
 											<Translation>Vector3(0, 0, 0)</Translation>
@@ -533,7 +547,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="26" object_id="_13">
+								<px class_id_reference="26" object_id="_14">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -576,7 +590,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="22" object_id="_14">
+								<px class_id_reference="22" object_id="_15">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -621,7 +635,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="22" object_id="_15">
+								<px class_id_reference="22" object_id="_16">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -666,7 +680,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="22" object_id="_16">
+								<px class_id_reference="22" object_id="_17">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -707,6 +721,90 @@
 						<RigidBodyA>2</RigidBodyA>
 						<RigidBodyB>3</RigidBodyB>
 					</item>
+				</Constraints>
+				<HostScriptName></HostScriptName>
+			</second>
+		</item>
+		<item>
+			<first>Sparks</first>
+			<second>
+				<Nodes>
+					<count>1</count>
+					<item_version>6</item_version>
+					<item>
+						<Name></Name>
+						<Appearances>
+							<count>1</count>
+							<item_version>0</item_version>
+							<item>
+								<m_Data>
+									<px class_id_reference="9" object_id="_18">
+										<AppearanceConfig>
+											<Name></Name>
+											<Translation>Vector3(0, 0, 0)</Translation>
+											<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
+											<Visible>1</Visible>
+											<CastShadows>0</CastShadows>
+										</AppearanceConfig>
+										<TemplateName>Dodgem/Sparks</TemplateName>
+									</px>
+								</m_Data>
+							</item>
+						</Appearances>
+					</item>
+				</Nodes>
+				<RigidBodies>
+					<count>1</count>
+					<item_version>9</item_version>
+					<item>
+						<NodeName>0</NodeName>
+						<Translate>Vector3(0, 0, 0)</Translate>
+						<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
+						<LocalLinearVelocity>Vector3(0, 0, 0)</LocalLinearVelocity>
+						<LocalAngularVelocity>Vector3(0, 0, 0)</LocalAngularVelocity>
+						<MotionType>
+							<name>DYNAMIC</name>
+						</MotionType>
+						<QualityType>
+							<name>DEBRIS</name>
+						</QualityType>
+						<CollisionResponse>
+							<name>SIMPLE_CONTACT</name>
+						</CollisionResponse>
+						<DeactivatorType>
+							<name>SPATIAL</name>
+						</DeactivatorType>
+						<SolverDeactivation>
+							<name>LOW</name>
+						</SolverDeactivation>
+						<Shape>
+							<m_Data>
+								<px class_id_reference="22" object_id="_19">
+									<Shape>
+										<Scale>Vector3(1, 1, 1)</Scale>
+									</Shape>
+									<Radius>0.0099999998</Radius>
+									<Hollow>0</Hollow>
+									<Thickness>0</Thickness>
+								</px>
+							</m_Data>
+						</Shape>
+						<Mass>1</Mass>
+						<Centroid>Vector3(0, 0, 0)</Centroid>
+						<LinearDamping>0</LinearDamping>
+						<AngularDamping>0.050000001</AngularDamping>
+						<GravityFactor>1</GravityFactor>
+						<Friction>0.5</Friction>
+						<Restitution>0.40000001</Restitution>
+						<MaxLinearVelocity>200</MaxLinearVelocity>
+						<MaxAngularVelocity>200</MaxAngularVelocity>
+						<AllowedPenetrationDepth>-1</AllowedPenetrationDepth>
+						<CollisionFilterInfo>0</CollisionFilterInfo>
+					</item>
+				</RigidBodies>
+				<Constraints>
+					<count>0</count>
+					<item_version>0</item_version>
 				</Constraints>
 				<HostScriptName></HostScriptName>
 			</second>

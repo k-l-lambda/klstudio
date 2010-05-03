@@ -1,9 +1,14 @@
 TODO:
-	tail collsion particle FX
+	game logic
 	wheel sound
 	AI: back off when blocking
 	refine vehicle following camera
 
+
+
+2010.5.3	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Dodgem.lua: sparks on dodgem chassis implemented.
 
 
 2010.5.1	K.L.	<xxxK.L.xxx@gmail.com>

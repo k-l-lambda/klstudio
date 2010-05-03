@@ -26,10 +26,10 @@ function initialize(game)
 
 	-- load scene
 	local scene = game:getResourcePackage():get():getResource("Park.scene")
-	game:getWorld():loadScene(scene, game:getResourcePackage())
+	g_World:loadScene(scene, game:getResourcePackage())
 
-	local car1 = game:getWorld():createAgent("Dodgem/Dodgem", "car1", Tanx.RigidBodyState.make(Tanx.Vector3(0, 0.8, 0)))
-	g_PlayerCar = Dodgem(car1:get():getMainBody(), "Dodgem/Dodgem")
+	local car1 = g_World:createAgent("Dodgem/Dodgem", "car1", Tanx.RigidBodyState.make(Tanx.Vector3(0, 0.8, 0)))
+	g_PlayerCar = Dodgem(g_World, car1:get():getMainBody(), "Dodgem/Dodgem")
 	table.insert(g_AutomobileList, g_PlayerCar)
 
 	-- create AI cars
@@ -38,7 +38,7 @@ function initialize(game)
 
 	local i
 	for i = 1, 5 do
-		game:getWorld():createAgent("Dodgem/AiCar", "aicar%index", Tanx.RigidBodyState.make(Tanx.Vector3((i - 3) * 8, 0.8, 20)), game:getResourcePackage(), aiparams)
+		g_World:createAgent("Dodgem/AiCar", "aicar%index", Tanx.RigidBodyState.make(Tanx.Vector3((i - 3) * 8, 0.8, 20)), game:getResourcePackage(), aiparams)
 	end
 
 	-- create main camera
@@ -95,6 +95,12 @@ function onStep(elapsed)
 	end
 
 	updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera(), elapsed)
+
+	--[[g_SparkTime = (g_SparkTime or 0) + elapsed
+	if g_SparkTime > 3 then
+		g_SparkTime = 0
+		g_Game:getWorld():createAgent("Dodgem/Sparks", "spark%index", Tanx.RigidBodyState.make(Tanx.Vector3(0, 3, 0)), g_Game:getResourcePackage())
+	end]]
 end
 
 

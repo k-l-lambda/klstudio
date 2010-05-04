@@ -4,7 +4,7 @@
 **	Copyright (c) 2009-2010	K.L.'s Studio	<xxxk.l.xxx@gmail.com>
 **	This program is free software without any warranty.
 
-	Dodgem\Automobile.lua
+	Dodgem\Dodgem.lua
 --]]
 
 Tanx.log("[Dodgem\\Automobile.lua]: parsed.")

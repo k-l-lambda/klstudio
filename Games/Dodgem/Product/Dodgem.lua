@@ -13,15 +13,28 @@ Tanx.dofile"Core:utility.lua"
 Tanx.dofile"Automobile.lua"
 
 
-function loadSounds()
-	local loadsound = function(filename) return openalpp.Source.new(Tanx.ScriptSpace:resource():get():getResource(filename):get()); end
+function loadSounds(soundconfig)
+	soundconfig = soundconfig or {}
+
+	loadsource = function()
+		local loadsound = function(filename) return openalpp.Source.new(Tanx.ScriptSpace:resource():get():getResource(filename):get()); end
+
+		return {
+			Engine = loadsound"engine.wav",
+			EngineEnemy = loadsound"engine_e.wav",
+			CollisionBox = loadsound"collision3.wav",
+			CollisionConvex = loadsound"collision2.wav",
+			CollisionTail = loadsound"TailCollision.wav",
+		}
+	end
+
+	g_SoundSources = g_SoundSources or loadsource()
 
 	return {
-		Engine = loadsound"engine.wav",
-		EngineEnemy = loadsound"engine_e.wav",
-		CollisionBox = loadsound"collision3.wav",
-		CollisionConvex = loadsound"collision2.wav",
-		CollisionTail = loadsound"TailCollision.wav",
+		Engine = g_SoundSources[soundconfig.Engine or "Engine"],
+		CollisionBox = g_SoundSources[soundconfig.CollisionBox or "CollisionBox"],
+		CollisionConvex = g_SoundSources[soundconfig.CollisionConvex or "CollisionConvex"],
+		CollisionTail = g_SoundSources[soundconfig.CollisionTail or "CollisionTail"],
 	}
 end
 
@@ -29,24 +42,13 @@ end
 class "Dodgem" (Automobile)
 
 	function Dodgem:__init(world, chassis, vehiclemakername, soundconfig)
-		self.World = world
-
-		soundconfig = soundconfig or {}
-
-		g_SoundSources = g_SoundSources or loadSounds()
-
-		soundsoureces = {
-			Engine = g_SoundSources[soundconfig.Engine or "Engine"],
-			CollisionBox = g_SoundSources[soundconfig.CollisionBox or "CollisionBox"],
-			CollisionConvex = g_SoundSources[soundconfig.CollisionConvex or "CollisionConvex"],
-			CollisionTail = g_SoundSources[soundconfig.CollisionTail or "CollisionTail"],
-		}
-
 		if _LUABIND_VERSION and _LUABIND_VERSION >= 800 then
-			Automobile.__init(self, chassis, vehiclemakername, soundsoureces)
+			Automobile.__init(self, chassis, vehiclemakername, loadSounds(soundconfig))
 		else
-			super(chassis, vehiclemakername, soundsources)
+			super(chassis, vehiclemakername, loadSounds(soundconfig))
 		end
+
+		self.World = world
 
 		self.CollisionListener = DodgemCollisionListener(self)
 		self.Chassis:get():addCollisionListener(self.CollisionListener)

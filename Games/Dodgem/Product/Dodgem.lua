@@ -55,7 +55,7 @@ class "Dodgem" (Automobile)
 
 		self.ChassisId = self.Chassis:get():getRigidBody():get():getUid()
 
-		local exist, sparksnode = pcall(function() return self.Chassis:get():getNode():getChild"Sparks" end)
+		local exist, sparksnode = pcall(function() return self.Chassis:get():getNode():getChildInheritName"Sparks" end)
 		if exist then
 			self.ChassisSparks = sparksnode:toDerived():getAttachedObject(0):toDerived()
 			self.ChassisSparks:getEmitter(0):setEnabled(false)

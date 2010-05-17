@@ -103,7 +103,9 @@ TitleState =
 
 		TitleState.ActiveLayer = 21
 
-		g_BackgroundMusic:get():play(g_TitleMusic)
+		if g_BackgroundMusic then
+			g_BackgroundMusic:get():play(g_TitleMusic)
+		end
 	end,
 
 	leaveState = function()
@@ -120,7 +122,9 @@ TitleState =
 		g_GuiWindows.Close:hide()
 		g_GuiWindows.Layers:hide()
 
-		g_BackgroundMusic:get():stop()
+		if g_BackgroundMusic then
+			g_BackgroundMusic:get():stop()
+		end
 	end,
 
 	step = function(elapsed)

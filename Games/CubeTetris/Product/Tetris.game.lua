@@ -187,7 +187,7 @@ function initialize(game)
 	g_PlayerController = PlayerController(g_Game, g_JoyStick)
 	g_AiController = AiController(g_Game)
 
-	loadSound()
+	pcall(loadSound)
 
 	state(TitleState)
 end

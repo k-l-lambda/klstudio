@@ -66,7 +66,7 @@ end
 
 
 local function dropBrick(self)
-	local config = s_BrickConfigNames[math.random(table.maxn(s_BrickConfigNames))]
+	local config = s_BrickConfigNames[Tanx.random(table.maxn(s_BrickConfigNames))]
 	local brick = Tanx.AgentPtr(self.Game:getWorld():createAgent(config, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 1e-3, s_DefaultTopHeight, self.Center.z - 1e-3))))
 
 	self.FocusBrickAction = FocusBrickAction(brick, self)
@@ -278,7 +278,7 @@ local function fillBlocksLayer(self, y)
 	for x = 1, 4 do
 		for z = 1, 4 do
 			local uc = Tanx.UnitConfig(self.Game:getWorld():getUnitConfig"Tetris/Brick1_0")
-			local material = s_BrickMaterials[math.random(table.maxn(s_BrickMaterials))]
+			local material = s_BrickMaterials[Tanx.random(table.maxn(s_BrickMaterials))]
 			local f
 			for f = 0, 5 do
 				uc.Nodes:at(0).Appearances:at(0):get():toDerived().MaterialMap:at(f):set(material)
@@ -290,8 +290,8 @@ local function fillBlocksLayer(self, y)
 	end
 
 	local i
-	for i = 1, math.random(3) do
-		self.Heap:set(math.random(4), y, math.random(4))
+	for i = 1, Tanx.random(3) do
+		self.Heap:set(Tanx.random(4), y, Tanx.random(4))
 	end
 end
 
@@ -531,7 +531,7 @@ class "TetrisPool"
 							if type(cube) == "userdata" then
 								cube:get():unfreeze()
 								cube:get():getNode():getChild(0):toDerived():getAttachedObject(0):toDerived():setMaterialName("Tetris/Brick/Crystalloid")
-								table.insert(self.RisingCubes, {cube = cube, force = math.random() * 18 + 12})
+								table.insert(self.RisingCubes, {cube = cube, force = Tanx.random() * 18 + 12})
 							end
 
 							break
@@ -552,7 +552,7 @@ class "TetrisPool"
 				forcey = 0
 			end
 
-			unit.cube:get():getRigidBody():get():applyForce(elapsed, Tanx.madp(Tanx.Vector3(math.random() * 18 - 9 + x * 0.3, forcey, math.random() * 18 - 9 + z * 0.3)))
+			unit.cube:get():getRigidBody():get():applyForce(elapsed, Tanx.madp(Tanx.Vector3(Tanx.random() * 18 - 9 + x * 0.3, forcey, Tanx.random() * 18 - 9 + z * 0.3)))
 		end
 
 		-- process big cube

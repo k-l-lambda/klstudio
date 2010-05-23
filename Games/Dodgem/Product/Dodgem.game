@@ -42,7 +42,7 @@
 	<MouseExclusive>0</MouseExclusive>
 	<JoystickExclusive>1</JoystickExclusive>
 	<EnableOis>1</EnableOis>
-	<EnableCegui>0</EnableCegui>
+	<EnableCegui>1</EnableCegui>
 </Tanx_GameConfig>
 </boost_serialization>
 

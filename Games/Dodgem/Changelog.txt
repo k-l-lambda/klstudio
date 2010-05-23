@@ -1,9 +1,15 @@
 TODO:
 	game logic
+		score accumulation game
 	wheel sound
 	AI: back off when blocking
 	refine vehicle following camera
 
+
+
+2010.5.23	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Dodgem.layout: created.
 
 
 2010.5.3	K.L.	<xxxK.L.xxx@gmail.com>

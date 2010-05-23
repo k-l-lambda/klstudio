@@ -33,9 +33,7 @@ local function chaseTarget(target, driverstate)
 	end
 	orientagnle = orientagnle * math.pi * 2]]
 
-	local tbodies = target:get():getBodies()
-	local body = target:get():getBodies():at(iif(tbodies:size() >= 3, 2, 0))
-	local orientvector = computeOrientationVector(g_Agent:getMainBody():get():getOrientation(), body:get():getPosition() - g_Agent:getMainBody():get():getPosition())
+	local orientvector = computeOrientationVector(g_Agent:getMainBody():get():getOrientation(), target:get():getPosition() - g_Agent:getMainBody():get():getPosition())
 
 	local reverse = orientvector.y < iif(driverstate.y < 0, -0.3, -0.7)
 	if reverse then
@@ -56,18 +54,24 @@ host =
 		g_World = world
 
 		g_Target = params:at"target":get()
+		g_TargetBody = g_Target:get():findBody"tail"
+		if g_TargetBody:get() == nil then
+			Tanx.log("[Dodgem\\AiCar.agent.lua]: host.preCreate: cannot find body \"tail\" in target agent.")
+			g_TargetBody = target:get():getMainBody()
+		end
 	end,
 
 	postCreate = function(controller)
 		g_Agent = controller:agent()
 
-		g_Car = Dodgem(g_World, g_Agent:getMainBody(), "Dodgem/Dodgem", {Engine = "EngineEnemy"})
+		local tailid = g_TargetBody:get():getRigidBody():get():getUid()
+		g_Car = Dodgem(g_World, g_Agent, "Dodgem/Dodgem", {Engine = "EngineEnemy"}, {onHitTail = function(id, power) if id == tailid then Tanx.log("AI HIT!	p: " .. power) end end})
 
 		g_Time = 0
 	end,
 
 	onStep = function(elapsed)
-		local driver = chaseTarget(g_Target, {x = g_Car.Driver.m_positionX, y = g_Car.Driver.m_positionY})
+		local driver = chaseTarget(g_TargetBody, {x = g_Car.Driver.m_positionX, y = g_Car.Driver.m_positionY})
 
 		g_Car.Driver.m_positionX = driver.x
 		g_Car.Driver.m_positionY = driver.y

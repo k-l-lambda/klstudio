@@ -29,7 +29,7 @@ function initialize(game)
 	g_World:loadScene(scene, game:getResourcePackage())
 
 	local car1 = g_World:createAgent("Dodgem/Dodgem", "car1", Tanx.RigidBodyState.make(Tanx.Vector3(0, 0.8, 0)))
-	g_PlayerCar = Dodgem(g_World, car1:get():getMainBody(), "Dodgem/Dodgem")
+	g_PlayerCar = Dodgem(g_World, car1:get(), "Dodgem/Dodgem", nil, {onHitTail = function(id, power) Tanx.log("PLAYER HIT!	p: " .. power) end})
 	table.insert(g_AutomobileList, g_PlayerCar)
 
 	-- create AI cars
@@ -55,6 +55,24 @@ function initialize(game)
 	-- create sound listener
 	g_SoundListener = openalpp.Listener.new()
 	updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera())
+
+	-- setup GUI
+	g_GuiSystem = CEGUI.System.getSingleton()
+	CEGUI.SchemeManager.getSingleton():loadScheme(CEGUI.String"TaharezLookSkin.scheme")
+	local windowManager = CEGUI.WindowManager.getSingleton()
+	local sheet = windowManager:loadWindowLayout(CEGUI.String"Dodgem.layout")
+	g_GuiSystem:setGUISheet(sheet)
+
+	local mark = windowManager:createWindow(CEGUI.String"TaharezLook/StaticText", CEGUI.String"mark")
+	mark:setPosition(CEGUI.UVector2(CEGUI.UDim(0.4, 0), CEGUI.UDim(0.4, 0)))
+	mark:setSize(CEGUI.UVector2(CEGUI.UDim(0.2, 0), CEGUI.UDim(0.2, 0)))
+	mark:setText(CEGUI.String"a mark")
+	mark:setProperty(CEGUI.String"BackgroundEnabled", CEGUI.String"false")
+	mark:setProperty(CEGUI.String"FrameEnabled", CEGUI.String"false")
+	mark:setFont(CEGUI.String"BlueHighway-48")
+
+	local root = windowManager:getWindow(CEGUI.String"root")
+	root:addChildWindow(mark)
 end
 
 

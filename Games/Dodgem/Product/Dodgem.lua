@@ -41,11 +41,11 @@ end
 
 class "Dodgem" (Automobile)
 
-	function Dodgem:__init(world, chassis, vehiclemakername, soundconfig)
+	function Dodgem:__init(world, agent, vehiclemakername, soundconfig, eventhandlers)
 		if _LUABIND_VERSION and _LUABIND_VERSION >= 800 then
-			Automobile.__init(self, chassis, vehiclemakername, loadSounds(soundconfig))
+			Automobile.__init(self, agent, vehiclemakername, loadSounds(soundconfig))
 		else
-			super(chassis, vehiclemakername, loadSounds(soundconfig))
+			super(agent, vehiclemakername, loadSounds(soundconfig))
 		end
 
 		self.World = world
@@ -55,6 +55,11 @@ class "Dodgem" (Automobile)
 
 		self.ChassisId = self.Chassis:get():getRigidBody():get():getUid()
 
+		local tail = agent:findBody"tail"
+		if tail:get() then
+			self.TailId = tail:get():getRigidBody():get():getUid()
+		end
+
 		local exist, sparksnode = pcall(function() return self.Chassis:get():getNode():getChildInheritName"Sparks" end)
 		if exist then
 			self.ChassisSparks = sparksnode:toDerived():getAttachedObject(0):toDerived()
@@ -62,6 +67,8 @@ class "Dodgem" (Automobile)
 		end
 
 		self.ChassisSparksTime = 0
+
+		self.EventHandlers = eventhandlers or {}
 	end
 
 	function Dodgem:step(elapsed)
@@ -93,8 +100,6 @@ class "Dodgem" (Automobile)
 			local position = Tanx.madp(event.m_contactPoint:getPosition())
 			local velocity = Tanx.madp(target:getOwner():toDerived():getAngularVelocity())
 
-			local emit_spark = false
-
 			if target:getShape():getType() == Havok.hkpShapeType.BOX then
 				local sound = self.SoundSources.CollisionBox
 				if sound then
@@ -124,8 +129,6 @@ class "Dodgem" (Automobile)
 					end
 				end
 
-				--emit_spark = true
-
 				self:emitChassisSparks(position, math.abs(event.m_projectedVelocity) * 10)
 			elseif targetname == "tail" then
 				local sound = self.SoundSources.CollisionTail
@@ -138,13 +141,11 @@ class "Dodgem" (Automobile)
 					sound:get():play()
 				end
 
-				--emit_spark = true
-
 				self:emitChassisSparks(position, math.abs(event.m_projectedVelocity) * 16)
-			end
 
-			if emit_spark and self.World.createAgent then
-				self.World:createAgent("Dodgem/Sparks", "spark%index", Tanx.RigidBodyState.make(position, Tanx.Quaternion.IDENTITY, velocity), Tanx.ScriptSpace:resource())
+				if self.EventHandlers.onHitTail and target:getOwner():getUid() ~= self.TailId then
+					self.EventHandlers.onHitTail(target:getOwner():getUid(), math.abs(event.m_projectedVelocity))
+				end
 			end
 		end
 	end

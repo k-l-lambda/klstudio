@@ -12,11 +12,11 @@ Tanx.log("[Dodgem\\Automobile.lua]: parsed.")
 
 class "Automobile"
 
-	function Automobile:__init(chassis, vehiclemakername, soundsources)
+	function Automobile:__init(agent, vehiclemakername, soundsources)
 		local maker = Tanx.VehicleBook.getSingleton():at(vehiclemakername)
 
-		self.Chassis = chassis
-		self.VehicleAction = maker:make(chassis)
+		self.Chassis = agent:findBody"chassis"
+		self.VehicleAction = maker:make(self.Chassis)
 		self.Driver = self.VehicleAction:get().m_deviceStatus:toDerived()
 
 		self.SoundSources = soundsources or {}

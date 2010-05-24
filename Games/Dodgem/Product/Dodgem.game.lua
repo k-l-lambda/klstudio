@@ -16,6 +16,11 @@ Tanx.dofile"Dodgem.lua"
 g_AutomobileList ={}
 
 
+function onAiHitTail(power)
+	Tanx.log("[Dodgem\\Dodgem.game.lua]: AI HIT!	p: " .. power:get())
+end
+
+
 function initialize(game)
 	g_Game = game
 	g_World = game:getWorld()
@@ -35,6 +40,7 @@ function initialize(game)
 	-- create AI cars
 	local aiparams = Tanx.ParameterMap()
 	aiparams:at"target":assign(car1)
+	aiparams:at"onHitTail":assign(Tanx.LuaFunctionWrapper(onAiHitTail))
 
 	local i
 	for i = 1, 5 do

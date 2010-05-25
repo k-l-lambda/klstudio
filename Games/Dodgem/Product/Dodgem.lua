@@ -9,33 +9,40 @@
 
 Tanx.log("[Dodgem\\Automobile.lua]: parsed.")
 
-Tanx.dofile"Core:utility.lua"
+Tanx.require"Core:utility.lua"
 Tanx.dofile"Automobile.lua"
 
 
 function loadSounds(soundconfig)
-	soundconfig = soundconfig or {}
+	function doLoadSounds()
+		soundconfig = soundconfig or {}
 
-	loadsource = function()
-		local loadsound = function(filename) return openalpp.Source.new(Tanx.ScriptSpace:resource():get():getResource(filename):get()); end
+		loadsource = function()
+			local loadsound = function(filename) return openalpp.Source.new(Tanx.ScriptSpace:resource():get():getResource(filename):get()); end
+
+			return {
+				Engine = loadsound"engine.wav",
+				EngineEnemy = loadsound"engine_e.wav",
+				CollisionBox = loadsound"collision3.wav",
+				CollisionConvex = loadsound"collision2.wav",
+				CollisionTail = loadsound"TailCollision.wav",
+			}
+		end
+
+		g_SoundSources = g_SoundSources or loadsource()
 
 		return {
-			Engine = loadsound"engine.wav",
-			EngineEnemy = loadsound"engine_e.wav",
-			CollisionBox = loadsound"collision3.wav",
-			CollisionConvex = loadsound"collision2.wav",
-			CollisionTail = loadsound"TailCollision.wav",
+			Engine = g_SoundSources[soundconfig.Engine or "Engine"],
+			CollisionBox = g_SoundSources[soundconfig.CollisionBox or "CollisionBox"],
+			CollisionConvex = g_SoundSources[soundconfig.CollisionConvex or "CollisionConvex"],
+			CollisionTail = g_SoundSources[soundconfig.CollisionTail or "CollisionTail"],
 		}
 	end
 
-	g_SoundSources = g_SoundSources or loadsource()
-
-	return {
-		Engine = g_SoundSources[soundconfig.Engine or "Engine"],
-		CollisionBox = g_SoundSources[soundconfig.CollisionBox or "CollisionBox"],
-		CollisionConvex = g_SoundSources[soundconfig.CollisionConvex or "CollisionConvex"],
-		CollisionTail = g_SoundSources[soundconfig.CollisionTail or "CollisionTail"],
-	}
+	local s, r = pcall(doLoadSounds)
+	if s then
+		return r
+	end
 end
 
 

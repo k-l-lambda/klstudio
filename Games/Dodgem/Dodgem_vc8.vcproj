@@ -81,6 +81,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Product\Dodgem.layout"
+				>
+			</File>
+			<File
 				RelativePath=".\Product\Dodgem.material"
 				>
 			</File>

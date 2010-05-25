@@ -9,6 +9,7 @@
 
 Tanx.log("[Dodgem\\Dodgem.game.lua]: parsed.")
 
+Tanx.require"Core:utility.lua"
 Tanx.dofile"VehicleCamera.lua"
 Tanx.dofile"Dodgem.lua"
 
@@ -17,7 +18,7 @@ g_AutomobileList ={}
 
 
 function onAiHitTail(power)
-	Tanx.log("[Dodgem\\Dodgem.game.lua]: AI HIT!	p: " .. power:get())
+	Tanx.log("[Dodgem\\Dodgem.game.lua]: AI HIT!	p: " .. power)
 end
 
 
@@ -40,7 +41,7 @@ function initialize(game)
 	-- create AI cars
 	local aiparams = Tanx.ParameterMap()
 	aiparams:at"target":assign(car1)
-	aiparams:at"onHitTail":assign(Tanx.LuaFunctionWrapper(onAiHitTail))
+	aiparams:at"onHitTail":assign(Tanx.functor(onAiHitTail))
 
 	local i
 	for i = 1, 5 do
@@ -59,8 +60,11 @@ function initialize(game)
 	end
 
 	-- create sound listener
-	g_SoundListener = openalpp.Listener.new()
-	updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera())
+	local s, r = pcall(openalpp.Listener.new)
+	if s then
+		g_SoundListener = r
+		updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera())
+	end
 
 	-- setup GUI
 	g_GuiSystem = CEGUI.System.getSingleton()
@@ -118,7 +122,9 @@ function onStep(elapsed)
 		g_AutomobileList[i]:step(elapsed)
 	end
 
-	updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera(), elapsed)
+	if g_SoundListener then
+		updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera(), elapsed)
+	end
 
 	--[[g_SparkTime = (g_SparkTime or 0) + elapsed
 	if g_SparkTime > 3 then

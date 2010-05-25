@@ -9,7 +9,7 @@
 
 Tanx.log("[Dodgem\\AiCar.agent.lua]: parsed.")
 
-Tanx.dofile"Core:utility.lua"
+Tanx.require"Core:utility.lua"
 Tanx.dofile"Dodgem.lua"
 
 
@@ -60,14 +60,14 @@ host =
 			g_TargetBody = target:get():getMainBody()
 		end
 
-		onHitTail = params:at"onHitTail":get()
+		onHitTail = Tanx.tofunction(params:at"onHitTail":get())
 	end,
 
 	postCreate = function(controller)
 		g_Agent = controller:agent()
 
 		local tailid = g_TargetBody:get():getRigidBody():get():getUid()
-		g_Car = Dodgem(g_World, g_Agent, "Dodgem/Dodgem", {Engine = "EngineEnemy"}, {onHitTail = function(id, power) if id == tailid then onHitTail:call(Tanx.ParameterType(power)) end end})
+		g_Car = Dodgem(g_World, g_Agent, "Dodgem/Dodgem", {Engine = "EngineEnemy"}, {onHitTail = function(id, power) if id == tailid then onHitTail(power) end end})
 
 		g_Time = 0
 	end,

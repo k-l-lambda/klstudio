@@ -39,10 +39,7 @@ function initialize(game)
 	table.insert(g_AutomobileList, g_PlayerCar)
 
 	-- create AI cars
-	local aiparams = Tanx.ParameterMap()
-	aiparams:at"target":assign(car1)
-	aiparams:at"onHitTail":assign(Tanx.functor(onAiHitTail))
-
+	local aiparams = Tanx.tableToMap{target = car1, onHitTail = Tanx.functor(onAiHitTail)}
 	local i
 	for i = 1, 5 do
 		g_World:createAgent("Dodgem/AiCar", "aicar%index", Tanx.RigidBodyState.make(Tanx.Vector3((i - 3) * 8, 0.8, 20)), game:getResourcePackage(), aiparams)
@@ -125,12 +122,6 @@ function onStep(elapsed)
 	if g_SoundListener then
 		updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera(), elapsed)
 	end
-
-	--[[g_SparkTime = (g_SparkTime or 0) + elapsed
-	if g_SparkTime > 3 then
-		g_SparkTime = 0
-		g_Game:getWorld():createAgent("Dodgem/Sparks", "spark%index", Tanx.RigidBodyState.make(Tanx.Vector3(0, 3, 0)), g_Game:getResourcePackage())
-	end]]
 end
 
 

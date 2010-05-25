@@ -1,10 +1,16 @@
 TODO:
+	remove GUI in rear mirror viewport
 	game logic
-		score accumulation game
+		score accumulation game: timer
 	wheel sound
 	AI: back off when blocking
 	refine vehicle following camera
 
+
+
+2010.5.25	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	ScoreMark.lua: created.
 
 
 2010.5.24	K.L.	<xxxK.L.xxx@gmail.com>

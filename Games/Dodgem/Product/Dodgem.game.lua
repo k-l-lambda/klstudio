@@ -12,13 +12,85 @@ Tanx.log("[Dodgem\\Dodgem.game.lua]: parsed.")
 Tanx.require"Core:utility.lua"
 Tanx.dofile"VehicleCamera.lua"
 Tanx.dofile"Dodgem.lua"
+Tanx.dofile"ScoreMark.lua"
 
 
 g_AutomobileList ={}
+g_ScoreMarks ={}
 
+
+function onPlayerHitTail(id, power)
+	--Tanx.log("PLAYER HIT!	p: " .. power)
+
+	if g_GameTimeRemain > 0 then
+		local score = math.floor(power / 3)
+		g_Score = g_Score + score
+
+		if score > 0 then
+			assert(g_WindowManager)
+			local mark = ScoreMark(g_WindowManager, score)
+			table.insert(g_ScoreMarks, mark)
+		end
+	end
+end
 
 function onAiHitTail(power)
-	Tanx.log("[Dodgem\\Dodgem.game.lua]: AI HIT!	p: " .. power)
+	--Tanx.log("[Dodgem\\Dodgem.game.lua]: AI HIT!	p: " .. power)
+
+	if g_GameTimeRemain > 0 then
+		local score = math.floor(power / 5)
+
+		if score > 0 then
+			if g_ProtectedTime <= 0 then
+				g_Score = g_Score - score
+				g_ProtectedTime = 0.4
+
+				assert(g_WindowManager)
+				local mark = ScoreMark(g_WindowManager, -score)
+				table.insert(g_ScoreMarks, mark)
+			end
+		end
+	end
+end
+
+
+function resetGame()
+	g_World:reset()
+
+	-- load scene
+	local scene = g_Game:getResourcePackage():get():getResource("Park.scene")
+	g_World:loadScene(scene, g_Game:getResourcePackage())
+
+	g_AutomobileList = {}
+
+	local car1 = g_World:createAgent("Dodgem/Dodgem", "car1", Tanx.RigidBodyState.make(Tanx.Vector3(0, 0.8, 0)))
+	g_PlayerCar = Dodgem(g_World, car1:get(), "Dodgem/Dodgem", nil, {onHitTail = onPlayerHitTail})
+	table.insert(g_AutomobileList, g_PlayerCar)
+
+	-- create AI cars
+	local aiparams = Tanx.tableToMap{target = car1, onHitTail = Tanx.functor(onAiHitTail)}
+	local i
+	for i = 1, 5 do
+		g_World:createAgent("Dodgem/AiCar", "aicar%index", Tanx.RigidBodyState.make(Tanx.Vector3((i - 3) * 8, 0.8, 20)), g_Game:getResourcePackage(), aiparams)
+	end
+
+	-- create main camera
+	if not g_MainCamera then
+		g_MainCamera = VehicleCamera(car1, g_World, "Main", {Radius = 7, AspectRatio = g_Game:getWindow():getWidth() / g_Game:getWindow():getHeight(), RearCamera = {}})
+
+		local viewport = g_Game:getWindow():addViewport(g_MainCamera:getCamera())
+		viewport:setBackgroundColour(Ogre.ColourValue(0.2, 0.3, 0.5))
+
+		local rearview = g_Game:getWindow():addViewport(g_MainCamera:getRearCamera(), 1, 0.3, 0.01, 0.4, 0.2)
+		rearview:setBackgroundColour(Ogre.ColourValue(0.2, 0.3, 0.5))
+	else
+		g_MainCamera:setTarget(car1)
+	end
+
+	g_Score = 0
+	g_GameTimeRemain = 100
+
+	g_ProtectedTime = 0
 end
 
 
@@ -28,33 +100,17 @@ function initialize(game)
 	g_Keyboard = game:getKeyboard()
 	g_Mouse = game:getMouse()
 
-	game:getWorld():reset()
+	-- setup GUI
+	g_GuiSystem = CEGUI.System.getSingleton()
+	CEGUI.SchemeManager.getSingleton():loadScheme(CEGUI.String"TaharezLookSkin.scheme")
+	g_WindowManager = CEGUI.WindowManager.getSingleton()
+	local sheet = g_WindowManager:loadWindowLayout(CEGUI.String"Dodgem.layout")
+	g_GuiSystem:setGUISheet(sheet)
 
-	-- load scene
-	local scene = game:getResourcePackage():get():getResource("Park.scene")
-	g_World:loadScene(scene, game:getResourcePackage())
+	g_ScoreWindow = g_WindowManager:getWindow(CEGUI.String"Dodgem/Score")
+	g_TimerWindow = g_WindowManager:getWindow(CEGUI.String"Dodgem/Timer")
 
-	local car1 = g_World:createAgent("Dodgem/Dodgem", "car1", Tanx.RigidBodyState.make(Tanx.Vector3(0, 0.8, 0)))
-	g_PlayerCar = Dodgem(g_World, car1:get(), "Dodgem/Dodgem", nil, {onHitTail = function(id, power) Tanx.log("PLAYER HIT!	p: " .. power) end})
-	table.insert(g_AutomobileList, g_PlayerCar)
-
-	-- create AI cars
-	local aiparams = Tanx.tableToMap{target = car1, onHitTail = Tanx.functor(onAiHitTail)}
-	local i
-	for i = 1, 5 do
-		g_World:createAgent("Dodgem/AiCar", "aicar%index", Tanx.RigidBodyState.make(Tanx.Vector3((i - 3) * 8, 0.8, 20)), game:getResourcePackage(), aiparams)
-	end
-
-	-- create main camera
-	do
-		g_MainCamera = VehicleCamera(car1, g_World, "Main", {Radius = 7, AspectRatio = game:getWindow():getWidth() / game:getWindow():getHeight(), RearCamera = {}})
-
-		local viewport = game:getWindow():addViewport(g_MainCamera:getCamera())
-		viewport:setBackgroundColour(Ogre.ColourValue(0.2, 0.3, 0.5))
-
-		local rearview = game:getWindow():addViewport(g_MainCamera:getRearCamera(), 1, 0.3, 0.01, 0.4, 0.2)
-		rearview:setBackgroundColour(Ogre.ColourValue(0.2, 0.3, 0.5))
-	end
+	resetGame()
 
 	-- create sound listener
 	local s, r = pcall(openalpp.Listener.new)
@@ -62,24 +118,6 @@ function initialize(game)
 		g_SoundListener = r
 		updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera())
 	end
-
-	-- setup GUI
-	g_GuiSystem = CEGUI.System.getSingleton()
-	CEGUI.SchemeManager.getSingleton():loadScheme(CEGUI.String"TaharezLookSkin.scheme")
-	local windowManager = CEGUI.WindowManager.getSingleton()
-	local sheet = windowManager:loadWindowLayout(CEGUI.String"Dodgem.layout")
-	g_GuiSystem:setGUISheet(sheet)
-
-	local mark = windowManager:createWindow(CEGUI.String"TaharezLook/StaticText", CEGUI.String"mark")
-	mark:setPosition(CEGUI.UVector2(CEGUI.UDim(0.4, 0), CEGUI.UDim(0.4, 0)))
-	mark:setSize(CEGUI.UVector2(CEGUI.UDim(0.2, 0), CEGUI.UDim(0.2, 0)))
-	mark:setText(CEGUI.String"a mark")
-	mark:setProperty(CEGUI.String"BackgroundEnabled", CEGUI.String"false")
-	mark:setProperty(CEGUI.String"FrameEnabled", CEGUI.String"false")
-	mark:setFont(CEGUI.String"BlueHighway-48")
-
-	local root = windowManager:getWindow(CEGUI.String"root")
-	root:addChildWindow(mark)
 end
 
 
@@ -113,15 +151,43 @@ function onStep(elapsed)
 		end
 	end
 
-	--g_PlayerCar:step(elapsed)
-	local i
-	for i = 1, table.maxn(g_AutomobileList) do
-		g_AutomobileList[i]:step(elapsed)
+	local i, v
+
+	for i, v in ipairs(g_AutomobileList) do
+		v:step(elapsed)
+	end
+
+	for i, v in ipairs(g_ScoreMarks) do
+		repeat
+			v:step(elapsed)
+
+			local next = true
+			if v.RemainTime <= 0 then
+				table.remove(g_ScoreMarks, i)
+				v = g_ScoreMarks[i]
+				next = false
+			end
+		until next or v == nil
 	end
 
 	if g_SoundListener then
 		updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera(), elapsed)
 	end
+
+	if g_ProtectedTime > 0 then
+		g_ProtectedTime = g_ProtectedTime - elapsed
+	end
+
+	if g_GameTimeRemain > 0 then
+		g_GameTimeRemain = g_GameTimeRemain - elapsed
+
+		if g_GameTimeRemain < 0 then
+			g_GameTimeRemain = 0
+		end
+	end
+
+	g_ScoreWindow:setText(CEGUI.String("Score: " .. g_Score))
+	g_TimerWindow:setText(CEGUI.String(string.format("%.2f", g_GameTimeRemain)))
 end
 
 

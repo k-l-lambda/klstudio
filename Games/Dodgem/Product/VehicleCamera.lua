@@ -87,6 +87,10 @@ class"VehicleCamera"
 		end
 	end
 
+	function VehicleCamera:setTarget(target)
+		self.Target = Tanx.AgentWeakPtr(target)
+	end
+
 	function VehicleCamera:getCamera()
 		return self.Camera
 	end

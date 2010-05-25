@@ -142,6 +142,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Product\ScoreMark.lua"
+					>
+				</File>
+				<File
 					RelativePath=".\Product\Sparks.agent.lua"
 					>
 				</File>

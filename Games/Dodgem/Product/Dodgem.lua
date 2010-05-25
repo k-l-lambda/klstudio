@@ -7,7 +7,7 @@
 	Dodgem\Dodgem.lua
 --]]
 
-Tanx.log("[Dodgem\\Automobile.lua]: parsed.")
+Tanx.log("[Dodgem\\Dodgem.lua]: parsed.")
 
 Tanx.require"Core:utility.lua"
 Tanx.dofile"Automobile.lua"

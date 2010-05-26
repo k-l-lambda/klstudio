@@ -49,7 +49,10 @@ class "ScoreMark"
 	end
 
 	function ScoreMark:__finalize()
-		self.WindowManager:destroyWindow(self.Window)
+		if CEGUI.System.getSingletonPtr() then
+			self.WindowManager:destroyWindow(self.Window)
+			self.Window = nil
+		end
 	end
 
 	function ScoreMark:step(elapsed)

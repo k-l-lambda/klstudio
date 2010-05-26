@@ -83,6 +83,7 @@ function resetGame()
 
 		local rearview = g_Game:getWindow():addViewport(g_MainCamera:getRearCamera(), 1, 0.3, 0.01, 0.4, 0.2)
 		rearview:setBackgroundColour(Ogre.ColourValue(0.2, 0.3, 0.5))
+		rearview:setOverlaysEnabled(false)
 	else
 		g_MainCamera:setTarget(car1)
 	end

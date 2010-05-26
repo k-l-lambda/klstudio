@@ -1,0 +1,15 @@
+application: klstudioindieg
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+- url: /favicon.ico
+  static_files: html/res/icons/CubeEarth.ico
+  upload: html/res/icons/CubeEarth.ico
+
+- url: /html
+  static_dir: html
+
+- url: .*
+  script: main.py

@@ -1,11 +1,15 @@
 TODO:
-	remove GUI in rear mirror viewport
 	game logic
-		score accumulation game: timer
+		score accumulation game: end interface and restart game
 	wheel sound
 	AI: back off when blocking
 	refine vehicle following camera
 
+
+
+2010.5.26	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Dodgem.game.lua: remove GUI in rear mirror viewport.
 
 
 2010.5.25	K.L.	<xxxK.L.xxx@gmail.com>

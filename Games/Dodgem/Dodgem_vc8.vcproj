@@ -141,6 +141,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Product\ScoreMark.lua"
+					>
+				</File>
+				<File
 					RelativePath=".\Product\VehicleCamera.lua"
 					>
 				</File>

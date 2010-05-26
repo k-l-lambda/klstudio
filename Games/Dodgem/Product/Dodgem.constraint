@@ -45,18 +45,18 @@
 					<ConstraintData></ConstraintData>
 					<PivotA>Vector3(0, 0, 0)</PivotA>
 					<PivotB>Vector3(0, 0, 0)</PivotB>
-					<RestLength>1.9</RestLength>
+					<RestLength>1.7</RestLength>
 				</px>
 			</second>
 		</item>
 		<item>
-			<first>TailJoint2_l</first>
+			<first>TailJoint3</first>
 			<second>
 				<px class_id_reference="2" object_id="_4">
 					<ConstraintData></ConstraintData>
 					<PivotA>Vector3(0, 0, 0)</PivotA>
 					<PivotB>Vector3(0, 0, 0)</PivotB>
-					<RestLength>3.2</RestLength>
+					<RestLength>2.8</RestLength>
 				</px>
 			</second>
 		</item>

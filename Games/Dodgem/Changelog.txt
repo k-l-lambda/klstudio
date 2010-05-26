@@ -9,6 +9,8 @@ TODO:
 
 2010.5.26	K.L.	<xxxK.L.xxx@gmail.com>
 
+	>	Dodgem.unit: refined AiCar.
+
 	>	Dodgem.game.lua: remove GUI in rear mirror viewport.
 
 

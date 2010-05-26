@@ -10,7 +10,7 @@
 			<first>AiCar</first>
 			<second class_id="3" tracking_level="0" version="2">
 				<Nodes class_id="4" tracking_level="0" version="0">
-					<count>4</count>
+					<count>5</count>
 					<item_version>6</item_version>
 					<item class_id="5" tracking_level="0" version="6">
 						<Name>chassis</Name>
@@ -135,7 +135,7 @@
 						</Appearances>
 					</item>
 					<item>
-						<Name>tail</Name>
+						<Name>tail2</Name>
 						<Appearances>
 							<count>1</count>
 							<item_version>0</item_version>
@@ -150,7 +150,37 @@
 											<CastShadows>1</CastShadows>
 										</AppearanceConfig>
 										<MeshName>Prefab_Sphere</MeshName>
-										<Scale>Vector3(0.016, 0.016, 0.016)</Scale>
+										<Scale>Vector3(0.005, 0.005, 0.005)</Scale>
+										<MaterialMap>
+											<count>1</count>
+											<item_version>0</item_version>
+											<item>
+												<first>0</first>
+												<second>Dodgem/TailBall/Green1</second>
+											</item>
+										</MaterialMap>
+									</px>
+								</m_Data>
+							</item>
+						</Appearances>
+					</item>
+					<item>
+						<Name>tail</Name>
+						<Appearances>
+							<count>1</count>
+							<item_version>0</item_version>
+							<item>
+								<m_Data>
+									<px class_id_reference="6" object_id="_4">
+										<AppearanceConfig>
+											<Name></Name>
+											<Translation>Vector3(0, 0, 0)</Translation>
+											<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
+											<Visible>1</Visible>
+											<CastShadows>1</CastShadows>
+										</AppearanceConfig>
+										<MeshName>Prefab_Sphere</MeshName>
+										<Scale>Vector3(0.018, 0.018, 0.018)</Scale>
 										<MaterialMap>
 											<count>1</count>
 											<item_version>0</item_version>
@@ -166,7 +196,7 @@
 					</item>
 				</Nodes>
 				<RigidBodies class_id="19" tracking_level="0" version="0">
-					<count>4</count>
+					<count>5</count>
 					<item_version>9</item_version>
 					<item class_id="20" tracking_level="0" version="9">
 						<NodeName>chassis</NodeName>
@@ -191,7 +221,7 @@
 						</SolverDeactivation>
 						<Shape class_id="32" tracking_level="0" version="0">
 							<m_Data class_id="33" tracking_level="0" version="1">
-								<px class_id="26" tracking_level="1" version="0" object_id="_4">
+								<px class_id="26" tracking_level="1" version="0" object_id="_5">
 									<Shape class_id="34" tracking_level="0" version="1">
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -234,7 +264,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id="22" tracking_level="1" version="1" object_id="_5">
+								<px class_id="22" tracking_level="1" version="1" object_id="_6">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -279,7 +309,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="22" object_id="_6">
+								<px class_id_reference="22" object_id="_7">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -302,8 +332,53 @@
 						<CollisionFilterInfo>0</CollisionFilterInfo>
 					</item>
 					<item>
+						<NodeName>tail2</NodeName>
+						<Translate>Vector3(0, 1.1, -3.5999999)</Translate>
+						<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
+						<LocalLinearVelocity>Vector3(0, 0, 0)</LocalLinearVelocity>
+						<LocalAngularVelocity>Vector3(0, 0, 0)</LocalAngularVelocity>
+						<MotionType>
+							<name>SPHERE_INERTIA</name>
+						</MotionType>
+						<QualityType>
+							<name>MOVING</name>
+						</QualityType>
+						<CollisionResponse>
+							<name>SIMPLE_CONTACT</name>
+						</CollisionResponse>
+						<DeactivatorType>
+							<name>SPATIAL</name>
+						</DeactivatorType>
+						<SolverDeactivation>
+							<name>LOW</name>
+						</SolverDeactivation>
+						<Shape>
+							<m_Data>
+								<px class_id_reference="22" object_id="_8">
+									<Shape>
+										<Scale>Vector3(1, 1, 1)</Scale>
+									</Shape>
+									<Radius>0.25</Radius>
+									<Hollow>0</Hollow>
+									<Thickness>0</Thickness>
+								</px>
+							</m_Data>
+						</Shape>
+						<Mass>6</Mass>
+						<Centroid>Vector3(0, 0, 0)</Centroid>
+						<LinearDamping>0.80000001</LinearDamping>
+						<AngularDamping>0.050000001</AngularDamping>
+						<GravityFactor>1</GravityFactor>
+						<Friction>0.5</Friction>
+						<Restitution>0.40000001</Restitution>
+						<MaxLinearVelocity>200</MaxLinearVelocity>
+						<MaxAngularVelocity>200</MaxAngularVelocity>
+						<AllowedPenetrationDepth>-1</AllowedPenetrationDepth>
+						<CollisionFilterInfo>0</CollisionFilterInfo>
+					</item>
+					<item>
 						<NodeName>tail</NodeName>
-						<Translate>Vector3(0, 0.60000002, -3.5999999)</Translate>
+						<Translate>Vector3(0, 0.60000002, -5.5999999)</Translate>
 						<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
 						<LocalLinearVelocity>Vector3(0, 0, 0)</LocalLinearVelocity>
 						<LocalAngularVelocity>Vector3(0, 0, 0)</LocalAngularVelocity>
@@ -324,11 +399,11 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="22" object_id="_7">
+								<px class_id_reference="22" object_id="_9">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
-									<Radius>0.80000001</Radius>
+									<Radius>0.89999998</Radius>
 									<Hollow>0</Hollow>
 									<Thickness>0</Thickness>
 								</px>
@@ -348,7 +423,7 @@
 					</item>
 				</RigidBodies>
 				<Constraints class_id="35" tracking_level="0" version="0">
-					<count>3</count>
+					<count>4</count>
 					<item_version>0</item_version>
 					<item class_id="36" tracking_level="0" version="0">
 						<Name>Dodgem/TailJoint0_f</Name>
@@ -361,9 +436,14 @@
 						<RigidBodyB>2</RigidBodyB>
 					</item>
 					<item>
-						<Name>Dodgem/TailJoint2_l</Name>
+						<Name>Dodgem/TailJoint2</Name>
 						<RigidBodyA>2</RigidBodyA>
 						<RigidBodyB>3</RigidBodyB>
+					</item>
+					<item>
+						<Name>Dodgem/TailJoint3</Name>
+						<RigidBodyA>3</RigidBodyA>
+						<RigidBodyB>4</RigidBodyB>
 					</item>
 				</Constraints>
 				<HostScriptName>AiCar.agent.lua</HostScriptName>
@@ -382,7 +462,7 @@
 							<item_version>0</item_version>
 							<item>
 								<m_Data>
-									<px class_id_reference="6" object_id="_8">
+									<px class_id_reference="6" object_id="_10">
 										<AppearanceConfig>
 											<Name></Name>
 											<Translation>Vector3(0, 0, 0)</Translation>
@@ -401,7 +481,7 @@
 							</item>
 							<item>
 								<m_Data>
-									<px class_id="12" tracking_level="1" version="0" object_id="_9">
+									<px class_id="12" tracking_level="1" version="0" object_id="_11">
 										<AppearanceConfig>
 											<Name>RearMirror</Name>
 											<Translation>Vector3(0, 0, 0)</Translation>
@@ -416,7 +496,7 @@
 							</item>
 							<item>
 								<m_Data>
-									<px class_id="9" tracking_level="1" version="0" object_id="_10">
+									<px class_id="9" tracking_level="1" version="0" object_id="_12">
 										<AppearanceConfig>
 											<Name>Sparks</Name>
 											<Translation>Vector3(0, 0, 0)</Translation>
@@ -437,7 +517,7 @@
 							<item_version>0</item_version>
 							<item>
 								<m_Data>
-									<px class_id_reference="6" object_id="_11">
+									<px class_id_reference="6" object_id="_13">
 										<AppearanceConfig>
 											<Name></Name>
 											<Translation>Vector3(0, 0, 0)</Translation>
@@ -467,7 +547,7 @@
 							<item_version>0</item_version>
 							<item>
 								<m_Data>
-									<px class_id_reference="6" object_id="_12">
+									<px class_id_reference="6" object_id="_14">
 										<AppearanceConfig>
 											<Name></Name>
 											<Translation>Vector3(0, 0, 0)</Translation>
@@ -497,7 +577,7 @@
 							<item_version>0</item_version>
 							<item>
 								<m_Data>
-									<px class_id_reference="6" object_id="_13">
+									<px class_id_reference="6" object_id="_15">
 										<AppearanceConfig>
 											<Name></Name>
 											<Translation>Vector3(0, 0, 0)</Translation>
@@ -547,7 +627,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="26" object_id="_14">
+								<px class_id_reference="26" object_id="_16">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -590,7 +670,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="22" object_id="_15">
+								<px class_id_reference="22" object_id="_17">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -635,7 +715,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="22" object_id="_16">
+								<px class_id_reference="22" object_id="_18">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -680,7 +760,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="22" object_id="_17">
+								<px class_id_reference="22" object_id="_19">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -738,7 +818,7 @@
 							<item_version>0</item_version>
 							<item>
 								<m_Data>
-									<px class_id_reference="9" object_id="_18">
+									<px class_id_reference="9" object_id="_20">
 										<AppearanceConfig>
 											<Name></Name>
 											<Translation>Vector3(0, 0, 0)</Translation>
@@ -779,7 +859,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="22" object_id="_19">
+								<px class_id_reference="22" object_id="_21">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>

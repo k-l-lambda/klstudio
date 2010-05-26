@@ -74,6 +74,10 @@
 			Name="Product"
 			>
 			<File
+				RelativePath=".\Product\Dodgem.constraint"
+				>
+			</File>
+			<File
 				RelativePath=".\Product\Dodgem.game"
 				>
 			</File>

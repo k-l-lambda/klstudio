@@ -1,6 +1,5 @@
 TODO:
-	game logic
-		score accumulation game: end interface and restart game
+	fade out at game end
 	wheel sound
 	AI: back off when blocking
 	refine vehicle following camera
@@ -8,6 +7,8 @@ TODO:
 
 
 2010.5.27	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Composition effect test added.
 
 	+	Dodgem.game.lua: game restarting implemented.
 

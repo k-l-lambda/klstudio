@@ -5,7 +5,7 @@
 
 		<Window Type="TaharezLook/StaticText" Name="Dodgem/Score">
 			<Property Name="UnifiedPosition" Value="{{0.04,0},{0.02,0}}}" />
-			<Property Name="UnifiedSize" Value="{{0.2,0},{0.16,0}}" />
+			<Property Name="UnifiedSize" Value="{{0.2,0},{0.12,0}}" />
 			<Property Name="Text" Value="Score:" />
 			<Property Name="Font" Value="BlueHighway-48" />
 			<Property Name="BackgroundEnabled" Value="true" />
@@ -15,7 +15,7 @@
 
 		<Window Type="TaharezLook/StaticText" Name="Dodgem/Timer">
 			<Property Name="UnifiedPosition" Value="{{0.76,0},{0.02,0}}}" />
-			<Property Name="UnifiedSize" Value="{{0.2,0},{0.16,0}}" />
+			<Property Name="UnifiedSize" Value="{{0.2,0},{0.12,0}}" />
 			<Property Name="Text" Value="" />
 			<Property Name="Font" Value="BlueHighway-48" />
 			<Property Name="BackgroundEnabled" Value="true" />

@@ -15,7 +15,7 @@ Tanx.dofile"Dodgem.lua"
 Tanx.dofile"ScoreMark.lua"
 
 
-s_GamingTime = 5
+s_GamingTime = 100
 s_PostGameTime = 8
 
 
@@ -102,6 +102,9 @@ function resetGame()
 	g_Game:getWindow():removeAllViewports()
 	local viewport = g_Game:getWindow():addViewport(g_MainCamera:getCamera())
 	viewport:setBackgroundColour(Ogre.ColourValue(0.2, 0.3, 0.5))
+
+	Ogre.CompositorManager.getSingleton():addCompositor(viewport, "Glass")
+	Ogre.CompositorManager.getSingleton():setCompositorEnabled(viewport, "Glass", true)
 
 	local rearview = g_Game:getWindow():addViewport(g_MainCamera:getRearCamera(), 1, 0.3, 0.01, 0.4, 0.2)
 	rearview:setBackgroundColour(Ogre.ColourValue(0.2, 0.3, 0.5))
@@ -215,20 +218,24 @@ end
 function updateSoundListenerByCamera(listener, camera, elapsed)
 	elapsed = elapsed or 1
 
-	--local position = camera:getRealPosition()
-	local position = g_PlayerCar.Chassis:get():getPosition()
-	local velocity = g_PlayerCar.Chassis:get():getLinearVelocity()
-	local direction = camera:getRealDirection()
-	local up = camera:getRealUp()
+	local chassis = g_PlayerCar.Chassis:lock()
 
-	--g_LastPosition = g_LastPosition or position
-	--local velocity = (position - g_LastPosition) / elapsed
+	if chassis:get() then
+		--local position = camera:getRealPosition()
+		local position = chassis:get():getPosition()
+		local velocity = chassis:get():getLinearVelocity()
+		local direction = camera:getRealDirection()
+		local up = camera:getRealUp()
 
-	listener:get():setPosition(position.x, position.y, position.z)
-	listener:get():setOrientation(direction.x, direction.y, direction.z, up.x, up.y, up.z)
-	listener:get():setVelocity(velocity.x, velocity.y, velocity.z)
+		--g_LastPosition = g_LastPosition or position
+		--local velocity = (position - g_LastPosition) / elapsed
 
-	--g_LastPosition = position
+		listener:get():setPosition(position.x, position.y, position.z)
+		listener:get():setOrientation(direction.x, direction.y, direction.z, up.x, up.y, up.z)
+		listener:get():setVelocity(velocity.x, velocity.y, velocity.z)
+
+		--g_LastPosition = position
+	end
 end
 
 

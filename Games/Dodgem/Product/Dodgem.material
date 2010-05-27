@@ -148,253 +148,295 @@ material Dodgem/TailBall/Green2
 
 material Dodgem/DodgemMesh/Material_#148/E002FARJ
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.607843 0.184314 0.0705882
-            diffuse 0.607843 0.184314 0.0705882
-            specular 0.898039 0.898039 0.898039 128.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.607843 0.184314 0.0705882
+			diffuse 0.607843 0.184314 0.0705882
+			specular 0.898039 0.898039 0.898039 128.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 material Dodgem/DodgemMesh/Material_#148/E002CROM
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.12549 0.0823529 0.0
-            diffuse 0.12549 0.0823529 0.0
-            specular 1.0 1.0 1.0 5000.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.12549 0.0823529 0.0
+			diffuse 0.12549 0.0823529 0.0
+			specular 1.0 1.0 1.0 5000.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 material Dodgem/DodgemMesh/Material_#148/E002NGMT
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.121569 0.109804 0.0862745
-            diffuse 0.121569 0.109804 0.0862745
-            specular 0.898039 0.898039 0.898039 48.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.121569 0.109804 0.0862745
+			diffuse 0.121569 0.109804 0.0862745
+			specular 0.898039 0.898039 0.898039 48.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 material Dodgem/DodgemMesh/Material_#148/E002EMBE
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.0980392 0.0980392 0.0980392
-            diffuse 0.784314 0.784314 0.627451
-            specular 1.0 1.0 1.0 48.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.0980392 0.0980392 0.0980392
+			diffuse 0.784314 0.784314 0.627451
+			specular 1.0 1.0 1.0 48.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 material Dodgem/DodgemMesh/Material_#148/E002OSCU
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.45098 0.14902 0.0901961
-            diffuse 0.45098 0.14902 0.0901961
-            specular 1.0 1.0 1.0 12.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.45098 0.14902 0.0901961
+			diffuse 0.45098 0.14902 0.0901961
+			specular 1.0 1.0 1.0 12.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 material Dodgem/DodgemMesh/Material_#148/E002NGBR
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.129412 0.0745098 0.0196078
-            diffuse 0.129412 0.0745098 0.0196078
-            specular 0.898039 0.898039 0.898039 16.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.129412 0.0745098 0.0196078
+			diffuse 0.129412 0.0745098 0.0196078
+			specular 0.898039 0.898039 0.898039 16.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 material Dodgem/DodgemMesh/Material_#148/E002ASI
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.709804 0.623529 0.513726
-            diffuse 0.709804 0.623529 0.513726
-            specular 1.0 1.0 1.0 48.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.709804 0.623529 0.513726
+			diffuse 0.709804 0.623529 0.513726
+			specular 1.0 1.0 1.0 48.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 material Dodgem/DodgemMesh/Material_#148/E002CREM
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.819608 0.811765 0.623529
-            diffuse 0.819608 0.811765 0.623529
-            specular 1.0 1.0 1.0 128.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.819608 0.811765 0.623529
+			diffuse 0.819608 0.811765 0.623529
+			specular 1.0 1.0 1.0 128.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 material Dodgem/DodgemMesh/Material_#148/E002CRIS
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.0509804 0.196078 0.00392157
-            diffuse 0.0509804 0.196078 0.00392157
-            specular 1.0 1.0 1.0 192.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.0509804 0.196078 0.00392157
+			diffuse 0.0509804 0.196078 0.00392157
+			specular 1.0 1.0 1.0 192.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 
 material Dodgem/DodgemMesh/AiCar/E002FARJ
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.184314 0.607843 0.0705882
-            diffuse 0.184314 0.607843 0.0705882
-            specular 0.898039 0.898039 0.898039 128.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.184314 0.607843 0.0705882
+			diffuse 0.184314 0.607843 0.0705882
+			specular 0.898039 0.898039 0.898039 128.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 material Dodgem/DodgemMesh/AiCar/E002CROM
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.0823529 0.12549 0.0
-            diffuse 0.0823529 0.12549 0.0
-            specular 1.0 1.0 1.0 5000.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.0823529 0.12549 0.0
+			diffuse 0.0823529 0.12549 0.0
+			specular 1.0 1.0 1.0 5000.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 material Dodgem/DodgemMesh/AiCar/E002NGMT
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.121569 0.109804 0.0862745
-            diffuse 0.121569 0.109804 0.0862745
-            specular 0.898039 0.898039 0.898039 48.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.121569 0.109804 0.0862745
+			diffuse 0.121569 0.109804 0.0862745
+			specular 0.898039 0.898039 0.898039 48.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 material Dodgem/DodgemMesh/AiCar/E002EMBE
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.0980392 0.0980392 0.0980392
-            diffuse 0.784314 0.784314 0.627451
-            specular 1.0 1.0 1.0 48.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.0980392 0.0980392 0.0980392
+			diffuse 0.784314 0.784314 0.627451
+			specular 1.0 1.0 1.0 48.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 material Dodgem/DodgemMesh/AiCar/E002OSCU
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.14902 0.45098 0.0901961
-            diffuse 0.14902 0.45098 0.0901961
-            specular 1.0 1.0 1.0 12.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.14902 0.45098 0.0901961
+			diffuse 0.14902 0.45098 0.0901961
+			specular 1.0 1.0 1.0 12.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 material Dodgem/DodgemMesh/AiCar/E002NGBR
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.0745098 0.129412 0.0196078
-            diffuse 0.0745098 0.129412 0.0196078
-            specular 0.898039 0.898039 0.898039 16.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.0745098 0.129412 0.0196078
+			diffuse 0.0745098 0.129412 0.0196078
+			specular 0.898039 0.898039 0.898039 16.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 material Dodgem/DodgemMesh/AiCar/E002ASI
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.623529 0.709804 0.513726
-            diffuse 0.623529 0.709804 0.513726
-            specular 1.0 1.0 1.0 48.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.623529 0.709804 0.513726
+			diffuse 0.623529 0.709804 0.513726
+			specular 1.0 1.0 1.0 48.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 material Dodgem/DodgemMesh/AiCar/E002CREM
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.819608 0.811765 0.623529
-            diffuse 0.819608 0.811765 0.623529
-            specular 1.0 1.0 1.0 128.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.819608 0.811765 0.623529
+			diffuse 0.819608 0.811765 0.623529
+			specular 1.0 1.0 1.0 128.0
+			emissive 0.0 0.0 0.0
+		}
+	}
 }
 
 material Dodgem/DodgemMesh/AiCar/E002CRIS
 {
-    technique
-    {
-        pass
-        {
-            ambient 0.0509804 0.196078 0.00392157
-            diffuse 0.0509804 0.196078 0.00392157
-            specular 1.0 1.0 1.0 192.0
-            emissive 0.0 0.0 0.0
-        }
-    }
+	technique
+	{
+		pass
+		{
+			ambient 0.0509804 0.196078 0.00392157
+			diffuse 0.0509804 0.196078 0.00392157
+			specular 1.0 1.0 1.0 192.0
+			emissive 0.0 0.0 0.0
+		}
+	}
+}
+
+
+fragment_program Ogre/Compositor/GlassFP cg
+{
+	source GlassFP.cg
+	entry_point main_ps
+	profiles ps_2_0 arbfp1
+}
+
+material Ogre/Compositor/GlassPass
+{
+	technique
+	{
+		pass
+		{
+			depth_check off
+
+			vertex_program_ref Ogre/Compositor/StdQuad_Cg_vp
+			{
+			}
+
+			fragment_program_ref Ogre/Compositor/GlassFP
+			{
+			}
+
+			texture_unit RT
+			{
+				tex_coord_set 0
+				tex_address_mode clamp
+				filtering linear linear linear
+			}
+
+			texture_unit
+			{
+				texture WaterNormal1.tga 2d
+				tex_coord_set 1
+				//tex_address_mode clamp
+				filtering linear linear linear
+			}
+		}
+	}
 }

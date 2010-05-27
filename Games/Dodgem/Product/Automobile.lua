@@ -15,8 +15,8 @@ class "Automobile"
 	function Automobile:__init(agent, vehiclemakername, soundsources)
 		local maker = Tanx.VehicleBook.getSingleton():at(vehiclemakername)
 
-		self.Chassis = agent:findBody"chassis"
-		self.VehicleAction = maker:make(self.Chassis)
+		self.Chassis = Tanx.BodyWeakPtr(agent:findBody"chassis")
+		self.VehicleAction = maker:make(self.Chassis:lock())
 		self.Driver = self.VehicleAction:get().m_deviceStatus:toDerived()
 
 		self.SoundSources = soundsources or {}
@@ -39,9 +39,9 @@ class "Automobile"
 
 		--Tanx.log(string.format("[Dodgem\\Automobile.lua]: rpm: %f, kmph: %f, mph: %f.", self.RPM, self.KMPH, self.MPH))
 
-		if self.SoundSources.Engine then
-			local position = self.Chassis:get():getPosition()
-			local velocity = self.Chassis:get():getLinearVelocity()
+		if self.SoundSources.Engine and not self.Chassis:expired() then
+			local position = self.Chassis:lock():get():getPosition()
+			local velocity = self.Chassis:lock():get():getLinearVelocity()
 
 			self.SoundSources.Engine:get():setPosition(position.x, position.y, position.z)
 			self.SoundSources.Engine:get():setVelocity(velocity.x, velocity.y, velocity.z)

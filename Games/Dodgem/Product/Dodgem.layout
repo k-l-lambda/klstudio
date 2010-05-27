@@ -4,8 +4,8 @@
 		<Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
 
 		<Window Type="TaharezLook/StaticText" Name="Dodgem/Score">
-			<Property Name="UnifiedPosition" Value="{{0.02,0},{0.02,0}}}" />
-			<Property Name="UnifiedSize" Value="{{0.26,0},{0.16,0}}" />
+			<Property Name="UnifiedPosition" Value="{{0.04,0},{0.02,0}}}" />
+			<Property Name="UnifiedSize" Value="{{0.2,0},{0.16,0}}" />
 			<Property Name="Text" Value="Score:" />
 			<Property Name="Font" Value="BlueHighway-48" />
 			<Property Name="BackgroundEnabled" Value="true" />
@@ -14,13 +14,23 @@
 		</Window>
 
 		<Window Type="TaharezLook/StaticText" Name="Dodgem/Timer">
-			<Property Name="UnifiedPosition" Value="{{0.8,0},{0.02,0}}}" />
-			<Property Name="UnifiedSize" Value="{{0.16,0},{0.16,0}}" />
+			<Property Name="UnifiedPosition" Value="{{0.76,0},{0.02,0}}}" />
+			<Property Name="UnifiedSize" Value="{{0.2,0},{0.16,0}}" />
 			<Property Name="Text" Value="" />
 			<Property Name="Font" Value="BlueHighway-48" />
 			<Property Name="BackgroundEnabled" Value="true" />
 			<Property Name="FrameEnabled" Value="true" />
 			<Property Name="TextColours" Value="tl:FFFFFFFF tr:FFFFFFFF bl:FFFFFFFF br:FFFFFFFF" />
+		</Window>
+
+		<Window Type="TaharezLook/StaticText" Name="Dodgem/Result">
+			<Property Name="UnifiedPosition" Value="{{0.3,0},{0.3,0}}}" />
+			<Property Name="UnifiedSize" Value="{{0.5,0},{0.2,0}}" />
+			<Property Name="Text" Value="TOTAL: " />
+			<Property Name="Font" Value="BlueBold-72" />
+			<Property Name="BackgroundEnabled" Value="false" />
+			<Property Name="FrameEnabled" Value="false" />
+			<Property Name="TextColours" Value="tl:FFFFF0A0 tr:FFFFF0A0 bl:FFFFF0A0 br:FFFFF0A0" />
 		</Window>
 	</Window>
 </GUILayout>

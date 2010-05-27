@@ -47,6 +47,10 @@ local function chaseTarget(target, driverstate)
 	return {x = -x, y = y * 0.6}
 end
 
+local function enable(enabled)
+	g_Enabled = enabled
+end
+
 
 host =
 {
@@ -70,10 +74,14 @@ host =
 		g_Car = Dodgem(g_World, g_Agent, "Dodgem/Dodgem", {Engine = "EngineEnemy"}, {onHitTail = function(id, power) if id == tailid then onHitTail(power) end end})
 
 		g_Time = 0
+		g_Enabled = false
 	end,
 
 	onStep = function(elapsed)
-		local driver = chaseTarget(g_TargetBody, {x = g_Car.Driver.m_positionX, y = g_Car.Driver.m_positionY})
+		local driver = {x = 0, y = 0}
+		if g_Enabled then
+			driver = chaseTarget(g_TargetBody, {x = g_Car.Driver.m_positionX, y = g_Car.Driver.m_positionY})
+		end
 
 		g_Car.Driver.m_positionX = driver.x
 		g_Car.Driver.m_positionY = driver.y
@@ -82,4 +90,8 @@ host =
 
 		g_Time = g_Time + elapsed
 	end,
+
+	call = Tanx.makeCallFuntor{
+		enable = enable,
+	}
 }

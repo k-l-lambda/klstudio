@@ -57,17 +57,18 @@ class "Dodgem" (Automobile)
 
 		self.World = world
 
+		local chassis = self.Chassis:lock()
 		self.CollisionListener = DodgemCollisionListener(self)
-		self.Chassis:get():addCollisionListener(self.CollisionListener)
+		chassis:get():addCollisionListener(self.CollisionListener)
 
-		self.ChassisId = self.Chassis:get():getRigidBody():get():getUid()
+		self.ChassisId = chassis:get():getRigidBody():get():getUid()
 
 		local tail = agent:findBody"tail"
 		if tail:get() then
 			self.TailId = tail:get():getRigidBody():get():getUid()
 		end
 
-		local exist, sparksnode = pcall(function() return self.Chassis:get():getNode():getChildInheritName"Sparks" end)
+		local exist, sparksnode = pcall(function() return chassis:get():getNode():getChildInheritName"Sparks" end)
 		if exist then
 			self.ChassisSparks = sparksnode:toDerived():getAttachedObject(0):toDerived()
 			self.ChassisSparks:getEmitter(0):setEnabled(false)
@@ -160,12 +161,17 @@ class "Dodgem" (Automobile)
 	function Dodgem:emitChassisSparks(position, rate, duration)
 		duration = duration or 0.1
 
-		if self.ChassisSparks then
+		if self.ChassisSparks and not self.Chassis:expired() then
+			local chassis = self.Chassis:lock()
+
 			self.ChassisSparksTime = duration
 			self.ChassisSparks:getEmitter(0):setEmissionRate(rate)
 			self.ChassisSparks:getEmitter(0):setEnabled(true)
 
-			local localposition = self.Chassis:get():getOrientation():Inverse() * (position - self.Chassis:get():getPosition())
+			local localposition = chassis:get():getOrientation():Inverse() * (position - chassis:get():getPosition())
+			assert(self, "self is nil")
+			assert(self.ChassisSparks, "self.ChassisSparks is nil")
+			assert(self.ChassisSparks:getParentNode(), "self.ChassisSparks:getParentNode() is nil")
 			self.ChassisSparks:getParentNode():setPosition(localposition)
 		end
 	end

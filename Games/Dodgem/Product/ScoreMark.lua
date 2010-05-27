@@ -34,7 +34,7 @@ class "ScoreMark"
 		self.Window:setSize(CEGUI.UVector2(CEGUI.UDim(0.08, 0), CEGUI.UDim(0.1, 0)))
 		self.Window:setProperty(CEGUI.String"BackgroundEnabled", CEGUI.String"false")
 		self.Window:setProperty(CEGUI.String"FrameEnabled", CEGUI.String"false")
-		self.Window:setFont(CEGUI.String"BlueHighway-24")
+		self.Window:setFont(CEGUI.String"BlueHighway-32")
 
 		self.Window:setProperty(CEGUI.String"TextColours", iif(score > 0, colorString(0xff00ff00), colorString(0xffff0000)))
 		self.Window:setText(CEGUI.String(iif(score > 0, "+", "-") .. math.abs(score)))

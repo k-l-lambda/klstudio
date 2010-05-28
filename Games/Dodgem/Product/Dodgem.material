@@ -400,6 +400,31 @@ material Dodgem/DodgemMesh/AiCar/E002CRIS
 }
 
 
+material Dodgem/Curtain
+{
+	technique
+	{
+		pass
+		{
+			depth_check		off
+			lighting		off
+
+			texture_unit	RT
+			{
+				tex_coord_set		0
+				tex_address_mode	clamp
+				filtering linear	linear linear
+			}
+
+			texture_unit	Mask
+			{
+				colour_op_ex		modulate	src_manual src_current	0.5 0.5 0.5 1
+			}
+		}
+	}
+}
+
+
 fragment_program Ogre/Compositor/GlassFP cg
 {
 	source GlassFP.cg

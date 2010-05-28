@@ -15,8 +15,9 @@ Tanx.dofile"Dodgem.lua"
 Tanx.dofile"ScoreMark.lua"
 
 
-s_GamingTime = 100
-s_PostGameTime = 8
+s_PreparingDuration = 4
+s_GamingDuration = 100
+s_PostGameDuration = 8
 
 
 g_AutomobileList ={}
@@ -42,7 +43,7 @@ end
 function onPlayerHitTail(id, power)
 	--Tanx.log("PLAYER HIT!	p: " .. power)
 
-	if g_GameTimeRemain > 0 then
+	if g_State and g_State.name == "Gaming" then
 		local score = math.floor(power / 3)
 		g_Score = g_Score + score
 
@@ -57,7 +58,7 @@ end
 function onAiHitTail(power)
 	--Tanx.log("[Dodgem\\Dodgem.game.lua]: AI HIT!	p: " .. power)
 
-	if g_GameTimeRemain > 0 then
+	if g_State and g_State.name == "Gaming" then
 		local score = math.floor(power / 5)
 
 		if score > 0 then
@@ -103,8 +104,9 @@ function resetGame()
 	local viewport = g_Game:getWindow():addViewport(g_MainCamera:getCamera())
 	viewport:setBackgroundColour(Ogre.ColourValue(0.2, 0.3, 0.5))
 
-	Ogre.CompositorManager.getSingleton():addCompositor(viewport, "Glass")
-	Ogre.CompositorManager.getSingleton():setCompositorEnabled(viewport, "Glass", true)
+	Ogre.CompositorManager.getSingleton():addCompositor(viewport, "Dodgem/Curtain")
+	Ogre.CompositorManager.getSingleton():setCompositorEnabled(viewport, "Dodgem/Curtain", true)
+	g_CompositorChain = Ogre.CompositorManager.getSingleton():getCompositorChain(viewport)
 
 	local rearview = g_Game:getWindow():addViewport(g_MainCamera:getRearCamera(), 1, 0.3, 0.01, 0.4, 0.2)
 	rearview:setBackgroundColour(Ogre.ColourValue(0.2, 0.3, 0.5))
@@ -118,9 +120,27 @@ function resetGame()
 	end
 
 	g_Score = 0
-	g_GameTimeRemain = s_GamingTime
+	g_GameTimeRemain = s_GamingDuration
 
 	g_ProtectedTime = 0
+end
+
+
+function setCurtainIntensity(intensity)
+	g_CurtainMaterial = g_CurtainMaterial or Ogre.MaterialManager.getSingleton():getByName"Dodgem/Curtain":get():toDerived()
+	--assert(g_CurtainCompositor)
+	--g_CurtainMaterial = g_CurtainMaterial or g_CurtainCompositor:getTechnique():getOutputTargetPass():getPass(0):getMaterial():get()
+
+	local color = Ogre.ColourValue.White * (1 - intensity)
+
+	local texunit = g_CurtainMaterial:getTechnique(0):getPass(0):getTextureUnitState"Mask"
+	local blendop = texunit:getColourBlendMode()
+	if blendop.colourArg1 ~= color then
+		texunit:setColourOperationEx(blendop.operation, blendop.source1, blendop.source2, color)
+
+		assert(g_CompositorChain)
+		g_CompositorChain:_markDirty()
+	end
 end
 
 
@@ -247,8 +267,20 @@ PreparingState =
 	enterState = function()
 		resetGame()
 
-		state(GamingState)
+		PreparingState.Time = 0
+
+		setCurtainIntensity(0.8)
 	end,
+
+	step = function(elapsed)
+		PreparingState.Time = PreparingState.Time + elapsed
+
+		setCurtainIntensity(math.min(math.max(1.2 - PreparingState.Time * 0.7, 0), 1))
+
+		if PreparingState.Time > s_PreparingDuration then
+			state(GamingState)
+		end
+	end
 }
 
 
@@ -292,7 +324,7 @@ PostGameState =
 	name = "PostGame",
 
 	enterState = function()
-		PostGameState.RemainTime = s_PostGameTime
+		PostGameState.RemainTime = s_PostGameDuration
 
 		g_ResultWindow:setAlpha(0)
 		g_ResultWindow:setText(CEGUI.String("TOTAL: " .. g_Score))
@@ -303,6 +335,7 @@ PostGameState =
 
 	leaveState = function()
 		g_ResultWindow:hide()
+		setCurtainIntensity(1)
 	end,
 
 	step = function(elapsed)
@@ -311,6 +344,8 @@ PostGameState =
 			state(PreparingState)
 		end
 
-		g_ResultWindow:setAlpha(math.min(math.max((s_PostGameTime - PostGameState.RemainTime - 2) * 0.4, 0), 1))
+		g_ResultWindow:setAlpha(math.min(math.max((s_PostGameDuration - PostGameState.RemainTime - 2) * 0.4, 0), 1))
+
+		setCurtainIntensity(math.min(math.max(1 - PostGameState.RemainTime * 0.7, 0), 1))
 	end
 }

@@ -73,6 +73,10 @@
 			Name="Product"
 			>
 			<File
+				RelativePath=".\Product\Dodgem.compositor"
+				>
+			</File>
+			<File
 				RelativePath=".\Product\Dodgem.constraint"
 				>
 			</File>
@@ -106,6 +110,10 @@
 			</File>
 			<File
 				RelativePath=".\Product\Dodgem.vehicle"
+				>
+			</File>
+			<File
+				RelativePath=".\Product\GlassFP.cg"
 				>
 			</File>
 			<File

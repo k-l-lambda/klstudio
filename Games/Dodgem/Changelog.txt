@@ -1,9 +1,15 @@
 TODO:
-	fade out at game end
+	game logic sounds
+	hi score record
 	wheel sound
 	AI: back off when blocking
 	refine vehicle following camera
 
+
+
+2010.5.28	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Fade in/out effect based on compositor script implemented.
 
 
 2010.5.27	K.L.	<xxxK.L.xxx@gmail.com>

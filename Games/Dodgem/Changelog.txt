@@ -1,10 +1,16 @@
 TODO:
 	game logic sounds
 	hi score record
+	tail ball flicker effect when hit
 	wheel sound
 	AI: back off when blocking
 	refine vehicle following camera
 
+
+
+2010.5.29	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Dodgem.game.lua: refined state machine.
 
 
 2010.5.28	K.L.	<xxxK.L.xxx@gmail.com>

@@ -10,12 +10,13 @@
 Tanx.log("[Dodgem\\Dodgem.game.lua]: parsed.")
 
 Tanx.require"Core:utility.lua"
+Tanx.require"Core:StateMachine.lua"
 Tanx.dofile"VehicleCamera.lua"
 Tanx.dofile"Dodgem.lua"
 Tanx.dofile"ScoreMark.lua"
 
 
-s_PreparingDuration = 4
+s_PreparingDuration = 5.6
 s_GamingDuration = 100
 s_PostGameDuration = 8
 
@@ -25,25 +26,10 @@ g_AiCarList ={}
 g_ScoreMarks ={}
 
 
-function state(s, ...)
-	if g_State and g_State.leaveState then
-		g_State.leaveState()
-	end
-
-	Tanx.log(string.format("[Dodgem\\Dodgem.game.lua]: swtich state from \"%s\" to \"%s\".", (g_State or {}).name or "", (s or {}).name or ""), Ogre.LogMessageLevel.TRIVIAL)
-
-	g_State = s
-
-	if g_State and g_State.enterState then
-		g_State.enterState(unpack(arg))
-	end
-end
-
-
 function onPlayerHitTail(id, power)
 	--Tanx.log("PLAYER HIT!	p: " .. power)
 
-	if g_State and g_State.name == "Gaming" then
+	if g_StateMachine:stateKey() == "Gaming" then
 		local score = math.floor(power / 3)
 		g_Score = g_Score + score
 
@@ -58,7 +44,7 @@ end
 function onAiHitTail(power)
 	--Tanx.log("[Dodgem\\Dodgem.game.lua]: AI HIT!	p: " .. power)
 
-	if g_State and g_State.name == "Gaming" then
+	if g_StateMachine:stateKey() == "Gaming" then
 		local score = math.floor(power / 5)
 
 		if score > 0 then
@@ -84,7 +70,7 @@ function resetGame()
 
 	g_AutomobileList = {}
 
-	local car1 = g_World:createAgent("Dodgem/Dodgem", "player%index", Tanx.RigidBodyState.make(Tanx.Vector3(0, 0.8, 0)))
+	local car1 = g_World:createAgent("Dodgem/Dodgem", "player%index", Tanx.RigidBodyState.make(Tanx.Vector3(0, 0.8, -20)))
 	g_PlayerCar = Dodgem(g_World, car1:get(), "Dodgem/Dodgem", nil, {onHitTail = onPlayerHitTail})
 	table.insert(g_AutomobileList, g_PlayerCar)
 
@@ -92,7 +78,7 @@ function resetGame()
 	g_AiCarList = {}
 	local aiparams = Tanx.tableToMap{target = car1, onHitTail = Tanx.functor(onAiHitTail)}
 	local i
-	for i = 1, 5 do
+	for i = 1, 1 do
 		local ai = g_World:createAgent("Dodgem/AiCar", "aicar%index", Tanx.RigidBodyState.make(Tanx.Vector3((i - 3) * 8, 0.8, 20)), g_Game:getResourcePackage(), aiparams)
 		table.insert(g_AiCarList, ai)
 	end
@@ -113,9 +99,13 @@ function resetGame()
 	rearview:setOverlaysEnabled(false)
 
 	-- create sound listener
-	local s, r = pcall(openalpp.Listener.new)
-	if s then
-		g_SoundListener = r
+	if g_SoundListener == nil then
+		local s, r = pcall(openalpp.Listener.new)
+		if s then
+			g_SoundListener = r
+		end
+	end
+	if g_SoundListener then
 		updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera())
 	end
 
@@ -127,6 +117,8 @@ end
 
 
 function setCurtainIntensity(intensity)
+	intensity = math.min(math.max(intensity, 0), 1)
+
 	g_CurtainMaterial = g_CurtainMaterial or Ogre.MaterialManager.getSingleton():getByName"Dodgem/Curtain":get():toDerived()
 	--assert(g_CurtainCompositor)
 	--g_CurtainMaterial = g_CurtainMaterial or g_CurtainCompositor:getTechnique():getOutputTargetPass():getPass(0):getMaterial():get()
@@ -144,6 +136,19 @@ function setCurtainIntensity(intensity)
 end
 
 
+function setHudVisible(visible)
+	g_GuiWindows.Score:setVisible(visible)
+	g_GuiWindows.Timer:setVisible(visible)
+
+	local rearview = g_Game:getWindow():getViewport(1)
+	if visible then
+		rearview:setDimensions(0.3, 0.01, 0.4, 0.2)
+	else
+		rearview:setDimensions(0, 0, 0, 0)
+	end
+end
+
+
 function initialize(game)
 	g_Game = game
 	g_World = game:getWorld()
@@ -157,12 +162,16 @@ function initialize(game)
 	local sheet = g_WindowManager:loadWindowLayout(CEGUI.String"Dodgem.layout")
 	g_GuiSystem:setGUISheet(sheet)
 
-	g_ScoreWindow = g_WindowManager:getWindow(CEGUI.String"Dodgem/Score")
-	g_TimerWindow = g_WindowManager:getWindow(CEGUI.String"Dodgem/Timer")
-	g_ResultWindow = g_WindowManager:getWindow(CEGUI.String"Dodgem/Result")
-	g_ResultWindow:hide()
+	g_GuiWindows =
+	{
+		Score		= g_WindowManager:getWindow(CEGUI.String"Dodgem/Score"),
+		Timer		= g_WindowManager:getWindow(CEGUI.String"Dodgem/Timer"),
+		Prompt		= g_WindowManager:getWindow(CEGUI.String"Dodgem/Prompt"),
+		Countdown	= g_WindowManager:getWindow(CEGUI.String"Dodgem/Countdown"),
+	}
+	g_GuiWindows.Prompt:hide()
 
-	state(PreparingState)
+	g_StateMachine:switch"Preparing"
 end
 
 
@@ -178,19 +187,19 @@ function onStep(elapsed)
 		driver.m_reverseButtonPressed:set(g_Keyboard ~= nil and g_Keyboard:isKeyDown(OIS.KeyCode.LCONTROL))
 
 		if g_Keyboard then
-			if g_Keyboard:isKeyDown(OIS.KeyCode.W) then
+			if g_Keyboard:isKeyDown(OIS.KeyCode.W) or g_Keyboard:isKeyDown(OIS.KeyCode.UP) then
 				driver.m_positionY = driver.m_positionY + 1
 			end
 
-			if g_Keyboard:isKeyDown(OIS.KeyCode.S) then
+			if g_Keyboard:isKeyDown(OIS.KeyCode.S) or g_Keyboard:isKeyDown(OIS.KeyCode.DOWN) then
 				driver.m_positionY = driver.m_positionY - 1
 			end
 
-			if g_Keyboard:isKeyDown(OIS.KeyCode.A) then
+			if g_Keyboard:isKeyDown(OIS.KeyCode.A) or g_Keyboard:isKeyDown(OIS.KeyCode.LEFT) then
 				driver.m_positionX = driver.m_positionX - 1
 			end
 
-			if g_Keyboard:isKeyDown(OIS.KeyCode.D) then
+			if g_Keyboard:isKeyDown(OIS.KeyCode.D) or g_Keyboard:isKeyDown(OIS.KeyCode.RIGHT) then
 				driver.m_positionX = driver.m_positionX + 1
 			end
 		end
@@ -219,11 +228,12 @@ function onStep(elapsed)
 		updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera(), elapsed)
 	end
 
-	g_ScoreWindow:setText(CEGUI.String("S " .. g_Score))
-	g_TimerWindow:setText(CEGUI.String(string.format("%6.2f", g_GameTimeRemain)))
+	g_GuiWindows.Score:setText(CEGUI.String("S " .. g_Score))
+	g_GuiWindows.Timer:setText(CEGUI.String(string.format("%6.2f", g_GameTimeRemain)))
 
-	if g_State and g_State.step then
-		g_State.step(elapsed)
+	local state = g_StateMachine:state()
+	if state and state.step then
+		state:step(elapsed)
 	end
 end
 
@@ -260,92 +270,162 @@ end
 
 
 
-PreparingState =
-{
-	name = "Preparing",
+g_StateMachine = TanxStateMachine{
+	Preparing =
+	{
+		SubState = TanxStateMachine{
+			FadeIn =
+			{
+				enterState = function(state, parent)
+					state.CurtainIntensity = 1.2
 
-	enterState = function()
-		resetGame()
+					setHudVisible(false)
 
-		PreparingState.Time = 0
+					setCurtainIntensity(state.CurtainIntensity)
+				end,
 
-		setCurtainIntensity(0.8)
-	end,
+				step = function(state, parent, elapsed)
+					state.CurtainIntensity = state.CurtainIntensity - elapsed * 0.7
+					setCurtainIntensity(state.CurtainIntensity)
 
-	step = function(elapsed)
-		PreparingState.Time = PreparingState.Time + elapsed
+					if state.CurtainIntensity < 0 then
+						parent.SubState:switch("Countdown", parent)
+					end
+				end,
+			},
 
-		setCurtainIntensity(math.min(math.max(1.2 - PreparingState.Time * 0.7, 0), 1))
+			Countdown =
+			{
+				enterState = function(state, parent)
+					g_GuiWindows.Countdown:setText(CEGUI.String(tostring(math.ceil(s_PreparingDuration - parent.Time))))
+					g_GuiWindows.Countdown:show()
+				end,
 
-		if PreparingState.Time > s_PreparingDuration then
-			state(GamingState)
-		end
-	end
-}
+				step = function(state, parent, elapsed)
+					g_GuiWindows.Countdown:setText(CEGUI.String(tostring(math.ceil(s_PreparingDuration - parent.Time))))
+				end,
+			},
+		},
 
+		enterState = function(state)
+			resetGame()
 
-GamingState =
-{
-	name = "Gaming",
+			state.Time = 0
 
-	enterState = function()
-		local i, v
-		for i, v in ipairs(g_AiCarList) do
-			v:get():callHost(Tanx.param"enable", Tanx.param(true))
-		end
-	end,
+			state.SubState:switch("FadeIn", state)
+		end,
 
-	leaveState = function()
-		local i, v
-		for i, v in ipairs(g_AiCarList) do
-			v:get():callHost(Tanx.param"enable", Tanx.param(false))
-		end
-	end,
+		leaveState = function(state)
+			g_GuiWindows.Countdown:hide()
+		end,
 
-	step = function(elapsed)
-		if g_ProtectedTime > 0 then
-			g_ProtectedTime = g_ProtectedTime - elapsed
-		end
+		step = function(state, elapsed)
+			state.Time = state.Time + elapsed
 
-		if g_GameTimeRemain > 0 then
-			g_GameTimeRemain = g_GameTimeRemain - elapsed
-
-			if g_GameTimeRemain < 0 then
-				g_GameTimeRemain = 0
-				state(PostGameState)
+			local substate = state.SubState:state()
+			if substate and substate.step then
+				substate:step(state, elapsed)
 			end
-		end
-	end
-}
+
+			if state.Time > s_PreparingDuration then
+				g_StateMachine:switch"Gaming"
+				return
+			end
+		end,
+	},
 
 
-PostGameState =
-{
-	name = "PostGame",
+	Gaming =
+	{
+		enterState = function(state)
+			setHudVisible(true)
 
-	enterState = function()
-		PostGameState.RemainTime = s_PostGameDuration
+			local i, v
+			for i, v in ipairs(g_AiCarList) do
+				v:get():callHost(Tanx.param"enable", Tanx.param(true))
+			end
+		end,
 
-		g_ResultWindow:setAlpha(0)
-		g_ResultWindow:setText(CEGUI.String("TOTAL: " .. g_Score))
-		g_ResultWindow:show()
+		leaveState = function(state)
+			local i, v
+			for i, v in ipairs(g_AiCarList) do
+				v:get():callHost(Tanx.param"enable", Tanx.param(false))
+			end
+		end,
 
-		-- TODO: play a sound
-	end,
+		step = function(state, elapsed)
+			if g_ProtectedTime > 0 then
+				g_ProtectedTime = g_ProtectedTime - elapsed
+			end
 
-	leaveState = function()
-		g_ResultWindow:hide()
-		setCurtainIntensity(1)
-	end,
+			if g_GameTimeRemain > 0 then
+				g_GameTimeRemain = g_GameTimeRemain - elapsed
 
-	step = function(elapsed)
-		PostGameState.RemainTime = PostGameState.RemainTime - elapsed
-		if PostGameState.RemainTime <= 0 then
-			state(PreparingState)
-		end
+				if g_GameTimeRemain < 0 then
+					g_GameTimeRemain = 0
+					g_StateMachine:switch"PostGame"
+				end
+			end
+		end,
+	},
 
-		g_ResultWindow:setAlpha(math.min(math.max((s_PostGameDuration - PostGameState.RemainTime - 2) * 0.4, 0), 1))
 
-		setCurtainIntensity(math.min(math.max(1 - PostGameState.RemainTime * 0.7, 0), 1))
-	end
+	PostGame =
+	{
+		SubState = TanxStateMachine{
+			Idle =
+			{
+				step = function(state, parent, elapsed)
+					if parent.RemainTime < 2 then
+						parent.SubState:switch("FadeOut", parent)
+					end
+				end,
+			},
+
+			FadeOut =
+			{
+				enterState = function(state, parent)
+					setHudVisible(false)
+					state.CurtainIntensity = 0
+				end,
+
+				step = function(state, parent, elapsed)
+					state.CurtainIntensity = state.CurtainIntensity + elapsed * 0.7
+					setCurtainIntensity(state.CurtainIntensity)
+				end,
+			},
+		},
+
+		enterState = function(state)
+			state.RemainTime = s_PostGameDuration
+
+			g_GuiWindows.Prompt:setAlpha(0)
+			g_GuiWindows.Prompt:setText(CEGUI.String("TOTAL: " .. g_Score))
+			g_GuiWindows.Prompt:show()
+
+			-- TODO: play a sound
+
+			state.SubState:switch("Idle", state)
+		end,
+
+		leaveState = function(state)
+			g_GuiWindows.Prompt:hide()
+			setCurtainIntensity(1)
+		end,
+
+		step = function(state, elapsed)
+			state.RemainTime = state.RemainTime - elapsed
+			if state.RemainTime <= 0 then
+				g_StateMachine:switch"Preparing"
+				return
+			end
+
+			local substate = state.SubState:state()
+			if substate and substate.step then
+				substate:step(state, elapsed)
+			end
+
+			g_GuiWindows.Prompt:setAlpha(math.min(math.max((s_PostGameDuration - state.RemainTime - 2) * 0.4, 0), 1))
+		end,
+	},
 }

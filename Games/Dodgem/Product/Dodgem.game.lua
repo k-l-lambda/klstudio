@@ -14,6 +14,7 @@ Tanx.require"Core:StateMachine.lua"
 Tanx.dofile"VehicleCamera.lua"
 Tanx.dofile"Dodgem.lua"
 Tanx.dofile"ScoreMark.lua"
+Tanx.dofile"TailState.lua"
 
 
 s_PreparingDuration = 5.6
@@ -21,14 +22,14 @@ s_GamingDuration = 100
 s_PostGameDuration = 8
 
 
-g_AutomobileList ={}
-g_AiCarList ={}
-g_ScoreMarks ={}
+g_AutomobileList = {}
+g_AiCarList = {}
+g_ScoreMarks = {}
+
+g_TailStates = {}
 
 
 function onPlayerHitTail(id, power)
-	--Tanx.log("PLAYER HIT!	p: " .. power)
-
 	if g_StateMachine:stateKey() == "Gaming" then
 		local score = math.floor(power / 3)
 		g_Score = g_Score + score
@@ -37,13 +38,13 @@ function onPlayerHitTail(id, power)
 			assert(g_WindowManager)
 			local mark = ScoreMark(g_WindowManager, score)
 			table.insert(g_ScoreMarks, mark)
+
+			g_TailStates.Ai[id]:flicker()
 		end
 	end
 end
 
 function onAiHitTail(power)
-	--Tanx.log("[Dodgem\\Dodgem.game.lua]: AI HIT!	p: " .. power)
-
 	if g_StateMachine:stateKey() == "Gaming" then
 		local score = math.floor(power / 5)
 
@@ -55,6 +56,8 @@ function onAiHitTail(power)
 				assert(g_WindowManager)
 				local mark = ScoreMark(g_WindowManager, -score)
 				table.insert(g_ScoreMarks, mark)
+
+				g_TailStates.Player:flicker()
 			end
 		end
 	end
@@ -73,14 +76,19 @@ function resetGame()
 	local car1 = g_World:createAgent("Dodgem/Dodgem", "player%index", Tanx.RigidBodyState.make(Tanx.Vector3(0, 0.8, -20)))
 	g_PlayerCar = Dodgem(g_World, car1:get(), "Dodgem/Dodgem", nil, {onHitTail = onPlayerHitTail})
 	table.insert(g_AutomobileList, g_PlayerCar)
+	g_TailStates.Player = TailState(car1)
 
 	-- create AI cars
 	g_AiCarList = {}
+	g_TailStates.Ai = {}
 	local aiparams = Tanx.tableToMap{target = car1, onHitTail = Tanx.functor(onAiHitTail)}
 	local i
-	for i = 1, 1 do
+	for i = 1, 5 do
 		local ai = g_World:createAgent("Dodgem/AiCar", "aicar%index", Tanx.RigidBodyState.make(Tanx.Vector3((i - 3) * 8, 0.8, 20)), g_Game:getResourcePackage(), aiparams)
 		table.insert(g_AiCarList, ai)
+
+		local tailid = ai:get():findBody"tail":get():getRigidBody():get():getUid()
+		g_TailStates.Ai[tailid] = TailState(ai)
 	end
 
 	-- create main camera
@@ -205,7 +213,7 @@ function onStep(elapsed)
 		end
 	end
 
-	local i, v
+	local k, i, v
 
 	for i, v in ipairs(g_AutomobileList) do
 		v:step(elapsed)
@@ -234,6 +242,11 @@ function onStep(elapsed)
 	local state = g_StateMachine:state()
 	if state and state.step then
 		state:step(elapsed)
+	end
+
+	g_TailStates.Player:step(elapsed)
+	for k, v in pairs(g_TailStates.Ai) do
+		v:step(elapsed)
 	end
 end
 

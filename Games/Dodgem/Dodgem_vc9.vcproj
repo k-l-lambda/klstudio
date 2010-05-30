@@ -126,6 +126,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Product\Logo.ico"
+				>
+			</File>
+			<File
 				RelativePath=".\Product\Park.scene"
 				>
 			</File>

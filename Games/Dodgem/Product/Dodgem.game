@@ -3,7 +3,7 @@
 <boost_serialization signature="serialization::archive" version="5">
 <Tanx_GameConfig class_id="0" tracking_level="0" version="5">
 	<Title>Dodgem</Title>
-	<IconFileName></IconFileName>
+	<IconFileName>Logo.ico</IconFileName>
 	<HostScriptName>Dodgem.game.lua</HostScriptName>
 	<SceneType class_id="1" tracking_level="0" version="0">
 		<Generic>1</Generic>

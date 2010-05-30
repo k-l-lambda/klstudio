@@ -1,11 +1,15 @@
 TODO:
 	game logic sounds
 	hi score record
-	tail ball flicker effect when hit
 	wheel sound
-	AI: back off when blocking
+	AI: back off when blocking, by state machine
 	refine vehicle following camera
 
+
+
+2010.5.30	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Tail ball flicker effect implemented.
 
 
 2010.5.29	K.L.	<xxxK.L.xxx@gmail.com>

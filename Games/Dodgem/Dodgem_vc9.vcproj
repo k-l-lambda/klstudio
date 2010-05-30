@@ -162,6 +162,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Product\TailState.lua"
+					>
+				</File>
+				<File
 					RelativePath=".\Product\VehicleCamera.lua"
 					>
 				</File>

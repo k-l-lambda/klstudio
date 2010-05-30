@@ -9,6 +9,8 @@ TODO:
 
 2010.5.30	K.L.	<xxxK.L.xxx@gmail.com>
 
+	+	Logo.ico: created.
+
 	+	Tail ball flicker effect implemented.
 
 

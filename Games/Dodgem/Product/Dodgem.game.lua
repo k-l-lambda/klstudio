@@ -30,6 +30,21 @@ g_ScoreMarks = {}
 g_TailStates = {}
 
 
+local function loadSound()
+	local createSoundSource = function(filename, ambient)
+		local source = openalpp.Source.new(Tanx.ScriptSpace:resource():get():getResource(filename):get())
+		source:get():setAmbient(ambient or false)
+
+		return source
+	end
+
+	g_Sounds = {
+		Gain	= createSoundSource("gain.wav", true),
+		Loss	= createSoundSource("loss.wav", true),
+	}
+end
+
+
 function onPlayerHitTail(id, power)
 	if g_BodyStateMachine:stateKey() == "Gaming" then
 		local score = math.floor(power / 3)
@@ -41,6 +56,10 @@ function onPlayerHitTail(id, power)
 			table.insert(g_ScoreMarks, mark)
 
 			g_TailStates.Ai[id]:flicker()
+
+			if g_Sounds then
+				g_Sounds.Gain:get():play()
+			end
 		end
 	end
 end
@@ -59,6 +78,10 @@ function onAiHitTail(power)
 				table.insert(g_ScoreMarks, mark)
 
 				g_TailStates.Player:flicker()
+
+				if g_Sounds then
+					g_Sounds.Loss:get():play()
+				end
 			end
 		end
 	end
@@ -187,6 +210,8 @@ function initialize(game)
 		Countdown	= g_WindowManager:getWindow(CEGUI.String"Dodgem/Countdown"),
 	}
 	g_GuiWindows.Prompt:hide()
+
+	pcall(loadSound)
 
 	-- create viewport
 	local tmpcamera = g_World:createCamera"tmp"
@@ -416,7 +441,7 @@ g_GameStateMachine = TanxStateMachine{
 		end,
 
 		step = function(state, elapsed)
-			g_GuiWindows.Vendor:setAlpha(math.min(state.Remain * 1.2, 1) * math.min((s_CoverDuration - state.Remain) * 1.2, 1))
+			g_GuiWindows.Vendor:setAlpha(math.max(math.min(state.Remain * 1.2 - 0.1, 1) * math.min((s_CoverDuration - state.Remain) * 1.2, 1), 0))
 
 			state.Remain = state.Remain - elapsed
 			if state.Remain <= 0 then

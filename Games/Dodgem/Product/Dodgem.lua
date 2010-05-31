@@ -13,7 +13,7 @@ Tanx.require"Core:utility.lua"
 Tanx.dofile"Automobile.lua"
 
 
-function loadSounds(soundconfig)
+local function loadSounds(soundconfig)
 	function doLoadSounds()
 		soundconfig = soundconfig or {}
 

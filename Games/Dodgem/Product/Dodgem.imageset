@@ -1,4 +1,4 @@
 <?xml version="1.0" ?>
 <Imageset Name="Dodgem" Imagefile="gui.dds" NativeHorzRes="960" NativeVertRes="540" AutoScaled="true">
-	<Image Name="Vendor" XPos="0" YPos="0" Width="256" Height="50" />
+	<Image Name="Vendor" XPos="0" YPos="0" Width="256" Height="70" />
 </Imageset>

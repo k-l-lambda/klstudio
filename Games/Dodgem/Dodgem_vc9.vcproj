@@ -86,10 +86,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Product\Dodgem.layout"
-				>
-			</File>
-			<File
 				RelativePath=".\Product\Dodgem.material"
 				>
 			</File>
@@ -171,6 +167,26 @@
 				</File>
 				<File
 					RelativePath=".\Product\VehicleCamera.lua"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="GUI"
+				>
+				<File
+					RelativePath=".\Product\Dodgem.imageset"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\Dodgem.layout"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\Dodgem.scheme"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\gui.dds"
 					>
 				</File>
 			</Filter>

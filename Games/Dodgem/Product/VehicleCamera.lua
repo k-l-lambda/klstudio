@@ -10,6 +10,36 @@
 Tanx.log("[VehicleCamera.lua]: parsed.")
 
 
+local function mountCamera(self)
+	local target = self.Target:lock()
+
+	self.Node = target:get():getMainBody():get():getNode():toDerived():createChildSceneNode(Tanx.Vector3(0, self.Parameters.Height, 0))
+	--self.Node:setOrientation(Tanx.Quaternion(Tanx.Radian(-math.pi / 2), Tanx.Vector3.UNIT_Y))
+	self.Node:setInheritOrientation(false)
+	self.Node:attachObject(self.Camera)
+
+	self.Camera:setPosition(self:idealDirection() * self.Radius)
+	self.Camera:lookAt(self.Node:_getDerivedPosition())
+
+	if self.RearCamera then
+		local body = target:get():getMainBody()
+		self.Node:attachObject(self.RearCamera)
+		self.RearCamera:setPosition(body:get():getOrientation() * self.Parameters.RearCamera.Position)
+		self.RearCamera:lookAt(self.Node:_getDerivedPosition() + self.RearCamera:getPosition() + body:get():getOrientation() * self.RearCameraDirection)
+
+		local i
+		for i = 0, target:get():getMainNode():numChildren() - 1 do
+			local obj = target:get():getMainNode():getChild(i):toDerived():getAttachedObject(0)
+			--Tanx.log("[VehicleCamera.lua]: child[" .. i .. "] type: " .. obj:getMovableType())
+			if obj:getMovableType() == "MovablePlane" then
+				self.RearCamera:enableReflection(obj:toDerived())
+				Tanx.log("[VehicleCamera.lua]: reflection enabled.", Ogre.LogMessageLevel.TRIVIAL)
+			end
+		end
+	end
+end
+
+
 class"VehicleCamera"
 
 	function VehicleCamera:__init(target, world, name, cameraparams)
@@ -30,23 +60,17 @@ class"VehicleCamera"
 			cameraparams.RearCamera.Position = cameraparams.RearCamera.Position or Tanx.Vector3(0, 1.4, 0.8)
 		end
 
+		self.Parameters = cameraparams
+
 		self.Target = Tanx.AgentWeakPtr(target)
 		self.Radius = cameraparams.Radius
 		self.BaseDirection = cameraparams.BaseDirection
 
-		self.Camera = world:createCamera(name)
+		self.Camera = cameraparams.RawCamera or world:createCamera(name)
 		self.Camera:setNearClipDistance(cameraparams.NearClipDistance)
 		self.Camera:setFarClipDistance(cameraparams.FarClipDistance)
 		self.Camera:setFOVy(Tanx.Radian(cameraparams.Fovy))
 		self.Camera:setAspectRatio(cameraparams.AspectRatio)
-
-		self.Node = target:get():getMainBody():get():getNode():toDerived():createChildSceneNode(Tanx.Vector3(0, cameraparams.Height, 0))
-		--self.Node:setOrientation(Tanx.Quaternion(Tanx.Radian(-math.pi / 2), Tanx.Vector3.UNIT_Y))
-		self.Node:setInheritOrientation(false)
-		self.Node:attachObject(self.Camera)
-
-		self.Camera:setPosition(self:idealDirection() * self.Radius)
-		self.Camera:lookAt(self.Node:_getDerivedPosition())
 
 		if cameraparams.RearCamera then
 			self.RearCameraDirection = cameraparams.RearCamera.Direction
@@ -56,25 +80,9 @@ class"VehicleCamera"
 			self.RearCamera:setFarClipDistance(cameraparams.RearCamera.FarClipDistance)
 			self.RearCamera:setFOVy(Tanx.Radian(cameraparams.RearCamera.Fovy))
 			self.RearCamera:setAspectRatio(cameraparams.RearCamera.AspectRatio)
-
-			local body = self.Target:lock():get():getMainBody()
-			self.Node:attachObject(self.RearCamera)
-			self.RearCamera:setPosition(body:get():getOrientation() * cameraparams.RearCamera.Position)
-			self.RearCamera:lookAt(self.Node:_getDerivedPosition() + self.RearCamera:getPosition() + body:get():getOrientation() * self.RearCameraDirection)
-
-			local i
-			for i = 0, target:get():getMainNode():numChildren() - 1 do
-				local obj = target:get():getMainNode():getChild(i):toDerived():getAttachedObject(0)
-				--Tanx.log("[VehicleCamera.lua]: child[" .. i .. "] type: " .. obj:getMovableType())
-				if obj:getMovableType() == "MovablePlane" then
-					self.RearCamera:enableReflection(obj:toDerived())
-					Tanx.log("[VehicleCamera.lua]: reflection enabled.", Ogre.LogMessageLevel.TRIVIAL)
-				end
-			end
-			--local mirror = target:get():getMainNode():getChild(2):toDerived():getAttachedObject(0):toDerived()
-			--Tanx.log("[VehicleCamera.lua]: mirror type: " .. mirror:getMovableType())
-			--self.RearCamera:enableReflection(mirror)
 		end
+
+		mountCamera(self)
 	end
 
 	function VehicleCamera:step(elapsed)
@@ -88,7 +96,14 @@ class"VehicleCamera"
 	end
 
 	function VehicleCamera:setTarget(target)
+		self.Camera:getParentSceneNode():detachObject(self.Camera:getName())
+		if self.RearCamera then
+			self.RearCamera:getParentSceneNode():detachObject(self.RearCamera:getName())
+		end
+
 		self.Target = Tanx.AgentWeakPtr(target)
+
+		mountCamera(self)
 	end
 
 	function VehicleCamera:getCamera()

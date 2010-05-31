@@ -3,6 +3,14 @@
 	<Window Type="DefaultGUISheet" Name="root">
 		<Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
 
+		<Window Type="TaharezLook/StaticImage" Name="Dodgem/Vendor">
+			<Property Name="FrameEnabled" Value="false" />
+			<Property Name="UnifiedPosition" Value="{{0.2, 0},{0.3, 0}}" />
+			<Property Name="UnifiedSize" Value="{{0.6,0},{0.22,0}}" />
+			<Property Name="Image" Value="set:Dodgem image:Vendor" />
+			<Property Name="BackgroundEnabled" Value="false" />
+		</Window>
+
 		<Window Type="TaharezLook/StaticText" Name="Dodgem/Score">
 			<Property Name="UnifiedPosition" Value="{{0.04,0},{0.02,0}}}" />
 			<Property Name="UnifiedSize" Value="{{0.2,0},{0.12,0}}" />

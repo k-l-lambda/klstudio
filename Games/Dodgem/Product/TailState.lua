@@ -46,7 +46,7 @@ class "TailState" (TanxStateMachine)
 		if _LUABIND_VERSION and _LUABIND_VERSION >= 800 then
 			TanxStateMachine.__init(self, s_TailStateSet, "Idle", nil, false)
 		else
-			super(self, s_TailStateSet, "Idle", nil, false)
+			super(s_TailStateSet, "Idle", nil, false)
 		end
 
 		self.Material = car:get():findBody"tail":get():getNode():toDerived():getChild(0):toDerived():getAttachedObject(0):toDerived():getSubEntity(0):getMaterial()

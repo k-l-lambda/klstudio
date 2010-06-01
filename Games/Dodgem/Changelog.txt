@@ -1,4 +1,6 @@
 TODO:
+	refine Ai initial state
+	exit interface
 	try global celshading
 	game logic sounds
 	hi score record
@@ -6,6 +8,11 @@ TODO:
 	AI: back off when blocking, by state machine
 	refine vehicle following camera
 
+
+
+2010.6.1	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Dodgem.game.lua: level-up game implemented.
 
 
 2010.5.31	K.L.	<xxxK.L.xxx@gmail.com>

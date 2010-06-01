@@ -11,6 +11,7 @@ Tanx.log("[Dodgem\\Dodgem.game.lua]: parsed.")
 
 Tanx.require"Core:utility.lua"
 Tanx.require"Core:StateMachine.lua"
+Tanx.require"Core:CeguiUtil.lua"
 Tanx.dofile"VehicleCamera.lua"
 Tanx.dofile"Dodgem.lua"
 Tanx.dofile"ScoreMark.lua"
@@ -19,8 +20,7 @@ Tanx.dofile"TailState.lua"
 
 s_CoverDuration = 3
 s_PreparingDuration = 5.6
-s_GamingDuration = 100
-s_PostGameDuration = 8
+s_PostGameDuration = 7
 
 
 g_AutomobileList = {}
@@ -28,6 +28,48 @@ g_AiCarList = {}
 g_ScoreMarks = {}
 
 g_TailStates = {}
+
+g_UserData =
+{
+	TotalScore	= 0,
+	HiScore		= 0,
+	Level		= 1,
+}
+
+
+function getLevelConfig(level)
+	local config =
+	{
+		PassScore		= level ^ 2,
+		AiCount			= level,
+		AiInitState		= {},
+		Duration		= math.floor(math.log(level + 1) * 3) * 10,
+	}
+
+	local i
+	for i = 1, config.AiCount do
+		config.AiInitState[i] = Tanx.RigidBodyState.make(Tanx.Vector3((i - 3) * 8, 0.8, 20))
+	end
+
+	return config
+end
+
+
+function updateFooter()
+	g_GuiWindows.Footer:setText(CEGUI.String(string.format("TOTAL %4d       HI %4d", g_UserData.TotalScore, g_UserData.HiScore)))
+end
+
+
+function changeScore(delta)
+	g_Score = g_Score + delta
+
+	g_UserData.TotalScore = g_UserData.TotalScore + delta
+	if g_UserData.TotalScore > g_UserData.HiScore then
+		g_UserData.HiScore = g_UserData.TotalScore
+	end
+
+	updateFooter()
+end
 
 
 local function loadSound()
@@ -48,7 +90,7 @@ end
 function onPlayerHitTail(id, power)
 	if g_BodyStateMachine:stateKey() == "Gaming" then
 		local score = math.floor(power / 3)
-		g_Score = g_Score + score
+		changeScore(score)
 
 		if score > 0 then
 			assert(g_WindowManager)
@@ -70,7 +112,7 @@ function onAiHitTail(power)
 
 		if score > 0 then
 			if g_ProtectedTime <= 0 then
-				g_Score = g_Score - score
+				changeScore(-score)
 				g_ProtectedTime = 0.4
 
 				assert(g_WindowManager)
@@ -93,7 +135,9 @@ function startGame()
 end
 
 
-function resetGame()
+function resetGame(config)
+	g_CurrentLevelConfig = config
+
 	g_World:reset()
 
 	-- load scene
@@ -112,8 +156,8 @@ function resetGame()
 	g_TailStates.Ai = {}
 	local aiparams = Tanx.tableToMap{target = car1, onHitTail = Tanx.functor(onAiHitTail)}
 	local i
-	for i = 1, 5 do
-		local ai = g_World:createAgent("Dodgem/AiCar", "aicar%index", Tanx.RigidBodyState.make(Tanx.Vector3((i - 3) * 8, 0.8, 20)), g_Game:getResourcePackage(), aiparams)
+	for i = 1, config.AiCount do
+		local ai = g_World:createAgent("Dodgem/AiCar", "aicar%index", config.AiInitState[i], g_Game:getResourcePackage(), aiparams)
 		table.insert(g_AiCarList, ai)
 
 		local tailid = ai:get():findBody"tail":get():getRigidBody():get():getUid()
@@ -146,7 +190,7 @@ function resetGame()
 	end
 
 	g_Score = 0
-	g_GameTimeRemain = s_GamingDuration
+	g_GameTimeRemain = g_CurrentLevelConfig.Duration
 
 	g_ProtectedTime = 0
 end
@@ -175,6 +219,7 @@ end
 function setHudVisible(visible)
 	g_GuiWindows.Score:setVisible(visible)
 	g_GuiWindows.Timer:setVisible(visible)
+	g_GuiWindows.Footer:setVisible(visible)
 
 	if g_Game:getWindow():getNumViewports() >= 2 then
 		local rearview = g_Game:getWindow():getViewport(1)
@@ -206,6 +251,7 @@ function initialize(game)
 		Vendor		= g_WindowManager:getWindow(CEGUI.String"Dodgem/Vendor"),
 		Score		= g_WindowManager:getWindow(CEGUI.String"Dodgem/Score"),
 		Timer		= g_WindowManager:getWindow(CEGUI.String"Dodgem/Timer"),
+		Footer		= g_WindowManager:getWindow(CEGUI.String"Dodgem/Footer"),
 		Prompt		= g_WindowManager:getWindow(CEGUI.String"Dodgem/Prompt"),
 		Countdown	= g_WindowManager:getWindow(CEGUI.String"Dodgem/Countdown"),
 	}
@@ -270,6 +316,29 @@ g_BodyStateMachine = TanxStateMachine{
 	Preparing =
 	{
 		SubState = TanxStateMachine{
+			Title =
+			{
+				enterState = function(state, parent)
+					setHudVisible(false)
+
+					setCurtainIntensity(1)
+
+					state.Remain = 1
+
+					g_GuiWindows.Prompt:setAlpha(1)
+					g_GuiWindows.Prompt:setText(CEGUI.String("LEVEL: " .. g_UserData.Level))
+					g_GuiWindows.Prompt:setProperty(CEGUI.String"TextColours", CEGUI.colorString(0xffffffff))
+					g_GuiWindows.Prompt:show()
+				end,
+
+				step = function(state, parent, elapsed)
+					state.Remain = state.Remain - elapsed
+					if state.Remain <= 0 then
+						parent.SubState:switch("FadeIn", parent)
+					end
+				end,
+			},
+
 			FadeIn =
 			{
 				enterState = function(state, parent)
@@ -284,6 +353,8 @@ g_BodyStateMachine = TanxStateMachine{
 					state.CurtainIntensity = state.CurtainIntensity - elapsed * 0.7
 					setCurtainIntensity(state.CurtainIntensity)
 
+					g_GuiWindows.Prompt:setAlpha(math.max(math.min(state.CurtainIntensity, 1), 0))
+
 					if state.CurtainIntensity < 0 then
 						parent.SubState:switch("Countdown", parent)
 					end
@@ -293,6 +364,8 @@ g_BodyStateMachine = TanxStateMachine{
 			Countdown =
 			{
 				enterState = function(state, parent)
+					g_GuiWindows.Prompt:hide()
+
 					g_GuiWindows.Countdown:setText(CEGUI.String(tostring(math.ceil(s_PreparingDuration - parent.Time))))
 					g_GuiWindows.Countdown:show()
 				end,
@@ -304,11 +377,11 @@ g_BodyStateMachine = TanxStateMachine{
 		},
 
 		enterState = function(state)
-			resetGame()
+			resetGame(getLevelConfig(g_UserData.Level))
 
 			state.Time = 0
 
-			state.SubState:switch("FadeIn", state)
+			state.SubState:switch("Title", state)
 		end,
 
 		leaveState = function(state)
@@ -393,10 +466,17 @@ g_BodyStateMachine = TanxStateMachine{
 		},
 
 		enterState = function(state)
+			local passed = g_Score >= g_CurrentLevelConfig.PassScore
+
+			if passed then
+				g_UserData.Level = g_UserData.Level + 1
+			end
+
 			state.RemainTime = s_PostGameDuration
 
 			g_GuiWindows.Prompt:setAlpha(0)
-			g_GuiWindows.Prompt:setText(CEGUI.String("TOTAL: " .. g_Score))
+			g_GuiWindows.Prompt:setText(CEGUI.String(iif(passed, "MISSION PASSED", "MISSION FAILED")))
+			g_GuiWindows.Prompt:setProperty(CEGUI.String"TextColours", iif(passed, CEGUI.colorString(0xfffff0a0), CEGUI.colorString(0xffa02020)))
 			g_GuiWindows.Prompt:show()
 
 			-- TODO: play a sound
@@ -434,8 +514,8 @@ g_GameStateMachine = TanxStateMachine{
 			setCurtainIntensity(1)
 
 			setHudVisible(false)
+			g_GuiWindows.Vendor:setAlpha(0)
 			g_GuiWindows.Vendor:show()
-			g_GuiWindows.Vendor:setAlpha(1)
 
 			state.Remain = s_CoverDuration
 		end,
@@ -459,6 +539,12 @@ g_GameStateMachine = TanxStateMachine{
 	{
 		enterState = function(state, command)
 			if command == "start" then
+				g_UserData.TotalScore = 0
+				g_UserData.HiScore = 0
+				g_UserData.Level = 1
+
+				updateFooter()
+
 				g_BodyStateMachine:switch"Preparing"
 			end
 		end,
@@ -516,8 +602,10 @@ g_GameStateMachine = TanxStateMachine{
 				updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera(), elapsed)
 			end
 
-			g_GuiWindows.Score:setText(CEGUI.String("S " .. g_Score))
+			g_GuiWindows.Score:setText(CEGUI.String(string.format("%3d / %d", g_Score, g_CurrentLevelConfig.PassScore)))
 			g_GuiWindows.Timer:setText(CEGUI.String(string.format("%6.2f", g_GameTimeRemain)))
+
+			g_GuiWindows.Score:setProperty(CEGUI.String"TextColours", iif(g_Score >= g_CurrentLevelConfig.PassScore, CEGUI.colorString(0xff80ff80), CEGUI.colorString(0xffffffff)))
 
 			local state = g_BodyStateMachine:state()
 			if state and state.step then

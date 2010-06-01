@@ -56,7 +56,7 @@ end
 
 
 function updateFooter()
-	g_GuiWindows.Footer:setText(CEGUI.String(string.format("TOTAL %4d       HI %4d", g_UserData.TotalScore, g_UserData.HiScore)))
+	g_GuiWindows.Footer:setText(CEGUI.String(string.format("LEVEL %d       TOTAL %4d       HI %4d", g_UserData.Level, g_UserData.TotalScore, g_UserData.HiScore)))
 end
 
 
@@ -470,6 +470,8 @@ g_BodyStateMachine = TanxStateMachine{
 
 			if passed then
 				g_UserData.Level = g_UserData.Level + 1
+
+				updateFooter()
 			end
 
 			state.RemainTime = s_PostGameDuration

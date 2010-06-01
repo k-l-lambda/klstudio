@@ -10,18 +10,10 @@
 Tanx.log("[Dodgem\\ScoreMark.lua]: parsed.")
 
 Tanx.require"Core:utility.lua"
+Tanx.require"Core:CeguiUtil.lua"
 
 
 g_MarkWindowCount = 0
-
-
-function colorString(tl, tr, bl, br)
-	tr = tr or tl
-	bl = bl or tr
-	br = br or bl
-
-	return CEGUI.String(string.format("tl:%x tr:%x bl:%x br:%x", tl, tr, bl, br))
-end
 
 
 class "ScoreMark"
@@ -36,7 +28,7 @@ class "ScoreMark"
 		self.Window:setProperty(CEGUI.String"FrameEnabled", CEGUI.String"false")
 		self.Window:setFont(CEGUI.String"BlueHighway-32")
 
-		self.Window:setProperty(CEGUI.String"TextColours", iif(score > 0, colorString(0xff00ff00), colorString(0xffff0000)))
+		self.Window:setProperty(CEGUI.String"TextColours", iif(score > 0, CEGUI.colorString(0xff00ff00), CEGUI.colorString(0xffff0000)))
 		self.Window:setText(CEGUI.String(iif(score > 0, "+", "-") .. math.abs(score)))
 
 		local root = windowManager:getWindow(CEGUI.String"root")

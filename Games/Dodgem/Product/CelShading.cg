@@ -8,9 +8,9 @@ void main_vp(float4 position	: POSITION,
 			 float3 normal		: NORMAL,
 			 // outputs
 			 out float4 oPosition : POSITION,
-			 out float  diffuse		 : TEXCOORD2,
-			 out float  specular	 : TEXCOORD5,
-			 out float  edge		 : TEXCOORD6,
+			 out float  diffuse		 : TEXCOORD0,
+			 out float  specular	 : TEXCOORD1,
+			 out float  edge		 : TEXCOORD2,
 			 out float4	oColour		: COLOR,
 			 // parameters
 			 uniform float3		lightPosition,
@@ -45,15 +45,15 @@ void main_vp(float4 position	: POSITION,
 	// Edge detection, dot eye and normal vectors
 	edge = max(dot(N, E), 0);
 
-	diffuse += 0.2;
+	//diffuse += 0.2;
 	//oColour = float4(diffuse, diffuse, diffuse, 1);
 	oColour = float4(1, 1, 1, 1);
 }
 
 
-void main_fp(float diffuseIn 	: TEXCOORD2,
-			 float specularIn	: TEXCOORD5,
-			 float edge			: TEXCOORD6,
+void main_fp(float diffuseIn 	: TEXCOORD0,
+			 float specularIn	: TEXCOORD1,
+			 float edge			: TEXCOORD2,
 
 			 out float4 colour	: COLOR,
 
@@ -65,12 +65,12 @@ void main_fp(float diffuseIn 	: TEXCOORD2,
 			 uniform sampler1D edgeRamp)
 {
 	// Step functions from textures
-	//diffuseIn = tex1D(diffuseRamp, diffuseIn).x;
-	//specularIn = tex1D(specularRamp, specularIn).x;
-	//edge = tex1D(edgeRamp, edge).x;
+	diffuseIn = tex1D(diffuseRamp, diffuseIn).x;
+	specularIn = tex1D(specularRamp, specularIn).x;
+	edge = tex1D(edgeRamp, edge).x;
 
-	//colour = edge * ((diffuse * diffuseIn) + (specular * specularIn));
-	colour = float4(edge, edge, edge, 1);
+	colour = edge * ((diffuse * diffuseIn) + (specular * specularIn));
+	//colour = float4(edge, edge, edge, 1);
 	//colour = float4(1, 1, 1, 1);
 }
 

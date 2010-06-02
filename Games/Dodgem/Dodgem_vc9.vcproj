@@ -86,10 +86,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Product\Dodgem.material"
-				>
-			</File>
-			<File
 				RelativePath=".\Product\dodgem.mesh.xml"
 				>
 			</File>
@@ -111,14 +107,6 @@
 			</File>
 			<File
 				RelativePath=".\Product\Dodgem.vehicle"
-				>
-			</File>
-			<File
-				RelativePath=".\Product\GlassFP.cg"
-				>
-			</File>
-			<File
-				RelativePath=".\Product\grid.png"
 				>
 			</File>
 			<File
@@ -187,6 +175,22 @@
 				</File>
 				<File
 					RelativePath=".\Product\gui.dds"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Mertials"
+				>
+				<File
+					RelativePath=".\Product\CelShading.cg"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\Dodgem.material"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\grid.png"
 					>
 				</File>
 			</Filter>

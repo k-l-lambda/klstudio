@@ -1,8 +1,8 @@
 TODO:
+	refine vehicle config
 	refine Ai initial state
 	exit interface
 	try global celshading
-	game logic sounds
 	hi score record
 	wheel sound
 	AI: back off when blocking, by state machine
@@ -11,6 +11,8 @@ TODO:
 
 
 2010.6.2	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Level-up and fail sound added.
 
 	*?	Stencil shadow issue: it seems ps with lighting used results of vs without lighting.
 

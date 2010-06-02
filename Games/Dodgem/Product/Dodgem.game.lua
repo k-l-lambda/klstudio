@@ -327,7 +327,7 @@ g_BodyStateMachine = TanxStateMachine{
 
 					g_GuiWindows.Prompt:setAlpha(1)
 					g_GuiWindows.Prompt:setText(CEGUI.String("LEVEL: " .. g_UserData.Level))
-					g_GuiWindows.Prompt:setProperty(CEGUI.String"TextColours", CEGUI.colorString(0xffffffff))
+					g_GuiWindows.Prompt:setProperty(CEGUI.String"TextColours", CEGUI.colorString"ffffffff")
 					g_GuiWindows.Prompt:show()
 				end,
 
@@ -478,7 +478,7 @@ g_BodyStateMachine = TanxStateMachine{
 
 			g_GuiWindows.Prompt:setAlpha(0)
 			g_GuiWindows.Prompt:setText(CEGUI.String(iif(passed, "MISSION PASSED", "MISSION FAILED")))
-			g_GuiWindows.Prompt:setProperty(CEGUI.String"TextColours", iif(passed, CEGUI.colorString(0xfffff0a0), CEGUI.colorString(0xffa02020)))
+			g_GuiWindows.Prompt:setProperty(CEGUI.String"TextColours", iif(passed, CEGUI.colorString"fffff0a0", CEGUI.colorString"ffa06060"))
 			g_GuiWindows.Prompt:show()
 
 			-- TODO: play a sound
@@ -607,7 +607,7 @@ g_GameStateMachine = TanxStateMachine{
 			g_GuiWindows.Score:setText(CEGUI.String(string.format("%3d / %d", g_Score, g_CurrentLevelConfig.PassScore)))
 			g_GuiWindows.Timer:setText(CEGUI.String(string.format("%6.2f", g_GameTimeRemain)))
 
-			g_GuiWindows.Score:setProperty(CEGUI.String"TextColours", iif(g_Score >= g_CurrentLevelConfig.PassScore, CEGUI.colorString(0xff80ff80), CEGUI.colorString(0xffffffff)))
+			g_GuiWindows.Score:setProperty(CEGUI.String"TextColours", iif(g_Score >= g_CurrentLevelConfig.PassScore, CEGUI.colorString"ff80ff80", CEGUI.colorString"ffffffff"))
 
 			local state = g_BodyStateMachine:state()
 			if state and state.step then

@@ -28,7 +28,7 @@ class "ScoreMark"
 		self.Window:setProperty(CEGUI.String"FrameEnabled", CEGUI.String"false")
 		self.Window:setFont(CEGUI.String"BlueHighway-32")
 
-		self.Window:setProperty(CEGUI.String"TextColours", iif(score > 0, CEGUI.colorString(0xff00ff00), CEGUI.colorString(0xffff0000)))
+		self.Window:setProperty(CEGUI.String"TextColours", iif(score > 0, CEGUI.colorString"ff00ff00", CEGUI.colorString"ffff0000"))
 		self.Window:setText(CEGUI.String(iif(score > 0, "+", "-") .. math.abs(score)))
 
 		local root = windowManager:getWindow(CEGUI.String"root")

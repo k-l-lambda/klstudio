@@ -10,6 +10,13 @@ TODO:
 
 
 
+2010.6.2	K.L.	<xxxK.L.xxx@gmail.com>
+
+	*?	Stencil shadow issue: it seems ps with lighting used results of vs without lighting.
+
+	*!	Lua hex integer may error when more than 0x7ffffff.
+
+
 2010.6.1	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	Dodgem.game.lua: level-up game implemented.

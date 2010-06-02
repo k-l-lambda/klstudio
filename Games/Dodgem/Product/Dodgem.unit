@@ -19,7 +19,7 @@
 							<item_version>0</item_version>
 							<item class_id="14" tracking_level="0" version="0">
 								<m_Data class_id="15" tracking_level="0" version="1">
-									<px class_id="6" tracking_level="1" version="2" object_id="_0">
+									<px class_id="6" tracking_level="1" version="3" object_id="_0">
 										<AppearanceConfig class_id="16" tracking_level="0" version="2">
 											<Name></Name>
 											<Translation>Vector3(0, 0, 0)</Translation>
@@ -34,39 +34,93 @@
 											<item_version>0</item_version>
 											<item class_id="18" tracking_level="0" version="0">
 												<first>0</first>
-												<second>Dodgem/DodgemMesh/AiCar/E002FARJ</second>
+												<second class_id="19" tracking_level="0" version="0">
+													<MaterialName>Dodgem/DodgemMesh/AiCar/E002FARJ</MaterialName>
+													<CustomParameterMap class_id="20" tracking_level="0" version="0">
+														<count>0</count>
+														<item_version>0</item_version>
+													</CustomParameterMap>
+												</second>
 											</item>
 											<item>
 												<first>1</first>
-												<second>Dodgem/DodgemMesh/AiCar/E002CROM</second>
+												<second>
+													<MaterialName>Dodgem/DodgemMesh/AiCar/E002CROM</MaterialName>
+													<CustomParameterMap>
+														<count>0</count>
+														<item_version>0</item_version>
+													</CustomParameterMap>
+												</second>
 											</item>
 											<item>
 												<first>2</first>
-												<second>Dodgem/DodgemMesh/AiCar/E002NGMT</second>
+												<second>
+													<MaterialName>Dodgem/DodgemMesh/AiCar/E002NGMT</MaterialName>
+													<CustomParameterMap>
+														<count>0</count>
+														<item_version>0</item_version>
+													</CustomParameterMap>
+												</second>
 											</item>
 											<item>
 												<first>3</first>
-												<second>Dodgem/DodgemMesh/AiCar/E002EMBE</second>
+												<second>
+													<MaterialName>Dodgem/DodgemMesh/AiCar/E002EMBE</MaterialName>
+													<CustomParameterMap>
+														<count>0</count>
+														<item_version>0</item_version>
+													</CustomParameterMap>
+												</second>
 											</item>
 											<item>
 												<first>4</first>
-												<second>Dodgem/DodgemMesh/AiCar/E002OSCU</second>
+												<second>
+													<MaterialName>Examples/CelShading</MaterialName>
+													<CustomParameterMap>
+														<count>0</count>
+														<item_version>0</item_version>
+													</CustomParameterMap>
+												</second>
 											</item>
 											<item>
 												<first>5</first>
-												<second>Dodgem/DodgemMesh/AiCar/E002NGBR</second>
+												<second>
+													<MaterialName>Dodgem/DodgemMesh/AiCar/E002NGBR</MaterialName>
+													<CustomParameterMap>
+														<count>0</count>
+														<item_version>0</item_version>
+													</CustomParameterMap>
+												</second>
 											</item>
 											<item>
 												<first>6</first>
-												<second>Dodgem/DodgemMesh/AiCar/E002ASI</second>
+												<second>
+													<MaterialName>Dodgem/DodgemMesh/AiCar/E002ASI</MaterialName>
+													<CustomParameterMap>
+														<count>0</count>
+														<item_version>0</item_version>
+													</CustomParameterMap>
+												</second>
 											</item>
 											<item>
 												<first>7</first>
-												<second>Dodgem/DodgemMesh/AiCar/E002CREM</second>
+												<second>
+													<MaterialName>Dodgem/DodgemMesh/AiCar/E002CREM</MaterialName>
+													<CustomParameterMap>
+														<count>0</count>
+														<item_version>0</item_version>
+													</CustomParameterMap>
+												</second>
 											</item>
 											<item>
 												<first>8</first>
-												<second>Dodgem/DodgemMesh/AiCar/E002CRIS</second>
+												<second>
+													<MaterialName>Dodgem/DodgemMesh/AiCar/E002CRIS</MaterialName>
+													<CustomParameterMap>
+														<count>0</count>
+														<item_version>0</item_version>
+													</CustomParameterMap>
+												</second>
 											</item>
 										</MaterialMap>
 									</px>
@@ -96,7 +150,13 @@
 											<item_version>0</item_version>
 											<item>
 												<first>0</first>
-												<second>Dodgem/TailBall/Green0</second>
+												<second>
+													<MaterialName>Dodgem/TailBall/Green0</MaterialName>
+													<CustomParameterMap>
+														<count>0</count>
+														<item_version>0</item_version>
+													</CustomParameterMap>
+												</second>
 											</item>
 										</MaterialMap>
 									</px>
@@ -126,7 +186,13 @@
 											<item_version>0</item_version>
 											<item>
 												<first>0</first>
-												<second>Dodgem/TailBall/Green1</second>
+												<second>
+													<MaterialName>Dodgem/TailBall/Green1</MaterialName>
+													<CustomParameterMap>
+														<count>0</count>
+														<item_version>0</item_version>
+													</CustomParameterMap>
+												</second>
 											</item>
 										</MaterialMap>
 									</px>
@@ -156,7 +222,13 @@
 											<item_version>0</item_version>
 											<item>
 												<first>0</first>
-												<second>Dodgem/TailBall/Green1</second>
+												<second>
+													<MaterialName>Dodgem/TailBall/Green1</MaterialName>
+													<CustomParameterMap>
+														<count>0</count>
+														<item_version>0</item_version>
+													</CustomParameterMap>
+												</second>
 											</item>
 										</MaterialMap>
 									</px>
@@ -186,7 +258,13 @@
 											<item_version>0</item_version>
 											<item>
 												<first>0</first>
-												<second>Dodgem/TailBall/Green2@</second>
+												<second>
+													<MaterialName>Dodgem/TailBall/Green2@</MaterialName>
+													<CustomParameterMap>
+														<count>0</count>
+														<item_version>0</item_version>
+													</CustomParameterMap>
+												</second>
 											</item>
 										</MaterialMap>
 									</px>
@@ -195,34 +273,34 @@
 						</Appearances>
 					</item>
 				</Nodes>
-				<RigidBodies class_id="19" tracking_level="0" version="0">
+				<RigidBodies class_id="21" tracking_level="0" version="0">
 					<count>5</count>
 					<item_version>9</item_version>
-					<item class_id="20" tracking_level="0" version="9">
+					<item class_id="22" tracking_level="0" version="9">
 						<NodeName>chassis</NodeName>
 						<Translate>Vector3(0, 0, 0)</Translate>
 						<Rotation>Quaternion(1, 0, 0, 0)</Rotation>
 						<LocalLinearVelocity>Vector3(0, 0, 0)</LocalLinearVelocity>
 						<LocalAngularVelocity>Vector3(0, 0, 0)</LocalAngularVelocity>
-						<MotionType class_id="27" tracking_level="0" version="0">
+						<MotionType class_id="29" tracking_level="0" version="0">
 							<name>BOX_INERTIA</name>
 						</MotionType>
-						<QualityType class_id="28" tracking_level="0" version="0">
+						<QualityType class_id="30" tracking_level="0" version="0">
 							<name>MOVING</name>
 						</QualityType>
-						<CollisionResponse class_id="29" tracking_level="0" version="0">
+						<CollisionResponse class_id="31" tracking_level="0" version="0">
 							<name>SIMPLE_CONTACT</name>
 						</CollisionResponse>
-						<DeactivatorType class_id="30" tracking_level="0" version="0">
+						<DeactivatorType class_id="32" tracking_level="0" version="0">
 							<name>NEVER</name>
 						</DeactivatorType>
-						<SolverDeactivation class_id="31" tracking_level="0" version="0">
+						<SolverDeactivation class_id="33" tracking_level="0" version="0">
 							<name>LOW</name>
 						</SolverDeactivation>
-						<Shape class_id="32" tracking_level="0" version="0">
-							<m_Data class_id="33" tracking_level="0" version="1">
-								<px class_id="26" tracking_level="1" version="0" object_id="_5">
-									<Shape class_id="34" tracking_level="0" version="1">
+						<Shape class_id="34" tracking_level="0" version="0">
+							<m_Data class_id="35" tracking_level="0" version="1">
+								<px class_id="28" tracking_level="1" version="0" object_id="_5">
+									<Shape class_id="36" tracking_level="0" version="1">
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
 									<PackageName>dodgem.shape</PackageName>
@@ -264,7 +342,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id="22" tracking_level="1" version="1" object_id="_6">
+								<px class_id="24" tracking_level="1" version="1" object_id="_6">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -309,7 +387,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="22" object_id="_7">
+								<px class_id_reference="24" object_id="_7">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -354,7 +432,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="22" object_id="_8">
+								<px class_id_reference="24" object_id="_8">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -399,7 +477,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="22" object_id="_9">
+								<px class_id_reference="24" object_id="_9">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -422,10 +500,10 @@
 						<CollisionFilterInfo>0</CollisionFilterInfo>
 					</item>
 				</RigidBodies>
-				<Constraints class_id="35" tracking_level="0" version="0">
+				<Constraints class_id="37" tracking_level="0" version="0">
 					<count>4</count>
 					<item_version>0</item_version>
-					<item class_id="36" tracking_level="0" version="0">
+					<item class_id="38" tracking_level="0" version="0">
 						<Name>Dodgem/TailJoint0_f</Name>
 						<RigidBodyA>1</RigidBodyA>
 						<RigidBodyB>0</RigidBodyB>
@@ -532,7 +610,13 @@
 											<item_version>0</item_version>
 											<item>
 												<first>0</first>
-												<second>Dodgem/TailBall/Red0</second>
+												<second>
+													<MaterialName>Dodgem/TailBall/Red0</MaterialName>
+													<CustomParameterMap>
+														<count>0</count>
+														<item_version>0</item_version>
+													</CustomParameterMap>
+												</second>
 											</item>
 										</MaterialMap>
 									</px>
@@ -562,7 +646,13 @@
 											<item_version>0</item_version>
 											<item>
 												<first>0</first>
-												<second>Dodgem/TailBall/Red1</second>
+												<second>
+													<MaterialName>Dodgem/TailBall/Red1</MaterialName>
+													<CustomParameterMap>
+														<count>0</count>
+														<item_version>0</item_version>
+													</CustomParameterMap>
+												</second>
 											</item>
 										</MaterialMap>
 									</px>
@@ -592,7 +682,13 @@
 											<item_version>0</item_version>
 											<item>
 												<first>0</first>
-												<second>Dodgem/TailBall/Red2@</second>
+												<second>
+													<MaterialName>Dodgem/TailBall/Red2@</MaterialName>
+													<CustomParameterMap>
+														<count>0</count>
+														<item_version>0</item_version>
+													</CustomParameterMap>
+												</second>
 											</item>
 										</MaterialMap>
 									</px>
@@ -627,7 +723,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="26" object_id="_16">
+								<px class_id_reference="28" object_id="_16">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -670,7 +766,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="22" object_id="_17">
+								<px class_id_reference="24" object_id="_17">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -715,7 +811,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="22" object_id="_18">
+								<px class_id_reference="24" object_id="_18">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -760,7 +856,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="22" object_id="_19">
+								<px class_id_reference="24" object_id="_19">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>
@@ -859,7 +955,7 @@
 						</SolverDeactivation>
 						<Shape>
 							<m_Data>
-								<px class_id_reference="22" object_id="_21">
+								<px class_id_reference="24" object_id="_21">
 									<Shape>
 										<Scale>Vector3(1, 1, 1)</Scale>
 									</Shape>

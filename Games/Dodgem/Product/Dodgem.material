@@ -425,42 +425,77 @@ material Dodgem/Curtain
 }
 
 
-fragment_program Ogre/Compositor/GlassFP cg
+
+// -------------------------------
+// Cel Shading Section
+// -------------------------------
+vertex_program Ogre/CelShadingVP cg
 {
-	source GlassFP.cg
-	entry_point main_ps
-	profiles ps_2_0 arbfp1
+	source			CelShading.cg
+	entry_point		main_vp
+	profiles		vs_2_0 arbvp1
+
+	default_params
+	{
+		param_named_auto	lightPosition	light_position 0
+		param_named_auto	eyePosition		camera_position
+		param_named_auto	world			world_matrix
+		param_named_auto	worldViewProj	worldviewproj_matrix
+		param_named			shininess		float 12 
+	}
 }
 
-material Ogre/Compositor/GlassPass
+fragment_program Ogre/CelShadingFP cg
 {
+	source			CelShading.cg
+	entry_point		main_fp
+	//entry_point		main_fp2
+	profiles		ps_2_0 arbfp1 fp20
+}
+
+
+material	Examples/CelShading
+{
+	receive_shadows	on
+
 	technique
 	{
 		pass
 		{
-			depth_check off
-
-			vertex_program_ref Ogre/Compositor/StdQuad_Cg_vp
+			vertex_program_ref		Ogre/CelShadingVP
 			{
+				// map shininess
+				param_named		shininess	float 12
 			}
 
-			fragment_program_ref Ogre/Compositor/GlassFP
+			fragment_program_ref	Ogre/CelShadingFP
 			{
-			}
+				// map diffuse
+				param_named		diffuse		float3 0.14902 0.45098 0.0901961
 
-			texture_unit RT
-			{
-				tex_coord_set 0
-				tex_address_mode clamp
-				filtering linear linear linear
+				// map specular
+				param_named		specular	float3 1 1 1
 			}
 
 			texture_unit
 			{
-				texture WaterNormal1.tga 2d
-				tex_coord_set 1
-				//tex_address_mode clamp
-				filtering linear linear linear
+				texture				cel_shading_diffuse.png 1d
+				tex_address_mode	clamp
+				filtering			none
+			}
+
+			texture_unit
+			{
+				texture				cel_shading_specular.png 1d
+				tex_address_mode	clamp
+				filtering			none
+			}
+
+			texture_unit
+			{
+				texture				cel_shading_edge.png 1d
+				tex_address_mode	clamp
+				filtering			none
 			}
 		}
 	}

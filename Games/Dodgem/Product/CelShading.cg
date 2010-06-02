@@ -1,0 +1,82 @@
+
+/* Cel shading vertex program for single-pass rendering
+   In this program, we want to calculate the diffuse and specular
+   ramp components, and the edge factor (for doing simple outlining)
+   For the outlining to look good, we need a pretty well curved model.
+*/
+void main_vp(float4 position	: POSITION,
+			 float3 normal		: NORMAL,
+			 // outputs
+			 out float4 oPosition : POSITION,
+			 out float  diffuse		 : TEXCOORD2,
+			 out float  specular	 : TEXCOORD5,
+			 out float  edge		 : TEXCOORD6,
+			 out float4	oColour		: COLOR,
+			 // parameters
+			 uniform float3		lightPosition,
+			 uniform float3		eyePosition,
+			 uniform float4		shininess,
+			 uniform float4x4	world,
+			 uniform float4x4	worldViewProj)
+{
+	// calculate output position
+	oPosition = mul(worldViewProj, position);
+
+	float3 worldposition = mul(world, position).xyz;
+
+	// calculate light vector
+	float3 N = normalize(mul(world, float4(normal, 0)).xyz);
+	float3 L = normalize(lightPosition - worldposition);
+
+	// Calculate diffuse component
+	diffuse = max(dot(N, L) , 0);
+
+	if(length(lightPosition) == 0)
+		diffuse *= 0;
+
+	// Calculate specular component
+	float3 E = normalize(eyePosition - worldposition);
+	float3 H = normalize(L + E);
+	specular = pow(max(dot(N, H), 0), shininess);
+	// Mask off specular if diffuse is 0
+	if(diffuse == 0)
+		specular = 0;
+
+	// Edge detection, dot eye and normal vectors
+	edge = max(dot(N, E), 0);
+
+	diffuse += 0.2;
+	//oColour = float4(diffuse, diffuse, diffuse, 1);
+	oColour = float4(1, 1, 1, 1);
+}
+
+
+void main_fp(float diffuseIn 	: TEXCOORD2,
+			 float specularIn	: TEXCOORD5,
+			 float edge			: TEXCOORD6,
+
+			 out float4 colour	: COLOR,
+
+			 uniform float4 diffuse,
+			 uniform float4 specular,
+
+			 uniform sampler1D diffuseRamp,
+			 uniform sampler1D specularRamp,
+			 uniform sampler1D edgeRamp)
+{
+	// Step functions from textures
+	//diffuseIn = tex1D(diffuseRamp, diffuseIn).x;
+	//specularIn = tex1D(specularRamp, specularIn).x;
+	//edge = tex1D(edgeRamp, edge).x;
+
+	//colour = edge * ((diffuse * diffuseIn) + (specular * specularIn));
+	colour = float4(edge, edge, edge, 1);
+	//colour = float4(1, 1, 1, 1);
+}
+
+
+void main_fp2(float4 diffuseIn 	: COLOR, out float4 colour : COLOR)
+{
+	//colour = diffuseIn * float4(1, 0, 0, 1);
+	colour = float4(0, 1, 0, 1);
+}

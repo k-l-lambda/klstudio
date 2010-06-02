@@ -642,7 +642,7 @@
 							<ResistanceFactorAtMinRPM>0.050000001</ResistanceFactorAtMinRPM>
 							<ResistanceFactorAtOptRPM>0.1</ResistanceFactorAtOptRPM>
 							<ResistanceFactorAtMaxRPM>0.30000001</ResistanceFactorAtMaxRPM>
-							<ClutchSlipRPM>2000</ClutchSlipRPM>
+							<ClutchSlipRPM>5000</ClutchSlipRPM>
 						</px>
 					</m_Data>
 				</Engine>
@@ -651,7 +651,7 @@
 						<px class_id_reference="7" object_id="_19">
 							<TransmissionConfig></TransmissionConfig>
 							<DownshiftRPM>3500</DownshiftRPM>
-							<UpshiftRPM>6500</UpshiftRPM>
+							<UpshiftRPM>8500</UpshiftRPM>
 							<ClutchDelayTime>0</ClutchDelayTime>
 							<ReverseGearRatio>1</ReverseGearRatio>
 							<GearsRatio>
@@ -672,7 +672,7 @@
 							</WheelsTorqueRatio>
 							<VehicleTopSpeed>130</VehicleTopSpeed>
 							<WheelRadius>0.40000001</WheelRadius>
-							<MaxEngineRpm>7500</MaxEngineRpm>
+							<MaxEngineRpm>8500</MaxEngineRpm>
 						</px>
 					</m_Data>
 				</Transmission>

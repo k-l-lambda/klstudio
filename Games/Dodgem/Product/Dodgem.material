@@ -433,7 +433,7 @@ vertex_program Ogre/CelShadingVP cg
 {
 	source			CelShading.cg
 	entry_point		main_vp
-	profiles		vs_2_0 arbvp1
+	profiles		vs_1_1 arbvp1
 
 	default_params
 	{
@@ -450,7 +450,7 @@ fragment_program Ogre/CelShadingFP cg
 	source			CelShading.cg
 	entry_point		main_fp
 	//entry_point		main_fp2
-	profiles		ps_2_0 arbfp1 fp20
+	profiles		ps_1_1 arbfp1 fp20
 }
 
 
@@ -482,6 +482,7 @@ material	Examples/CelShading
 				texture				cel_shading_diffuse.png 1d
 				tex_address_mode	clamp
 				filtering			none
+				tex_coord_set		0
 			}
 
 			texture_unit
@@ -489,6 +490,7 @@ material	Examples/CelShading
 				texture				cel_shading_specular.png 1d
 				tex_address_mode	clamp
 				filtering			none
+				tex_coord_set		1
 			}
 
 			texture_unit
@@ -496,6 +498,7 @@ material	Examples/CelShading
 				texture				cel_shading_edge.png 1d
 				tex_address_mode	clamp
 				filtering			none
+				tex_coord_set		2
 			}
 		}
 	}

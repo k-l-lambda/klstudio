@@ -81,8 +81,10 @@ local function loadSound()
 	end
 
 	g_Sounds = {
-		Gain	= createSoundSource("gain.wav", true),
-		Loss	= createSoundSource("loss.wav", true),
+		Gain		= createSoundSource("gain.wav", true),
+		Loss		= createSoundSource("loss.wav", true),
+		LevelUp		= createSoundSource("Level-up.wav", true),
+		LevelFail	= createSoundSource("LevelFail.wav", true),
 	}
 end
 
@@ -478,10 +480,12 @@ g_BodyStateMachine = TanxStateMachine{
 
 			g_GuiWindows.Prompt:setAlpha(0)
 			g_GuiWindows.Prompt:setText(CEGUI.String(iif(passed, "MISSION PASSED", "MISSION FAILED")))
-			g_GuiWindows.Prompt:setProperty(CEGUI.String"TextColours", iif(passed, CEGUI.colorString"fffff0a0", CEGUI.colorString"ffa06060"))
+			g_GuiWindows.Prompt:setProperty(CEGUI.String"TextColours", iif(passed, CEGUI.colorString"fffff0a0", CEGUI.colorString"ffc04040"))
 			g_GuiWindows.Prompt:show()
 
-			-- TODO: play a sound
+			if g_Sounds then
+				iif(passed, g_Sounds.LevelUp, g_Sounds.LevelFail):get():play()
+			end
 
 			state.SubState:switch("Idle", state)
 		end,
@@ -604,7 +608,7 @@ g_GameStateMachine = TanxStateMachine{
 				updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera(), elapsed)
 			end
 
-			g_GuiWindows.Score:setText(CEGUI.String(string.format("%3d / %d", g_Score, g_CurrentLevelConfig.PassScore)))
+			g_GuiWindows.Score:setText(CEGUI.String(string.format("%4d / %d", g_Score, g_CurrentLevelConfig.PassScore)))
 			g_GuiWindows.Timer:setText(CEGUI.String(string.format("%6.2f", g_GameTimeRemain)))
 
 			g_GuiWindows.Score:setProperty(CEGUI.String"TextColours", iif(g_Score >= g_CurrentLevelConfig.PassScore, CEGUI.colorString"ff80ff80", CEGUI.colorString"ffffffff"))

@@ -45,6 +45,7 @@ function getLevelConfig(level)
 		AiInitState		= {},
 		Duration		= math.floor(math.log(level + 1) * 3) * 10,
 	}
+	config.CriticalTime = config.Duration / 3
 
 	local i
 	for i = 1, config.AiCount do
@@ -93,6 +94,10 @@ function onPlayerHitTail(id, power)
 	if g_BodyStateMachine:stateKey() == "Gaming" then
 		local score = math.floor(power / 3)
 		changeScore(score)
+
+		if g_Score >= g_CurrentLevelConfig.PassScore and g_GameTimeRemain < g_CurrentLevelConfig.CriticalTime then
+			g_BodyStateMachine:switch"PostGame"
+		end
 
 		if score > 0 then
 			assert(g_WindowManager)
@@ -612,6 +617,7 @@ g_GameStateMachine = TanxStateMachine{
 			g_GuiWindows.Timer:setText(CEGUI.String(string.format("%6.2f", g_GameTimeRemain)))
 
 			g_GuiWindows.Score:setProperty(CEGUI.String"TextColours", iif(g_Score >= g_CurrentLevelConfig.PassScore, CEGUI.colorString"ff80ff80", CEGUI.colorString"ffffffff"))
+			g_GuiWindows.Timer:setProperty(CEGUI.String"TextColours", iif(g_GameTimeRemain > g_CurrentLevelConfig.CriticalTime, CEGUI.colorString"ffffffff", iif(g_Score < g_CurrentLevelConfig.PassScore, CEGUI.colorString"ffff8080", CEGUI.colorString"ff80ff80")))
 
 			local state = g_BodyStateMachine:state()
 			if state and state.step then

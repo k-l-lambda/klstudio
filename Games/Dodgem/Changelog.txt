@@ -3,11 +3,15 @@ TODO:
 	refine Ai initial state
 	exit interface
 	try global celshading
-	hi score record
 	wheel sound
 	AI: back off when blocking, by state machine
 	refine vehicle following camera
 
+
+
+2010.6.3	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Dodgem.game.lua: level critical time added.
 
 
 2010.6.2	K.L.	<xxxK.L.xxx@gmail.com>

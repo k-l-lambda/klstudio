@@ -114,7 +114,7 @@ function initialize(game)
 		ballconfig.MeshName = "Prefab_Sphere"
 		ballconfig.CastShadows = false
 		ballconfig.Scale = Tanx.Vector3(0.036)
-		ballconfig.MaterialMap:at(0):set"Tetris/ControlIndicatorBall"
+		ballconfig.MaterialMap:at(0).MaterialName = "Tetris/ControlIndicatorBall"
 		local ballnode = g_World:createAppearance("ControlBall", ballconfig):getParentSceneNode()
 		ballnode:getParent():removeChild(ballnode)
 		g_CameraNode:addChild(ballnode)

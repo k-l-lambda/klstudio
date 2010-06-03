@@ -37,7 +37,7 @@ function initialize(game)
 
 	g_World:detachAgent(g_World:findAgent"Well")
 	local wellconfig = Tanx.UnitConfig(g_World:getUnitConfig"Tetris/Well")
-	wellconfig.Nodes:at(0).Appearances:at(0):get():toDerived().MaterialMap:at(0):set"Tetris/WellWallWithTitle"
+	wellconfig.Nodes:at(0).Appearances:at(0):get():toDerived().MaterialMap:at(0).MaterialName = "Tetris/WellWallWithTitle"
 	g_World:createAgent(wellconfig, "Well", Tanx.RigidBodyState.make(Tanx.Vector3(0, 60, 0)))
 
 	g_MainCamera = game:getWorld():createCamera"Main"

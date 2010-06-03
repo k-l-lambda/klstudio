@@ -1,0 +1,17 @@
+TODO:
+	novice tutorial
+	score system
+	settings menu
+	big cube explosion FX
+	layer-clear effect
+
+
+
+2010.6.3	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Updated type definition change of 'EntityAppearanceConfig::MaterialMap'.
+
+	+	ChangeLog.txt: created.
+
+
+------------------------------------------------------- CubeTetris ChangeLog -------------------------------------------------------

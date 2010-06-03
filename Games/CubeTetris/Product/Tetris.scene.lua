@@ -72,7 +72,7 @@ function initialize(world)
 	--[[local floor = Tanx.UnitConfig(world:getUnitConfig"Tanx/Core/Plane")
 	floor.RigidBodies:at(0).Shape:get().Scale = Tanx.Vector3(100, 100, 100)
 	floor.Nodes:at(0).Appearances:at(0):get():toDerived().Scale = Tanx.Vector3(1, 1, 1)
-	floor.Nodes:at(0).Appearances:at(0):get():toDerived().MaterialMap:at(0):set"Tetris/Floor"
+	floor.Nodes:at(0).Appearances:at(0):get():toDerived().MaterialMap:at(0).MaterialName = "Tetris/Floor"
 	floor.RigidBodies:at(0).MotionType = Havok.hkpMotion.MotionType.FIXED
 	floor.RigidBodies:at(0).QualityType = Havok.hkpCollidableQualityType.FIXED
 	world:createAgent(floor, "Floor", Tanx.RigidBodyState.make(Tanx.Vector3(0, 0, 0)))]]

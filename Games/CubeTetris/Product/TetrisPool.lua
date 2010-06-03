@@ -281,7 +281,7 @@ local function fillBlocksLayer(self, y)
 			local material = s_BrickMaterials[Tanx.random(table.maxn(s_BrickMaterials))]
 			local f
 			for f = 0, 5 do
-				uc.Nodes:at(0).Appearances:at(0):get():toDerived().MaterialMap:at(f):set(material)
+				uc.Nodes:at(0).Appearances:at(0):get():toDerived().MaterialMap:at(f).MaterialName = material
 			end
 			local block = self.Game:getWorld():createAgent(uc, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x + (x - 2.5) * s_GridSize, y - 0.5, self.Center.z + (z - 2.5) * s_GridSize)))
 			freezeBrick(block, false)
@@ -635,7 +635,7 @@ class "TetrisPool"
 				-- set material
 				local mmap = config.Nodes:at(i).Appearances:at(0):get():toDerived().MaterialMap
 				for j = 0, mmap:size() - 1 do
-					mmap:at(j):set(params.material)
+					mmap:at(j).MaterialName = params.material
 				end
 			end
 		end

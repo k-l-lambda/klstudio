@@ -90,10 +90,11 @@ local function loadSound()
 	end
 
 	g_Sounds = {
-		Gain		= createSoundSource("gain.wav", true),
-		Loss		= createSoundSource("loss.wav", true),
-		LevelUp		= createSoundSource("Level-up.wav", true),
-		LevelFail	= createSoundSource("LevelFail.wav", true),
+		Gain			= createSoundSource("gain.wav", true),
+		Loss			= createSoundSource("loss.wav", true),
+		LevelUp			= createSoundSource("Level-up.wav", true),
+		LevelFail		= createSoundSource("LevelFail.wav", true),
+		CriticalPoint	= createSoundSource("CriticalPoint.wav", true),
 	}
 end
 
@@ -176,7 +177,8 @@ function resetGame(config)
 		table.insert(g_AiCarList, ai)
 
 		local tailid = ai:get():findBody"tail":get():getRigidBody():get():getUid()
-		g_TailStates.Ai[tailid] = TailState(ai)
+		g_TailStates.Ai[tailid] = TailState(ai, {Active = Ogre.ColourValue.Green, Disabled = Ogre.ColourValue(0.5, 0.6, 0.5)})
+		g_TailStates.Ai[tailid]:disable()
 	end
 
 	-- create main camera
@@ -272,7 +274,10 @@ function initialize(game)
 	}
 	g_GuiWindows.Prompt:hide()
 
-	pcall(loadSound)
+	local s, e = pcall(loadSound)
+	if not s then
+		Tanx.log("[Dodgem\\Dodgem.game.lua]: 'loadSound' failed: " .. e)
+	end
 
 	-- create viewport
 	local tmpcamera = g_World:createCamera"tmp"
@@ -421,19 +426,51 @@ g_BodyStateMachine = TanxStateMachine{
 
 	Gaming =
 	{
+		SubState = TanxStateMachine{
+			PreCriticalPoint =
+			{
+				step = function(state, parent, elapsed)
+					if g_GameTimeRemain < g_CurrentLevelConfig.CriticalTime then
+						parent.SubState:switch("PostCriticalPoint", parent)
+					end
+				end,
+			},
+
+			PostCriticalPoint =
+			{
+				enterState = function(state, parent)
+					Tanx.log("[Dodgem\\Dodgem.game.lua]: PostCriticalPoint.enterState.")
+					if g_Sounds then
+						Tanx.log("[Dodgem\\Dodgem.game.lua]: PostCriticalPoint.enterState.g_Sounds.")
+						g_Sounds.CriticalPoint:get():play()
+					end
+				end,
+			},
+		},
+
 		enterState = function(state)
 			setHudVisible(true)
 
-			local i, v
+			local i, k, v
 			for i, v in ipairs(g_AiCarList) do
 				v:get():callHost(Tanx.param"enable", Tanx.param(true))
 			end
+
+			for k, v in pairs(g_TailStates.Ai) do
+				v:activate()
+			end
+
+			state.SubState:switch("PreCriticalPoint", state)
 		end,
 
 		leaveState = function(state)
-			local i, v
+			local i, k, v
 			for i, v in ipairs(g_AiCarList) do
 				v:get():callHost(Tanx.param"enable", Tanx.param(false))
+			end
+
+			for k, v in pairs(g_TailStates.Ai) do
+				v:disable()
 			end
 		end,
 
@@ -448,7 +485,13 @@ g_BodyStateMachine = TanxStateMachine{
 				if g_GameTimeRemain < 0 then
 					g_GameTimeRemain = 0
 					g_BodyStateMachine:switch"PostGame"
+					return
 				end
+			end
+
+			local substate = state.SubState:state()
+			if substate and substate.step then
+				substate:step(state, elapsed)
 			end
 		end,
 	},

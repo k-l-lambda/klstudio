@@ -1,12 +1,17 @@
 TODO:
+	add more level configs
 	refine vehicle config
-	refine Ai initial state
 	exit interface
 	try global celshading
 	wheel sound
 	AI: back off when blocking, by state machine
 	refine vehicle following camera
 
+
+
+2010.6.4	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	LevelConfigs.lua: created.
 
 
 2010.6.3	K.L.	<xxxK.L.xxx@gmail.com>

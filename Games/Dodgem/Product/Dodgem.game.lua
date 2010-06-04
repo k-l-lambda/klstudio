@@ -16,6 +16,7 @@ Tanx.dofile"VehicleCamera.lua"
 Tanx.dofile"Dodgem.lua"
 Tanx.dofile"ScoreMark.lua"
 Tanx.dofile"TailState.lua"
+Tanx.dofile"LevelConfigs.lua"
 
 
 s_CoverDuration = 3
@@ -38,19 +39,26 @@ g_UserData =
 
 
 function getLevelConfig(level)
+	local static_config = g_LevelConfigs[level] or g_LevelConfigs[#g_LevelConfigs]
+	local ailayouts = static_config.AiLayouts
+	local layout = ailayouts[Tanx.random(#ailayouts)]
+
 	local config =
 	{
 		PassScore		= level ^ 2,
-		AiCount			= level,
+		AiCount			= #layout,
 		AiInitState		= {},
 		Duration		= math.floor(math.log(level + 1) * 3) * 10,
 	}
 	config.CriticalTime = config.Duration / 3
 
-	local i
-	for i = 1, config.AiCount do
-		config.AiInitState[i] = Tanx.RigidBodyState.make(Tanx.Vector3((i - 3) * 8, 0.8, 20))
+	local i, v
+	for i, v in ipairs(layout) do
+		config.AiInitState[i] = Tanx.RigidBodyState.make(Tanx.Vector3(v[1] * 5, 0.8 + (v.y or 0), v[2] * 5), Tanx.Quaternion(Tanx.Degree(v.yaw or 180), Tanx.Vector3.UNIT_Y))
 	end
+
+	local playerstate = static_config.Player or {}
+	config.PlayerInitState = Tanx.RigidBodyState.make(Tanx.Vector3((playerstate[1] or 0) * 5, 0.8 + (playerstate.y or 0), (playerstate[1] or -4) * 5), Tanx.Quaternion(Tanx.Degree(playerstate.yaw or 0), Tanx.Vector3.UNIT_Y))
 
 	return config
 end
@@ -153,7 +161,7 @@ function resetGame(config)
 
 	g_AutomobileList = {}
 
-	local car1 = g_World:createAgent("Dodgem/Dodgem", "player%index", Tanx.RigidBodyState.make(Tanx.Vector3(0, 0.8, -20)))
+	local car1 = g_World:createAgent("Dodgem/Dodgem", "player%index", config.PlayerInitState)
 	g_PlayerCar = Dodgem(g_World, car1:get(), "Dodgem/Dodgem", nil, {onHitTail = onPlayerHitTail})
 	table.insert(g_AutomobileList, g_PlayerCar)
 	g_TailStates.Player = TailState(car1)

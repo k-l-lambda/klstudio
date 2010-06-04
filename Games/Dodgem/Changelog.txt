@@ -11,6 +11,10 @@ TODO:
 
 2010.6.4	K.L.	<xxxK.L.xxx@gmail.com>
 
+	+	TailState.lua: state of 'Disabled' added.
+
+	+	Sound of critical point added.
+
 	+	LevelConfigs.lua: created.
 
 

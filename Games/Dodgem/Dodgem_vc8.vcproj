@@ -129,6 +129,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Product\LevelConfigs.lua"
+					>
+				</File>
+				<File
 					RelativePath=".\Product\Park.scene.lua"
 					>
 				</File>

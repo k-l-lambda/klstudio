@@ -14,6 +14,21 @@ material Dodgem/Ground
 	}
 }
 
+material Dodgem/Fence
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture		fence.jpg
+				scale		0.031 1
+			}
+		}
+	}
+}
+
 material Dodgem/SkyBox
 {
 	technique

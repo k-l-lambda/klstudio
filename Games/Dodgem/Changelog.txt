@@ -9,6 +9,11 @@ TODO:
 
 
 
+2010.6.5	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Dodgem.game.lua: cheat of level choosing added.
+
+
 2010.6.4	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	TailState.lua: state of 'Disabled' added.

@@ -45,7 +45,7 @@ function getLevelConfig(level)
 
 	local config =
 	{
-		PassScore		= level ^ 2,
+		PassScore		= math.floor(#layout * level ^ 0.8),
 		AiCount			= #layout,
 		AiInitState		= {},
 		Duration		= math.floor(math.log(level + 1) * 3) * 10,
@@ -165,7 +165,8 @@ function resetGame(config)
 	local car1 = g_World:createAgent("Dodgem/Dodgem", "player%index", config.PlayerInitState)
 	g_PlayerCar = Dodgem(g_World, car1:get(), "Dodgem/Dodgem", nil, {onHitTail = onPlayerHitTail})
 	table.insert(g_AutomobileList, g_PlayerCar)
-	g_TailStates.Player = TailState(car1)
+	g_TailStates.Player = TailState(car1, {Disabled = Ogre.ColourValue(0.8, 0.2, 0.2)})
+	g_TailStates.Player:disable()
 
 	-- create AI cars
 	g_AiCarList = {}
@@ -254,6 +255,11 @@ function initialize(game)
 	g_World = game:getWorld()
 	g_Keyboard = game:getKeyboard()
 	g_Mouse = game:getMouse()
+
+	if g_Keyboard then
+		g_KeyListener = KeyListener()
+		g_Keyboard:setEventCallback(g_KeyListener)
+	end
 
 	-- setup GUI
 	g_GuiSystem = CEGUI.System.getSingleton()
@@ -456,6 +462,7 @@ g_BodyStateMachine = TanxStateMachine{
 				v:get():callHost(Tanx.param"enable", Tanx.param(true))
 			end
 
+			g_TailStates.Player:activate()
 			for k, v in pairs(g_TailStates.Ai) do
 				v:activate()
 			end
@@ -469,6 +476,7 @@ g_BodyStateMachine = TanxStateMachine{
 				v:get():callHost(Tanx.param"enable", Tanx.param(false))
 			end
 
+			g_TailStates.Player:disable()
 			for k, v in pairs(g_TailStates.Ai) do
 				v:disable()
 			end
@@ -582,6 +590,10 @@ g_GameStateMachine = TanxStateMachine{
 			state.Remain = s_CoverDuration
 		end,
 
+		leaveState = function(state)
+			g_GuiWindows.Vendor:hide()
+		end,
+
 		step = function(state, elapsed)
 			g_GuiWindows.Vendor:setAlpha(math.max(math.min(state.Remain * 1.2 - 0.1, 1) * math.min((s_CoverDuration - state.Remain) * 1.2, 1), 0))
 
@@ -591,8 +603,18 @@ g_GameStateMachine = TanxStateMachine{
 			end
 		end,
 
-		leaveState = function(state)
-			g_GuiWindows.Vendor:hide()
+		keyPressed = function(state, e)
+			if g_Keyboard:isKeyDown(OIS.KeyCode.LCONTROL) and g_Keyboard:isKeyDown(OIS.KeyCode.F) then
+				if e.key == OIS.KeyCode.UP then
+					g_LevelConfigs.BeginLevel = (g_LevelConfigs.BeginLevel or 1) + 1
+
+					if g_Sounds then
+						g_Sounds.Gain:get():play()
+					end
+
+					state.Remain = math.max(state.Remain, 1)
+				end
+			end
 		end,
 	},
 
@@ -603,7 +625,7 @@ g_GameStateMachine = TanxStateMachine{
 			if command == "start" then
 				g_UserData.TotalScore = 0
 				g_UserData.HiScore = 0
-				g_UserData.Level = 1
+				g_UserData.Level = g_LevelConfigs.BeginLevel or 1
 
 				updateFooter()
 
@@ -687,3 +709,32 @@ g_GameStateMachine = TanxStateMachine{
 	{
 	},
 }
+
+
+class "KeyListener" (OIS.KeyListener)
+
+	function KeyListener:__init()
+		if _LUABIND_VERSION and _LUABIND_VERSION >= 800 then
+			OIS.KeyListener.__init(self)
+		else
+			super()
+		end
+	end
+
+	function KeyListener:keyPressed(e)
+		local state = g_GameStateMachine:state()
+		if state and state.keyPressed then
+			state:keyPressed(e)
+		end
+
+		return true
+	end
+
+	function KeyListener:keyReleased(e)
+		local state = g_GameStateMachine:state()
+		if state and state.keyReleased then
+			state:keyReleased(e)
+		end
+
+		return true
+	end

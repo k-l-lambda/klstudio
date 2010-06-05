@@ -57,8 +57,8 @@ function getLevelConfig(level)
 		config.AiInitState[i] = Tanx.RigidBodyState.make(Tanx.Vector3(v[1] * 5, 0.8 + (v.y or 0), v[2] * 5), Tanx.Quaternion(Tanx.Degree(v.yaw or 180), Tanx.Vector3.UNIT_Y))
 	end
 
-	local playerstate = static_config.Player or {}
-	config.PlayerInitState = Tanx.RigidBodyState.make(Tanx.Vector3((playerstate[1] or 0) * 5, 0.8 + (playerstate.y or 0), (playerstate[1] or -4) * 5), Tanx.Quaternion(Tanx.Degree(playerstate.yaw or 0), Tanx.Vector3.UNIT_Y))
+	local playerstate = static_config.Player or {0, -4}
+	config.PlayerInitState = Tanx.RigidBodyState.make(Tanx.Vector3(playerstate[1] * 5, 0.8 + (playerstate.y or 0), playerstate[1] * 5), Tanx.Quaternion(Tanx.Degree(playerstate.yaw or 0), Tanx.Vector3.UNIT_Y))
 
 	return config
 end
@@ -445,9 +445,9 @@ g_BodyStateMachine = TanxStateMachine{
 			PostCriticalPoint =
 			{
 				enterState = function(state, parent)
-					Tanx.log("[Dodgem\\Dodgem.game.lua]: PostCriticalPoint.enterState.")
+					--Tanx.log("[Dodgem\\Dodgem.game.lua]: PostCriticalPoint.enterState.")
 					if g_Sounds then
-						Tanx.log("[Dodgem\\Dodgem.game.lua]: PostCriticalPoint.enterState.g_Sounds.")
+						--Tanx.log("[Dodgem\\Dodgem.game.lua]: PostCriticalPoint.enterState.g_Sounds.")
 						g_Sounds.CriticalPoint:get():play()
 					end
 				end,

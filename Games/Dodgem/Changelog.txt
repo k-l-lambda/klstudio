@@ -1,15 +1,17 @@
 TODO:
+	AI: back off when blocking, by state machine
 	add more level configs
 	refine vehicle config
 	exit interface
 	try global celshading
 	wheel sound
-	AI: back off when blocking, by state machine
 	refine vehicle following camera
 
 
 
 2010.6.5	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	AiCar.agent.lua: state machine added.
 
 	+	Dodgem.game.lua: cheat of level choosing added.
 

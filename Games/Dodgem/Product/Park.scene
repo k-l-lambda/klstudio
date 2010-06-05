@@ -72,8 +72,18 @@
 											<MeshName>Prefab_Cube</MeshName>
 											<Scale>Vector3(1.6, 0.05, 0.01)</Scale>
 											<MaterialMap>
-												<count>0</count>
+												<count>1</count>
 												<item_version>0</item_version>
+												<item>
+													<first>0</first>
+													<second>
+														<MaterialName>Dodgem/Fence</MaterialName>
+														<CustomParameterMap>
+															<count>0</count>
+															<item_version>0</item_version>
+														</CustomParameterMap>
+													</second>
+												</item>
 											</MaterialMap>
 										</px>
 									</m_Data>
@@ -98,8 +108,18 @@
 											<MeshName>Prefab_Cube</MeshName>
 											<Scale>Vector3(1.6, 0.05, 0.01)</Scale>
 											<MaterialMap>
-												<count>0</count>
+												<count>1</count>
 												<item_version>0</item_version>
+												<item>
+													<first>0</first>
+													<second>
+														<MaterialName>Dodgem/Fence</MaterialName>
+														<CustomParameterMap>
+															<count>0</count>
+															<item_version>0</item_version>
+														</CustomParameterMap>
+													</second>
+												</item>
 											</MaterialMap>
 										</px>
 									</m_Data>
@@ -124,8 +144,18 @@
 											<MeshName>Prefab_Cube</MeshName>
 											<Scale>Vector3(0.01, 0.05, 1.6)</Scale>
 											<MaterialMap>
-												<count>0</count>
+												<count>1</count>
 												<item_version>0</item_version>
+												<item>
+													<first>0</first>
+													<second>
+														<MaterialName>Dodgem/Fence</MaterialName>
+														<CustomParameterMap>
+															<count>0</count>
+															<item_version>0</item_version>
+														</CustomParameterMap>
+													</second>
+												</item>
 											</MaterialMap>
 										</px>
 									</m_Data>
@@ -150,8 +180,18 @@
 											<MeshName>Prefab_Cube</MeshName>
 											<Scale>Vector3(0.01, 0.05, 1.6)</Scale>
 											<MaterialMap>
-												<count>0</count>
+												<count>1</count>
 												<item_version>0</item_version>
+												<item>
+													<first>0</first>
+													<second>
+														<MaterialName>Dodgem/Fence</MaterialName>
+														<CustomParameterMap>
+															<count>0</count>
+															<item_version>0</item_version>
+														</CustomParameterMap>
+													</second>
+												</item>
 											</MaterialMap>
 										</px>
 									</m_Data>

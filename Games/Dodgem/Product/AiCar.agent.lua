@@ -28,7 +28,15 @@ g_AgentInterfaces =
 {
 	enable = function(enabled)
 		g_Enabled = enabled
-	end
+	end,
+
+	setFreezed = function(freezed)
+		if freezed then
+			g_Agent:findBody"chassis":get():freeze()
+		else
+			g_Agent:findBody"chassis":get():unfreeze()
+		end
+	end,
 }
 
 
@@ -69,7 +77,7 @@ g_StateMachine = TanxStateMachine({
 			local orientvector = computeOrientationVector(g_Agent:getMainBody():get():getOrientation(), rel_pos)
 
 			g_Car.Driver.m_positionX = iif(orientvector.x > 0, 1, -1)
-			g_Car.Driver.m_positionY = -1
+			g_Car.Driver.m_positionY = -g_MaxPower
 
 			if orientvector.y > -0.3 and rel_pos:length() > g_DistanceKeep then
 				g_StateMachine:switch"Advancing"

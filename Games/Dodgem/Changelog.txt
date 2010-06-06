@@ -1,5 +1,4 @@
 TODO:
-	AI: back off when blocking, by state machine
 	add more level configs
 	refine vehicle config
 	exit interface
@@ -7,6 +6,11 @@ TODO:
 	wheel sound
 	refine vehicle following camera
 
+
+
+2010.6.6	K.L.	<xxxK.L.xxx@gmail.com>
+
+	|	AiCar.agent.lua: AI of 'back off when blocking' implemented.
 
 
 2010.6.5	K.L.	<xxxK.L.xxx@gmail.com>

@@ -14,28 +14,13 @@ Tanx.require"Core:StateMachine.lua"
 Tanx.dofile"Dodgem.lua"
 
 
-g_BackOffRemain = 0
+g_DistanceKeep = 0
 
 
 local function computeOrientationVector(orientation, rel_position)
 	local v = Tanx.Vector2(rel_position:dotProduct(orientation:xAxis()), rel_position:dotProduct(orientation:zAxis()))
 
 	return v:normalisedCopy()
-end
-
-local function chaseTarget(target, driverstate)
-	local orientvector = computeOrientationVector(g_Agent:getMainBody():get():getOrientation(), target:get():getPosition() - g_Agent:getMainBody():get():getPosition())
-
-	local reverse = orientvector.y < iif(driverstate.y < 0, -0.3, -0.7)
-	if reverse then
-		return {x = iif(orientvector.x > 0, 1, -1), y = -1}
-	end
-
-	local x = math.pow(math.abs(orientvector.x), 0.3)
-	x = iif(orientvector.x > 0, x, -x)
-	local y = math.pow((orientvector.y + 1) / 2, 4.2) + 0.2
-
-	return {x = -x, y = y * 0.6}
 end
 
 
@@ -47,6 +32,15 @@ g_AgentInterfaces =
 }
 
 
+onBlock = function(id, pos, dir, vel)
+	--Tanx.log(string.format("[Dodgem\\AiCar.agent.lua]: onBlock(%d, %s, %s, %f).", id, tostring(pos), tostring(dir), vel))
+
+	g_DistanceKeep = 20
+	--g_StateMachine:switch(iif(g_StateMachine:stateKey() == "Advancing", "Backoff", "Advancing"))
+	g_StateMachine:switch(iif(dir.z < 0, "Backoff", "Advancing"))
+end
+
+
 g_StateMachine = TanxStateMachine({
 	Advancing =
 	{
@@ -54,6 +48,7 @@ g_StateMachine = TanxStateMachine({
 			local orientvector = computeOrientationVector(g_Agent:getMainBody():get():getOrientation(), g_TargetBody:get():getPosition() - g_Agent:getMainBody():get():getPosition())
 
 			if orientvector.y < -0.7 then
+				g_DistanceKeep = 0
 				g_StateMachine:switch"Backoff"
 				return
 			end
@@ -70,21 +65,18 @@ g_StateMachine = TanxStateMachine({
 	Backoff =
 	{
 		step = function(state, elapsed)
-			local orientvector = computeOrientationVector(g_Agent:getMainBody():get():getOrientation(), g_TargetBody:get():getPosition() - g_Agent:getMainBody():get():getPosition())
+			local rel_pos = g_TargetBody:get():getPosition() - g_Agent:getMainBody():get():getPosition()
+			local orientvector = computeOrientationVector(g_Agent:getMainBody():get():getOrientation(), rel_pos)
 
 			g_Car.Driver.m_positionX = iif(orientvector.x > 0, 1, -1)
 			g_Car.Driver.m_positionY = -1
 
-			if orientvector.y > -0.3 and g_BackOffRemain <=0 then
+			if orientvector.y > -0.3 and rel_pos:length() > g_DistanceKeep then
 				g_StateMachine:switch"Advancing"
-			end
-
-			if g_BackOffRemain > 0 then
-				g_BackOffRemain = g_BackOffRemain - elapsed
 			end
 		end,
 	},
-}, "Advancing")
+}, "Advancing", nil, false)
 
 
 host =
@@ -112,7 +104,7 @@ host =
 		g_Agent = controller:agent()
 
 		local tailid = g_TargetBody:get():getRigidBody():get():getUid()
-		g_Car = Dodgem(g_World, g_Agent, "Dodgem/Dodgem", {Engine = "EngineEnemy"}, {onHitTail = function(id, power) if id == tailid then onHitTail(power) end end})
+		g_Car = Dodgem(g_World, g_Agent, "Dodgem/Dodgem", {Engine = "EngineEnemy"}, {onHitBox = onBlock, onHitChassis = onBlock, onHitTail = function(id, power) if id == tailid then onHitTail(power) end end})
 
 		g_Time = 0
 		g_Enabled = false
@@ -124,6 +116,9 @@ host =
 			if state and state.step then
 				state:step(elapsed)
 			end
+		else
+			g_Car.Driver.m_positionX = 0
+			g_Car.Driver.m_positionY = 0
 		end
 
 		g_Car:step(elapsed)

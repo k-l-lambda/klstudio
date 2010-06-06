@@ -48,3 +48,23 @@ class "Automobile"
 			self.SoundSources.Engine:get():setGain(self.RPM / 2000)
 		end
 	end
+
+	function Automobile:translateToLocal(position)
+		local chassis = self.Chassis:lock():get()
+		if chassis then
+			return position - chassis:getPosition()
+		else
+			Tanx.log("[Dodgem\\Automobile.lua]: translateToLocal: chassis has expired.")
+			return position
+		end
+	end
+
+	function Automobile:rotateToLocal(direction)
+		local chassis = self.Chassis:lock():get()
+		if chassis then
+			return chassis:getOrientation():Inverse() * direction
+		else
+			Tanx.log("[Dodgem\\Automobile.lua]: rotateToLocal: chassis has expired.")
+			return direction
+		end
+	end

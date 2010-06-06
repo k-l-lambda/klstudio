@@ -19,7 +19,7 @@ g_LevelConfigs =
 		AiLayouts =
 		{
 			{
-				{0, 3},
+				{0, 4},
 			},
 		},
 	},
@@ -103,10 +103,12 @@ g_LevelConfigs =
 
 	[7] =
 	{
+		Player = {0, 0},
+
 		AiLayouts =
 		{
 			{
-				{0, -7, yaw = 0},
+				{0, -3, yaw = 0},
 			},
 		},
 	},
@@ -116,7 +118,7 @@ g_LevelConfigs =
 		AiLayouts =
 		{
 			{
-				{0, 3}, {-3, -6, yaw = 0}, {3, -6, yaw = 0},
+				{0, 1}, {-3, -6, yaw = 0}, {3, -6, yaw = 0},
 			},
 		},
 	},

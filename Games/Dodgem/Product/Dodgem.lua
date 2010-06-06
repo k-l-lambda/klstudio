@@ -123,21 +123,34 @@ class "Dodgem" (Automobile)
 				end
 
 				self:emitChassisSparks(position, math.abs(event.m_projectedVelocity) * 4)
-			elseif targetname == "chassis" and self.ChassisId < target:getOwner():getUid() then
-				local sound = self.SoundSources.CollisionConvex
-				if sound then
-					local vel = math.abs(event.m_projectedVelocity) ^ 2 - 0.1
-					if vel > 0 then
-						local volume = vel * 0.1
 
-						sound:get():setPosition(position.x, position.y, position.z)
-						sound:get():setVelocity(velocity.x, velocity.y, velocity.z)
-						sound:get():setGain(volume)
-						sound:get():play()
+				if self.EventHandlers.onHitBox then
+					self.EventHandlers.onHitBox(target:getOwner():getUid(), self:translateToLocal(Tanx.madp(event.m_contactPoint:getPosition())),
+						self:rotateToLocal(Tanx.madp(event.m_contactPoint:getNormal())), event.m_projectedVelocity)
+				end
+			elseif targetname == "chassis" then
+				-- to avoid double sound effect
+				if self.ChassisId < target:getOwner():getUid() then
+					local sound = self.SoundSources.CollisionConvex
+					if sound then
+						local vel = math.abs(event.m_projectedVelocity) ^ 2 - 0.1
+						if vel > 0 then
+							local volume = vel * 0.1
+
+							sound:get():setPosition(position.x, position.y, position.z)
+							sound:get():setVelocity(velocity.x, velocity.y, velocity.z)
+							sound:get():setGain(volume)
+							sound:get():play()
+						end
 					end
 				end
 
 				self:emitChassisSparks(position, math.abs(event.m_projectedVelocity) * 10)
+
+				if self.EventHandlers.onHitChassis then
+					self.EventHandlers.onHitChassis(target:getOwner():getUid(), self:translateToLocal(Tanx.madp(event.m_contactPoint:getPosition())),
+						self:rotateToLocal(Tanx.madp(event.m_contactPoint:getNormal())), event.m_projectedVelocity)
+				end
 			elseif targetname == "tail" then
 				local sound = self.SoundSources.CollisionTail
 				if sound then

@@ -50,7 +50,7 @@ function getLevelConfig(level)
 		AiInitState		= {},
 		Duration		= math.floor(math.log(level + 1) * 3) * 10,
 	}
-	config.CriticalTime = config.Duration / 3
+	config.CriticalTime = config.Duration / 2
 
 	local i, v
 	for i, v in ipairs(layout) do
@@ -58,7 +58,7 @@ function getLevelConfig(level)
 	end
 
 	local playerstate = static_config.Player or {0, -4}
-	config.PlayerInitState = Tanx.RigidBodyState.make(Tanx.Vector3(playerstate[1] * 5, 0.8 + (playerstate.y or 0), playerstate[1] * 5), Tanx.Quaternion(Tanx.Degree(playerstate.yaw or 0), Tanx.Vector3.UNIT_Y))
+	config.PlayerInitState = Tanx.RigidBodyState.make(Tanx.Vector3(playerstate[1] * 5, 0.8 + (playerstate.y or 0), playerstate[2] * 5), Tanx.Quaternion(Tanx.Degree(playerstate.yaw or 0), Tanx.Vector3.UNIT_Y))
 
 	return config
 end
@@ -104,11 +104,11 @@ function onPlayerHitTail(id, power)
 		local score = math.floor(power / 3)
 		changeScore(score)
 
-		if g_Score >= g_CurrentLevelConfig.PassScore and g_GameTimeRemain < g_CurrentLevelConfig.CriticalTime then
-			g_BodyStateMachine:switch"PostGame"
-		end
-
 		if score > 0 then
+			if g_Score >= g_CurrentLevelConfig.PassScore and g_GameTimeRemain < g_CurrentLevelConfig.CriticalTime then
+				g_BodyStateMachine:switch"PostGame"
+			end
+
 			assert(g_WindowManager)
 			local mark = ScoreMark(g_WindowManager, score)
 			table.insert(g_ScoreMarks, mark)

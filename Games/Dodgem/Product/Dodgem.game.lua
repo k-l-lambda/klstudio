@@ -20,7 +20,7 @@ Tanx.dofile"LevelConfigs.lua"
 
 
 s_CoverDuration = 3
-s_PreparingDuration = 5.6
+s_PreparingDuration = 5.7
 s_PostGameDuration = 7
 
 
@@ -45,16 +45,20 @@ function getLevelConfig(level)
 
 	local config =
 	{
-		PassScore		= math.floor(#layout * level ^ 0.8),
+		PassScore		= static_config.PassScore or math.floor(#layout * level ^ 0.6),
 		AiCount			= #layout,
-		AiInitState		= {},
-		Duration		= math.floor(math.log(level + 1) * 3) * 10,
+		AiConfig		= {},
+		Duration		= static_config.Duration or math.floor(math.log(level + 1) * 3) * 10,
 	}
 	config.CriticalTime = config.Duration / 2
 
 	local i, v
 	for i, v in ipairs(layout) do
-		config.AiInitState[i] = Tanx.RigidBodyState.make(Tanx.Vector3(v[1] * 5, 0.8 + (v.y or 0), v[2] * 5), Tanx.Quaternion(Tanx.Degree(v.yaw or 180), Tanx.Vector3.UNIT_Y))
+		config.AiConfig[i] =
+		{
+			InitState = Tanx.RigidBodyState.make(Tanx.Vector3(v[1] * 5, 0.8 + (v.y or 0), v[2] * 5), Tanx.Quaternion(Tanx.Degree(v.yaw or 180), Tanx.Vector3.UNIT_Y)),
+			Power = v.Power or static_config.AiPower or 0.6,
+		}
 	end
 
 	local playerstate = static_config.Player or {0, -4}
@@ -95,6 +99,8 @@ local function loadSound()
 		LevelUp			= createSoundSource("Level-up.wav", true),
 		LevelFail		= createSoundSource("LevelFail.wav", true),
 		CriticalPoint	= createSoundSource("CriticalPoint.wav", true),
+		Beep			= createSoundSource("beep.wav", true),
+		Dang			= createSoundSource("dang.wav", true),
 	}
 end
 
@@ -174,7 +180,11 @@ function resetGame(config)
 	local aiparams = Tanx.tableToMap{target = car1, onHitTail = Tanx.functor(onAiHitTail)}
 	local i
 	for i = 1, config.AiCount do
-		local ai = g_World:createAgent("Dodgem/AiCar", "aicar%index", config.AiInitState[i], g_Game:getResourcePackage(), aiparams)
+		if config.Power then
+			aiparams:at"MaxPower":set(config.Power)
+		end
+
+		local ai = g_World:createAgent("Dodgem/AiCar", "aicar%index", config.AiConfig[i].InitState, g_Game:getResourcePackage(), aiparams)
 		table.insert(g_AiCarList, ai)
 
 		local tailid = ai:get():findBody"tail":get():getRigidBody():get():getUid()
@@ -352,9 +362,15 @@ g_BodyStateMachine = TanxStateMachine{
 					state.Remain = 1
 
 					g_GuiWindows.Prompt:setAlpha(1)
+					g_GuiWindows.Prompt:setXPosition(CEGUI.UDim(0.36, 0))
 					g_GuiWindows.Prompt:setText(CEGUI.String("LEVEL: " .. g_UserData.Level))
 					g_GuiWindows.Prompt:setProperty(CEGUI.String"TextColours", CEGUI.colorString"ffffffff")
 					g_GuiWindows.Prompt:show()
+
+					local i, v
+					for i, v in ipairs(g_AiCarList) do
+						v:get():callHost(Tanx.param"setFreezed", Tanx.param(true))
+					end
 				end,
 
 				step = function(state, parent, elapsed)
@@ -392,12 +408,32 @@ g_BodyStateMachine = TanxStateMachine{
 				enterState = function(state, parent)
 					g_GuiWindows.Prompt:hide()
 
-					g_GuiWindows.Countdown:setText(CEGUI.String(tostring(math.ceil(s_PreparingDuration - parent.Time))))
+					state.Count = math.ceil(s_PreparingDuration - parent.Time)
+
+					g_GuiWindows.Countdown:setText(CEGUI.String(tostring(state.Count)))
 					g_GuiWindows.Countdown:show()
+
+					if g_Sounds then
+						g_Sounds.Beep:get():play()
+					end
+
+					local i, v
+					for i, v in ipairs(g_AiCarList) do
+						v:get():callHost(Tanx.param"setFreezed", Tanx.param(false))
+					end
 				end,
 
 				step = function(state, parent, elapsed)
-					g_GuiWindows.Countdown:setText(CEGUI.String(tostring(math.ceil(s_PreparingDuration - parent.Time))))
+					local oldcount = state.Count
+
+					state.Count = math.ceil(s_PreparingDuration - parent.Time)
+					g_GuiWindows.Countdown:setText(CEGUI.String(tostring(state.Count)))
+
+					if state.Count ~= oldcount and state.Count > 0 then
+						if g_Sounds then
+							g_Sounds.Beep:get():play()
+						end
+					end
 				end,
 			},
 		},
@@ -411,6 +447,10 @@ g_BodyStateMachine = TanxStateMachine{
 		end,
 
 		leaveState = function(state)
+			if g_Sounds then
+				g_Sounds.Dang:get():play()
+			end
+
 			g_GuiWindows.Countdown:hide()
 		end,
 
@@ -543,6 +583,7 @@ g_BodyStateMachine = TanxStateMachine{
 			state.RemainTime = s_PostGameDuration
 
 			g_GuiWindows.Prompt:setAlpha(0)
+			g_GuiWindows.Prompt:setXPosition(CEGUI.UDim(0.24, 0))
 			g_GuiWindows.Prompt:setText(CEGUI.String(iif(passed, "MISSION PASSED", "MISSION FAILED")))
 			g_GuiWindows.Prompt:setProperty(CEGUI.String"TextColours", iif(passed, CEGUI.colorString"fffff0a0", CEGUI.colorString"ffc04040"))
 			g_GuiWindows.Prompt:show()

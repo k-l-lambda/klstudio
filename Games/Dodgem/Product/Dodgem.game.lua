@@ -152,11 +152,6 @@ function onAiHitTail(power)
 end
 
 
-function startGame()
-	g_BodyStateMachine:switch"Preparing"
-end
-
-
 function resetGame(config)
 	g_CurrentLevelConfig = config
 
@@ -270,6 +265,10 @@ function initialize(game)
 		g_KeyListener = KeyListener()
 		g_Keyboard:setEventCallback(g_KeyListener)
 	end
+	if g_Mouse then
+		g_MouseListener = MouseListener()
+		g_Mouse:setEventCallback(g_MouseListener)
+	end
 
 	-- setup GUI
 	g_GuiSystem = CEGUI.System.getSingleton()
@@ -281,13 +280,16 @@ function initialize(game)
 
 	g_GuiWindows =
 	{
-		Vendor		= g_WindowManager:getWindow(CEGUI.String"Dodgem/Vendor"),
-		Score		= g_WindowManager:getWindow(CEGUI.String"Dodgem/Score"),
-		Timer		= g_WindowManager:getWindow(CEGUI.String"Dodgem/Timer"),
-		Footer		= g_WindowManager:getWindow(CEGUI.String"Dodgem/Footer"),
-		Prompt		= g_WindowManager:getWindow(CEGUI.String"Dodgem/Prompt"),
-		Countdown	= g_WindowManager:getWindow(CEGUI.String"Dodgem/Countdown"),
-		EscPanel	= g_WindowManager:getWindow(CEGUI.String"Dodgem/EscPanel"),
+		Vendor				= g_WindowManager:getWindow(CEGUI.String"Dodgem/Vendor"),
+		Score				= g_WindowManager:getWindow(CEGUI.String"Dodgem/Score"),
+		Timer				= g_WindowManager:getWindow(CEGUI.String"Dodgem/Timer"),
+		Footer				= g_WindowManager:getWindow(CEGUI.String"Dodgem/Footer"),
+		Prompt				= g_WindowManager:getWindow(CEGUI.String"Dodgem/Prompt"),
+		Countdown			= g_WindowManager:getWindow(CEGUI.String"Dodgem/Countdown"),
+		EscPanel			= g_WindowManager:getWindow(CEGUI.String"Dodgem/EscPanel"),
+		EscPanel_Resume		= g_WindowManager:getWindow(CEGUI.String"Dodgem/EscPanel/Resume"),
+		EscPanel_Restart	= g_WindowManager:getWindow(CEGUI.String"Dodgem/EscPanel/Restart"),
+		EscPanel_Exit		= g_WindowManager:getWindow(CEGUI.String"Dodgem/EscPanel/Exit"),
 	}
 	g_GuiWindows.Prompt:hide()
 
@@ -630,6 +632,8 @@ g_GameStateMachine = TanxStateMachine{
 			g_GuiWindows.Vendor:show()
 
 			state.Remain = s_CoverDuration
+
+			g_Game:setWorldStepRate(0)
 		end,
 
 		leaveState = function(state)
@@ -672,6 +676,8 @@ g_GameStateMachine = TanxStateMachine{
 				updateFooter()
 
 				g_BodyStateMachine:switch"Preparing"
+
+				g_Game:setWorldStepRate(1)
 			end
 		end,
 
@@ -746,8 +752,10 @@ g_GameStateMachine = TanxStateMachine{
 		end,
 
 		keyPressed = function(state, e)
-			if e.key == OIS.KeyCode.ESCAPE then
-				g_GameStateMachine:switch"Timeout"
+			if g_BodyStateMachine:stateKey() == "Gaming" then
+				if e.key == OIS.KeyCode.ESCAPE then
+					g_GameStateMachine:switch"Timeout"
+				end
 			end
 		end,
 	},
@@ -756,13 +764,37 @@ g_GameStateMachine = TanxStateMachine{
 	Timeout =
 	{
 		enterState = function(state)
+			g_GuiWindows.EscPanel_Resume:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(state.EventHandles.onResume))
+			g_GuiWindows.EscPanel_Restart:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(state.EventHandles.onRestart))
+			g_GuiWindows.EscPanel_Exit:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(state.EventHandles.onExit))
+
+			setHudVisible(false)
+			setCurtainIntensity(0.7)
 			g_Game:setWorldStepRate(0)
 			g_GuiWindows.EscPanel:show()
+
+			local i, v
+			for i, v in ipairs(g_AutomobileList) do
+				v:setSilent(true)
+			end
+			for i, v in ipairs(g_AiCarList) do
+				v:get():callHost(Tanx.param"setSilent", Tanx.param(true))
+			end
 		end,
 
 		leaveState = function(state)
+			setHudVisible(true)
+			setCurtainIntensity(0)
 			g_Game:setWorldStepRate(1)
 			g_GuiWindows.EscPanel:hide()
+
+			local i, v
+			for i, v in ipairs(g_AutomobileList) do
+				v:setSilent(false)
+			end
+			for i, v in ipairs(g_AiCarList) do
+				v:get():callHost(Tanx.param"setSilent", Tanx.param(false))
+			end
 		end,
 
 		keyPressed = function(state, e)
@@ -770,6 +802,21 @@ g_GameStateMachine = TanxStateMachine{
 				g_GameStateMachine:switch("Body", "resume")
 			end
 		end,
+
+
+		EventHandles = {
+			onResume = function()
+				g_GameStateMachine:switch("Body", "resume")
+			end,
+
+			onRestart = function()
+				g_GameStateMachine:switch"Cover"
+			end,
+
+			onExit = function()
+				g_Game:exit()
+			end,
+		},
 	},
 }
 
@@ -797,6 +844,51 @@ class "KeyListener" (OIS.KeyListener)
 		local state = g_GameStateMachine:state()
 		if state and state.keyReleased then
 			state:keyReleased(e)
+		end
+
+		return true
+	end
+
+
+class "MouseListener" (OIS.MouseListener)
+
+	function MouseListener:__init()
+		if _LUABIND_VERSION and _LUABIND_VERSION >= 800 then
+			OIS.MouseListener.__init(self)
+		else
+			super()
+		end
+	end
+
+	function MouseListener:mousePressed(e, id)
+		CEGUI.System.getSingleton():injectMouseButtonDown(CEGUI.ButtonIdFromOis[id])
+
+		local state = g_GameStateMachine:state()
+		if state and state.mousePressed then
+			state.mousePressed(e)
+		end
+
+		return true
+	end
+
+	function MouseListener:mouseReleased(e, id)
+		CEGUI.System.getSingleton():injectMouseButtonUp(CEGUI.ButtonIdFromOis[id])
+
+		local state = g_GameStateMachine:state()
+		if state and state.mouseReleased then
+			state.mouseReleased(e)
+		end
+
+		return true
+	end
+
+	function MouseListener:mouseMoved(e)
+		CEGUI.System.getSingleton():injectMousePosition(e:state().X.abs, e:state().Y.abs)
+		CEGUI.System.getSingleton():injectMouseWheelChange(e:state().Z.rel)
+
+		local state = g_GameStateMachine:state()
+		if state and state.mouseMoved then
+			state.mouseMoved(e)
 		end
 
 		return true

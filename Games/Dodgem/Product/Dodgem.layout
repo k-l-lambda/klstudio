@@ -72,7 +72,6 @@
 				<Property Name="UnifiedSize" Value="{{0.68,0},{0.2,0}}" />
 				<Property Name="Text" Value="Resume" />
 				<Property Name="Font" Value="BlueHighway-32" />
-				<Property Name="Alpha" Value="0.8" />
 				<Property Name="FrameEnabled" Value="false" />
 			</Window>
 
@@ -81,7 +80,6 @@
 				<Property Name="UnifiedSize" Value="{{0.68,0},{0.2,0}}" />
 				<Property Name="Text" Value="Restart" />
 				<Property Name="Font" Value="BlueHighway-32" />
-				<Property Name="Alpha" Value="0.8" />
 				<Property Name="FrameEnabled" Value="false" />
 			</Window>
 
@@ -90,7 +88,6 @@
 				<Property Name="UnifiedSize" Value="{{0.68,0},{0.2,0}}" />
 				<Property Name="Text" Value="Exit" />
 				<Property Name="Font" Value="BlueHighway-32" />
-				<Property Name="Alpha" Value="0.8" />
 				<Property Name="FrameEnabled" Value="false" />
 			</Window>
 		</Window>

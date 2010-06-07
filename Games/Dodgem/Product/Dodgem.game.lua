@@ -287,6 +287,7 @@ function initialize(game)
 		Footer		= g_WindowManager:getWindow(CEGUI.String"Dodgem/Footer"),
 		Prompt		= g_WindowManager:getWindow(CEGUI.String"Dodgem/Prompt"),
 		Countdown	= g_WindowManager:getWindow(CEGUI.String"Dodgem/Countdown"),
+		EscPanel	= g_WindowManager:getWindow(CEGUI.String"Dodgem/EscPanel"),
 	}
 	g_GuiWindows.Prompt:hide()
 
@@ -743,11 +744,32 @@ g_GameStateMachine = TanxStateMachine{
 				v:step(elapsed)
 			end
 		end,
+
+		keyPressed = function(state, e)
+			if e.key == OIS.KeyCode.ESCAPE then
+				g_GameStateMachine:switch"Timeout"
+			end
+		end,
 	},
 
 
 	Timeout =
 	{
+		enterState = function(state)
+			g_Game:setWorldStepRate(0)
+			g_GuiWindows.EscPanel:show()
+		end,
+
+		leaveState = function(state)
+			g_Game:setWorldStepRate(1)
+			g_GuiWindows.EscPanel:hide()
+		end,
+
+		keyPressed = function(state, e)
+			if e.key == OIS.KeyCode.ESCAPE then
+				g_GameStateMachine:switch("Body", "resume")
+			end
+		end,
 	},
 }
 

@@ -1,11 +1,16 @@
 TODO:
-	add more level configs
-	refine vehicle config
 	exit interface
+	joystick controller
+	refine vehicle config
 	try global celshading
 	wheel sound
 	refine vehicle following camera
 
+
+
+2010.6.7	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	EscPanel added.
 
 
 2010.6.6	K.L.	<xxxK.L.xxx@gmail.com>

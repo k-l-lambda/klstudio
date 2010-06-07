@@ -61,5 +61,38 @@
 			<Property Name="TextColours" Value="tl:FFFF0000 tr:FFFF0000 bl:FFFF0000 br:FFFF0000" />
 			<Property Name="Visible" Value="false" />
 		</Window>
+
+		<Window Type="DefaultWindow" Name="Dodgem/EscPanel">
+			<Property Name="UnifiedAreaRect" Value="{{0.1,0},{0.12,0},{0.9,0},{0.8,0}}" />
+			<Property Name="Visible" Value="false" />
+			<Property Name="Alpha" Value="0.7" />
+
+			<Window Type="TaharezLook/Button" Name="Dodgem/EscPanel/Resume">
+				<Property Name="UnifiedPosition" Value="{{0.16,0},{0.0,0}}}" />
+				<Property Name="UnifiedSize" Value="{{0.68,0},{0.2,0}}" />
+				<Property Name="Text" Value="Resume" />
+				<Property Name="Font" Value="BlueHighway-32" />
+				<Property Name="Alpha" Value="0.8" />
+				<Property Name="FrameEnabled" Value="false" />
+			</Window>
+
+			<Window Type="TaharezLook/Button" Name="Dodgem/EscPanel/Restart">
+				<Property Name="UnifiedPosition" Value="{{0.16,0},{0.4,0}}}" />
+				<Property Name="UnifiedSize" Value="{{0.68,0},{0.2,0}}" />
+				<Property Name="Text" Value="Restart" />
+				<Property Name="Font" Value="BlueHighway-32" />
+				<Property Name="Alpha" Value="0.8" />
+				<Property Name="FrameEnabled" Value="false" />
+			</Window>
+
+			<Window Type="TaharezLook/Button" Name="Dodgem/EscPanel/Exit">
+				<Property Name="UnifiedPosition" Value="{{0.16,0},{0.8,0}}}" />
+				<Property Name="UnifiedSize" Value="{{0.68,0},{0.2,0}}" />
+				<Property Name="Text" Value="Exit" />
+				<Property Name="Font" Value="BlueHighway-32" />
+				<Property Name="Alpha" Value="0.8" />
+				<Property Name="FrameEnabled" Value="false" />
+			</Window>
+		</Window>
 	</Window>
 </GUILayout>

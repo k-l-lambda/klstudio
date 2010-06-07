@@ -37,6 +37,10 @@ g_AgentInterfaces =
 			g_Agent:findBody"chassis":get():unfreeze()
 		end
 	end,
+
+	setSilent = function(silent)
+		g_Car:setSilent(silent)
+	end
 }
 
 

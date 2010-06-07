@@ -26,6 +26,8 @@ class "Automobile"
 			self.SoundSources.Engine:get():setGain(0)
 			self.SoundSources.Engine:get():play()
 		end
+
+		self.Silent = false
 	end
 
 	function Automobile:__finalize()
@@ -39,7 +41,7 @@ class "Automobile"
 
 		--Tanx.log(string.format("[Dodgem\\Automobile.lua]: rpm: %f, kmph: %f, mph: %f.", self.RPM, self.KMPH, self.MPH))
 
-		if self.SoundSources.Engine and not self.Chassis:expired() then
+		if not self.Silent and self.SoundSources.Engine and not self.Chassis:expired() then
 			local position = self.Chassis:lock():get():getPosition()
 			local velocity = self.Chassis:lock():get():getLinearVelocity()
 
@@ -66,5 +68,13 @@ class "Automobile"
 		else
 			Tanx.log("[Dodgem\\Automobile.lua]: rotateToLocal: chassis has expired.")
 			return direction
+		end
+	end
+
+	function Automobile:setSilent(silent)
+		self.Silent = silent
+
+		if self.SoundSources.Engine then
+			self.SoundSources.Engine:get():setGain(0)
 		end
 	end

@@ -1,5 +1,5 @@
 TODO:
-	exit interface
+	esc panel: fade in/out effect
 	joystick controller
 	refine vehicle config
 	try global celshading
@@ -10,6 +10,7 @@ TODO:
 
 2010.6.7	K.L.	<xxxK.L.xxx@gmail.com>
 
+	+	EscPanel implemented.
 	+	EscPanel added.
 
 

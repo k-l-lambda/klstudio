@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<GUIScheme Name="TetrisFonts16_9">
+	<Font Name="Tetris/BlueBold-24" Filename="16_9_bluebold-24.font" />
+	<Font Name="Tetris/BlueBold-32" Filename="16_9_bluebold-32.font" />
+	<Font Name="Tetris/BlueBold-48" Filename="16_9_bluebold-48.font" />
+	<Font Name="Tetris/BlueHighway-12" Filename="16_9_bluehighway-12.font" />
+	<Font Name="Tetris/BlueHighway-24" Filename="16_9_bluehighway-24.font" />
+	<Font Name="Tetris/BlueHighway-72" Filename="16_9_bluehighway-72.font" />
+	<Font Name="Tetris/Tahoma-12" Filename="16_9_tahoma-12.font" />
+</GUIScheme>

@@ -9,6 +9,7 @@
 
 Tanx.log("[Tetris\\Tetris.game.lua]: parsed.")
 
+Tanx.require"Core:utility.lua"
 Tanx.dofile"CubeGrid.lua"
 Tanx.dofile"AlignAction.lua"
 Tanx.dofile"PlayerController.lua"
@@ -130,6 +131,7 @@ function initialize(game)
 
 	-- setup GUI
 	g_GuiSystem = CEGUI.System.getSingleton()
+	CEGUI.SchemeManager.getSingleton():loadScheme(CEGUI.String(iif(viewport:getActualWidth() > viewport:getActualHeight(), "Font16_9.scheme", "Font2_3.scheme")))
 	CEGUI.SchemeManager.getSingleton():loadScheme(CEGUI.String"TaharezLookSkin.scheme")
 	g_GuiSystem:setDefaultMouseCursor(CEGUI.String"TaharezLook", CEGUI.String"MouseArrow")
 	g_GuiSystem:setDefaultTooltip(CEGUI.String"TaharezLook/Tooltip")

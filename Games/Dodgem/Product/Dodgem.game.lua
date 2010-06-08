@@ -764,13 +764,15 @@ g_GameStateMachine = TanxStateMachine{
 	Timeout =
 	{
 		enterState = function(state)
+			state.Time = 0
+
 			g_GuiWindows.EscPanel_Resume:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(state.EventHandles.onResume))
 			g_GuiWindows.EscPanel_Restart:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(state.EventHandles.onRestart))
 			g_GuiWindows.EscPanel_Exit:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(state.EventHandles.onExit))
 
 			setHudVisible(false)
-			setCurtainIntensity(0.7)
 			g_Game:setWorldStepRate(0)
+			g_GuiWindows.EscPanel:setAlpha(0)
 			g_GuiWindows.EscPanel:show()
 
 			local i, v
@@ -797,6 +799,13 @@ g_GameStateMachine = TanxStateMachine{
 			end
 		end,
 
+		step = function(state, elapsed)
+			setCurtainIntensity(math.min(state.Time, 0.7))
+			g_GuiWindows.EscPanel:setAlpha(math.min(state.Time * 1.4, 1))
+
+			state.Time = state.Time + elapsed
+		end,
+
 		keyPressed = function(state, e)
 			if e.key == OIS.KeyCode.ESCAPE then
 				g_GameStateMachine:switch("Body", "resume")
@@ -810,6 +819,7 @@ g_GameStateMachine = TanxStateMachine{
 			end,
 
 			onRestart = function()
+				g_LevelConfigs.BeginLevel = 1
 				g_GameStateMachine:switch"Cover"
 			end,
 

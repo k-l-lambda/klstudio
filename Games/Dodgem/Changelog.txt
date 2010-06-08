@@ -1,11 +1,15 @@
 TODO:
-	esc panel: fade in/out effect
 	joystick controller
 	refine vehicle config
 	try global celshading
 	wheel sound
 	refine vehicle following camera
 
+
+
+2010.6.8	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Dodgem.game.lua: esc panel fade in implemented.
 
 
 2010.6.7	K.L.	<xxxK.L.xxx@gmail.com>

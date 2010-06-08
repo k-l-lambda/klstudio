@@ -670,7 +670,7 @@ g_GameStateMachine = TanxStateMachine{
 		enterState = function(state, command)
 			if command == "start" then
 				g_UserData.TotalScore = 0
-				g_UserData.HiScore = 0
+				g_UserData.HiScore = g_UserData.HiScore or 0
 				g_UserData.Level = g_LevelConfigs.BeginLevel or 1
 
 				updateFooter()
@@ -820,6 +820,8 @@ g_GameStateMachine = TanxStateMachine{
 
 			onRestart = function()
 				g_LevelConfigs.BeginLevel = 1
+				g_ScoreMarks = {}
+
 				g_GameStateMachine:switch"Cover"
 			end,
 

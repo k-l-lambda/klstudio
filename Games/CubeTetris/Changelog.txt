@@ -1,4 +1,5 @@
 TODO:
+	bricks rising, color and background music for levels
 	novice tutorial
 	score system
 	settings menu

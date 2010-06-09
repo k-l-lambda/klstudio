@@ -381,7 +381,6 @@ class "TetrisPool"
 		self.TopHeight = paramters.TopHeight or s_DefaultTopHeight
 		self.End = false
 		self.RisingCubes = {}
-		--self.IdleCubes = {}
 		self.RisingTime = s_CubeRisingInterval
 		self.ClearedLayers = 0
 		self.ShowBrickFreezeClock = (paramters.ShowBrickFreezeClock) == nil or paramters.ShowBrickFreezeClock

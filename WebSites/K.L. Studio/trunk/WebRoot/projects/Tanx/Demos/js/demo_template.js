@@ -48,7 +48,7 @@ init = function() {
 
 		inner +=
 			'	<br/><br/>' + subMessage + '<br/>' +
-			'	<a href="../tanx.html">Click here to download.</a>' +
+			'	<a href="../Tanx.html">Click here to download.</a>' +
 			'</div>'
 			;
 

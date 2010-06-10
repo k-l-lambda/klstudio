@@ -67,7 +67,7 @@ end
 
 local function dropBrick(self)
 	local config = s_BrickConfigNames[Tanx.random(table.maxn(s_BrickConfigNames))]
-	local brick = Tanx.AgentPtr(self.Game:getWorld():createAgent(config, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 1e-3, s_DefaultTopHeight, self.Center.z - 1e-3))))
+	local brick = Tanx.AgentPtr(self.Game:getWorld():createAgent(self.AgentsNode, config, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 1e-3, s_DefaultTopHeight, self.Center.z - 1e-3))))
 
 	self.FocusBrickAction = FocusBrickAction(brick, self)
 	self.Game:getWorld():addAction(Havok.hkpActionPtr(self.FocusBrickAction))
@@ -111,7 +111,7 @@ local function freezeBrick(brick, changematerial)
 end
 
 
-local function updateControlIndicators(nodes, force, torque, elapsed)
+local function updateControlIndicators(root, nodes, force, torque, elapsed)
 	local computeOrient = function(v)
 		local x = v:crossProduct(Tanx.Vector3.UNIT_Y):normalisedCopy()
 		local y = v:normalisedCopy()
@@ -120,7 +120,7 @@ local function updateControlIndicators(nodes, force, torque, elapsed)
 	end
 
 	if force then
-		nodes.Arrow:setOrientation(computeOrient(force))
+		nodes.Arrow:setOrientation(root:getOrientation() * computeOrient(force))
 		nodes.Arrow:setScale(Tanx.Vector3(1, force:length() * 0.038, 1) * 0.2)
 		nodes.Arrow:setVisible(true)
 	else
@@ -156,22 +156,23 @@ local function manipulateBrickCube(pool, body, elapsed)
 	end
 
 	if pool.ControlIndicatorNodes then
-		updateControlIndicators(pool.ControlIndicatorNodes, force, torque, elapsed)
+		updateControlIndicators(pool.RootNode, pool.ControlIndicatorNodes, force, torque, elapsed)
 	end
 end
 
 local function processManipulation(self, state, elapsed)
 	if self.CameraNode and state.ViewX ~= 0 then
-		self.CameraNode:yaw(Tanx.Radian(state.ViewX * elapsed * 0.4), Ogre.Node.TransformSpace.LOCAL)
+		--self.CameraNode:yaw(Tanx.Radian(state.ViewX * elapsed * 0.4), Ogre.Node.TransformSpace.LOCAL)
+		self.RootNode:yaw(Tanx.Radian(-state.ViewX * elapsed * 0.4), Ogre.Node.TransformSpace.LOCAL)
 
-		local yaw = self.CameraNode:getOrientation():getYaw(true):valueRadians()
+		local yaw = self.RootNode:getOrientation():getYaw(true):valueRadians()
 		if math.abs(yaw) < math.pi / 4 then
 			self.FrontDirection = Tanx.Vector3.UNIT_Z
 		elseif math.abs(yaw) > math.pi * 0.75 then
 			self.FrontDirection = Tanx.Vector3.NEGATIVE_UNIT_Z
-		elseif yaw > math.pi * 0.25 and yaw < math.pi * 0.75 then
-			self.FrontDirection = Tanx.Vector3.UNIT_X
 		elseif yaw > math.pi * -0.75 and yaw < math.pi * -0.25 then
+			self.FrontDirection = Tanx.Vector3.UNIT_X
+		elseif yaw > math.pi * 0.25 and yaw < math.pi * 0.75 then
 			self.FrontDirection = Tanx.Vector3.NEGATIVE_UNIT_X
 		end
 	end
@@ -283,7 +284,7 @@ local function fillBlocksLayer(self, y)
 			for f = 0, 5 do
 				uc.Nodes:at(0).Appearances:at(0):get():toDerived().MaterialMap:at(f).MaterialName = material
 			end
-			local block = self.Game:getWorld():createAgent(uc, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x + (x - 2.5) * s_GridSize, y - 0.5, self.Center.z + (z - 2.5) * s_GridSize)))
+			local block = self.Game:getWorld():createAgent(self.AgentsNode, uc, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x + (x - 2.5) * s_GridSize, y - 0.5, self.Center.z + (z - 2.5) * s_GridSize)))
 			freezeBrick(block, false)
 			self.Heap:set(x, y, z, Tanx.BodyPtr(self.Game:getWorld():detachAgent(block):at(0)))
 		end
@@ -391,8 +392,14 @@ class "TetrisPool"
 			self.Controller.Heap = self.Heap
 		end
 
+		local pivot = Tanx.Vector3(self.Center.x, 0, self.Center.z)
+
+		g_PoolIndex = (g_PoolIndex or 0) + 1
+		self.RootNode = self.Game:getWorld():getRootSceneNode():createChildSceneNodeInheritName("PoolRoot" .. g_PoolIndex, pivot)
+		self.AgentsNode = self.RootNode:createChildSceneNodeInheritName("PoolAgents" .. g_PoolIndex, -pivot)
+
 		-- create fence
-		self.Fence = game:getWorld():createAgent("Tetris/Fence4x4", "fence%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x, 0, self.Center.z))):get():getName()
+		self.Fence = game:getWorld():createAgent(self.AgentsNode, "Tetris/Fence4x4", "fence%index", Tanx.RigidBodyState.make(pivot)):get():getName()
 
 		if paramters.BlockLayers then
 			fillBlocks(self, paramters.BlockLayers)
@@ -416,6 +423,8 @@ class "TetrisPool"
 		if self.Controller then
 			self.Controller.Heap = nil
 		end
+
+		--self.Game:getWorld():getRootSceneNode():removeAndDestroyChild(self.RootNode:getName())
 	end
 
 	function TetrisPool:step(elapsed)
@@ -638,7 +647,7 @@ class "TetrisPool"
 				end
 			end
 		end
-		self.BigCube = g_World:createAgent(config, "bigcube%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 1, params.height, self.Center.z - 1)))
+		self.BigCube = g_World:createAgent(self.AgentsNode, config, "bigcube%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 1, params.height, self.Center.z - 1)))
 
 		self.BigCubeListener = SimpleCollisionListener(function(event)
 			if self.BigCube then

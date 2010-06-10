@@ -1,11 +1,17 @@
 TODO:
+	game initial menu
+	layer-clear effect: bricks flicker
 	bricks rising, color and background music for levels
 	novice tutorial
 	score system
 	settings menu
 	big cube explosion FX
-	layer-clear effect
 
+
+
+2010.6.10	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	TetrisPool.lua: agents in pool created on custom node.
 
 
 2010.6.8	K.L.	<xxxK.L.xxx@gmail.com>

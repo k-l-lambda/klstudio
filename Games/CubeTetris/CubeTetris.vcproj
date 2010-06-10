@@ -161,6 +161,14 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Docs"
+			>
+			<File
+				RelativePath=".\Changelog.txt"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Product\arrow.mesh.xml"
 			>

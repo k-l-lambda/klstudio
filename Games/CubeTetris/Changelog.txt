@@ -1,6 +1,5 @@
 TODO:
 	game initial menu
-	layer-clear effect: bricks flicker
 	bricks rising, color and background music for levels
 	novice tutorial
 	score system
@@ -10,6 +9,8 @@ TODO:
 
 
 2010.6.11	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	TetrisPool.lua: cleaning cubes flicker effect implemented.
 
 	>	Tetris.game.lua: rewrite state machine by Core:StateMachine.lua succeed.
 

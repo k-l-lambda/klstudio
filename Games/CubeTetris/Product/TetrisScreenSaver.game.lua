@@ -9,6 +9,7 @@
 
 Tanx.log("[Tetris\\TetrisScreenSaver.game.lua]: parsed.")
 
+Tanx.require"Core:utility.lua"
 Tanx.dofile"CubeGrid.lua"
 Tanx.dofile"AlignAction.lua"
 Tanx.dofile"AiController.lua"

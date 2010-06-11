@@ -342,6 +342,35 @@ material Tetris/Brick/Crystalloid
 	}
 }
 
+material Tetris/Brick/Cleaning/0
+{
+	technique
+	{
+		pass
+		{
+			scene_blend		src_alpha one_minus_src_alpha
+			ambient			1 1 1
+			diffuse			1 1 1 0.3
+			specular		1 1 1 128
+		}
+	}
+}
+
+material Tetris/Brick/Cleaning/1
+{
+	technique
+	{
+		pass
+		{
+			scene_blend		src_alpha one_minus_src_alpha
+			ambient			1 1 1
+			diffuse			1 1 1 0.9
+			emissive		0.8 0.8 0.8
+			specular		1 1 1 128
+		}
+	}
+}
+
 material Tetris/Flare
 {
 	technique

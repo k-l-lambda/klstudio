@@ -235,6 +235,7 @@ local function checkClearLayer(self, y)
 	-- do clear
 	for x = 1, 4 do
 		for z = 1, 4 do
+			table.insert(self.CleaningCubes, {body = self.Heap:get(x, y, z), remain = 0.4})
 			self.Heap:set(x, y, z)
 		end
 	end
@@ -243,8 +244,6 @@ local function checkClearLayer(self, y)
 	if g_Sounds then
 		g_Sounds.LayerClearSound:get():play()
 	end
-
-	-- TODO: play layer-clear animation
 
 	return true
 end
@@ -386,6 +385,7 @@ class "TetrisPool"
 		self.ClearedLayers = 0
 		self.ShowBrickFreezeClock = (paramters.ShowBrickFreezeClock) == nil or paramters.ShowBrickFreezeClock
 		self.ControlIndicatorNodes = paramters.ControlIndicatorNodes
+		self.CleaningCubes = {}
 
 		if self.Controller then
 			self.Controller.Center = self.Center
@@ -428,27 +428,29 @@ class "TetrisPool"
 	end
 
 	function TetrisPool:step(elapsed)
-		if table.maxn(self.ActiveBodies) > 0 then
-			if self.BodiesActiveTime > 0 then
-				self.BodiesActiveTime = self.BodiesActiveTime - elapsed
-			else
-				local i, body
-				for i, body in pairs(self.ActiveBodies) do
-					if isBodyStill(body) then
-						body:get():freeze()
-						local y = fillBodyToHeap(self, body)
-						table.remove(self.ActiveBodies, i)
+		if #self.ActiveBodies > 0 then
+			if #self.CleaningCubes == 0 then
+				if self.BodiesActiveTime > 0 then
+					self.BodiesActiveTime = self.BodiesActiveTime - elapsed
+				else
+					local i, body
+					for i, body in pairs(self.ActiveBodies) do
+						if isBodyStill(body) then
+							body:get():freeze()
+							local y = fillBodyToHeap(self, body)
+							table.remove(self.ActiveBodies, i)
 
-						-- clear layer during body active time
-						if checkClearLayer(self, y) then
-							self.ClearedLayers = self.ClearedLayers + 1
-							updateLayersLabel(self.ClearedLayers)
+							-- clear layer during body active time
+							if checkClearLayer(self, y) then
+								self.ClearedLayers = self.ClearedLayers + 1
+								updateLayersLabel(self.ClearedLayers)
 
-							activateBodies(self, y)
-							self.BodiesActiveTime = s_InitBodiesActiveTime
+								activateBodies(self, y)
+								self.BodiesActiveTime = s_InitBodiesActiveTime
+							end
+
+							break
 						end
-
-						break
 					end
 				end
 			end
@@ -566,6 +568,19 @@ class "TetrisPool"
 		-- process big cube
 		--if self.BigCube and not self.BigCube:get():getBodies():at(0):get():isFrozen() then
 		--end
+
+		-- process cleaning cubes
+		do
+			local i, cube
+			for i, cube in ipairs(self.CleaningCubes) do
+				local odd = (math.floor(cube.remain / 0.08) % 2) > 0
+				cube.body:get():getObject():setMaterialName(iif(odd, "Tetris/Brick/Cleaning/0", "Tetris/Brick/Cleaning/1"))
+
+				cube.remain = cube.remain - elapsed
+			end
+
+			tableext.remove_if(self.CleaningCubes, function(x) return x.remain <= 0 end)
+		end
 
 		if self.Controller then
 			self.Controller:step(elapsed)

@@ -11,6 +11,7 @@ Tanx.log("[Tetris\\Tetris.game.lua]: parsed.")
 
 Tanx.require"Core:utility.lua"
 Tanx.require"Core:StateMachine.lua"
+Tanx.require"Core:CeguiUtil.lua"
 Tanx.dofile"CubeGrid.lua"
 Tanx.dofile"AlignAction.lua"
 Tanx.dofile"PlayerController.lua"
@@ -53,21 +54,6 @@ local function loadSound()
 		GameOver		= createSoundSource"game over.wav",
 	}
 end
-
-
---[[function state(s, ...)
-	if g_State and g_State.leaveState then
-		g_State.leaveState()
-	end
-
-	Tanx.log(string.format("[Tetris\\Tetris.game.lua]: swtich state fromt \"%s\" to \"%s\".", (g_State or {}).name or "", (s or {}).name or ""), Ogre.LogMessageLevel.TRIVIAL)
-
-	g_State = s
-
-	if g_State and g_State.enterState then
-		g_State.enterState(unpack(arg))
-	end
-end]]
 
 
 local onPromptStart = function()
@@ -225,26 +211,11 @@ function onStep(elapsed)
 end
 
 
---function frameEnded(e)
---	return not g_ExitGame
---end
-
-
 function windowClosing(window)
 	g_Game:exit()
 
 	return false
 end
-
-
-OisButtonIdToCegui =
-{
-	[OIS.MouseButtonID.Left]	= CEGUI.MouseButton.LeftButton,
-	[OIS.MouseButtonID.Right]	= CEGUI.MouseButton.RightButton,
-	[OIS.MouseButtonID.Middle]	= CEGUI.MouseButton.MiddleButton,
-	[OIS.MouseButtonID.Button3]	= CEGUI.MouseButton.X1Button,
-	[OIS.MouseButtonID.Button4]	= CEGUI.MouseButton.X2Button,
-}
 
 
 class "KeyListener" (OIS.KeyListener)
@@ -293,7 +264,7 @@ class "MouseListener" (OIS.MouseListener)
 	function MouseListener:mousePressed(e, id)
 		--Tanx.log("mousePressed " .. id)
 
-		CEGUI.System.getSingleton():injectMouseButtonDown(OisButtonIdToCegui[id])
+		CEGUI.System.getSingleton():injectMouseButtonDown(CEGUI.ButtonIdFromOis[id])
 
 		local state = g_GameStateMachine:state()
 		if state and state.mousePressed then
@@ -306,7 +277,7 @@ class "MouseListener" (OIS.MouseListener)
 	function MouseListener:mouseReleased(e, id)
 		--Tanx.log("mouseReleased " .. id)
 
-		CEGUI.System.getSingleton():injectMouseButtonUp(OisButtonIdToCegui[id])
+		CEGUI.System.getSingleton():injectMouseButtonUp(CEGUI.ButtonIdFromOis[id])
 
 		local state = g_GameStateMachine:state()
 		if state and state.mouseReleased then

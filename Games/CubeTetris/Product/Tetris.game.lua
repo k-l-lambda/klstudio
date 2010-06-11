@@ -10,6 +10,7 @@
 Tanx.log("[Tetris\\Tetris.game.lua]: parsed.")
 
 Tanx.require"Core:utility.lua"
+Tanx.require"Core:StateMachine.lua"
 Tanx.dofile"CubeGrid.lua"
 Tanx.dofile"AlignAction.lua"
 Tanx.dofile"PlayerController.lua"
@@ -54,7 +55,7 @@ local function loadSound()
 end
 
 
-function state(s, ...)
+--[[function state(s, ...)
 	if g_State and g_State.leaveState then
 		g_State.leaveState()
 	end
@@ -66,11 +67,11 @@ function state(s, ...)
 	if g_State and g_State.enterState then
 		g_State.enterState(unpack(arg))
 	end
-end
+end]]
 
 
 local onPromptStart = function()
-	state(TransitionState, GamingState)
+	g_GameStateMachine:switch("Transition", "Gaming")
 end
 
 
@@ -156,9 +157,9 @@ function initialize(game)
 	}
 	g_GuiWindows.PromptStart:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(onPromptStart))
 	g_GuiWindows.Close:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(function() g_Game:exit() end))
-	g_GuiWindows.GamingMenu_Resume:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(GamingMenuState.EventHandles.onResume))
-	g_GuiWindows.GamingMenu_Restart:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(GamingMenuState.EventHandles.onRestart))
-	g_GuiWindows.GamingMenu_Exit:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(GamingMenuState.EventHandles.onExit))
+	g_GuiWindows.GamingMenu_Resume:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(g_GameStates.GamingMenu.EventHandles.onResume))
+	g_GuiWindows.GamingMenu_Restart:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(g_GameStates.GamingMenu.EventHandles.onRestart))
+	g_GuiWindows.GamingMenu_Exit:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(g_GameStates.GamingMenu.EventHandles.onExit))
 
 	-- setup input devices
 	local s, joystick = pcall(createJoyStick, g_Game)
@@ -191,7 +192,7 @@ function initialize(game)
 
 	pcall(loadSound)
 
-	state(TitleState)
+	g_GameStateMachine:switch"Title"
 end
 
 
@@ -217,8 +218,9 @@ function onStep(elapsed)
 		g_JoyStick:capture()
 	end
 
-	if g_State and g_State.step then
-		g_State.step(elapsed)
+	local state = g_GameStateMachine:state()
+	if state and state.step then
+		state:step(elapsed)
 	end
 end
 
@@ -258,8 +260,9 @@ class "KeyListener" (OIS.KeyListener)
 	function KeyListener:keyPressed(e)
 		--Tanx.log("keyPressed " .. e.key)
 
-		if g_State and g_State.keyPressed then
-			g_State.keyPressed(e)
+		local state = g_GameStateMachine:state()
+		if state and state.keyPressed then
+			state:keyPressed(e)
 		end
 
 		return true
@@ -268,8 +271,9 @@ class "KeyListener" (OIS.KeyListener)
 	function KeyListener:keyReleased(e)
 		--Tanx.log("keyReleased " .. e.key)
 
-		if g_State and g_State.keyReleased then
-			g_State.keyReleased(e)
+		local state = g_GameStateMachine:state()
+		if state and state.keyReleased then
+			state:keyReleased(e)
 		end
 
 		return true
@@ -291,8 +295,9 @@ class "MouseListener" (OIS.MouseListener)
 
 		CEGUI.System.getSingleton():injectMouseButtonDown(OisButtonIdToCegui[id])
 
-		if g_State and g_State.mousePressed then
-			g_State.mousePressed(e)
+		local state = g_GameStateMachine:state()
+		if state and state.mousePressed then
+			state:mousePressed(e)
 		end
 
 		return true
@@ -303,8 +308,9 @@ class "MouseListener" (OIS.MouseListener)
 
 		CEGUI.System.getSingleton():injectMouseButtonUp(OisButtonIdToCegui[id])
 
-		if g_State and g_State.mouseReleased then
-			g_State.mouseReleased(e)
+		local state = g_GameStateMachine:state()
+		if state and state.mouseReleased then
+			state:mouseReleased(e)
 		end
 
 		return true
@@ -316,8 +322,9 @@ class "MouseListener" (OIS.MouseListener)
 		CEGUI.System.getSingleton():injectMousePosition(e:state().X.abs, e:state().Y.abs)
 		CEGUI.System.getSingleton():injectMouseWheelChange(e:state().Z.rel)
 
-		if g_State and g_State.mouseMoved then
-			g_State.mouseMoved(e)
+		local state = g_GameStateMachine:state()
+		if state and state.mouseMoved then
+			state:mouseMoved(e)
 		end
 
 		return true
@@ -337,8 +344,9 @@ class "JoyStickListener" (OIS.JoyStickListener)
 	function JoyStickListener:buttonPressed(arg, button)
 		--Tanx.log("buttonPressed " .. button)
 
-		if g_State and g_State.buttonPressed then
-			g_State.buttonPressed(arg, button)
+		local state = g_GameStateMachine:state()
+		if state and state.buttonPressed then
+			state:buttonPressed(arg, button)
 		end
 
 		return true
@@ -347,8 +355,9 @@ class "JoyStickListener" (OIS.JoyStickListener)
 	function JoyStickListener:buttonReleased(arg, button)
 		--Tanx.log("buttonReleased " .. button)
 
-		if g_State and g_State.buttonReleased then
-			g_State.buttonReleased(arg, button)
+		local state = g_GameStateMachine:state()
+		if state and state.buttonReleased then
+			state:buttonReleased(arg, button)
 		end
 
 		return true
@@ -357,8 +366,9 @@ class "JoyStickListener" (OIS.JoyStickListener)
 	function JoyStickListener:axisMoved(arg, axis)
 		--Tanx.log("axisMoved " .. axis .. ", " .. arg:state().mAxes:at(axis).abs)
 
-		if g_State and g_State.axisMoved then
-			g_State.axisMoved(arg, axis)
+		local state = g_GameStateMachine:state()
+		if state and state.axisMoved then
+			state:axisMoved(arg, axis)
 		end
 
 		return true
@@ -367,8 +377,9 @@ class "JoyStickListener" (OIS.JoyStickListener)
 	function JoyStickListener:sliderMoved(arg, id)
 		--Tanx.log(string.format("sliderMoved %d, %d, %d", id, arg:state():mSliders(id).abX, arg:state():mSliders(id):get().abY))
 
-		if g_State and g_State.sliderMoved then
-			g_State.sliderMoved(arg, id)
+		local state = g_GameStateMachine:state()
+		if state and state.sliderMoved then
+			state:sliderMoved(arg, id)
 		end
 
 		return true
@@ -377,8 +388,9 @@ class "JoyStickListener" (OIS.JoyStickListener)
 	function JoyStickListener:povMoved(arg, id)
 		--Tanx.log(string.format("povMoved %d, %x", id, arg:state():mPOV(id):get().direction))
 
-		if g_State and g_State.povMoved then
-			g_State.povMoved(arg, id)
+		local state = g_GameStateMachine:state()
+		if state and state.povMoved then
+			state:povMoved(arg, id)
 		end
 
 		return true
@@ -386,146 +398,147 @@ class "JoyStickListener" (OIS.JoyStickListener)
 
 
 
-local function suspendGaming()
-	GamingState.Suspended = true
+local function suspendGaming(state)
+	state.Suspended = true
 
 	if g_Pool1 then
 		g_Pool1:pause()
 	end
 
-	state(GamingMenuState)
+	g_GameStateMachine:switch"GamingMenu"
 end
 
-GamingState =
+g_GameStates =
 {
-	name = "Gaming",
+	Title = TitleState,
 
-	enterState = function()
-		if GamingState.Suspended then
-			if g_Pool1 then
-				g_Pool1:activate()
-			end
-		else
-			g_Pool1 = TetrisPool(g_Game, g_PlayerController, g_CameraNode, {BlockLayers = 12, ControlIndicatorNodes = g_ControlIndicatorNodes})
-			g_ReturnTitleWaitTime = 15
 
-			g_GuiWindows.Layers:show()
-		end
-
-		g_GuiSystem:hideMouseCursor()
-	end,
-
-	leaveState = function()
-		if not GamingState.Suspended then
-			g_Pool1:stop()
-			g_Pool1 = nil
-
-			g_GuiWindows.Layers:hide()
-		end
-	end,
-
-	step = function(elapsed)
-		if g_Pool1 then
-			g_Pool1:step(elapsed)
-
-			local end1, end2 = g_Pool1:isEnd()
-			if end2 then
-				g_ReturnTitleWaitTime = g_ReturnTitleWaitTime - elapsed
-				if g_ReturnTitleWaitTime <= 0 then
-					g_Pool1:stop()
-					state(TransitionState, TitleState)
+	Gaming =
+	{
+		enterState = function(state)
+			if state.Suspended then
+				if g_Pool1 then
+					g_Pool1:activate()
 				end
-			end
-		end
-	end,
-
-	keyPressed = function(e)
-		if e.key == OIS.KeyCode.ESCAPE then
-			suspendGaming()
-		elseif e.key == OIS.KeyCode.RETURN then
-			if g_Pool1 and g_Pool1:isEnd() then
-				g_Pool1:stop()
-				state(TransitionState, TitleState)
-			end
-		end
-	end,
-
-	buttonPressed = function(arg, button)
-		if button == g_ButtonMap.Start then
-			if g_Pool1 and g_Pool1:isEnd() then
-				g_Pool1:stop()
-				state(TransitionState, TitleState)
 			else
-				suspendGaming()
+				g_Pool1 = TetrisPool(g_Game, g_PlayerController, g_CameraNode, {BlockLayers = 12, ControlIndicatorNodes = g_ControlIndicatorNodes})
+				g_ReturnTitleWaitTime = 15
+
+				g_GuiWindows.Layers:show()
 			end
-		end
-	end,
-}
 
-
-TransitionState =
-{
-	name = "Transition",
-
-	enterState = function(targetstate)
-		TransitionState.TargetState = targetstate
-		TransitionState.Frames = 2
-	end,
-
-	step = function(elapsed)
-		TransitionState.Frames = TransitionState.Frames - 1
-		if TransitionState.Frames <= 0 then
-			state(TransitionState.TargetState)
-		end
-	end
-}
-
-
-
-GamingMenuState =
-{
-	name = "GamingMenu",
-
-	enterState = function()
-		g_GuiWindows.GamingMenu:show()
-		g_GuiSystem:setDefaultMouseCursor(CEGUI.String"TaharezLook", CEGUI.String"MouseArrow")
-	end,
-
-	leaveState = function()
-		g_GuiWindows.GamingMenu:hide()
-	end,
-
-	keyPressed = function(e)
-		if e.key == OIS.KeyCode.ESCAPE then
-			state(GamingState)
-		end
-	end,
-
-	buttonPressed = function(arg, button)
-		if button == 9 then
-			state(GamingState)
-		end
-	end,
-
-
-	EventHandles = {
-		onResume = function()
-			state(GamingState)
+			g_GuiSystem:hideMouseCursor()
 		end,
 
-		onRestart = function()
-			if g_Pool1 then
+		leaveState = function(state)
+			if not state.Suspended then
 				g_Pool1:stop()
 				g_Pool1 = nil
+
+				g_GuiWindows.Layers:hide()
 			end
-
-			GamingState.Suspended = false
-
-			state(TransitionState, TitleState)
 		end,
 
-		onExit = function()
-			g_Game:exit()
+		step = function(state, elapsed)
+			if g_Pool1 then
+				g_Pool1:step(elapsed)
+
+				local end1, end2 = g_Pool1:isEnd()
+				if end2 then
+					g_ReturnTitleWaitTime = g_ReturnTitleWaitTime - elapsed
+					if g_ReturnTitleWaitTime <= 0 then
+						g_Pool1:stop()
+						g_GameStateMachine:switch("Transition", "Title")
+					end
+				end
+			end
+		end,
+
+		keyPressed = function(state, e)
+			if e.key == OIS.KeyCode.ESCAPE then
+				suspendGaming(state)
+			elseif e.key == OIS.KeyCode.RETURN then
+				if g_Pool1 and g_Pool1:isEnd() then
+					g_Pool1:stop()
+					g_GameStateMachine:switch("Transition", "Title")
+				end
+			end
+		end,
+
+		buttonPressed = function(state, arg, button)
+			if button == g_ButtonMap.Start then
+				if g_Pool1 and g_Pool1:isEnd() then
+					g_Pool1:stop()
+					g_GameStateMachine:switch("Transition", "Title")
+				else
+					suspendGaming(state)
+				end
+			end
 		end,
 	},
+
+
+	Transition =
+	{
+		enterState = function(state, targetstate)
+			state.TargetState = targetstate
+			state.Frames = 2
+		end,
+
+		step = function(state, elapsed)
+			state.Frames = state.Frames - 1
+			if state.Frames <= 0 then
+				g_GameStateMachine:switch(state.TargetState)
+			end
+		end
+	},
+
+
+	GamingMenu =
+	{
+		enterState = function(state)
+			g_GuiWindows.GamingMenu:show()
+			g_GuiSystem:setDefaultMouseCursor(CEGUI.String"TaharezLook", CEGUI.String"MouseArrow")
+		end,
+
+		leaveState = function(state)
+			g_GuiWindows.GamingMenu:hide()
+		end,
+
+		keyPressed = function(state, e)
+			if e.key == OIS.KeyCode.ESCAPE then
+				g_GameStateMachine:switch"Gaming"
+			end
+		end,
+
+		buttonPressed = function(state, arg, button)
+			if button == 9 then
+				g_GameStateMachine:switch"Gaming"
+			end
+		end,
+
+
+		EventHandles = {
+			onResume = function()
+				g_GameStateMachine:switch"Gaming"
+			end,
+
+			onRestart = function()
+				if g_Pool1 then
+					g_Pool1:stop()
+					g_Pool1 = nil
+				end
+
+				g_GameStateMachine:getStateSet().Gaming.Suspended = false
+
+				g_GameStateMachine:switch("Transition", "Title")
+			end,
+
+			onExit = function()
+				g_Game:exit()
+			end,
+		},
+	},
 }
+
+g_GameStateMachine = TanxStateMachine(g_GameStates)

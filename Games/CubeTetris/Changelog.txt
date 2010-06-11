@@ -9,6 +9,11 @@ TODO:
 
 
 
+2010.6.11	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Tetris.game.lua: rewrite state machine by Core:StateMachine.lua succeed.
+
+
 2010.6.10	K.L.	<xxxK.L.xxx@gmail.com>
 
 	>	TetrisPool.lua: agents in pool created on custom node.

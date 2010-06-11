@@ -73,26 +73,24 @@ end
 
 TitleState =
 {
-	name = "Title",
-
-	enterState = function()
-		TitleState.AnimationState = s_StateLogo
-		TitleState.AnimationTime = 0
+	enterState = function(state)
+		state.AnimationState = s_StateLogo
+		state.AnimationTime = 0
 
 		g_Pool1 = TetrisPool(g_Game, g_AiController, nil, {Center = {x = 0, z = 0}, FreezeTime = 0.2, BlockLayers = 0, ShowBrickFreezeClock = false})
 
-		TitleState.MirrorCube = g_Pool1:dropBigCube{material = "Tetris/TitleMirror", height = s_CameraInitialHeight}
-		TitleState.MirrorCube:get():freeze()
+		state.MirrorCube = g_Pool1:dropBigCube{material = "Tetris/TitleMirror", height = s_CameraInitialHeight}
+		state.MirrorCube:get():freeze()
 
 		g_CameraNode:setPosition(Tanx.Vector3(-1, s_CameraInitialHeight, 10))
 		g_MainCamera:setFOVy(Tanx.Radian(math.pi * 0.039))
 		g_MainCamera:setPosition(Tanx.Vector3.ZERO)
-		g_MainCamera:lookAt(TitleState.MirrorCube:get():getMainNode():getPosition() + Tanx.Vector3(0.2, 0, 1))
+		g_MainCamera:lookAt(state.MirrorCube:get():getMainNode():getPosition() + Tanx.Vector3(0.2, 0, 1))
 
-		if TitleState.Fireworks then
-			TitleState.Fireworks:get():getNode():setVisible(true)
+		if state.Fireworks then
+			state.Fireworks:get():getNode():setVisible(true)
 		else
-			TitleState.Fireworks = g_World:createAgent("Tetris/Fireworks", "fireworks", Tanx.RigidBodyState.make(Tanx.Vector3(0, -1, 0)))
+			state.Fireworks = g_World:createAgent("Tetris/Fireworks", "fireworks", Tanx.RigidBodyState.make(Tanx.Vector3(0, -1, 0)))
 		end
 
 		g_GuiWindows.PromptStart:hide()
@@ -101,14 +99,14 @@ TitleState =
 		g_GuiWindows.Layers:hide()
 		g_GuiSystem:hideMouseCursor()
 
-		TitleState.ActiveLayer = 21
+		state.ActiveLayer = 21
 
 		if g_BackgroundMusic then
 			g_BackgroundMusic:get():play(g_TitleMusic)
 		end
 	end,
 
-	leaveState = function()
+	leaveState = function(state)
 		clearAnimation()
 
 		if g_Pool1 then
@@ -116,7 +114,7 @@ TitleState =
 		end
 		g_Pool1 = nil
 
-		TitleState.Fireworks:get():getNode():setVisible(false)
+		state.Fireworks:get():getNode():setVisible(false)
 
 		g_GuiWindows.PromptStart:hide()
 		g_GuiWindows.Close:hide()
@@ -127,55 +125,55 @@ TitleState =
 		end
 	end,
 
-	step = function(elapsed)
-		if TitleState.AnimationState == s_StateLogo then
-			if TitleState.AnimationTime > 1 then
+	step = function(state, elapsed)
+		if state.AnimationState == s_StateLogo then
+			if state.AnimationTime > 1 then
 				--local mm = Ogre.MaterialManager.getSingleton()
 				--local mat = mm:getByName("Tetris/WellWallWithTitle"):get():toDerived()
 				--mat:getTechnique(0):getPass(1):getTextureUnitState(0):setScrollAnimation(0, -0.04)
 
-				TitleState.AnimationState = s_StateScrolling
+				state.AnimationState = s_StateScrolling
 
-				Tanx.log("[Tetris\\TitleState.lua]: title state to: Scrolling, time: " .. TitleState.AnimationTime, Ogre.LogMessageLevel.TRIVIAL)
+				Tanx.log("[Tetris\\state.lua]: title state to: Scrolling, time: " .. state.AnimationTime, Ogre.LogMessageLevel.TRIVIAL)
 			end
-		elseif TitleState.AnimationState == s_StateScrolling then
+		elseif state.AnimationState == s_StateScrolling then
 			local i
-			for i = 0, TitleState.MirrorCube:get():getBodies():size() - 1 do
-				local body = TitleState.MirrorCube:get():getBodies():at(i)
+			for i = 0, state.MirrorCube:get():getBodies():size() - 1 do
+				local body = state.MirrorCube:get():getBodies():at(i)
 				body:get():getRigidBody():get():setPosition(Tanx.madp(body:get():getPosition() - Tanx.Vector3(0, elapsed * 0.19, 0)))
 			end
 
-			g_MainCamera:lookAt(TitleState.MirrorCube:get():getMainNode():getPosition() + Tanx.Vector3(0.2, 0, 1))
+			g_MainCamera:lookAt(state.MirrorCube:get():getMainNode():getPosition() + Tanx.Vector3(0.2, 0, 1))
 
-			if TitleState.AnimationTime > 6 then
-				TitleState.MirrorCube:get():unfreeze()
+			if state.AnimationTime > 6 then
+				state.MirrorCube:get():unfreeze()
 
 				initCameraTrack()
 				g_AnimState:setTimePosition(0)
 				g_AnimState:setEnabled(true)
 
-				TitleState.AnimationState = s_StateTransiting
-				TitleState.StateTimeBegin = TitleState.AnimationTime
+				state.AnimationState = s_StateTransiting
+				state.StateTimeBegin = state.AnimationTime
 
-				TitleState.BlocksFillTime = 0
+				state.BlocksFillTime = 0
 
-				Tanx.log("[Tetris\\TitleState.lua]: title state to: Transiting, time: " .. TitleState.AnimationTime, Ogre.LogMessageLevel.TRIVIAL)
+				Tanx.log("[Tetris\\state.lua]: title state to: Transiting, time: " .. state.AnimationTime, Ogre.LogMessageLevel.TRIVIAL)
 			end
-		elseif TitleState.AnimationState == s_StateTransiting then
-			local time = (TitleState.AnimationTime - TitleState.StateTimeBegin) / s_CameraTrackLength
+		elseif state.AnimationState == s_StateTransiting then
+			local time = (state.AnimationTime - state.StateTimeBegin) / s_CameraTrackLength
 			local lookatRate = math.pow(time, math.exp((0.32 - time) * 10))
 
 			local fov = math.min(g_MainCamera:getFOVy():valueRadians() + 0.064 * elapsed, math.pi * 0.32)
 			g_MainCamera:setFOVy(Tanx.Radian(fov))
-			if TitleState.MirrorCube:get():getMainNode() then
-				TitleState.MirrorCubePosition = TitleState.MirrorCube:get():getMainNode():getPosition() + Tanx.Vector3(0.2, 0, 1)
+			if state.MirrorCube:get():getMainNode() then
+				state.MirrorCubePosition = state.MirrorCube:get():getMainNode():getPosition() + Tanx.Vector3(0.2, 0, 1)
 			else
-				TitleState.BlocksFillTime = TitleState.BlocksFillTime + elapsed
+				state.BlocksFillTime = state.BlocksFillTime + elapsed
 			end
-			g_MainCamera:lookAt(TitleState.MirrorCubePosition * (1 - lookatRate) + s_CameraAxisPosition * lookatRate)
+			g_MainCamera:lookAt(state.MirrorCubePosition * (1 - lookatRate) + s_CameraAxisPosition * lookatRate)
 
-			if TitleState.BlocksFillTime > s_BlocksFillInterval and g_Pool1.Heap:maxY() < s_BlocksHeight then
-				TitleState.BlocksFillTime = 0
+			if state.BlocksFillTime > s_BlocksFillInterval and g_Pool1.Heap:maxY() < s_BlocksHeight then
+				state.BlocksFillTime = 0
 
 				g_Pool1:fillBlocksLayer()
 			end
@@ -191,11 +189,11 @@ TitleState =
 				g_GuiWindows.Layers:show()
 				g_GuiSystem:setDefaultMouseCursor(CEGUI.String"TaharezLook", CEGUI.String"MouseArrow")
 
-				TitleState.AnimationState = s_StateSurrounding
+				state.AnimationState = s_StateSurrounding
 
-				Tanx.log("[Tetris\\TitleState.lua]: title state to: Surrounding, time: " .. TitleState.AnimationTime, Ogre.LogMessageLevel.TRIVIAL)
+				Tanx.log("[Tetris\\state.lua]: title state to: Surrounding, time: " .. state.AnimationTime, Ogre.LogMessageLevel.TRIVIAL)
 			end
-		elseif TitleState.AnimationState == s_StateSurrounding then
+		elseif state.AnimationState == s_StateSurrounding then
 			if g_Pool1 then
 				g_Pool1:step(elapsed)
 			end
@@ -221,26 +219,26 @@ TitleState =
 			g_CameraNode:yaw(Tanx.Radian(yaw))
 		end
 
-		TitleState.AnimationTime = TitleState.AnimationTime + elapsed
+		state.AnimationTime = state.AnimationTime + elapsed
 	end,
 
-	keyPressed = function(e)
+	keyPressed = function(state, e)
 		if e.key == OIS.KeyCode.RETURN then
-			state(TransitionState, GamingState)
+			g_GameStateMachine:switch("Transition", "Gaming")
 		elseif e.key == OIS.KeyCode.DOWN then
-			if g_Pool1 and TitleState.ActiveLayer > 0 then
-				g_Pool1:activateBlocks(TitleState.ActiveLayer)
-				Tanx.log("[Tetris\\TetrisGame.lua]: layer " .. TitleState.ActiveLayer .. " actived.")
-				TitleState.ActiveLayer = TitleState.ActiveLayer - 1
+			if g_Pool1 and state.ActiveLayer > 0 then
+				g_Pool1:activateBlocks(state.ActiveLayer)
+				Tanx.log("[Tetris\\TetrisGame.lua]: layer " .. state.ActiveLayer .. " actived.")
+				state.ActiveLayer = state.ActiveLayer - 1
 			end
 		elseif e.key == OIS.KeyCode.ESCAPE then
 			g_Game:exit()
 		end
 	end,
 
-	buttonPressed = function(arg, button)
+	buttonPressed = function(state, arg, button)
 		if button == 9 then
-			state(TransitionState, GamingState)
+			g_GameStateMachine:switch("Transition", "Gaming")
 		end
 	end,
 }

@@ -67,7 +67,7 @@ end
 
 local function dropBrick(self)
 	local config = s_BrickConfigNames[Tanx.random(table.maxn(s_BrickConfigNames))]
-	local brick = Tanx.AgentPtr(self.Game:getWorld():createAgent(self.AgentsNode, config, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 1e-3, s_DefaultTopHeight, self.Center.z - 1e-3))))
+	local brick = Tanx.AgentPtr(self.Game:getWorld():createAgent(self.AgentsNode, config, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 1e-3, self.TopHeight, self.Center.z - 1e-3))))
 
 	self.FocusBrickAction = FocusBrickAction(brick, self)
 	self.Game:getWorld():addAction(Havok.hkpActionPtr(self.FocusBrickAction))
@@ -161,8 +161,7 @@ local function manipulateBrickCube(pool, body, elapsed)
 end
 
 local function processManipulation(self, state, elapsed)
-	if self.CameraNode and state.ViewX ~= 0 then
-		--self.CameraNode:yaw(Tanx.Radian(state.ViewX * elapsed * 0.4), Ogre.Node.TransformSpace.LOCAL)
+	if state.ViewX ~= 0 then
 		self.RootNode:yaw(Tanx.Radian(-state.ViewX * elapsed * 0.4), Ogre.Node.TransformSpace.LOCAL)
 
 		local yaw = self.RootNode:getOrientation():getYaw(true):valueRadians()
@@ -378,7 +377,7 @@ class "TetrisPool"
 		self.FreezeTime = paramters.FreezeTime or s_DefaultFreezeTime
 		self.ActiveBodies = {}
 		self.BodiesActiveTime = 0
-		self.TopHeight = paramters.TopHeight or s_DefaultTopHeight
+		self.TopHeight = paramters.TopHeight or math.max(s_DefaultTopHeight, (paramters.BlockLayers or 0) + 4)
 		self.End = false
 		self.RisingCubes = {}
 		self.RisingTime = s_CubeRisingInterval
@@ -587,6 +586,18 @@ class "TetrisPool"
 
 			processManipulation(self, self.Controller:getManipulatorState(), elapsed)
 		end
+
+		-- adjust camera height
+		if self.CameraNode and #self.ActiveBodies == 0 then
+			local ideal = self:idealCameraHeight()
+			local differ = ideal - self.CameraNode:getPosition().y
+			local delta = iif(differ > 0, elapsed, -elapsed) * math.max(1.6, math.abs(differ) * 0.8)
+			if math.abs(delta) > math.abs(differ) then
+				delta = differ
+			end
+
+			self.CameraNode:translate(Tanx.Vector3(0, delta, 0), Ogre.Node.TransformSpace.PARENT)
+		end
 	end
 
 	function TetrisPool:isEnd(elapsed)
@@ -691,6 +702,25 @@ class "TetrisPool"
 	function TetrisPool:fillBlocksLayer(layer)
 		layer = layer or self.Heap:maxY() + 1
 		fillBlocksLayer(self, layer)
+	end
+
+	function TetrisPool:idealCameraHeight()
+		local height = self.Heap:maxY() * s_GridYSize + 4
+
+		if self.FocusBrick then
+			local bricky = self.FocusBrick:get():getMainBody():get():getPosition().y
+			if height < bricky - 18 then
+				height = bricky - 18
+			end
+			if height > bricky + 10 then
+				height = bricky + 10
+			end
+		end
+
+		height = math.min(height, self.TopHeight - 1)
+		height = math.max(height, 16)
+
+		return height
 	end
 
 

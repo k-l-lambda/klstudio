@@ -8,6 +8,11 @@ TODO:
 
 
 
+2010.6.13	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	TetrisPool.lua: dynamic camera height implemneted.
+
+
 2010.6.11	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	TetrisPool.lua: cleaning cubes flicker effect implemented.

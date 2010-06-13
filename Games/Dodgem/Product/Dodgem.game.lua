@@ -366,7 +366,7 @@ g_BodyStateMachine = TanxStateMachine{
 
 					g_GuiWindows.Prompt:setAlpha(1)
 					g_GuiWindows.Prompt:setXPosition(CEGUI.UDim(0.36, 0))
-					g_GuiWindows.Prompt:setText(CEGUI.String("LEVEL: " .. g_UserData.Level))
+					g_GuiWindows.Prompt:setText(CEGUI.String("LEVEL " .. g_UserData.Level))
 					g_GuiWindows.Prompt:setProperty(CEGUI.String"TextColours", CEGUI.colorString"ffffffff")
 					g_GuiWindows.Prompt:show()
 

@@ -392,7 +392,7 @@ g_GameStates =
 					g_Pool1:activate()
 				end
 			else
-				g_Pool1 = TetrisPool(g_Game, g_PlayerController, g_CameraNode, {BlockLayers = 12, ControlIndicatorNodes = g_ControlIndicatorNodes})
+				g_Pool1 = TetrisPool(g_Game, g_PlayerController, g_CameraNode, {BlockLayers = 100, ControlIndicatorNodes = g_ControlIndicatorNodes})
 				g_ReturnTitleWaitTime = 15
 
 				g_GuiWindows.Layers:show()

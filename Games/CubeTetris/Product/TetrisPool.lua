@@ -738,7 +738,7 @@ class "TetrisPool"
 			end
 		end
 
-		height = math.min(height, self.TopHeight - 1)
+		height = math.min(height, self.TopHeight - 8)
 		height = math.max(height, 16)
 
 		return height

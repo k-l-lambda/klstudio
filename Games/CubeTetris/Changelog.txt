@@ -8,6 +8,11 @@ TODO:
 
 
 
+2010.6.14	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	TetrisPool.lua: top board added.
+
+
 2010.6.13	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	TetrisPool.lua: dynamic camera height implemneted.

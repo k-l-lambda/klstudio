@@ -50,6 +50,19 @@ local s_DefaultTopHeight = 30
 local s_CubeRisingInterval = 0.08
 
 
+local function createTopBoardConfig()
+	local config = Tanx.EntityAppearanceConfig()
+	config.MeshName = "Prefab_Plane"
+	config.CastShadows = false
+	config.Scale = Tanx.Vector3(0.021)
+	config.Rotation = Tanx.Quaternion(Tanx.Radian(math.pi / 2), Tanx.Vector3.UNIT_X)
+	config.MaterialMap:at(0).MaterialName = "Tetris/TopBoard"
+
+	return config
+end
+local s_TopBoardConfig = s_TopBoardConfig or createTopBoardConfig()
+
+
 local function addCollisionListenerForAgent(agent, listener)
 	local i
 	for i = 0, agent:get():getBodies():size() - 1 do
@@ -400,6 +413,10 @@ class "TetrisPool"
 		-- create fence
 		self.Fence = game:getWorld():createAgent(self.AgentsNode, "Tetris/Fence4x4", "fence%index", Tanx.RigidBodyState.make(pivot)):get():getName()
 
+		-- create top board
+		self.TopBoardNode = game:getWorld():createAppearance(self.AgentsNode, "TopBoard", s_TopBoardConfig):getParentSceneNode()
+		self.TopBoardNode:setPosition(self.Center.x, self.TopHeight, self.Center.z)
+
 		if paramters.BlockLayers then
 			fillBlocks(self, paramters.BlockLayers)
 		end
@@ -639,6 +656,10 @@ class "TetrisPool"
 			self.ControlIndicatorNodes.Arrow:setVisible(false)
 			self.ControlIndicatorNodes.Ball:setVisible(false)
 		end
+
+		if self.TopBoardNode then
+			self.TopBoardNode:setVisible(false)
+		end
 	end
 
 	function TetrisPool:pause()
@@ -705,7 +726,7 @@ class "TetrisPool"
 	end
 
 	function TetrisPool:idealCameraHeight()
-		local height = self.Heap:maxY() * s_GridYSize + 4
+		local height = self.Heap:maxY() * s_GridYSize + 2
 
 		if self.FocusBrick then
 			local bricky = self.FocusBrick:get():getMainBody():get():getPosition().y

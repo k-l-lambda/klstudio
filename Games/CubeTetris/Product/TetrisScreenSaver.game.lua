@@ -69,7 +69,7 @@ function onStep(elapsed)
 	g_Pool:step(elapsed)
 
 	g_CameraNode:yaw(Tanx.Radian(elapsed * 0.04))
-	g_Pool.RootNode:yaw(Tanx.Radian(elapsed * 0.6))
+	g_Pool.RootNode:yaw(Tanx.Radian(elapsed * -0.5))
 
 	local end1, end2 = g_Pool:isEnd()
 	if end2 then

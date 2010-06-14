@@ -613,7 +613,7 @@ class "TetrisPool"
 				delta = differ
 			end
 
-			self.CameraNode:translate(Tanx.Vector3(0, delta, 0), Ogre.Node.TransformSpace.PARENT)
+			self.CameraNode:translate(0, delta, 0)
 		end
 	end
 

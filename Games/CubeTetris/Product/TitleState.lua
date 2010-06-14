@@ -123,6 +123,8 @@ TitleState =
 		if g_BackgroundMusic then
 			g_BackgroundMusic:get():stop()
 		end
+
+		g_CameraNode:setOrientation(Tanx.Quaternion.IDENTITY)
 	end,
 
 	step = function(state, elapsed)

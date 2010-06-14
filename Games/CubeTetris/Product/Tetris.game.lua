@@ -68,9 +68,7 @@ function initialize(game)
 	g_Mouse = game:getMouse()
 
 	-- load scene
-	local scene = Tanx.SceneConfig()
-	Tanx.GenericArchive.load(game:getResourcePackage():get():open("Tetris.scene"):get(), scene)
-	game:getWorld():loadScene(scene, game:getResourcePackage())
+	game:getWorld():loadScene(g_Game:getResourcePackage():get():getResource"Tetris.scene", g_Game:getResourcePackage())
 
 	-- create viewport
 	g_MainCamera = game:getWorld():createCamera"Main"
@@ -392,7 +390,10 @@ g_GameStates =
 					g_Pool1:activate()
 				end
 			else
-				g_Pool1 = TetrisPool(g_Game, g_PlayerController, g_CameraNode, {BlockLayers = 100, ControlIndicatorNodes = g_ControlIndicatorNodes})
+				if g_Pool1 then
+					g_Pool1:__finalize()
+				end
+				g_Pool1 = TetrisPool(g_Game, g_PlayerController, g_CameraNode, {BlockLayers = 20, ControlIndicatorNodes = g_ControlIndicatorNodes})
 				g_ReturnTitleWaitTime = 15
 
 				g_GuiWindows.Layers:show()

@@ -20,7 +20,7 @@ math.randomseed(std.time())
 
 
 function startPool()
-	g_Pool = TetrisPool(g_Game, g_AiController, nil, {Center = {x = 0, z = 0}, FreezeTime = 0.2, BlockLayers = 22})
+	g_Pool = TetrisPool(g_Game, g_AiController, g_CameraNode, {Center = {x = 0, z = 0}, FreezeTime = 0.2, BlockLayers = 54})
 
 	g_PoolRestartWaitTime = 15
 end
@@ -68,7 +68,8 @@ end
 function onStep(elapsed)
 	g_Pool:step(elapsed)
 
-	g_CameraNode:yaw(Tanx.Radian(elapsed * 0.2))
+	g_CameraNode:yaw(Tanx.Radian(elapsed * 0.04))
+	g_Pool.RootNode:yaw(Tanx.Radian(elapsed * 0.6))
 
 	local end1, end2 = g_Pool:isEnd()
 	if end2 then

@@ -357,7 +357,7 @@ g_BodyStateMachine = TanxStateMachine{
 		SubState = TanxStateMachine{
 			Title =
 			{
-				enterState = function(state, parent)
+				__enter = function(state, parent)
 					setHudVisible(false)
 
 					setCurtainIntensity(1)
@@ -386,7 +386,7 @@ g_BodyStateMachine = TanxStateMachine{
 
 			FadeIn =
 			{
-				enterState = function(state, parent)
+				__enter = function(state, parent)
 					state.CurtainIntensity = 1.2
 
 					setHudVisible(false)
@@ -408,7 +408,7 @@ g_BodyStateMachine = TanxStateMachine{
 
 			Countdown =
 			{
-				enterState = function(state, parent)
+				__enter = function(state, parent)
 					g_GuiWindows.Prompt:hide()
 
 					state.Count = math.ceil(s_PreparingDuration - parent.Time)
@@ -441,7 +441,7 @@ g_BodyStateMachine = TanxStateMachine{
 			},
 		},
 
-		enterState = function(state)
+		__enter = function(state)
 			resetGame(getLevelConfig(g_UserData.Level))
 
 			state.Time = 0
@@ -449,7 +449,7 @@ g_BodyStateMachine = TanxStateMachine{
 			state.SubState:switch("Title", state)
 		end,
 
-		leaveState = function(state)
+		__leave = function(state)
 			if g_Sounds then
 				g_Sounds.Dang:get():play()
 			end
@@ -487,17 +487,17 @@ g_BodyStateMachine = TanxStateMachine{
 
 			PostCriticalPoint =
 			{
-				enterState = function(state, parent)
-					--Tanx.log("[Dodgem\\Dodgem.game.lua]: PostCriticalPoint.enterState.")
+				__enter = function(state, parent)
+					--Tanx.log("[Dodgem\\Dodgem.game.lua]: PostCriticalPoint.__enter.")
 					if g_Sounds then
-						--Tanx.log("[Dodgem\\Dodgem.game.lua]: PostCriticalPoint.enterState.g_Sounds.")
+						--Tanx.log("[Dodgem\\Dodgem.game.lua]: PostCriticalPoint.__enter.g_Sounds.")
 						g_Sounds.CriticalPoint:get():play()
 					end
 				end,
 			},
 		},
 
-		enterState = function(state)
+		__enter = function(state)
 			setHudVisible(true)
 
 			local i, k, v
@@ -513,7 +513,7 @@ g_BodyStateMachine = TanxStateMachine{
 			state.SubState:switch("PreCriticalPoint", state)
 		end,
 
-		leaveState = function(state)
+		__leave = function(state)
 			local i, k, v
 			for i, v in ipairs(g_AiCarList) do
 				v:get():callHost(Tanx.param"enable", Tanx.param(false))
@@ -562,7 +562,7 @@ g_BodyStateMachine = TanxStateMachine{
 
 			FadeOut =
 			{
-				enterState = function(state, parent)
+				__enter = function(state, parent)
 					setHudVisible(false)
 					state.CurtainIntensity = 0
 				end,
@@ -574,7 +574,7 @@ g_BodyStateMachine = TanxStateMachine{
 			},
 		},
 
-		enterState = function(state)
+		__enter = function(state)
 			local passed = g_Score >= g_CurrentLevelConfig.PassScore
 
 			if passed then
@@ -598,7 +598,7 @@ g_BodyStateMachine = TanxStateMachine{
 			state.SubState:switch("Idle", state)
 		end,
 
-		leaveState = function(state)
+		__leave = function(state)
 			g_GuiWindows.Prompt:hide()
 			setCurtainIntensity(1)
 		end,
@@ -624,7 +624,7 @@ g_BodyStateMachine = TanxStateMachine{
 g_GameStateMachine = TanxStateMachine{
 	Cover =
 	{
-		enterState = function(state)
+		__enter = function(state)
 			setCurtainIntensity(1)
 
 			setHudVisible(false)
@@ -636,7 +636,7 @@ g_GameStateMachine = TanxStateMachine{
 			g_Game:setWorldStepRate(0)
 		end,
 
-		leaveState = function(state)
+		__leave = function(state)
 			g_GuiWindows.Vendor:hide()
 		end,
 
@@ -667,7 +667,7 @@ g_GameStateMachine = TanxStateMachine{
 
 	Body =
 	{
-		enterState = function(state, command)
+		__enter = function(state, command)
 			if command == "start" then
 				g_UserData.TotalScore = 0
 				g_UserData.HiScore = g_UserData.HiScore or 0
@@ -763,7 +763,7 @@ g_GameStateMachine = TanxStateMachine{
 
 	Timeout =
 	{
-		enterState = function(state)
+		__enter = function(state)
 			state.Time = 0
 
 			g_GuiWindows.EscPanel_Resume:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(state.EventHandles.onResume))
@@ -784,7 +784,7 @@ g_GameStateMachine = TanxStateMachine{
 			end
 		end,
 
-		leaveState = function(state)
+		__leave = function(state)
 			setHudVisible(true)
 			setCurtainIntensity(0)
 			g_Game:setWorldStepRate(1)

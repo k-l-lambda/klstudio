@@ -131,6 +131,8 @@ function initialize(game)
 	g_GuiWindows =
 	{
 		PromptStart			= windowManager:getWindow(CEGUI.String"Tetris/PromptStart"),
+		InitialPanel		= windowManager:getWindow(CEGUI.String"Tetris/InitialPanel"),
+		InitialPanelStart	= windowManager:getWindow(CEGUI.String"Tetris/InitialPanel/Start"),
 		Close				= windowManager:getWindow(CEGUI.String"Tetris/Close"),
 		BrickFreezeClock	= windowManager:getWindow(CEGUI.String"Tetris/BrickFreezeClock"),
 		Layers				= windowManager:getWindow(CEGUI.String"Tetris/Layers"),
@@ -140,6 +142,7 @@ function initialize(game)
 		GamingMenu_Exit		= windowManager:getWindow(CEGUI.String"Tetris/GamingMenu/Exit"),
 	}
 	g_GuiWindows.PromptStart:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(onPromptStart))
+	g_GuiWindows.InitialPanelStart:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(onPromptStart))
 	g_GuiWindows.Close:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(function() g_Game:exit() end))
 	g_GuiWindows.GamingMenu_Resume:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(g_GameStates.GamingMenu.EventHandles.onResume))
 	g_GuiWindows.GamingMenu_Restart:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(g_GameStates.GamingMenu.EventHandles.onRestart))
@@ -229,10 +232,7 @@ class "KeyListener" (OIS.KeyListener)
 	function KeyListener:keyPressed(e)
 		--Tanx.log("keyPressed " .. e.key)
 
-		local state = g_GameStateMachine:state()
-		if state and state.keyPressed then
-			state:keyPressed(e)
-		end
+		g_GameStateMachine:callState("keyPressed", e)
 
 		return true
 	end
@@ -240,10 +240,7 @@ class "KeyListener" (OIS.KeyListener)
 	function KeyListener:keyReleased(e)
 		--Tanx.log("keyReleased " .. e.key)
 
-		local state = g_GameStateMachine:state()
-		if state and state.keyReleased then
-			state:keyReleased(e)
-		end
+		g_GameStateMachine:callState("keyReleased", e)
 
 		return true
 	end
@@ -264,10 +261,7 @@ class "MouseListener" (OIS.MouseListener)
 
 		CEGUI.System.getSingleton():injectMouseButtonDown(CEGUI.ButtonIdFromOis[id])
 
-		local state = g_GameStateMachine:state()
-		if state and state.mousePressed then
-			state:mousePressed(e)
-		end
+		g_GameStateMachine:callState("mousePressed", e)
 
 		return true
 	end
@@ -277,10 +271,7 @@ class "MouseListener" (OIS.MouseListener)
 
 		CEGUI.System.getSingleton():injectMouseButtonUp(CEGUI.ButtonIdFromOis[id])
 
-		local state = g_GameStateMachine:state()
-		if state and state.mouseReleased then
-			state:mouseReleased(e)
-		end
+		g_GameStateMachine:callState("mouseReleased", e)
 
 		return true
 	end
@@ -291,10 +282,7 @@ class "MouseListener" (OIS.MouseListener)
 		CEGUI.System.getSingleton():injectMousePosition(e:state().X.abs, e:state().Y.abs)
 		CEGUI.System.getSingleton():injectMouseWheelChange(e:state().Z.rel)
 
-		local state = g_GameStateMachine:state()
-		if state and state.mouseMoved then
-			state:mouseMoved(e)
-		end
+		g_GameStateMachine:callState("mouseMoved", e)
 
 		return true
 	end
@@ -313,10 +301,7 @@ class "JoyStickListener" (OIS.JoyStickListener)
 	function JoyStickListener:buttonPressed(arg, button)
 		--Tanx.log("buttonPressed " .. button)
 
-		local state = g_GameStateMachine:state()
-		if state and state.buttonPressed then
-			state:buttonPressed(arg, button)
-		end
+		g_GameStateMachine:callState("buttonPressed", arg, button)
 
 		return true
 	end
@@ -324,10 +309,7 @@ class "JoyStickListener" (OIS.JoyStickListener)
 	function JoyStickListener:buttonReleased(arg, button)
 		--Tanx.log("buttonReleased " .. button)
 
-		local state = g_GameStateMachine:state()
-		if state and state.buttonReleased then
-			state:buttonReleased(arg, button)
-		end
+		g_GameStateMachine:callState("buttonReleased", arg, button)
 
 		return true
 	end
@@ -335,10 +317,7 @@ class "JoyStickListener" (OIS.JoyStickListener)
 	function JoyStickListener:axisMoved(arg, axis)
 		--Tanx.log("axisMoved " .. axis .. ", " .. arg:state().mAxes:at(axis).abs)
 
-		local state = g_GameStateMachine:state()
-		if state and state.axisMoved then
-			state:axisMoved(arg, axis)
-		end
+		g_GameStateMachine:callState("axisMoved", arg, axis)
 
 		return true
 	end
@@ -346,10 +325,7 @@ class "JoyStickListener" (OIS.JoyStickListener)
 	function JoyStickListener:sliderMoved(arg, id)
 		--Tanx.log(string.format("sliderMoved %d, %d, %d", id, arg:state():mSliders(id).abX, arg:state():mSliders(id):get().abY))
 
-		local state = g_GameStateMachine:state()
-		if state and state.sliderMoved then
-			state:sliderMoved(arg, id)
-		end
+		g_GameStateMachine:callState("sliderMoved", arg, id)
 
 		return true
 	end
@@ -357,10 +333,7 @@ class "JoyStickListener" (OIS.JoyStickListener)
 	function JoyStickListener:povMoved(arg, id)
 		--Tanx.log(string.format("povMoved %d, %x", id, arg:state():mPOV(id):get().direction))
 
-		local state = g_GameStateMachine:state()
-		if state and state.povMoved then
-			state:povMoved(arg, id)
-		end
+		g_GameStateMachine:callState("povMoved", arg, id)
 
 		return true
 	end
@@ -384,7 +357,7 @@ g_GameStates =
 
 	Gaming =
 	{
-		enterState = function(state)
+		__enter = function(state)
 			if state.Suspended then
 				if g_Pool1 then
 					g_Pool1:activate()
@@ -394,7 +367,7 @@ g_GameStates =
 					g_Pool1:__finalize()
 				end
 				g_Pool1 = TetrisPool(g_Game, g_PlayerController, g_CameraNode, {BlockLayers = 20, ControlIndicatorNodes = g_ControlIndicatorNodes})
-				g_ReturnTitleWaitTime = 15
+				g_ReturnTitleWaitTime = 30
 
 				g_GuiWindows.Layers:show()
 			end
@@ -402,7 +375,7 @@ g_GameStates =
 			g_GuiSystem:hideMouseCursor()
 		end,
 
-		leaveState = function(state)
+		__leave = function(state)
 			if not state.Suspended then
 				g_Pool1:stop()
 				g_Pool1 = nil
@@ -452,7 +425,7 @@ g_GameStates =
 
 	Transition =
 	{
-		enterState = function(state, targetstate)
+		__enter = function(state, targetstate)
 			state.TargetState = targetstate
 			state.Frames = 2
 		end,
@@ -468,12 +441,12 @@ g_GameStates =
 
 	GamingMenu =
 	{
-		enterState = function(state)
+		__enter = function(state)
 			g_GuiWindows.GamingMenu:show()
 			g_GuiSystem:setDefaultMouseCursor(CEGUI.String"TaharezLook", CEGUI.String"MouseArrow")
 		end,
 
-		leaveState = function(state)
+		__leave = function(state)
 			g_GuiWindows.GamingMenu:hide()
 		end,
 

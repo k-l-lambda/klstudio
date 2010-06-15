@@ -422,6 +422,13 @@ class "TetrisPool"
 		end
 
 		updateLayersLabel(self.ClearedLayers)
+
+		-- adjust camera height to ideal position
+		if self.CameraNode then
+			local ideal = self:idealCameraHeight()
+			local differ = ideal - self.CameraNode:getPosition().y
+			self.CameraNode:translate(0, differ, 0)
+		end
 	end
 
 	function TetrisPool:__finalize()
@@ -726,7 +733,7 @@ class "TetrisPool"
 	end
 
 	function TetrisPool:idealCameraHeight()
-		local height = self.Heap:maxY() * s_GridYSize + 2
+		local height = self.Heap:maxY() * s_GridYSize + 0
 
 		if self.FocusBrick then
 			local bricky = self.FocusBrick:get():getMainBody():get():getPosition().y

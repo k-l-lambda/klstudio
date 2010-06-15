@@ -198,7 +198,7 @@ local function evaluateTargetState(heap, lattice, state)
 
 	local translate = {x = state.translate.x - 1, y = height, z = state.translate.z - 1}
 
-	worth = countSideFaces(heap, lattice, points, translate) + worth * worth / 18
+	worth = countSideFaces(heap, lattice, points, translate) + worth * worth / 36
 	worth = countHoleSpace(heap, lattice, points, translate) + worth / 40
 	--Tanx.log("[Tetris\\AiController.lua]: worth: " .. worth)
 

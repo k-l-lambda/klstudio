@@ -9,6 +9,23 @@
 			<Property Name="Text" Value="Press Enter or START" />
 			<Property Name="Font" Value="Tetris/BlueHighway-12" />
 			<Property Name="Alpha" Value="0.8" />
+			<Property Name="Visible" Value="false" />
+		</Window>
+
+		<Window Type="TaharezLook/FrameWindow" Name="Tetris/InitialPanel">
+			<Property Name="UnifiedAreaRect" Value="{{0.1,0},{0.12,0},{0.9,0},{0.8,0}}" />
+			<Property Name="Visible" Value="false" />
+			<Property Name="Alpha" Value="0.7" />
+			<Property Name="DragMovingEnabled" Value="false" />
+			<Property Name="CloseButtonEnabled" Value="false" />
+			<Property Name="SizingEnabled" Value="false" />
+
+			<Window Type="TaharezLook/StaticText" Name="Tetris/InitialPanel/Start">
+				<Property Name="UnifiedPosition" Value="{{0.4,0},{0.9,0}}}" />
+				<Property Name="UnifiedSize" Value="{{0.2,0},{0.08,0}}" />
+				<Property Name="Text" Value="START" />
+				<Property Name="Font" Value="Tetris/BlueHighway-12" />
+			</Window>
 		</Window>
 
 		<Window Type="TaharezLook/StaticText" Name="Tetris/BrickFreezeClock">

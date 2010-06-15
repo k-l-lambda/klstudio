@@ -16,7 +16,7 @@ local s_TailStateSet =
 {
 	Disabled =
 	{
-		enterState = function(state, machine)
+		__enter = function(state, machine)
 			machine.Material:get():setDiffuse(machine.Colors.Disabled)
 			machine.Material:get():setAmbient(machine.Colors.Disabled)
 			machine.Material:get():setSpecular(Ogre.ColourValue.Black)
@@ -26,7 +26,7 @@ local s_TailStateSet =
 
 	Active =
 	{
-		enterState = function(state, machine)
+		__enter = function(state, machine)
 			machine.Material:get():setDiffuse(machine.Colors.Active)
 			machine.Material:get():setAmbient(machine.Colors.Active)
 			machine.Material:get():setSpecular(Ogre.ColourValue.White)
@@ -36,11 +36,11 @@ local s_TailStateSet =
 
 	Flicker =
 	{
-		enterState = function(state, machine)
+		__enter = function(state, machine)
 			machine.FlickerBrightness = 1
 		end,
 
-		leaveState = function(state, machine)
+		__leave = function(state, machine)
 			machine.Material:get():setSelfIllumination(Ogre.ColourValue.Black)
 			machine.Material:get():_notifyNeedsRecompile()
 		end,

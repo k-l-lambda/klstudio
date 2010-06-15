@@ -8,6 +8,11 @@ TODO:
 
 
 
+2010.6.15	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Initial panel added.
+
+
 2010.6.14	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	TetrisPool.lua: top board added.

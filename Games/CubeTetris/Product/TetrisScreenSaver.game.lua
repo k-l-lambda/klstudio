@@ -20,7 +20,7 @@ math.randomseed(std.time())
 
 
 function startPool()
-	g_Pool = TetrisPool(g_Game, g_AiController, g_CameraNode, {Center = {x = 0, z = 0}, FreezeTime = 0.2, BlockLayers = 54})
+	g_Pool = TetrisPool(g_Game, g_AiController, g_CameraNode, {Center = {x = 0, z = 0}, FreezeTime = 0.2, BlockLayers = 50, TopHeight = 56})
 
 	g_PoolRestartWaitTime = 15
 end

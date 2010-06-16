@@ -79,8 +79,12 @@ end
 
 
 local function dropBrick(self)
+	if self.Callbacks.onDropingBrick then
+		self.Callbacks.onDropingBrick(self)
+	end
+
 	local config = s_BrickConfigNames[Tanx.random(table.maxn(s_BrickConfigNames))]
-	local brick = Tanx.AgentPtr(self.Game:getWorld():createAgent(self.AgentsNode, config, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 1e-3, self.TopHeight, self.Center.z - 1e-3))))
+	local brick = Tanx.AgentPtr(self.Game:getWorld():createAgent(self.AgentsNode, config, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 1e-3, self.TopHeight + s_GridYSize, self.Center.z - 1e-3))))
 
 	self.FocusBrickAction = FocusBrickAction(brick, self)
 	self.Game:getWorld():addAction(Havok.hkpActionPtr(self.FocusBrickAction))
@@ -398,6 +402,7 @@ class "TetrisPool"
 		self.ShowBrickFreezeClock = (paramters.ShowBrickFreezeClock) == nil or paramters.ShowBrickFreezeClock
 		self.ControlIndicatorNodes = paramters.ControlIndicatorNodes
 		self.CleaningCubes = {}
+		self.Callbacks = paramters.Callbacks or {}
 
 		if self.Controller then
 			self.Controller.Center = self.Center
@@ -615,7 +620,7 @@ class "TetrisPool"
 		if self.CameraNode and #self.ActiveBodies == 0 then
 			local ideal = self:idealCameraHeight()
 			local differ = ideal - self.CameraNode:getPosition().y
-			local delta = iif(differ > 0, elapsed, -elapsed) * math.max(1.6, math.abs(differ) * 0.8)
+			local delta = iif(differ > 0, elapsed, -elapsed) * math.max(0.6, math.abs(differ) * 0.8)
 			if math.abs(delta) > math.abs(differ) then
 				delta = differ
 			end
@@ -626,6 +631,10 @@ class "TetrisPool"
 
 	function TetrisPool:isEnd(elapsed)
 		return self.End, self.End and self.Heap:maxY() == 0
+	end
+
+	function TetrisPool:heapHeight()
+		return self.Heap:maxY()
 	end
 
 	function TetrisPool:stop()
@@ -730,6 +739,13 @@ class "TetrisPool"
 	function TetrisPool:fillBlocksLayer(layer)
 		layer = layer or self.Heap:maxY() + 1
 		fillBlocksLayer(self, layer)
+	end
+
+	function TetrisPool:setTopHeight(height)
+		self.TopHeight = height
+		if self.TopBoardNode then
+			self.TopBoardNode:setPosition(self.Center.x, self.TopHeight, self.Center.z)
+		end
 	end
 
 	function TetrisPool:idealCameraHeight()

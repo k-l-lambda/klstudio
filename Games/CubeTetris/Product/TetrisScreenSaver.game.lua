@@ -19,8 +19,15 @@ Tanx.dofile"TetrisPool.lua"
 math.randomseed(std.time())
 
 
+local function onDropingBrick(pool)
+	if pool.TopHeight > pool:heapHeight() + 6 then
+		pool:setTopHeight(pool:heapHeight() + 6)
+	end
+end
+
+
 function startPool()
-	g_Pool = TetrisPool(g_Game, g_AiController, g_CameraNode, {Center = {x = 0, z = 0}, FreezeTime = 0.2, BlockLayers = 50, TopHeight = 56})
+	g_Pool = TetrisPool(g_Game, g_AiController, g_CameraNode, {Center = {x = 0, z = 0}, FreezeTime = 0.2, BlockLayers = 56, Callbacks = {onDropingBrick = onDropingBrick}})
 
 	g_PoolRestartWaitTime = 15
 end

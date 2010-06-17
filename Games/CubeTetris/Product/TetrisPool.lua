@@ -25,7 +25,6 @@ local s_BrickConfigNames =
 local s_BrickMaterials =
 {
 	"Tetris/Brick/White",
-	"Tetris/Brick/Black",
 	"Tetris/Brick/Red",
 	"Tetris/Brick/Green",
 	"Tetris/Brick/Blue",
@@ -34,6 +33,7 @@ local s_BrickMaterials =
 	"Tetris/Brick/Cyan",
 	"Tetris/Brick/Pink",
 	"Tetris/Brick/Purple",
+	"Tetris/Brick/Black",
 }
 
 
@@ -289,12 +289,12 @@ local function activateBodies(self, layer)
 end
 
 
-local function fillBlocksLayer(self, y)
+local function fillBlocksLayer(self, y, mat_index)
 	local x, z
 	for x = 1, 4 do
 		for z = 1, 4 do
 			local uc = Tanx.UnitConfig(self.Game:getWorld():getUnitConfig"Tetris/Brick1_0")
-			local material = s_BrickMaterials[Tanx.random(table.maxn(s_BrickMaterials))]
+			local material = s_BrickMaterials[mat_index or Tanx.random(#s_BrickMaterials)]
 			local f
 			for f = 0, 5 do
 				uc.Nodes:at(0).Appearances:at(0):get():toDerived().MaterialMap:at(f).MaterialName = material
@@ -429,11 +429,7 @@ class "TetrisPool"
 		updateLayersLabel(self.ClearedLayers)
 
 		-- adjust camera height to ideal position
-		if self.CameraNode then
-			local ideal = self:idealCameraHeight()
-			local differ = ideal - self.CameraNode:getPosition().y
-			self.CameraNode:translate(0, differ, 0)
-		end
+		self:adaptCameraHeight()
 	end
 
 	function TetrisPool:__finalize()
@@ -736,9 +732,9 @@ class "TetrisPool"
 		return self.BigCube
 	end
 
-	function TetrisPool:fillBlocksLayer(layer)
+	function TetrisPool:fillBlocksLayer(layer, material)
 		layer = layer or self.Heap:maxY() + 1
-		fillBlocksLayer(self, layer)
+		fillBlocksLayer(self, layer, material)
 	end
 
 	function TetrisPool:setTopHeight(height)
@@ -765,6 +761,14 @@ class "TetrisPool"
 		height = math.max(height, 16)
 
 		return height
+	end
+
+	function TetrisPool:adaptCameraHeight()
+		if self.CameraNode then
+			local ideal = self:idealCameraHeight()
+			local differ = ideal - self.CameraNode:getPosition().y
+			self.CameraNode:translate(0, differ, 0)
+		end
 	end
 
 

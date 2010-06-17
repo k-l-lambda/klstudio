@@ -18,6 +18,7 @@ Tanx.dofile"PlayerController.lua"
 Tanx.dofile"AiController.lua"
 Tanx.dofile"TetrisPool.lua"
 Tanx.dofile"TitleState.lua"
+Tanx.dofile"DigGame.lua"
 
 
 -- holder lua objects in a table to prevent garbage recycling
@@ -343,8 +344,8 @@ class "JoyStickListener" (OIS.JoyStickListener)
 local function suspendGaming(state)
 	state.Suspended = true
 
-	if g_Pool1 then
-		g_Pool1:pause()
+	if g_PlayerGame then
+		g_PlayerGame:getPool():pause()
 	end
 
 	g_GameStateMachine:switch"GamingMenu"
@@ -359,14 +360,12 @@ g_GameStates =
 	{
 		__enter = function(state)
 			if state.Suspended then
-				if g_Pool1 then
-					g_Pool1:activate()
+				if g_PlayerGame then
+					g_PlayerGame:getPool():activate()
 				end
 			else
-				if g_Pool1 then
-					g_Pool1:__finalize()
-				end
-				g_Pool1 = TetrisPool(g_Game, g_PlayerController, g_CameraNode, {BlockLayers = 20, ControlIndicatorNodes = g_ControlIndicatorNodes})
+				--g_Pool1 = TetrisPool(g_Game, g_PlayerController, g_CameraNode, {BlockLayers = 20, ControlIndicatorNodes = g_ControlIndicatorNodes})
+				g_PlayerGame = DigGame(g_Game, g_PlayerController, g_CameraNode, {ControlIndicatorNodes = g_ControlIndicatorNodes})
 				g_ReturnTitleWaitTime = 30
 
 				g_GuiWindows.Layers:show()
@@ -377,22 +376,22 @@ g_GameStates =
 
 		__leave = function(state)
 			if not state.Suspended then
-				g_Pool1:stop()
-				g_Pool1 = nil
+				g_PlayerGame:getPool():stop()
+				g_PlayerGame = nil
 
 				g_GuiWindows.Layers:hide()
 			end
 		end,
 
 		step = function(state, elapsed)
-			if g_Pool1 then
-				g_Pool1:step(elapsed)
+			if g_PlayerGame then
+				g_PlayerGame:getPool():step(elapsed)
 
-				local end1, end2 = g_Pool1:isEnd()
+				local end1, end2 = g_PlayerGame:getPool():isEnd()
 				if end2 then
 					g_ReturnTitleWaitTime = g_ReturnTitleWaitTime - elapsed
 					if g_ReturnTitleWaitTime <= 0 then
-						g_Pool1:stop()
+						g_PlayerGame:getPool():stop()
 						g_GameStateMachine:switch("Transition", "Title")
 					end
 				end
@@ -403,8 +402,8 @@ g_GameStates =
 			if e.key == OIS.KeyCode.ESCAPE then
 				suspendGaming(state)
 			elseif e.key == OIS.KeyCode.RETURN then
-				if g_Pool1 and g_Pool1:isEnd() then
-					g_Pool1:stop()
+				if g_PlayerGame and g_PlayerGame:getPool():isEnd() then
+					g_PlayerGame:getPool():stop()
 					g_GameStateMachine:switch("Transition", "Title")
 				end
 			end
@@ -412,8 +411,8 @@ g_GameStates =
 
 		buttonPressed = function(state, arg, button)
 			if button == g_ButtonMap.Start then
-				if g_Pool1 and g_Pool1:isEnd() then
-					g_Pool1:stop()
+				if g_PlayerGame and g_PlayerGame:getPool():isEnd() then
+					g_PlayerGame:getPool():stop()
 					g_GameStateMachine:switch("Transition", "Title")
 				else
 					suspendGaming(state)
@@ -469,9 +468,9 @@ g_GameStates =
 			end,
 
 			onRestart = function()
-				if g_Pool1 then
-					g_Pool1:stop()
-					g_Pool1 = nil
+				if g_PlayerGame then
+					g_PlayerGame:getPool():stop()
+					g_PlayerGame = nil
 				end
 
 				g_GameStateMachine:getStateSet().Gaming.Suspended = false

@@ -8,6 +8,11 @@ TODO:
 
 
 
+2010.6.17	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	DigGame.lua: created.
+
+
 2010.6.15	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	Initial panel added.

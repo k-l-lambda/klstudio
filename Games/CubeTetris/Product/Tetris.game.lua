@@ -131,17 +131,21 @@ function initialize(game)
 
 	g_GuiWindows =
 	{
-		PromptStart			= windowManager:getWindow(CEGUI.String"Tetris/PromptStart"),
-		InitialPanel		= windowManager:getWindow(CEGUI.String"Tetris/InitialPanel"),
-		InitialPanelStart	= windowManager:getWindow(CEGUI.String"Tetris/InitialPanel/Start"),
-		Close				= windowManager:getWindow(CEGUI.String"Tetris/Close"),
-		BrickFreezeClock	= windowManager:getWindow(CEGUI.String"Tetris/BrickFreezeClock"),
-		Layers				= windowManager:getWindow(CEGUI.String"Tetris/Layers"),
-		GamingMenu			= windowManager:getWindow(CEGUI.String"Tetris/GamingMenu"),
-		GamingMenu_Resume	= windowManager:getWindow(CEGUI.String"Tetris/GamingMenu/Resume"),
-		GamingMenu_Restart	= windowManager:getWindow(CEGUI.String"Tetris/GamingMenu/Restart"),
-		GamingMenu_Exit		= windowManager:getWindow(CEGUI.String"Tetris/GamingMenu/Exit"),
+		PromptStart						= windowManager:getWindow(CEGUI.String"Tetris/PromptStart"),
+		InitialPanel					= windowManager:getWindow(CEGUI.String"Tetris/InitialPanel"),
+		InitialPanelGameMode			= windowManager:getWindow(CEGUI.String"Tetris/InitialPanel/GameMode"):toDerived(),
+		InitialPanelBackgroundMusic		= windowManager:getWindow(CEGUI.String"Tetris/InitialPanel/BackgroundMusic"):toDerived(),
+		InitialPanelStart				= windowManager:getWindow(CEGUI.String"Tetris/InitialPanel/Start"),
+		Close							= windowManager:getWindow(CEGUI.String"Tetris/Close"),
+		BrickFreezeClock				= windowManager:getWindow(CEGUI.String"Tetris/BrickFreezeClock"),
+		Layers							= windowManager:getWindow(CEGUI.String"Tetris/Layers"),
+		GamingMenu						= windowManager:getWindow(CEGUI.String"Tetris/GamingMenu"),
+		GamingMenu_Resume				= windowManager:getWindow(CEGUI.String"Tetris/GamingMenu/Resume"),
+		GamingMenu_Restart				= windowManager:getWindow(CEGUI.String"Tetris/GamingMenu/Restart"),
+		GamingMenu_Exit					= windowManager:getWindow(CEGUI.String"Tetris/GamingMenu/Exit"),
 	}
+	g_GuiWindows.InitialPanelGameMode:addItem(CEGUI.ListboxTextItem.new(CEGUI.String"1 PLAYER", 0))
+	g_GuiWindows.InitialPanelGameMode:addItem(CEGUI.ListboxTextItem.new(CEGUI.String"VERSUS COMPUTER", 1))
 	g_GuiWindows.PromptStart:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(onPromptStart))
 	g_GuiWindows.InitialPanelStart:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(onPromptStart))
 	g_GuiWindows.Close:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(function() g_Game:exit() end))
@@ -364,7 +368,11 @@ g_GameStates =
 					g_PlayerGame:getPool():activate()
 				end
 			else
-				--g_Pool1 = TetrisPool(g_Game, g_PlayerController, g_CameraNode, {BlockLayers = 20, ControlIndicatorNodes = g_ControlIndicatorNodes})
+				g_GameConfig =
+				{
+					BackgroundMusicEnabled = g_GuiWindows.InitialPanelBackgroundMusic:isSelected()
+				}
+
 				g_PlayerGame = DigGame(g_Game, g_PlayerController, g_CameraNode, {ControlIndicatorNodes = g_ControlIndicatorNodes})
 				g_ReturnTitleWaitTime = 30
 

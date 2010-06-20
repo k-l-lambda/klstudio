@@ -716,7 +716,7 @@ class "TetrisPool"
 
 					self.Game:getWorld():detachAgent(self.BigCube)
 					self.BigCube = nil
-					self.BigCubeListener = nil
+					--self.BigCubeListener = nil
 
 					if g_Sounds then
 						g_Sounds.LayerClearSound:get():play()

@@ -146,6 +146,7 @@ function initialize(game)
 	}
 	g_GuiWindows.InitialPanelGameMode:addItem(CEGUI.ListboxTextItem.new(CEGUI.String"1 PLAYER", 0))
 	g_GuiWindows.InitialPanelGameMode:addItem(CEGUI.ListboxTextItem.new(CEGUI.String"VERSUS COMPUTER", 1))
+	g_GuiWindows.InitialPanelGameMode:setText(CEGUI.String"1 PLAYER")
 	g_GuiWindows.PromptStart:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(onPromptStart))
 	g_GuiWindows.InitialPanelStart:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(onPromptStart))
 	g_GuiWindows.Close:subscribeEvent(CEGUI.Window.EventMouseClick, CEGUI.EventSubscriber(function() g_Game:exit() end))
@@ -370,7 +371,8 @@ g_GameStates =
 			else
 				g_GameConfig =
 				{
-					BackgroundMusicEnabled = g_GuiWindows.InitialPanelBackgroundMusic:isSelected()
+					GameMode = g_GuiWindows.InitialPanelGameMode:getText():c_str(),
+					BackgroundMusicEnabled = g_GuiWindows.InitialPanelBackgroundMusic:isSelected(),
 				}
 
 				g_PlayerGame = DigGame(g_Game, g_PlayerController, g_CameraNode, {ControlIndicatorNodes = g_ControlIndicatorNodes})

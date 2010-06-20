@@ -158,7 +158,7 @@ g_TitleStateMachine = TanxStateMachine({
 			end
 			g_MainCamera:lookAt(parent.MirrorCubePosition * (1 - lookatRate) + s_CameraAxisPosition * lookatRate)
 
-			if parent.BlocksFillTime > s_BlocksFillInterval and g_Pool1.Heap:maxY() < s_BlocksHeight then
+			if parent.BlocksFillTime > s_BlocksFillInterval and g_Pool1:heapHeight() < s_BlocksHeight then
 				parent.BlocksFillTime = 0
 
 				g_Pool1:fillBlocksLayer()
@@ -313,8 +313,11 @@ g_TitlePanelStateMachine = TanxStateMachine{
 		end,
 
 		mouseLeavesPanel = function(state)
-			state.MouseIn = false
-			state.MouseLeaveTime = 0
+			local focuswindow = CEGUI.System.getSingleton():getWindowContainingMouse():getName():c_str()
+			if focuswindow == "root" then
+				state.MouseIn = false
+				state.MouseLeaveTime = 0
+			end
 		end,
 	},
 }

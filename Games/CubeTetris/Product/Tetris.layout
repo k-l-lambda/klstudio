@@ -22,10 +22,10 @@
 
 			<Window Type="TaharezLook/Combobox" Name="Tetris/InitialPanel/GameMode">
 				<Property Name="UnifiedPosition" Value="{{0.2,0},{0.2,0}}" />
-				<Property Name="UnifiedSize" Value="{{0.6,0},{0.68,0}}" />
+				<Property Name="UnifiedSize" Value="{{0.6,0},{0.20,0}}" />
 				<Property Name="ReadOnly" Value="True" />
 				<Property Name="ClippedByParent" Value="false" />
-				<Property Name="Text" Value="Select Type" />
+				<Property Name="Text" Value="Game Mode" />
 				<Property Name="Font" Value="Tetris/BlueHighway-12" />
 			</Window>
 

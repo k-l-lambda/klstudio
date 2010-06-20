@@ -8,6 +8,11 @@ TODO:
 
 
 
+2010.6.19	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	TetrisPool.lua/TetrisPool:dropBigCube: fixed BigCube listener corruption bug.
+
+
 2010.6.17	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	DigGame.lua: created.

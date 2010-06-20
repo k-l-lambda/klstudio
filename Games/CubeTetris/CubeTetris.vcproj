@@ -79,6 +79,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Product\DigGame.lua"
+				>
+			</File>
+			<File
 				RelativePath=".\Product\PlayerController.lua"
 				>
 			</File>

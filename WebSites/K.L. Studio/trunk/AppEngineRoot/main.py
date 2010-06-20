@@ -14,9 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
+import datetime
+
+from google.appengine.ext import db
+from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
-
+from google.appengine.ext.webapp import template
 
 class MainHandler(webapp.RequestHandler):
     def get(self):
@@ -24,9 +29,47 @@ class MainHandler(webapp.RequestHandler):
         self.redirect('/html/index.html')
 
 
+class GuestNote(db.Model):
+    author = db.UserProperty()
+    content = db.StringProperty(multiline=True)
+    date = db.DateTimeProperty(auto_now_add=True)
+
+
+class MessageSign(webapp.RequestHandler):
+    def post(self):
+        note = GuestNote()
+
+        if users.get_current_user():
+            note.author = users.get_current_user()
+        else:
+            note.author = users.User(self.request.get('author'))
+
+        note.content = self.request.get('content')
+        note.put()
+        self.redirect('/MessageBoard')
+
+
+class MessageBoard(webapp.RequestHandler):
+    def get(self):
+        notes = GuestNote.all().order('-date')
+        user = users.get_current_user()
+
+        template_values = {
+            'author':       user and user.nickname() or 'anonymous guest',
+            'logined':      user != None,
+            'login_url':    users.create_login_url(self.request.uri),
+            'notes':        notes,
+        }
+        path = os.path.join(os.path.dirname(__file__), 'MessageBoard/template.html')
+        self.response.out.write(template.render(path, template_values))
+
+
 def main():
-    application = webapp.WSGIApplication([('/', MainHandler)],
-                                         debug=True)
+    application = webapp.WSGIApplication([
+        ('/', MainHandler),
+        ('/MessageBoard', MessageBoard),
+        ('/MessageBoard/sign', MessageSign),
+        ], debug=True)
     util.run_wsgi_app(application)
 
 

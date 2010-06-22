@@ -1,11 +1,16 @@
 TODO:
-	game initial menu
-	bricks rising, color and background music for levels
+	DigGame logic
+		background music
 	novice tutorial
 	score system
 	settings menu
 	big cube explosion FX
 
+
+
+2010.6.22	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	LevelConfigs.lua: created.
 
 
 2010.6.19	K.L.	<xxxK.L.xxx@gmail.com>

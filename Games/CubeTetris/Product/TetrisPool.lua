@@ -749,8 +749,8 @@ class "TetrisPool"
 
 		if self.FocusBrick then
 			local bricky = self.FocusBrick:get():getMainBody():get():getPosition().y
-			if height < bricky - 18 then
-				height = bricky - 18
+			if height < bricky - 12 then
+				height = bricky - 12
 			end
 			if height > bricky + 10 then
 				height = bricky + 10

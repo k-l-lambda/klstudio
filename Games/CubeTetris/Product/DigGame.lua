@@ -14,13 +14,15 @@ Tanx.require"TetrisPool.lua"
 
 class "DigGame"
 
-	function DigGame:__init(game, controller, cameranode, paramters)
+	function DigGame:__init(configs, game, controller, cameranode, paramters)
+		self.Configs = configs
 		self.Pool = TetrisPool(game, controller, cameranode, {ControlIndicatorNodes = paramters.ControlIndicatorNodes, TopHeight = 60})
 
 		-- initial pool
-		for i = 10, 1, -1 do
-			for ii = 1, 5 do
-				self.Pool:fillBlocksLayer(nil, i)
+		for i = #self.Configs, 1, -1 do
+			local config = self.Configs[i]
+			for ii = 1, config.BlockLayers do
+				self.Pool:fillBlocksLayer(nil, config.ColorCode)
 			end
 		end
 		self.Pool:adaptCameraHeight()

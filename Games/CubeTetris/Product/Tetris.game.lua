@@ -19,6 +19,7 @@ Tanx.dofile"AiController.lua"
 Tanx.dofile"TetrisPool.lua"
 Tanx.dofile"TitleState.lua"
 Tanx.dofile"DigGame.lua"
+Tanx.dofile"LevelConfigs.lua"
 
 
 -- holder lua objects in a table to prevent garbage recycling
@@ -375,7 +376,7 @@ g_GameStates =
 					BackgroundMusicEnabled = g_GuiWindows.InitialPanelBackgroundMusic:isSelected(),
 				}
 
-				g_PlayerGame = DigGame(g_Game, g_PlayerController, g_CameraNode, {ControlIndicatorNodes = g_ControlIndicatorNodes})
+				g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {ControlIndicatorNodes = g_ControlIndicatorNodes})
 				g_ReturnTitleWaitTime = 30
 
 				g_GuiWindows.Layers:show()

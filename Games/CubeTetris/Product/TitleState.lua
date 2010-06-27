@@ -343,6 +343,7 @@ TitleState =
 		g_Pool1 = TetrisPool(g_Game, g_AiController, nil, {Center = {x = 0, z = 0}, FreezeTime = 0.2, BlockLayers = 0, ShowBrickFreezeClock = false})
 
 		if g_BackgroundMusic then
+			g_BackgroundMusic:get():stop()
 			g_BackgroundMusic:get():play(g_TitleMusic)
 		end
 

@@ -41,19 +41,32 @@ g_JoyStickScheme = {
 
 
 local function loadSound()
-	g_TitleMusic = openalpp.StreamPtr(openalpp.FileStream.new(g_Game:getResourcePackage():get():open("Tetris (Tengen) 5.ogg")))
-	g_BackgroundMusic = openalpp.Source.new()
-
 	local createSoundSource = function(filename)
 		return openalpp.Source.new(openalpp.Sample.new(g_Game:getResourcePackage():get():open(filename):get()):get())
 	end
 
-	g_Sounds = {
+	local createSoundStream = function(filename)
+		return openalpp.StreamPtr(openalpp.FileStream.new(g_Game:getResourcePackage():get():open(filename)))
+	end
+
+	g_TitleMusic = createSoundStream"Tetris (Tengen) 5.ogg"
+	g_BackgroundMusic = openalpp.Source.new()
+
+	g_Sounds =
+	{
 		GlassCollision	= createSoundSource"glass collision.wav",
 		BrickCollision	= createSoundSource"brick collision.wav",
 		BrickFreeze		= createSoundSource"brick freeze.wav",
 		LayerClearSound	= createSoundSource"layer clear.wav",
 		GameOver		= createSoundSource"game over.wav",
+	}
+
+	g_Musics =
+	{
+		Music1 = createSoundStream"Music1.ogg",
+		Music2 = createSoundStream"Music2.ogg",
+		Music3 = createSoundStream"Music3.ogg",
+		Music4 = createSoundStream"Music4.ogg",
 	}
 end
 
@@ -372,8 +385,10 @@ g_GameStates =
 			else
 				g_GameConfig =
 				{
+					BeginLevel = 1,
 					GameMode = g_GuiWindows.InitialPanelGameMode:getText():c_str(),
 					BackgroundMusicEnabled = g_GuiWindows.InitialPanelBackgroundMusic:isSelected(),
+					MusicVolume = 0.7,
 				}
 
 				g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {ControlIndicatorNodes = g_ControlIndicatorNodes})

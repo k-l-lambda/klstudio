@@ -17,20 +17,20 @@ g_DigLevelConfigs =
 	{
 		BlockLayers = 4,
 		ColorCode = 1,
-		Music = "",
+		Music = "Music1",
 	},
 
 	[2] =
 	{
 		BlockLayers = 6,
 		ColorCode = 2,
-		Music = "",
+		Music = "Music3",
 	},
 
 	[3] =
 	{
 		BlockLayers = 8,
 		ColorCode = 3,
-		Music = "",
+		Music = "Music2",
 	},
 }

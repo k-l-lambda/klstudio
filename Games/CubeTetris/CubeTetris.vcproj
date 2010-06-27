@@ -83,6 +83,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Product\LevelConfigs.lua"
+				>
+			</File>
+			<File
 				RelativePath=".\Product\PlayerController.lua"
 				>
 			</File>

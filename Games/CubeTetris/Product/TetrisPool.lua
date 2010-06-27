@@ -807,6 +807,7 @@ class "FocusBrickCollisionListener" (Tanx.CollisionListener)
 					--	tostring(rba:isFixed():get()), tostring(rbb:isFixed():get()), event.m_projectedVelocity, tostring(Tanx.madp(event.m_contactPoint:getPosition()))))
 
 					local volume = vel * 0.8
+					--Tanx.log("setGain: " .. volume)
 					g_Sounds.BrickCollision:get():setGain(volume)
 					g_Sounds.BrickCollision:get():play()
 				end
@@ -814,6 +815,7 @@ class "FocusBrickCollisionListener" (Tanx.CollisionListener)
 
 			if event.m_collidableA:getShape():getType() == Havok.hkpShapeType.BOX and event.m_collidableB:getShape():getType() == Havok.hkpShapeType.CONVEX_VERTICES then
 				local volume = math.abs(event.m_projectedVelocity) / 32
+				--Tanx.log("setGain: " .. volume)
 				g_Sounds.GlassCollision:get():setGain(volume)
 				g_Sounds.GlassCollision:get():play()
 			end

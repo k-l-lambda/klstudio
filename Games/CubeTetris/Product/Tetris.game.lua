@@ -47,7 +47,7 @@ local function loadSound()
 
 	local createSoundStream = function(filename, loop)
 		local stream = openalpp.StreamPtr(openalpp.FileStream.new(g_Game:getResourcePackage():get():open(filename)))
-		stream:get():setLooping(loop or false)
+		stream:get():toDerived():setLooping(loop or false)
 	end
 
 	g_TitleMusic = createSoundStream"Tetris (Tengen) 5.ogg"
@@ -198,7 +198,10 @@ function initialize(game)
 	g_PlayerController = PlayerController(g_Game, g_JoyStick)
 	g_AiController = AiController(g_Game)
 
-	pcall(loadSound)
+	local s, e = pcall(loadSound)
+	if not s then
+		Tanx.log("[Tetris\\PlayerController.lua]: loadSound failed: " .. e)
+	end
 
 	g_GameStateMachine:switch"Title"
 end

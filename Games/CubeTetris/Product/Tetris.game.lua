@@ -48,6 +48,8 @@ local function loadSound()
 	local createSoundStream = function(filename, loop)
 		local stream = openalpp.StreamPtr(openalpp.FileStream.new(g_Game:getResourcePackage():get():open(filename)))
 		stream:get():toDerived():setLooping(loop or false)
+
+		return stream
 	end
 
 	g_TitleMusic = createSoundStream"Tetris (Tengen) 5.ogg"

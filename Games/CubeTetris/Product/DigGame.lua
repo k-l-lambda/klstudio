@@ -50,8 +50,8 @@ class "DigGame"
 		-- play music
 		if g_GameConfig.BackgroundMusicEnabled and config.Music and g_BackgroundMusic then
 			g_BackgroundMusic:get():stop()
-			--g_BackgroundMusic:get():setLooping(true)
 			--g_BackgroundMusic:get():setGain(g_GameConfig.MusicVolume)
-			g_BackgroundMusic:get():play(g_Musics[config.Music])
+			--g_BackgroundMusic:get():play(g_Musics[config.Music])
+			g_BackgroundMusic:get():play(g_NsfStream)
 		end
 	end

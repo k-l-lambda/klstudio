@@ -71,6 +71,8 @@ local function loadSound()
 		Music3 = createSoundStream("Music3.ogg", true),
 		Music4 = createSoundStream("Music4.ogg", true),
 	}
+
+	g_NsfStream = openalpp.StreamPtr(openalpp.GmeStream.new(g_Game:getResourcePackage():get():open"Tetris (Tengen).nsf"))
 end
 
 

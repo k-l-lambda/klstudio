@@ -52,7 +52,7 @@ local function loadSound()
 		return stream
 	end
 
-	g_TitleMusic = createSoundStream"Tetris (Tengen) 5.ogg"
+	--g_TitleMusic = createSoundStream"Tetris (Tengen) 5.ogg"
 	g_BackgroundMusic = openalpp.Source.new()
 
 	g_Sounds =
@@ -64,15 +64,25 @@ local function loadSound()
 		GameOver		= createSoundSource"game over.wav",
 	}
 
-	g_Musics =
+	--[[g_Musics =
 	{
 		Music1 = createSoundStream("Music1.ogg", true),
 		Music2 = createSoundStream("Music2.ogg", true),
 		Music3 = createSoundStream("Music3.ogg", true),
 		Music4 = createSoundStream("Music4.ogg", true),
-	}
+	}]]
 
 	g_NsfStream = openalpp.StreamPtr(openalpp.GmeStream.new(g_Game:getResourcePackage():get():open"Tetris (Tengen).nsf"))
+	g_MusicIndex =
+	{
+		Music1		= 0,
+		Music2		= 1,
+		Music3		= 2,
+		Music4		= 3,
+		Title		= 4,
+		GameOver	= 5,
+		LevelUp		= 6,
+	}
 end
 
 

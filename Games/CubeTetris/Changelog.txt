@@ -8,6 +8,11 @@ TODO:
 
 
 
+2010.6.29	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Tetris.game.lua: used nsf music replace of ogg.
+
+
 2010.6.22	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	LevelConfigs.lua: created.

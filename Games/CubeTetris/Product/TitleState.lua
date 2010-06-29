@@ -344,7 +344,9 @@ TitleState =
 
 		if g_BackgroundMusic then
 			g_BackgroundMusic:get():stop()
-			g_BackgroundMusic:get():play(g_TitleMusic)
+			--g_BackgroundMusic:get():play(g_TitleMusic)
+			g_NsfStream:get():toDerived():setTrack(g_MusicIndex.Title)
+			g_BackgroundMusic:get():play(g_NsfStream)
 		end
 
 		g_GuiWindows.InitialPanel:subscribeEvent(CEGUI.Window.EventMouseEnters, CEGUI.EventSubscriber(onPanelMouseEnters))

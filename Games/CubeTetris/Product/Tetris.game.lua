@@ -52,7 +52,6 @@ local function loadSound()
 		return stream
 	end
 
-	--g_TitleMusic = createSoundStream"Tetris (Tengen) 5.ogg"
 	g_BackgroundMusic = openalpp.Source.new()
 
 	g_Sounds =
@@ -63,14 +62,6 @@ local function loadSound()
 		LayerClearSound	= createSoundSource"layer clear.wav",
 		GameOver		= createSoundSource"game over.wav",
 	}
-
-	--[[g_Musics =
-	{
-		Music1 = createSoundStream("Music1.ogg", true),
-		Music2 = createSoundStream("Music2.ogg", true),
-		Music3 = createSoundStream("Music3.ogg", true),
-		Music4 = createSoundStream("Music4.ogg", true),
-	}]]
 
 	g_NsfStream = openalpp.StreamPtr(openalpp.GmeStream.new(g_Game:getResourcePackage():get():open"Tetris (Tengen).nsf"))
 	g_MusicIndex =
@@ -429,7 +420,7 @@ g_GameStates =
 
 		step = function(state, elapsed)
 			if g_PlayerGame then
-				g_PlayerGame:getPool():step(elapsed)
+				g_PlayerGame:step(elapsed)
 
 				local end1, end2 = g_PlayerGame:getPool():isEnd()
 				if end2 then
@@ -500,7 +491,7 @@ g_GameStates =
 		end,
 
 		buttonPressed = function(state, arg, button)
-			if button == 9 then
+			if button == 9 or button == 11 then
 				g_GameStateMachine:switch"Gaming"
 			end
 		end,

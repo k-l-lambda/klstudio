@@ -289,7 +289,9 @@ local function activateBodies(self, layer)
 end
 
 
-local function fillBlocksLayer(self, y, mat_index)
+local function fillBlocksLayer(self, y, mat_index, space)
+	space = space or {min = 1, max = 3}
+
 	local x, z
 	for x = 1, 4 do
 		for z = 1, 4 do
@@ -306,7 +308,7 @@ local function fillBlocksLayer(self, y, mat_index)
 	end
 
 	local i
-	for i = 1, Tanx.random(3) do
+	for i = 1, space.min + Tanx.random(space.max - space.min + 1) - 1 do
 		self.Heap:set(Tanx.random(4), y, Tanx.random(4))
 	end
 end
@@ -505,15 +507,21 @@ class "TetrisPool"
 				-- clear layers
 				local y, v
 				local cleared_y
+				local layers = {}
 				for y, v in pairs(yset) do
 					if checkClearLayer(self, y) then
 						self.ClearedLayers = self.ClearedLayers + 1
 
+						table.insert(layers, y)
 						cleared_y = math.min(cleared_y or y, y)
 					end
 				end
 
 				if cleared_y then
+					if self.Callbacks.LayersCleared then
+						self.Callbacks.LayersCleared(self, cleared_y, layers)
+					end
+
 					updateLayersLabel(self.ClearedLayers)
 
 					activateBodies(self, cleared_y)
@@ -732,9 +740,9 @@ class "TetrisPool"
 		return self.BigCube
 	end
 
-	function TetrisPool:fillBlocksLayer(layer, material)
+	function TetrisPool:fillBlocksLayer(layer, material, space)
 		layer = layer or self.Heap:maxY() + 1
-		fillBlocksLayer(self, layer, material)
+		fillBlocksLayer(self, layer, material, space)
 	end
 
 	function TetrisPool:setTopHeight(height)

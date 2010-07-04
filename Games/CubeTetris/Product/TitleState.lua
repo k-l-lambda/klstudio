@@ -246,7 +246,8 @@ g_TitlePanelStateMachine = TanxStateMachine{
 		end,
 
 		buttonPressed = function(state, parent, arg, button)
-			if g_TitleStateMachine:stateKey() ~= "Surrounding" and button == 9 then
+			--Tanx.log("buttonPressed: " .. button)
+			if g_TitleStateMachine:stateKey() ~= "Surrounding" and (button == 9 or button == 11) then
 				g_TitleStateMachine:switch("Surrounding", parent)
 				g_TitlePanelStateMachine:switch"Active"
 			end
@@ -302,7 +303,7 @@ g_TitlePanelStateMachine = TanxStateMachine{
 		end,
 
 		buttonPressed = function(state, parent, arg, button)
-			if button == 9 then
+			if button == 9 or button == 11 then
 				g_GameStateMachine:switch("Transition", "Gaming")
 			end
 		end,

@@ -1,11 +1,15 @@
 TODO:
 	DigGame logic
-		background music
 	novice tutorial
 	score system
 	settings menu
 	big cube explosion FX
 
+
+
+2010.7.4	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	DigGame.lua: level-up logic implemented.
 
 
 2010.6.29	K.L.	<xxxK.L.xxx@gmail.com>

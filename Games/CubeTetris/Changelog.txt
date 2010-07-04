@@ -1,5 +1,6 @@
 TODO:
 	DigGame logic
+		descend pool top height
 	novice tutorial
 	score system
 	settings menu

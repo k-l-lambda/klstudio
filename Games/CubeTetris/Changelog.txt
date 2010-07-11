@@ -1,6 +1,5 @@
 TODO:
-	DigGame logic
-		descend pool top height
+	versus computer game mode
 	novice tutorial
 	score system
 	settings menu
@@ -9,6 +8,8 @@ TODO:
 
 
 2010.7.11	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	DigGame.lua: pool top height descend implemented.
 
 	>	TetrisPool.lua/TetrisPool:stop: clear heap to avoid bug of bricks in heap remain after pool destructed.
 

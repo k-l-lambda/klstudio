@@ -29,7 +29,11 @@ class "DigGame"
 		self.Timer = TanxTimer()
 
 		-- initial pool
-		self.Pool = TetrisPool(game, controller, cameranode, {ControlIndicatorNodes = paramters.ControlIndicatorNodes, TopHeight = blockheight + 10, Callbacks = {LayersCleared = Tanx.bind(self.onPoolLayersCleared, self, Tanx._2, Tanx._3)}})
+		self.Pool = TetrisPool(game, controller, cameranode, {ControlIndicatorNodes = paramters.ControlIndicatorNodes, TopHeight = blockheight + 10, Callbacks = {
+			onLayersCleared = Tanx.bind(self.onPoolLayersCleared, self, Tanx._2, Tanx._3),
+			onDropingBrick = Tanx.bind(self.onPoolDropingBrick, self),
+			onGameOver = Tanx.bind(self.onPoolGameOver, self),
+			}})
 		for i = #self.Configs, g_GameConfig.BeginLevel, -1 do
 			local config = self.Configs[i]
 			for ii = 1, config.BlockLayers do
@@ -97,5 +101,17 @@ class "DigGame"
 		if height <= self.PassHeight + 1 then
 			Tanx.log("[Tetris\\DigGame.lua]: level up: " .. self.CurrentLevel + 1)
 			self:beginLevel(self.CurrentLevel + 1)
+		end
+	end
+
+	function DigGame:onPoolDropingBrick()
+		if self.CurrentLevel then
+			self.Pool:changeTopHeight(-self.Configs[self.CurrentLevel].Descend)
+		end
+	end
+
+	function DigGame:onPoolGameOver()
+		if g_BackgroundMusic then
+			g_BackgroundMusic:get():stop()
 		end
 	end

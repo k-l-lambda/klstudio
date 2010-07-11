@@ -37,6 +37,12 @@ g_JoyStickScheme = {
 		YawR = 4,
 		Start = 9,
 	},
+
+	["USB Vibration Joystick"] = {
+		YawL = 5,
+		YawR = 4,
+		Start = 11,
+	},
 }
 
 

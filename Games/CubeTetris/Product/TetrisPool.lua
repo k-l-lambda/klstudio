@@ -83,7 +83,7 @@ local function dropBrick(self)
 		self.Callbacks.onDropingBrick(self)
 	end
 
-	local config = s_BrickConfigNames[Tanx.random(table.maxn(s_BrickConfigNames))]
+	local config = s_BrickConfigNames[Tanx.random(#s_BrickConfigNames)]
 	local brick = Tanx.AgentPtr(self.Game:getWorld():createAgent(self.AgentsNode, config, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 1e-3, self.TopHeight + s_GridYSize, self.Center.z - 1e-3))))
 
 	self.FocusBrickAction = FocusBrickAction(brick, self)
@@ -518,8 +518,8 @@ class "TetrisPool"
 				end
 
 				if cleared_y then
-					if self.Callbacks.LayersCleared then
-						self.Callbacks.LayersCleared(self, cleared_y, layers)
+					if self.Callbacks.onLayersCleared then
+						self.Callbacks.onLayersCleared(self, cleared_y, layers)
 					end
 
 					updateLayersLabel(self.ClearedLayers)
@@ -535,6 +535,10 @@ class "TetrisPool"
 
 				-- check whether it's end
 				if self.TopHeight and self.Heap:maxY() > self.TopHeight then
+					if self.Callbacks.onGameOver then
+						self.Callbacks.onGameOver(self)
+					end
+
 					self.End = true
 					if g_Sounds then
 						g_Sounds.GameOver:get():play()
@@ -589,12 +593,11 @@ class "TetrisPool"
 			local position = unit.cube:get():getPosition()
 			local x = position.x - self.Center.x
 			local z = position.z - self.Center.z
-			local forcey = unit.force
-			if x * x + z * z > 7 then
-				forcey = 0
-			end
+			local forcey = iif(x * x + z * z > 7, 0, unit.force)
 
-			unit.cube:get():getRigidBody():get():applyForce(elapsed, Tanx.madp(Tanx.Vector3(Tanx.random() * 18 - 9 + x * 0.3, forcey, Tanx.random() * 18 - 9 + z * 0.3)))
+			local force = Tanx.Vector3(Tanx.random() * 18 - 9 + x * 0.3, forcey, Tanx.random() * 18 - 9 + z * 0.3)
+			--Tanx.log("force: " .. tostring(force))
+			unit.cube:get():getRigidBody():get():applyForce(elapsed, Tanx.madp(force))
 		end
 
 		-- process big cube
@@ -621,7 +624,7 @@ class "TetrisPool"
 		end
 
 		-- adjust camera height
-		if self.CameraNode and #self.ActiveBodies == 0 then
+		if not self.End and self.CameraNode and #self.ActiveBodies == 0 then
 			local ideal = self:idealCameraHeight()
 			local differ = ideal - self.CameraNode:getPosition().y
 			local delta = iif(differ > 0, elapsed, -elapsed) * math.max(0.6, math.abs(differ) * 0.8)
@@ -752,6 +755,10 @@ class "TetrisPool"
 		if self.TopBoardNode then
 			self.TopBoardNode:setPosition(self.Center.x, self.TopHeight, self.Center.z)
 		end
+	end
+
+	function TetrisPool:changeTopHeight(delta)
+		self:setTopHeight(self.TopHeight + delta)
 	end
 
 	function TetrisPool:idealCameraHeight()

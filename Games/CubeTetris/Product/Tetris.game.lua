@@ -53,6 +53,7 @@ local function loadSound()
 	end
 
 	g_BackgroundMusic = openalpp.Source.new()
+	g_BackgroundMusic:get():setAmbient(true)
 
 	g_Sounds =
 	{

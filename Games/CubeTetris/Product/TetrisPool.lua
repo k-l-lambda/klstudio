@@ -680,6 +680,8 @@ class "TetrisPool"
 		if self.TopBoardNode then
 			self.TopBoardNode:setVisible(false)
 		end
+
+		self.Heap:clear()
 	end
 
 	function TetrisPool:pause()

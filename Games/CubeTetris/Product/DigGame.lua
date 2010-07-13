@@ -19,6 +19,7 @@ class "DigGame"
 
 	function DigGame:__init(configs, game, controller, cameranode, paramters)
 		self.Configs = configs
+		self.EnableBackgroundMusic = paramters.EnableBackgroundMusic or paramters.EnableBackgroundMusic == nil
 
 		local blockheight = 0
 		local i
@@ -29,11 +30,17 @@ class "DigGame"
 		self.Timer = TanxTimer()
 
 		-- initial pool
-		self.Pool = TetrisPool(game, controller, cameranode, {ControlIndicatorNodes = paramters.ControlIndicatorNodes, TopHeight = blockheight + 10, Callbacks = {
-			onLayersCleared = Tanx.bind(self.onPoolLayersCleared, self, Tanx._2, Tanx._3),
-			onDropingBrick = Tanx.bind(self.onPoolDropingBrick, self),
-			onGameOver = Tanx.bind(self.onPoolGameOver, self),
-			}})
+		self.Pool = TetrisPool(game, controller, cameranode, {
+			ControlIndicatorNodes = paramters.ControlIndicatorNodes,
+			TopHeight = blockheight + 10,
+			Center = paramters.Center,
+			RootNode = paramters.RootNode,
+			Callbacks = {
+				onLayersCleared = Tanx.bind(self.onPoolLayersCleared, self, Tanx._2, Tanx._3),
+				onDropingBrick = Tanx.bind(self.onPoolDropingBrick, self),
+				onGameOver = Tanx.bind(self.onPoolGameOver, self),
+				},
+			})
 		for i = #self.Configs, g_GameConfig.BeginLevel, -1 do
 			local config = self.Configs[i]
 			for ii = 1, config.BlockLayers do
@@ -74,7 +81,7 @@ class "DigGame"
 		end
 
 		-- play music
-		if g_BackgroundMusic then
+		if self.EnableBackgroundMusic and g_BackgroundMusic then
 			local playmusic = function()
 				g_BackgroundMusic:get():stop()
 				if config.Music and g_GameConfig.BackgroundMusicEnabled then

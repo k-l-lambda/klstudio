@@ -407,7 +407,7 @@ g_GameStates =
 					MusicVolume = 0.7,
 				}
 
-				g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {ControlIndicatorNodes = g_ControlIndicatorNodes})
+				g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 0, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes})
 				g_ReturnTitleWaitTime = 30
 
 				g_GuiWindows.Layers:show()

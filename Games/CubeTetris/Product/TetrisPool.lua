@@ -414,7 +414,8 @@ class "TetrisPool"
 		local pivot = Tanx.Vector3(self.Center.x, 0, self.Center.z)
 
 		g_PoolIndex = (g_PoolIndex or 0) + 1
-		self.RootNode = self.Game:getWorld():getRootSceneNode():createChildSceneNodeInheritName("PoolRoot" .. g_PoolIndex, pivot)
+		self.RootNode = paramters.RootNode or self.Game:getWorld():getRootSceneNode():createChildSceneNodeInheritName("PoolRoot" .. g_PoolIndex)
+		self.RootNode:setPosition(pivot)
 		self.AgentsNode = self.RootNode:createChildSceneNodeInheritName("PoolAgents" .. g_PoolIndex, -pivot)
 
 		-- create fence

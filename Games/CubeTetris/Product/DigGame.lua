@@ -35,6 +35,8 @@ class "DigGame"
 			TopHeight = blockheight + 10,
 			Center = paramters.Center,
 			RootNode = paramters.RootNode,
+			FreezeTime = paramters.FreezeTime,
+			ShowBrickFreezeClock = paramters.ShowBrickFreezeClock,
 			Callbacks = {
 				onLayersCleared = Tanx.bind(self.onPoolLayersCleared, self, Tanx._2, Tanx._3),
 				onDropingBrick = Tanx.bind(self.onPoolDropingBrick, self),

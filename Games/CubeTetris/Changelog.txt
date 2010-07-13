@@ -1,11 +1,17 @@
 TODO:
 	versus computer game mode
+		restart game without leaving gaming state
 	score system
 	settings menu
 	novice tutorial
 	big cube explosion FX
 	cooperative with computer game mode
 
+
+
+2010.7.13	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Tetris.game.lua: versus computer game mode added.
 
 
 2010.7.11	K.L.	<xxxK.L.xxx@gmail.com>

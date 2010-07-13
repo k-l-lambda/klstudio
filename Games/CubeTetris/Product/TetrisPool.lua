@@ -401,7 +401,7 @@ class "TetrisPool"
 		self.RisingCubes = {}
 		self.RisingTime = s_CubeRisingInterval
 		self.ClearedLayers = 0
-		self.ShowBrickFreezeClock = (paramters.ShowBrickFreezeClock) == nil or paramters.ShowBrickFreezeClock
+		self.ShowBrickFreezeClock = (paramters.ShowBrickFreezeClock == nil) or paramters.ShowBrickFreezeClock
 		self.ControlIndicatorNodes = paramters.ControlIndicatorNodes
 		self.CleaningCubes = {}
 		self.Callbacks = paramters.Callbacks or {}
@@ -557,7 +557,7 @@ class "TetrisPool"
 		else
 			self.StillTime = 0
 
-			if g_GuiWindows then
+			if self.ShowBrickFreezeClock and g_GuiWindows then
 				g_GuiWindows.BrickFreezeClock:hide()
 			end
 		end

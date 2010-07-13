@@ -407,7 +407,19 @@ g_GameStates =
 					MusicVolume = 0.7,
 				}
 
-				g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 0, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes})
+				if g_GameConfig.GameMode == "1 PLAYER" then
+					g_ControlIndicatorNodes.Arrow:setPosition(Tanx.Vector3(6, 0, 0))
+					g_ControlIndicatorNodes.Ball:setPosition(Tanx.Vector3(-6.4, 0, 0))
+
+					g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 0, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes})
+				elseif g_GameConfig.GameMode == "VERSUS COMPUTER" then
+					g_ControlIndicatorNodes.Arrow:setPosition(Tanx.Vector3(10, 0, 0))
+					g_ControlIndicatorNodes.Ball:setPosition(Tanx.Vector3(0, 0, 0))
+
+					g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 5, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes})
+
+					g_AiGame = DigGame(g_DigLevelConfigs, g_Game, g_AiController, nil, {Center = {x = -5, z = 0}, EnableBackgroundMusic = false, FreezeTime = 0.2, ShowBrickFreezeClock = false})
+				end
 				g_ReturnTitleWaitTime = 30
 
 				g_GuiWindows.Layers:show()
@@ -420,6 +432,10 @@ g_GameStates =
 			if not state.Suspended then
 				g_PlayerGame:getPool():stop()
 				g_PlayerGame = nil
+				if g_AiGame then
+					g_AiGame:getPool():stop()
+					g_AiGame = nil
+				end
 
 				g_GuiWindows.Layers:hide()
 			end
@@ -438,6 +454,12 @@ g_GameStates =
 					end
 				end
 			end
+
+			if g_AiGame then
+				g_AiGame:step(elapsed)
+
+				g_AiGame:getPool().RootNode:setOrientation(g_PlayerGame:getPool().RootNode:getOrientation())
+			end
 		end,
 
 		keyPressed = function(state, e)
@@ -446,6 +468,9 @@ g_GameStates =
 			elseif e.key == OIS.KeyCode.RETURN then
 				if g_PlayerGame and g_PlayerGame:getPool():isEnd() then
 					g_PlayerGame:getPool():stop()
+					if g_AiGame then
+						g_AiGame:getPool():stop()
+					end
 					g_GameStateMachine:switch("Transition", "Title")
 				end
 			end
@@ -455,6 +480,9 @@ g_GameStates =
 			if button == g_ButtonMap.Start then
 				if g_PlayerGame and g_PlayerGame:getPool():isEnd() then
 					g_PlayerGame:getPool():stop()
+					if g_AiGame then
+						g_AiGame:getPool():stop()
+					end
 					g_GameStateMachine:switch("Transition", "Title")
 				else
 					suspendGaming(state)
@@ -513,6 +541,10 @@ g_GameStates =
 				if g_PlayerGame then
 					g_PlayerGame:getPool():stop()
 					g_PlayerGame = nil
+				end
+				if g_AiGame then
+					g_AiGame:getPool():stop()
+					g_AiGame = nil
 				end
 
 				g_GameStateMachine:getStateSet().Gaming.Suspended = false

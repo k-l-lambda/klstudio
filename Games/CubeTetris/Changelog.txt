@@ -1,9 +1,10 @@
 TODO:
 	versus computer game mode
-	novice tutorial
 	score system
 	settings menu
+	novice tutorial
 	big cube explosion FX
+	cooperative with computer game mode
 
 
 

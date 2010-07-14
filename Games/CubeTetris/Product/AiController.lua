@@ -233,7 +233,7 @@ end
 
 local function computeManipulatorState(self)
 	local focusbrick = self.FocusBrick:lock()
-	if focusbrick:get() and self.TargetState then
+	if focusbrick:get() and focusbrick:get():getMainNode() and self.TargetState then
 		local node = focusbrick:get():getMainNode()
 
 		self.ManipulatorState.MoveX = -s_MoveIntensity * (self.TargetState.translate.x - (node:getPosition().x - self.Center.x) / s_GridSize - 2.5)

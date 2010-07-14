@@ -27,18 +27,24 @@ g_Holders = {}
 
 g_JoyStickScheme = {
 	[0] = {
+		A = 2,
+		B = 3,
 		YawL = 5,
 		YawR = 4,
 		Start = 9,
 	},
 
 	["USB/PS2 Vibration Pad"] = {
+		A = 2,
+		B = 3,
 		YawL = 5,
 		YawR = 4,
 		Start = 9,
 	},
 
 	["USB Vibration Joystick"] = {
+		A = 2,
+		B = 3,
 		YawL = 5,
 		YawR = 4,
 		Start = 11,
@@ -383,7 +389,37 @@ local function suspendGaming(state)
 		g_PlayerGame:getPool():pause()
 	end
 
+	if g_AiGame then
+		g_AiGame:getPool():pause()
+	end
+
 	g_GameStateMachine:switch"GamingMenu"
+end
+
+local function startGame(playeronly)
+	if g_PlayerGame then
+		g_PlayerGame:getPool():stop()
+	end
+	if not playeronly and g_AiGame then
+		g_AiGame:getPool():stop()
+	end
+
+	if g_GameConfig.GameMode == "1 PLAYER" then
+		g_ControlIndicatorNodes.Arrow:setPosition(Tanx.Vector3(6, 0, 0))
+		g_ControlIndicatorNodes.Ball:setPosition(Tanx.Vector3(-6.4, 0, 0))
+
+		g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 0, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes})
+	elseif g_GameConfig.GameMode == "VERSUS COMPUTER" then
+		g_ControlIndicatorNodes.Arrow:setPosition(Tanx.Vector3(10, 0, 0))
+		g_ControlIndicatorNodes.Ball:setPosition(Tanx.Vector3(0, 0, 0))
+
+		g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 5, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes})
+
+		if not playeronly then
+			g_AiGame = DigGame(g_DigLevelConfigs, g_Game, g_AiController, nil, {Center = {x = -5, z = 0}, EnableBackgroundMusic = false, FreezeTime = 0.2, ShowBrickFreezeClock = false})
+		end
+	end
+	g_ReturnTitleWaitTime = 30
 end
 
 g_GameStates =
@@ -398,6 +434,9 @@ g_GameStates =
 				if g_PlayerGame then
 					g_PlayerGame:getPool():activate()
 				end
+				if g_AiGame then
+					g_AiGame:getPool():activate()
+				end
 			else
 				g_GameConfig =
 				{
@@ -407,20 +446,7 @@ g_GameStates =
 					MusicVolume = 0.7,
 				}
 
-				if g_GameConfig.GameMode == "1 PLAYER" then
-					g_ControlIndicatorNodes.Arrow:setPosition(Tanx.Vector3(6, 0, 0))
-					g_ControlIndicatorNodes.Ball:setPosition(Tanx.Vector3(-6.4, 0, 0))
-
-					g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 0, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes})
-				elseif g_GameConfig.GameMode == "VERSUS COMPUTER" then
-					g_ControlIndicatorNodes.Arrow:setPosition(Tanx.Vector3(10, 0, 0))
-					g_ControlIndicatorNodes.Ball:setPosition(Tanx.Vector3(0, 0, 0))
-
-					g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 5, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes})
-
-					g_AiGame = DigGame(g_DigLevelConfigs, g_Game, g_AiController, nil, {Center = {x = -5, z = 0}, EnableBackgroundMusic = false, FreezeTime = 0.2, ShowBrickFreezeClock = false})
-				end
-				g_ReturnTitleWaitTime = 30
+				startGame()
 
 				g_GuiWindows.Layers:show()
 			end
@@ -446,6 +472,9 @@ g_GameStates =
 				g_PlayerGame:step(elapsed)
 
 				local end1, end2 = g_PlayerGame:getPool():isEnd()
+				if g_AiGame then
+					end2 = end2 and g_AiGame:getPool():isEnd()
+				end
 				if end2 then
 					g_ReturnTitleWaitTime = g_ReturnTitleWaitTime - elapsed
 					if g_ReturnTitleWaitTime <= 0 then
@@ -464,15 +493,17 @@ g_GameStates =
 
 		keyPressed = function(state, e)
 			if e.key == OIS.KeyCode.ESCAPE then
-				suspendGaming(state)
-			elseif e.key == OIS.KeyCode.RETURN then
 				if g_PlayerGame and g_PlayerGame:getPool():isEnd() then
 					g_PlayerGame:getPool():stop()
 					if g_AiGame then
 						g_AiGame:getPool():stop()
 					end
 					g_GameStateMachine:switch("Transition", "Title")
+				else
+					suspendGaming(state)
 				end
+			elseif e.key == OIS.KeyCode.RETURN then
+				startGame(true)
 			end
 		end,
 
@@ -486,6 +517,12 @@ g_GameStates =
 					g_GameStateMachine:switch("Transition", "Title")
 				else
 					suspendGaming(state)
+				end
+			else
+				if g_PlayerGame and g_PlayerGame:getPool():isEnd() then
+					if arg:state().mButtons:at(g_ButtonMap.A) and arg:state().mButtons:at(g_ButtonMap.B) then
+						startGame(true)
+					end
 				end
 			end
 		end,

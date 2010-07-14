@@ -535,16 +535,27 @@ class "TetrisPool"
 				self.Controller.FocusBrick = nil
 
 				-- check whether it's end
-				if self.TopHeight and self.Heap:maxY() > self.TopHeight then
-					if self.Callbacks.onGameOver then
-						self.Callbacks.onGameOver(self)
+				if cleared_y == nil then
+					local top = 0
+					local y, _
+					for y, _ in pairs(yset) do
+						if y > top then
+							top = y
+						end
 					end
+					--Tanx.log("top: " .. top .. ", " .. self.TopHeight)
 
-					self.End = true
-					if g_Sounds then
-						g_Sounds.GameOver:get():play()
+					if self.TopHeight and top > self.TopHeight then
+						if self.Callbacks.onGameOver then
+							self.Callbacks.onGameOver(self)
+						end
+
+						self.End = true
+						if g_Sounds then
+							g_Sounds.GameOver:get():play()
+						end
+						Tanx.log("[Tetris\\TetrisPool.lua]: pool end.")
 					end
-					Tanx.log("[Tetris\\TetrisPool.lua]: pool end.")
 				end
 			else
 				if self.ShowBrickFreezeClock and g_GuiWindows then

@@ -1,12 +1,17 @@
 TODO:
 	versus computer game mode
-		restart game without leaving gaming state
+		GUI for scores
 	score system
 	settings menu
 	novice tutorial
 	big cube explosion FX
 	cooperative with computer game mode
 
+
+
+2010.7.14	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Tetris.game.lua: restart game without leaving gaming state.
 
 
 2010.7.13	K.L.	<xxxK.L.xxx@gmail.com>

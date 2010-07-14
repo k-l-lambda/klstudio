@@ -342,7 +342,7 @@ TitleState =
 	__enter = function(state)
 		g_Pool1 = TetrisPool(g_Game, g_AiController, nil, {Center = {x = 0, z = 0}, FreezeTime = 0.2, BlockLayers = 0, ShowBrickFreezeClock = false})
 
-		if g_BackgroundMusic then
+		if g_BackgroundMusic and (g_GameConfig == nil or g_GameConfig.BackgroundMusicEnabled) then
 			g_BackgroundMusic:get():stop()
 			--g_BackgroundMusic:get():play(g_TitleMusic)
 			g_NsfStream:get():toDerived():setTrack(g_MusicIndex.Title)

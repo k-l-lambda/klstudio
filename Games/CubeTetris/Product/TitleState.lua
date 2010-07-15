@@ -142,10 +142,19 @@ g_TitleStateMachine = TanxStateMachine({
 
 			parent.BlocksFillTime = 0
 
+			-- avoid to drop bricks
+			if g_Pool1 then
+				g_Pool1.Active = false
+			end
+
 			--Tanx.log("[Tetris\\TitleState.lua]: title state to: Transiting, time: " .. parent.AnimationTime, Ogre.LogMessageLevel.TRIVIAL)
 		end,
 
 		step = function(state, parent, elapsed)
+			if g_Pool1 then
+				g_Pool1:step(elapsed)
+			end
+
 			local time = (parent.AnimationTime - parent.StateTimeBegin) / s_CameraTrackLength
 			local lookatRate = math.pow(time, math.exp((0.32 - time) * 10))
 
@@ -158,7 +167,7 @@ g_TitleStateMachine = TanxStateMachine({
 			end
 			g_MainCamera:lookAt(parent.MirrorCubePosition * (1 - lookatRate) + s_CameraAxisPosition * lookatRate)
 
-			if parent.BlocksFillTime > s_BlocksFillInterval and g_Pool1:heapHeight() < s_BlocksHeight then
+			if #g_Pool1.CleaningCubes == 0 and parent.BlocksFillTime > s_BlocksFillInterval and g_Pool1:heapHeight() < s_BlocksHeight then
 				parent.BlocksFillTime = 0
 
 				g_Pool1:fillBlocksLayer()
@@ -189,6 +198,10 @@ g_TitleStateMachine = TanxStateMachine({
 
 			if g_TitlePanelStateMachine:stateKey() == "Hiden" then
 				g_TitlePanelStateMachine:switch("Sleep", parent)
+			end
+
+			if g_Pool1 then
+				g_Pool1.Active = true
 			end
 
 			--Tanx.log("[Tetris\\TitleState.lua]: title state to: Surrounding, time: " .. parent.AnimationTime, Ogre.LogMessageLevel.TRIVIAL)

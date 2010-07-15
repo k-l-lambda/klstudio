@@ -433,6 +433,8 @@ class "TetrisPool"
 
 		-- adjust camera height to ideal position
 		self:adaptCameraHeight()
+
+		self.Active = true
 	end
 
 	function TetrisPool:__finalize()
@@ -487,7 +489,7 @@ class "TetrisPool"
 				alignRigidbody(body:get():getRigidBody():get(), elapsed, self.Center)
 			end
 		else
-			if not self.End and self.FocusBrick == nil and self.BigCube == nil then
+			if self.Active and not self.End and self.FocusBrick == nil and self.BigCube == nil then
 				local config
 				self.FocusBrick, config = dropBrick(self)
 				if self.Controller then
@@ -700,12 +702,16 @@ class "TetrisPool"
 	end
 
 	function TetrisPool:pause()
+		self.Active = false
+
 		if self.FocusBrick and self.FocusBrick:get() then
 			self.FocusBrick:get():freeze()
 		end
 	end
 
 	function TetrisPool:activate()
+		self.Active = true
+
 		if self.FocusBrick and self.FocusBrick:get() then
 			self.FocusBrick:get():unfreeze()
 		end
@@ -739,7 +745,11 @@ class "TetrisPool"
 				if rbb and rbb:isFixed():get() and (event.m_collidableB:getShape():getType() == Havok.hkpShapeType.BOX or self.BigCube:get():getMainNode():getPosition().y < 1.2) then
 					--Tanx.log("[Tetris\\TetrisPool.lua]: big cube collision.")
 
-					self.Game:getWorld():detachAgent(self.BigCube)
+					local bodies = self.Game:getWorld():detachAgent(self.BigCube)
+					local i
+					for i = 0, bodies:size() - 1 do
+						table.insert(self.CleaningCubes, {body = Tanx.BodyPtr(bodies:at(i)), remain = 0.4})
+					end
 					self.BigCube = nil
 					--self.BigCubeListener = nil
 

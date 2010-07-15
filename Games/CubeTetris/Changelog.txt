@@ -4,9 +4,13 @@ TODO:
 	score system
 	settings menu
 	novice tutorial
-	big cube explosion FX
 	cooperative with computer game mode
 
+
+
+2010.7.15	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	TetrisPool.lua: big cube flicker effect added.
 
 
 2010.7.14	K.L.	<xxxK.L.xxx@gmail.com>

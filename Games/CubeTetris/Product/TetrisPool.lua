@@ -321,13 +321,6 @@ local function fillBlocks(self, height)
 end
 
 
---[[local function updateScorePanel(self)
-	if self.ScorePanel.Layers then
-		self.ScorePanel.Layers:setText(CEGUI.String(string.format("LAYERS %d", self.ClearedLayers)))
-	end
-end--]]
-
-
 class "SimpleCollisionListener" (Tanx.CollisionListener)
 
 	function SimpleCollisionListener:__init(cpcomfirmed)
@@ -430,8 +423,6 @@ class "TetrisPool"
 			fillBlocks(self, paramters.BlockLayers)
 		end
 
-		--updateScorePanel(self)
-
 		-- adjust camera height to ideal position
 		self:adaptCameraHeight()
 
@@ -476,9 +467,6 @@ class "TetrisPool"
 									self.Callbacks.onLayersCleared(self, y, {y})
 								end
 
-								--self.ClearedLayers = self.ClearedLayers + 1
-								--updateScorePanel(self)
-
 								activateBodies(self, y)
 								self.BodiesActiveTime = s_InitBodiesActiveTime
 							end
@@ -512,8 +500,8 @@ class "TetrisPool"
 				removeCollisionListenerForAgent(self.FocusBrick, g_FocusBrickCollisionListener)
 				local yset = fillBrickToHeap(self, self.FocusBrick)
 
-				if self.Callbacks.onBrickFreezed then
-					self.Callbacks.onBrickFreezed(self, yset)
+				if self.Callbacks.onBrickFrozen then
+					self.Callbacks.onBrickFrozen(self, yset)
 				end
 
 				-- clear layers
@@ -522,8 +510,6 @@ class "TetrisPool"
 				local layers = {}
 				for y, v in pairs(yset) do
 					if checkClearLayer(self, y) then
-						--self.ClearedLayers = self.ClearedLayers + 1
-
 						table.insert(layers, y)
 						cleared_y = math.min(cleared_y or y, y)
 					end
@@ -533,8 +519,6 @@ class "TetrisPool"
 					if self.Callbacks.onLayersCleared then
 						self.Callbacks.onLayersCleared(self, cleared_y, layers)
 					end
-
-					--updateScorePanel(self)
 
 					activateBodies(self, cleared_y)
 					self.BodiesActiveTime = s_InitBodiesActiveTime

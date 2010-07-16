@@ -41,7 +41,7 @@ class "DigGame"
 			Callbacks = {
 				onLayersCleared = Tanx.bind(self.onPoolLayersCleared, self, Tanx._2, Tanx._3),
 				onDropingBrick = Tanx.bind(self.onPoolDropingBrick, self),
-				onBrickFreezed = Tanx.bind(self.onPoolBrickFreezed, self, Tanx._2),
+				onBrickFrozen = Tanx.bind(self.onPoolBrickFrozen, self, Tanx._2),
 				onGameOver = Tanx.bind(self.onPoolGameOver, self),
 				},
 			})
@@ -150,7 +150,7 @@ class "DigGame"
 		end
 	end
 
-	function DigGame:onPoolBrickFreezed(yset)
+	function DigGame:onPoolBrickFrozen(yset)
 		local height = 0
 		local count = 0
 		local y, _

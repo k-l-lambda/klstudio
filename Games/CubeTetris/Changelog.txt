@@ -1,11 +1,16 @@
 TODO:
-	versus computer game mode
-		GUI for scores
 	score system
+		score label
+	next brick viewer
 	settings menu
 	novice tutorial
 	cooperative with computer game mode
 
+
+
+2010.7.16	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	DigGame.lua: score GUI implemented.
 
 
 2010.7.15	K.L.	<xxxK.L.xxx@gmail.com>

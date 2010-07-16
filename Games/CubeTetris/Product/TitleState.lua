@@ -97,7 +97,8 @@ g_TitleStateMachine = TanxStateMachine({
 			g_GuiWindows.PromptStart:hide()
 			g_GuiWindows.Close:hide()
 			g_GuiWindows.BrickFreezeClock:hide()
-			g_GuiWindows.Layers:hide()
+			g_GuiWindows.ScorePanel1.Frame:hide()
+			g_GuiWindows.ScorePanel2.Frame:hide()
 			g_GuiSystem:hideMouseCursor()
 
 			parent.ActiveLayer = 21
@@ -191,9 +192,8 @@ g_TitleStateMachine = TanxStateMachine({
 			clearAnimation()
 			g_CameraNode:setOrientation(Tanx.Quaternion(Tanx.Radian(-math.pi / 2), Tanx.Vector3.UNIT_Y))
 
-			--g_GuiWindows.PromptStart:show()
 			g_GuiWindows.Close:show()
-			g_GuiWindows.Layers:show()
+			--g_GuiWindows.Layers:show()
 			g_GuiSystem:setDefaultMouseCursor(CEGUI.String"TaharezLook", CEGUI.String"MouseArrow")
 
 			if g_TitlePanelStateMachine:stateKey() == "Hiden" then
@@ -382,7 +382,7 @@ TitleState =
 		g_GuiWindows.PromptStart:hide()
 		g_GuiWindows.InitialPanel:hide()
 		g_GuiWindows.Close:hide()
-		g_GuiWindows.Layers:hide()
+		--g_GuiWindows.Layers:hide()
 
 		if g_BackgroundMusic then
 			g_BackgroundMusic:get():stop()

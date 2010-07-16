@@ -321,11 +321,11 @@ local function fillBlocks(self, height)
 end
 
 
-local function updateLayersLabel(value)
-	if g_GuiWindows then
-		g_GuiWindows.Layers:setText(CEGUI.String(string.format("LAYERS: %d", value)))
+--[[local function updateScorePanel(self)
+	if self.ScorePanel.Layers then
+		self.ScorePanel.Layers:setText(CEGUI.String(string.format("LAYERS %d", self.ClearedLayers)))
 	end
-end
+end--]]
 
 
 class "SimpleCollisionListener" (Tanx.CollisionListener)
@@ -400,11 +400,12 @@ class "TetrisPool"
 		self.End = false
 		self.RisingCubes = {}
 		self.RisingTime = s_CubeRisingInterval
-		self.ClearedLayers = 0
+		--self.ClearedLayers = 0
 		self.ShowBrickFreezeClock = (paramters.ShowBrickFreezeClock == nil) or paramters.ShowBrickFreezeClock
 		self.ControlIndicatorNodes = paramters.ControlIndicatorNodes
 		self.CleaningCubes = {}
 		self.Callbacks = paramters.Callbacks or {}
+		self.ScorePanel = paramters.ScorePanel or {}
 
 		if self.Controller then
 			self.Controller.Center = self.Center
@@ -429,7 +430,7 @@ class "TetrisPool"
 			fillBlocks(self, paramters.BlockLayers)
 		end
 
-		updateLayersLabel(self.ClearedLayers)
+		--updateScorePanel(self)
 
 		-- adjust camera height to ideal position
 		self:adaptCameraHeight()
@@ -471,8 +472,12 @@ class "TetrisPool"
 
 							-- clear layer during body active time
 							if checkClearLayer(self, y) then
-								self.ClearedLayers = self.ClearedLayers + 1
-								updateLayersLabel(self.ClearedLayers)
+								if self.Callbacks.onLayersCleared then
+									self.Callbacks.onLayersCleared(self, y, {y})
+								end
+
+								--self.ClearedLayers = self.ClearedLayers + 1
+								--updateScorePanel(self)
 
 								activateBodies(self, y)
 								self.BodiesActiveTime = s_InitBodiesActiveTime
@@ -507,13 +512,17 @@ class "TetrisPool"
 				removeCollisionListenerForAgent(self.FocusBrick, g_FocusBrickCollisionListener)
 				local yset = fillBrickToHeap(self, self.FocusBrick)
 
+				if self.Callbacks.onBrickFreezed then
+					self.Callbacks.onBrickFreezed(self, yset)
+				end
+
 				-- clear layers
 				local y, v
 				local cleared_y
 				local layers = {}
 				for y, v in pairs(yset) do
 					if checkClearLayer(self, y) then
-						self.ClearedLayers = self.ClearedLayers + 1
+						--self.ClearedLayers = self.ClearedLayers + 1
 
 						table.insert(layers, y)
 						cleared_y = math.min(cleared_y or y, y)
@@ -525,7 +534,7 @@ class "TetrisPool"
 						self.Callbacks.onLayersCleared(self, cleared_y, layers)
 					end
 
-					updateLayersLabel(self.ClearedLayers)
+					--updateScorePanel(self)
 
 					activateBodies(self, cleared_y)
 					self.BodiesActiveTime = s_InitBodiesActiveTime
@@ -770,6 +779,8 @@ class "TetrisPool"
 	function TetrisPool:fillBlocksLayer(layer, material, space)
 		layer = layer or self.Heap:maxY() + 1
 		fillBlocksLayer(self, layer, material, space)
+
+		return layer
 	end
 
 	function TetrisPool:setTopHeight(height)
@@ -796,7 +807,7 @@ class "TetrisPool"
 			end
 		end
 
-		height = math.min(height, self.TopHeight - 8)
+		height = math.min(height, self.TopHeight - 0)
 		height = math.max(height, 16)
 
 		return height

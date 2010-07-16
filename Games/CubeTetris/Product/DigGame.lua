@@ -32,26 +32,40 @@ class "DigGame"
 		-- initial pool
 		self.Pool = TetrisPool(game, controller, cameranode, {
 			ControlIndicatorNodes = paramters.ControlIndicatorNodes,
-			TopHeight = blockheight + 10,
-			Center = paramters.Center,
-			RootNode = paramters.RootNode,
-			FreezeTime = paramters.FreezeTime,
-			ShowBrickFreezeClock = paramters.ShowBrickFreezeClock,
+			TopHeight				= blockheight + 10,
+			Center					= paramters.Center,
+			RootNode				= paramters.RootNode,
+			FreezeTime				= paramters.FreezeTime,
+			ShowBrickFreezeClock	= paramters.ShowBrickFreezeClock,
+			--ScorePanel				= paramters.ScorePanel,
 			Callbacks = {
 				onLayersCleared = Tanx.bind(self.onPoolLayersCleared, self, Tanx._2, Tanx._3),
 				onDropingBrick = Tanx.bind(self.onPoolDropingBrick, self),
+				onBrickFreezed = Tanx.bind(self.onPoolBrickFreezed, self, Tanx._2),
 				onGameOver = Tanx.bind(self.onPoolGameOver, self),
 				},
 			})
+		self.BlockLayers = {}
 		for i = #self.Configs, g_GameConfig.BeginLevel, -1 do
 			local config = self.Configs[i]
 			for ii = 1, config.BlockLayers do
-				self.Pool:fillBlocksLayer(nil, config.ColorCode, config.LayerSpace)
+				local layer = self.Pool:fillBlocksLayer(nil, config.ColorCode, config.LayerSpace)
+
+				self.BlockLayers[layer] = i
 			end
 		end
 		self.Pool:adaptCameraHeight()
 
 		self:beginLevel(g_GameConfig.BeginLevel)
+
+		self.ClearedLayers = 0
+		self.Score = 0
+
+		self.ScorePanel = paramters.ScorePanel or {}
+		self:updateScorePanel()
+		if self.ScorePanel.Frame then
+			self.ScorePanel.Frame:show()
+		end
 	end
 
 	function DigGame:__finalize()
@@ -111,6 +125,23 @@ class "DigGame"
 			Tanx.log("[Tetris\\DigGame.lua]: level up: " .. self.CurrentLevel + 1)
 			self:beginLevel(self.CurrentLevel + 1)
 		end
+
+		local i, layer
+		local bonus = 0
+		for i, layer in ipairs(layers) do
+			if self.BlockLayers[layer] then
+				bonus = bonus + self.BlockLayers[layer] * (#layers) * 16
+
+				self.BlockLayers[layer] = nil
+			else
+				bonus = bonus + math.floor(self.CurrentLevel * (8 + math.max(8 - self.Pool.TopHeight + layer, 0)))
+			end
+		end
+		Tanx.log("bonus: " .. bonus)
+		self.Score = self.Score + bonus
+
+		self.ClearedLayers = self.ClearedLayers + #layers
+		self:updateScorePanel()
 	end
 
 	function DigGame:onPoolDropingBrick()
@@ -119,8 +150,36 @@ class "DigGame"
 		end
 	end
 
+	function DigGame:onPoolBrickFreezed(yset)
+		local height = 0
+		local count = 0
+		local y, _
+		for y, _ in pairs(yset) do
+			count = count + 1
+			height = height + y
+		end
+		height = height / count
+
+		local bonus = math.floor(math.max(50 - height, 1))
+		Tanx.log("bonus: " .. bonus)
+		self.Score = self.Score + bonus
+		self:updateScorePanel()
+	end
+
 	function DigGame:onPoolGameOver()
 		if g_BackgroundMusic then
 			g_BackgroundMusic:get():stop()
+		end
+	end
+
+	function DigGame:updateScorePanel()
+		if self.ScorePanel.Score then
+			self.ScorePanel.Score:setText(CEGUI.String(string.format("SCORE  %d", self.Score)))
+		end
+		if self.ScorePanel.Layers then
+			self.ScorePanel.Layers:setText(CEGUI.String(string.format("LAYERS %d", self.ClearedLayers)))
+		end
+		if self.ScorePanel.Level then
+			self.ScorePanel.Level:setText(CEGUI.String(string.format("LEVEL    %d", self.CurrentLevel)))
 		end
 	end

@@ -119,14 +119,73 @@
 			</Window>
 		</Window>
 
-		<Window Type="TaharezLook/StaticText" Name="Tetris/Layers">
-			<Property Name="UnifiedPosition" Value="{{0.09,0},{0.02,0}}}" />
-			<Property Name="UnifiedSize" Value="{{0.3,0},{0.04,0}}" />
-			<Property Name="Text" Value="LAYERS:" />
-			<Property Name="Font" Value="Tetris/BlueBold-24" />
-			<Property Name="TextColours" Value="tl:E0000000 tr:E0000000 bl:E0000000 br:E0000000" />
-			<Property Name="BackgroundEnabled" Value="false" />
-			<Property Name="FrameEnabled" Value="false" />
+		<Window Type="DefaultWindow" Name="Tetris/ScorePanel1">
+			<Property Name="UnifiedAreaRect" Value="{{0.04,0},{0.02,0},{0.34,0},{0.18,0}}" />
+
+			<Window Type="TaharezLook/StaticText" Name="Tetris/ScorePanel1/Score">
+				<Property Name="UnifiedPosition" Value="{{0,0},{0,0}}}" />
+				<Property Name="UnifiedSize" Value="{{1,0},{0.33,0}}" />
+				<Property Name="Text" Value="SCORE" />
+				<Property Name="Font" Value="Tetris/BlueBold-24" />
+				<Property Name="TextColours" Value="tl:E0000000 tr:E0000000 bl:E0000000 br:E0000000" />
+				<Property Name="BackgroundEnabled" Value="false" />
+				<Property Name="FrameEnabled" Value="false" />
+			</Window>
+
+			<Window Type="TaharezLook/StaticText" Name="Tetris/ScorePanel1/Layers">
+				<Property Name="UnifiedPosition" Value="{{0,0},{0.33,0}}}" />
+				<Property Name="UnifiedSize" Value="{{1,0},{0.33,0}}" />
+				<Property Name="Text" Value="LAYERS" />
+				<Property Name="Font" Value="Tetris/BlueBold-24" />
+				<Property Name="TextColours" Value="tl:E0000000 tr:E0000000 bl:E0000000 br:E0000000" />
+				<Property Name="BackgroundEnabled" Value="false" />
+				<Property Name="FrameEnabled" Value="false" />
+			</Window>
+
+			<Window Type="TaharezLook/StaticText" Name="Tetris/ScorePanel1/Level">
+				<Property Name="UnifiedPosition" Value="{{0,0},{0.66,0}}}" />
+				<Property Name="UnifiedSize" Value="{{1,0},{0.33,0}}" />
+				<Property Name="Text" Value="LEVEL" />
+				<Property Name="Font" Value="Tetris/BlueBold-24" />
+				<Property Name="TextColours" Value="tl:E0000000 tr:E0000000 bl:E0000000 br:E0000000" />
+				<Property Name="BackgroundEnabled" Value="false" />
+				<Property Name="FrameEnabled" Value="false" />
+			</Window>
+		</Window>
+
+		<Window Type="DefaultWindow" Name="Tetris/ScorePanel2">
+			<Property Name="UnifiedAreaRect" Value="{{0.66,0},{0.02,0},{0.96,0},{0.18,0}}" />
+			<Property Name="Visible" Value="false" />
+
+			<Window Type="TaharezLook/StaticText" Name="Tetris/ScorePanel2/Score">
+				<Property Name="UnifiedPosition" Value="{{0,0},{0,0}}}" />
+				<Property Name="UnifiedSize" Value="{{1,0},{0.33,0}}" />
+				<Property Name="Text" Value="SCORE" />
+				<Property Name="Font" Value="Tetris/BlueBold-24" />
+				<Property Name="TextColours" Value="tl:E0000000 tr:E0000000 bl:E0000000 br:E0000000" />
+				<Property Name="BackgroundEnabled" Value="false" />
+				<Property Name="FrameEnabled" Value="false" />
+			</Window>
+
+			<Window Type="TaharezLook/StaticText" Name="Tetris/ScorePanel2/Layers">
+				<Property Name="UnifiedPosition" Value="{{0,0},{0.33,0}}}" />
+				<Property Name="UnifiedSize" Value="{{1,0},{0.33,0}}" />
+				<Property Name="Text" Value="LAYERS" />
+				<Property Name="Font" Value="Tetris/BlueBold-24" />
+				<Property Name="TextColours" Value="tl:E0000000 tr:E0000000 bl:E0000000 br:E0000000" />
+				<Property Name="BackgroundEnabled" Value="false" />
+				<Property Name="FrameEnabled" Value="false" />
+			</Window>
+
+			<Window Type="TaharezLook/StaticText" Name="Tetris/ScorePanel2/Level">
+				<Property Name="UnifiedPosition" Value="{{0,0},{0.66,0}}}" />
+				<Property Name="UnifiedSize" Value="{{1,0},{0.33,0}}" />
+				<Property Name="Text" Value="LEVEL" />
+				<Property Name="Font" Value="Tetris/BlueBold-24" />
+				<Property Name="TextColours" Value="tl:E0000000 tr:E0000000 bl:E0000000 br:E0000000" />
+				<Property Name="BackgroundEnabled" Value="false" />
+				<Property Name="FrameEnabled" Value="false" />
+			</Window>
 		</Window>
 
 	</Window>

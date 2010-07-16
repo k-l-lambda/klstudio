@@ -171,11 +171,25 @@ function initialize(game)
 		InitialPanelStart				= windowManager:getWindow(CEGUI.String"Tetris/InitialPanel/Start"),
 		Close							= windowManager:getWindow(CEGUI.String"Tetris/Close"),
 		BrickFreezeClock				= windowManager:getWindow(CEGUI.String"Tetris/BrickFreezeClock"),
-		Layers							= windowManager:getWindow(CEGUI.String"Tetris/Layers"),
+		--Layers							= windowManager:getWindow(CEGUI.String"Tetris/Layers"),
 		GamingMenu						= windowManager:getWindow(CEGUI.String"Tetris/GamingMenu"),
 		GamingMenu_Resume				= windowManager:getWindow(CEGUI.String"Tetris/GamingMenu/Resume"),
 		GamingMenu_Restart				= windowManager:getWindow(CEGUI.String"Tetris/GamingMenu/Restart"),
 		GamingMenu_Exit					= windowManager:getWindow(CEGUI.String"Tetris/GamingMenu/Exit"),
+		ScorePanel1 =
+		{
+			Frame						= windowManager:getWindow(CEGUI.String"Tetris/ScorePanel1"),
+			Score						= windowManager:getWindow(CEGUI.String"Tetris/ScorePanel1/Score"),
+			Layers						= windowManager:getWindow(CEGUI.String"Tetris/ScorePanel1/Layers"),
+			Level						= windowManager:getWindow(CEGUI.String"Tetris/ScorePanel1/Level"),
+		},
+		ScorePanel2 =
+		{
+			Frame						= windowManager:getWindow(CEGUI.String"Tetris/ScorePanel2"),
+			Score						= windowManager:getWindow(CEGUI.String"Tetris/ScorePanel2/Score"),
+			Layers						= windowManager:getWindow(CEGUI.String"Tetris/ScorePanel2/Layers"),
+			Level						= windowManager:getWindow(CEGUI.String"Tetris/ScorePanel2/Level"),
+		},
 	}
 	g_GuiWindows.InitialPanelGameMode:addItem(CEGUI.ListboxTextItem.new(CEGUI.String"1 PLAYER", 0))
 	g_GuiWindows.InitialPanelGameMode:addItem(CEGUI.ListboxTextItem.new(CEGUI.String"VERSUS COMPUTER", 1))
@@ -408,15 +422,15 @@ local function startGame(playeronly)
 		g_ControlIndicatorNodes.Arrow:setPosition(Tanx.Vector3(6, 0, 0))
 		g_ControlIndicatorNodes.Ball:setPosition(Tanx.Vector3(-6.4, 0, 0))
 
-		g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 0, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes})
+		g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 0, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes, ScorePanel = g_GuiWindows.ScorePanel1})
 	elseif g_GameConfig.GameMode == "VERSUS COMPUTER" then
 		g_ControlIndicatorNodes.Arrow:setPosition(Tanx.Vector3(10, 0, 0))
 		g_ControlIndicatorNodes.Ball:setPosition(Tanx.Vector3(0, 0, 0))
 
-		g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 5, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes})
+		g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 5, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes, ScorePanel = g_GuiWindows.ScorePanel1})
 
 		if not playeronly then
-			g_AiGame = DigGame(g_DigLevelConfigs, g_Game, g_AiController, nil, {Center = {x = -5, z = 0}, EnableBackgroundMusic = false, FreezeTime = 0.2, ShowBrickFreezeClock = false})
+			g_AiGame = DigGame(g_DigLevelConfigs, g_Game, g_AiController, nil, {Center = {x = -5, z = 0}, EnableBackgroundMusic = false, FreezeTime = 0.2, ShowBrickFreezeClock = false, ScorePanel = g_GuiWindows.ScorePanel2})
 		end
 	end
 	g_ReturnTitleWaitTime = 30
@@ -447,8 +461,6 @@ g_GameStates =
 				}
 
 				startGame()
-
-				g_GuiWindows.Layers:show()
 			end
 
 			g_GuiSystem:hideMouseCursor()
@@ -463,7 +475,8 @@ g_GameStates =
 					g_AiGame = nil
 				end
 
-				g_GuiWindows.Layers:hide()
+				g_GuiWindows.ScorePanel1.Frame:hide()
+				g_GuiWindows.ScorePanel2.Frame:hide()
 			end
 		end,
 

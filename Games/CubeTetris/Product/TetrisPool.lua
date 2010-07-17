@@ -49,6 +49,9 @@ local s_DefaultTopHeight = 30
 
 local s_CubeRisingInterval = 0.08
 
+local s_ActiveBrickGroupId = 1
+local s_PreparativeBrickGroupId = 2
+
 
 local function createTopBoardConfig()
 	local config = Tanx.EntityAppearanceConfig()
@@ -64,27 +67,49 @@ local s_TopBoardConfig = s_TopBoardConfig or createTopBoardConfig()
 
 
 local function addCollisionListenerForAgent(agent, listener)
-	local i
+	--[[local i
 	for i = 0, agent:get():getBodies():size() - 1 do
 		agent:get():getBodies():at(i):get():addCollisionListener(listener)
-	end
+	end]]
+	agent:get():traverseBodies(function(body)
+		body:get():addCollisionListener(listener)
+	end)
 end
 
 local function removeCollisionListenerForAgent(agent, listener)
-	local i
+	--[[local i
 	for i = 0, agent:get():getBodies():size() - 1 do
 		agent:get():getBodies():at(i):get():removeCollisionListener(listener)
-	end
+	end]]
+	agent:get():traverseBodies(function(body)
+		body:get():removeCollisionListener(listener)
+	end)
 end
 
+
+local function prepareBrick(self)
+	local config = s_BrickConfigNames[self.Random(#s_BrickConfigNames)]
+	self.PreparativeBrick = Tanx.AgentPtr(self.Game:getWorld():createAgent(self.AgentsNode, config, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 1e-3, self.TopHeight + s_GridYSize, self.Center.z - 1e-3))))
+	self.PreparativeBrick:get():setCollisionFilterInfo(s_PreparativeBrickGroupId)
+	self.PreparativeBrick:get():freeze()
+	self.PreparativeBrick.config = config
+
+	return self.PreparativeBrick
+end
 
 local function dropBrick(self)
 	if self.Callbacks.onDropingBrick then
 		self.Callbacks.onDropingBrick(self)
 	end
 
-	local config = s_BrickConfigNames[self.Random(#s_BrickConfigNames)]
+	--[[local config = s_BrickConfigNames[self.Random(#s_BrickConfigNames)]
 	local brick = Tanx.AgentPtr(self.Game:getWorld():createAgent(self.AgentsNode, config, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 1e-3, self.TopHeight + s_GridYSize, self.Center.z - 1e-3))))
+	brick.config = config]]
+	local brick = self.PreparativeBrick or prepareBrick(self)
+	brick:get():unfreeze()
+	brick:get():setCollisionFilterInfo(s_ActiveBrickGroupId)
+
+	self.PreparativeBrick = nil
 
 	self.FocusBrickAction = FocusBrickAction(brick, self)
 	self.Game:getWorld():addAction(Havok.hkpActionPtr(self.FocusBrickAction))
@@ -95,7 +120,7 @@ local function dropBrick(self)
 
 	Tanx.log("[Tetris\\TetrisPool.lua]: brick dropped.", Ogre.LogMessageLevel.TRIVIAL)
 
-	return brick, config
+	return brick
 end
 
 
@@ -484,11 +509,13 @@ class "TetrisPool"
 			end
 		else
 			if self.Active and not self.End and self.FocusBrick == nil and self.BigCube == nil then
-				local config
-				self.FocusBrick, config = dropBrick(self)
+				self.FocusBrick = dropBrick(self)
 				if self.Controller then
-					self.Controller:brickDropped(Tanx.AgentWeakPtr(self.FocusBrick), config)
+					self.Controller:brickDropped(Tanx.AgentWeakPtr(self.FocusBrick), self.FocusBrick.config)
 				end
+
+				-- prepare next brick
+				prepareBrick(self)
 			end
 		end
 
@@ -668,6 +695,11 @@ class "TetrisPool"
 		if self.FocusBrick then
 			removeCollisionListenerForAgent(self.FocusBrick, g_FocusBrickCollisionListener)
 			self.Game:getWorld():detachAgent(self.FocusBrick)
+		end
+
+		if self.PreparativeBrick then
+			self.Game:getWorld():detachAgent(self.PreparativeBrick)
+			self.PreparativeBrick = nil
 		end
 
 		self.RisingCubes = {}

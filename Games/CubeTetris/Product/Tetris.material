@@ -183,6 +183,17 @@ material Tetris/Reflection
 	}
 }
 
+abstract pass Tetris/ReflectionPass
+{
+	texture_unit	CylinderBackground
+	{
+		colour_op_ex	blend_manual src_texture src_current 0.8
+		texture			"cylinder background.png" cubic
+		scale			0.4 0.4
+		env_map			cubic_reflection
+	}
+}
+
 material Tetris/TitleMirror
 {
 	technique
@@ -215,7 +226,7 @@ material Tetris/Brick/White
 {
 	technique
 	{
-		pass
+		pass : Tetris/ReflectionPass
 		{
 			ambient		1 1 1
 			diffuse		1 1 1
@@ -228,7 +239,7 @@ material Tetris/Brick/Black
 {
 	technique
 	{
-		pass
+		pass : Tetris/ReflectionPass
 		{
 			ambient		0 0 0
 			diffuse		0.1 0.1 0.1
@@ -241,7 +252,7 @@ material Tetris/Brick/Red
 {
 	technique
 	{
-		pass
+		pass : Tetris/ReflectionPass
 		{
 			ambient		1 0 0
 			diffuse		1 0 0
@@ -254,7 +265,7 @@ material Tetris/Brick/Green
 {
 	technique
 	{
-		pass
+		pass : Tetris/ReflectionPass
 		{
 			ambient		0 1 0
 			diffuse		0 1 0
@@ -267,7 +278,7 @@ material Tetris/Brick/Blue
 {
 	technique
 	{
-		pass
+		pass : Tetris/ReflectionPass
 		{
 			ambient		0 0 1
 			diffuse		0 0 1
@@ -280,7 +291,7 @@ material Tetris/Brick/Yellow
 {
 	technique
 	{
-		pass
+		pass : Tetris/ReflectionPass
 		{
 			ambient		0.9 0.6 0
 			diffuse		0.9 0.6 0
@@ -293,7 +304,7 @@ material Tetris/Brick/Brown
 {
 	technique
 	{
-		pass
+		pass : Tetris/ReflectionPass
 		{
 			ambient		0.4 0.2 0.1
 			diffuse		0.4 0.2 0.1
@@ -306,7 +317,7 @@ material Tetris/Brick/Cyan
 {
 	technique
 	{
-		pass
+		pass : Tetris/ReflectionPass
 		{
 			ambient		0 0.7 0.8
 			diffuse		0 0.7 0.8
@@ -319,7 +330,7 @@ material Tetris/Brick/Pink
 {
 	technique
 	{
-		pass
+		pass : Tetris/ReflectionPass
 		{
 			ambient		1 0.3 0.8
 			diffuse		1 0.3 0.8
@@ -332,7 +343,7 @@ material Tetris/Brick/Purple
 {
 	technique
 	{
-		pass
+		pass : Tetris/ReflectionPass
 		{
 			ambient		0.5 0 0.9
 			diffuse		0.5 0 0.9

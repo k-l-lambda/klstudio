@@ -353,6 +353,7 @@ end
 TitleState =
 {
 	__enter = function(state)
+		g_AiController.PullDown = 0.12
 		g_Pool1 = TetrisPool(g_Game, g_AiController, nil, {Center = {x = 0, z = 0}, FreezeTime = 0.2, BlockLayers = 0, ShowBrickFreezeClock = false})
 
 		if g_BackgroundMusic and (g_GameConfig == nil or g_GameConfig.BackgroundMusicEnabled) then

@@ -28,7 +28,7 @@ g_DigLevelConfigs =
 		ColorCode		= 2,
 		Music			= "Music3",
 		LayerSpace		= {min = 1, max = 3},
-		Descend			= 0.1,
+		Descend			= 0.08,
 	},
 
 	[3] =
@@ -37,7 +37,7 @@ g_DigLevelConfigs =
 		ColorCode		= 3,
 		Music			= "Music2",
 		LayerSpace		= {min = 2, max = 3},
-		Descend			= 0.14,
+		Descend			= 0.16,
 	},
 
 	[4] =
@@ -46,7 +46,7 @@ g_DigLevelConfigs =
 		ColorCode		= 4,
 		Music			= "Music1",
 		LayerSpace		= {min = 3, max = 4},
-		Descend			= 0.18,
+		Descend			= 0.16,
 	},
 
 	[5] =
@@ -55,6 +55,6 @@ g_DigLevelConfigs =
 		ColorCode		= 9,
 		Music			= "Music4",
 		LayerSpace		= {min = 3, max = 7},
-		Descend			= 0.3,
+		Descend			= 0.24,
 	},
 }

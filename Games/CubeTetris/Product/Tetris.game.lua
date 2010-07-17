@@ -20,6 +20,7 @@ Tanx.dofile"TetrisPool.lua"
 Tanx.dofile"TitleState.lua"
 Tanx.dofile"DigGame.lua"
 Tanx.dofile"LevelConfigs.lua"
+Tanx.dofile"RandomSequence.lua"
 
 
 -- holder lua objects in a table to prevent garbage recycling
@@ -422,15 +423,16 @@ local function startGame(playeronly)
 		g_ControlIndicatorNodes.Arrow:setPosition(Tanx.Vector3(6, 0, 0))
 		g_ControlIndicatorNodes.Ball:setPosition(Tanx.Vector3(-6.4, 0, 0))
 
-		g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 0, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes, ScorePanel = g_GuiWindows.ScorePanel1})
+		g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 0, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes, ScorePanel = g_GuiWindows.ScorePanel1, Random = g_RandomSeq:newIterator()})
 	elseif g_GameConfig.GameMode == "VERSUS COMPUTER" then
 		g_ControlIndicatorNodes.Arrow:setPosition(Tanx.Vector3(10, 0, 0))
 		g_ControlIndicatorNodes.Ball:setPosition(Tanx.Vector3(0, 0, 0))
 
-		g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 5, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes, ScorePanel = g_GuiWindows.ScorePanel1})
+		g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 5, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes, ScorePanel = g_GuiWindows.ScorePanel1, Random = g_RandomSeq:newIterator()})
 
 		if not playeronly then
-			g_AiGame = DigGame(g_DigLevelConfigs, g_Game, g_AiController, nil, {Center = {x = -5, z = 0}, EnableBackgroundMusic = false, FreezeTime = 0.2, ShowBrickFreezeClock = false, ScorePanel = g_GuiWindows.ScorePanel2})
+			g_AiController.PullDown = 0.02
+			g_AiGame = DigGame(g_DigLevelConfigs, g_Game, g_AiController, nil, {Center = {x = -5, z = 0}, EnableBackgroundMusic = false, FreezeTime = 0.2, ShowBrickFreezeClock = false, ScorePanel = g_GuiWindows.ScorePanel2, Random = g_RandomSeq:newIterator()})
 		end
 	end
 	g_ReturnTitleWaitTime = 30
@@ -459,6 +461,8 @@ g_GameStates =
 					BackgroundMusicEnabled = g_GuiWindows.InitialPanelBackgroundMusic:isSelected(),
 					MusicVolume = 0.7,
 				}
+
+				g_RandomSeq = RandomSequence()
 
 				startGame()
 			end

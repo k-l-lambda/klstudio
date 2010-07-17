@@ -10,6 +10,8 @@ TODO:
 
 2010.7.17	K.L.	<xxxK.L.xxx@gmail.com>
 
+	+	TetrisPool.lua: PreparativeBrick added.
+
 	+	RandomSequence.lua: created, implemented.
 
 

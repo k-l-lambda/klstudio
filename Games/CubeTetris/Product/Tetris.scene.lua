@@ -27,7 +27,7 @@ g_BrickConfigNames =
 }
 
 
-function makeBrickMaterials()
+--[[function makeBrickMaterials()
 	local mm = Ogre.MaterialManager.getSingleton()
 	local reflection = mm:getByName("Tetris/Reflection"):get():toDerived()
 
@@ -47,14 +47,14 @@ function makeBrickMaterials()
 	make"Tetris/Brick/Cyan"
 	make"Tetris/Brick/Pink"
 	make"Tetris/Brick/Purple"
-end
+end]]
 
 
 function initialize(world)
 	g_World = world
 	world:reset()
 
-	makeBrickMaterials()
+	--makeBrickMaterials()
 
 	local light = Tanx.LightAppearanceConfig()
 	light.LightType = Ogre.Light.LightTypes.DIRECTIONAL

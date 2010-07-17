@@ -8,6 +8,11 @@ TODO:
 
 
 
+2010.7.17	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	RandomSequence.lua: created, implemented.
+
+
 2010.7.16	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	DigGame.lua: score GUI implemented.

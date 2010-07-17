@@ -83,7 +83,7 @@ local function dropBrick(self)
 		self.Callbacks.onDropingBrick(self)
 	end
 
-	local config = s_BrickConfigNames[Tanx.random(#s_BrickConfigNames)]
+	local config = s_BrickConfigNames[self.Random(#s_BrickConfigNames)]
 	local brick = Tanx.AgentPtr(self.Game:getWorld():createAgent(self.AgentsNode, config, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 1e-3, self.TopHeight + s_GridYSize, self.Center.z - 1e-3))))
 
 	self.FocusBrickAction = FocusBrickAction(brick, self)
@@ -296,7 +296,7 @@ local function fillBlocksLayer(self, y, mat_index, space)
 	for x = 1, 4 do
 		for z = 1, 4 do
 			local uc = Tanx.UnitConfig(self.Game:getWorld():getUnitConfig"Tetris/Brick1_0")
-			local material = s_BrickMaterials[mat_index or Tanx.random(#s_BrickMaterials)]
+			local material = s_BrickMaterials[mat_index or self.Random(#s_BrickMaterials)]
 			local f
 			for f = 0, 5 do
 				uc.Nodes:at(0).Appearances:at(0):get():toDerived().MaterialMap:at(f).MaterialName = material
@@ -308,8 +308,8 @@ local function fillBlocksLayer(self, y, mat_index, space)
 	end
 
 	local i
-	for i = 1, space.min + Tanx.random(space.max - space.min + 1) - 1 do
-		self.Heap:set(Tanx.random(4), y, Tanx.random(4))
+	for i = 1, space.min + self.Random(space.max - space.min + 1) - 1 do
+		self.Heap:set(self.Random(4), y, self.Random(4))
 	end
 end
 
@@ -399,6 +399,7 @@ class "TetrisPool"
 		self.CleaningCubes = {}
 		self.Callbacks = paramters.Callbacks or {}
 		self.ScorePanel = paramters.ScorePanel or {}
+		self.Random = paramters.Random or Tanx.random
 
 		if self.Controller then
 			self.Controller.Center = self.Center
@@ -584,7 +585,7 @@ class "TetrisPool"
 							if type(cube) == "userdata" then
 								cube:get():unfreeze()
 								cube:get():getNode():getChild(0):toDerived():getAttachedObject(0):toDerived():setMaterialName("Tetris/Brick/Crystalloid")
-								table.insert(self.RisingCubes, {cube = cube, force = Tanx.random() * 18 + 12})
+								table.insert(self.RisingCubes, {cube = cube, force = self.Random() * 18 + 12})
 							end
 
 							break
@@ -602,7 +603,7 @@ class "TetrisPool"
 			local z = position.z - self.Center.z
 			local forcey = iif(x * x + z * z > 7, 0, unit.force)
 
-			local force = Tanx.Vector3(Tanx.random() * 18 - 9 + x * 0.3, forcey, Tanx.random() * 18 - 9 + z * 0.3)
+			local force = Tanx.Vector3(self.Random() * 18 - 9 + x * 0.3, forcey, self.Random() * 18 - 9 + z * 0.3)
 			--Tanx.log("force: " .. tostring(force))
 			unit.cube:get():getRigidBody():get():applyForce(elapsed, Tanx.madp(force))
 		end
@@ -741,7 +742,7 @@ class "TetrisPool"
 					local bodies = self.Game:getWorld():detachAgent(self.BigCube)
 					local i
 					for i = 0, bodies:size() - 1 do
-						table.insert(self.CleaningCubes, {body = Tanx.BodyPtr(bodies:at(i)), remain = 0.4})
+						table.insert(self.CleaningCubes, {body = Tanx.BodyPtr(bodies:at(i)), remain = 0.8})
 					end
 					self.BigCube = nil
 					--self.BigCubeListener = nil
@@ -779,7 +780,7 @@ class "TetrisPool"
 	end
 
 	function TetrisPool:idealCameraHeight()
-		local height = self.Heap:maxY() * s_GridYSize + 0
+		local height = self.Heap:maxY() * s_GridYSize + 2
 
 		if self.FocusBrick then
 			local bricky = self.FocusBrick:get():getMainBody():get():getPosition().y

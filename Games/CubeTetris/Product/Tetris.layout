@@ -120,7 +120,7 @@
 		</Window>
 
 		<Window Type="DefaultWindow" Name="Tetris/ScorePanel1">
-			<Property Name="UnifiedAreaRect" Value="{{0.04,0},{0.02,0},{0.34,0},{0.18,0}}" />
+			<Property Name="UnifiedAreaRect" Value="{{0.04,0},{0.02,0},{0.36,0},{0.18,0}}" />
 
 			<Window Type="TaharezLook/StaticText" Name="Tetris/ScorePanel1/Score">
 				<Property Name="UnifiedPosition" Value="{{0,0},{0,0}}}" />
@@ -154,7 +154,7 @@
 		</Window>
 
 		<Window Type="DefaultWindow" Name="Tetris/ScorePanel2">
-			<Property Name="UnifiedAreaRect" Value="{{0.66,0},{0.02,0},{0.96,0},{0.18,0}}" />
+			<Property Name="UnifiedAreaRect" Value="{{0.66,0},{0.02,0},{0.98,0},{0.18,0}}" />
 			<Property Name="Visible" Value="false" />
 
 			<Window Type="TaharezLook/StaticText" Name="Tetris/ScorePanel2/Score">

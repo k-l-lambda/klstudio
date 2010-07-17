@@ -91,6 +91,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Product\RandomSequence.lua"
+				>
+			</File>
+			<File
 				RelativePath=".\Product\Tetris.game.lua"
 				>
 			</File>

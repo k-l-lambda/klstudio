@@ -259,7 +259,7 @@ local function computeManipulatorState(self)
 			self.ManipulatorState.MoveZ = 0
 			self.ManipulatorState.MoveY = 0
 			if node:getPosition().y - 1 > self.TargetState.translate.y then
-				self.ManipulatorState.MoveY = -0.12
+				self.ManipulatorState.MoveY = -self.PullDown
 				--Tanx.log("Y sub: " .. node:getPosition().y - self.TargetState.translate.y - 1)
 			end
 		--else
@@ -298,6 +298,7 @@ class "AiController"
 		}
 		self.Center = {x = 0, z = 0}
 		self.BrickTime = 0
+		self.PullDown = 0.12
 	end
 
 	function AiController:dispose()

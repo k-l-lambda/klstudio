@@ -410,6 +410,18 @@ material Tetris/Brick/Cleaning/1
 	}
 }
 
+material Tetris/Brick/Preparative
+{
+	technique
+	{
+		pass
+		{
+			depth_check		off
+			scene_blend		src_alpha one_minus_src_alpha
+		}
+	}
+}
+
 material Tetris/Flare
 {
 	technique

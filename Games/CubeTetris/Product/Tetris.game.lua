@@ -431,7 +431,7 @@ local function startGame(playeronly)
 		g_PlayerGame = DigGame(g_DigLevelConfigs, g_Game, g_PlayerController, g_CameraNode, {Center = {x = 5, z = 0}, ControlIndicatorNodes = g_ControlIndicatorNodes, ScorePanel = g_GuiWindows.ScorePanel1, Random = g_RandomSeq:newIterator()})
 
 		if not playeronly then
-			g_AiController.PullDown = 0.02
+			g_AiController.PullDown = 0.01
 			g_AiGame = DigGame(g_DigLevelConfigs, g_Game, g_AiController, nil, {Center = {x = -5, z = 0}, EnableBackgroundMusic = false, FreezeTime = 0.2, ShowBrickFreezeClock = false, ScorePanel = g_GuiWindows.ScorePanel2, Random = g_RandomSeq:newIterator()})
 		end
 	end

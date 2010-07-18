@@ -1,11 +1,15 @@
 TODO:
 	score system
 		score label
-	next brick viewer
 	settings menu
 	novice tutorial
 	cooperative with computer game mode
 
+
+
+2010.7.18	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	TetrisPool.lua: material effect for PreparativeBrick implemented.
 
 
 2010.7.17	K.L.	<xxxK.L.xxx@gmail.com>

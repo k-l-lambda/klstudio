@@ -67,20 +67,12 @@ local s_TopBoardConfig = s_TopBoardConfig or createTopBoardConfig()
 
 
 local function addCollisionListenerForAgent(agent, listener)
-	--[[local i
-	for i = 0, agent:get():getBodies():size() - 1 do
-		agent:get():getBodies():at(i):get():addCollisionListener(listener)
-	end]]
 	agent:get():traverseBodies(function(body)
 		body:get():addCollisionListener(listener)
 	end)
 end
 
 local function removeCollisionListenerForAgent(agent, listener)
-	--[[local i
-	for i = 0, agent:get():getBodies():size() - 1 do
-		agent:get():getBodies():at(i):get():removeCollisionListener(listener)
-	end]]
 	agent:get():traverseBodies(function(body)
 		body:get():removeCollisionListener(listener)
 	end)
@@ -94,6 +86,24 @@ local function prepareBrick(self)
 	self.PreparativeBrick:get():freeze()
 	self.PreparativeBrick.config = config
 
+	self.PreparativeBrick.material = Ogre.MaterialPtr(self.PreparativeBrick:get():getMainBody():get():getObject():getSubEntity(0):getMaterial())
+	self.PreparativeBrick.time = 0
+	do
+		local pass = self.PreparativeBrick.material:get():getTechnique(0):getPass(0)
+		local diffuse = Ogre.ColourValue(pass:getDiffuse())
+		diffuse.a = 0
+		self.PreparativeMaterial:get():setDiffuse(diffuse)
+		self.PreparativeMaterial:get():setAmbient(pass:getAmbient())
+		self.PreparativeMaterial:get():setSpecular(pass:getSpecular())
+		self.PreparativeMaterial:get():setShininess(pass:getShininess())
+		self.PreparativeMaterial:get():setSelfIllumination(pass:getSelfIllumination())
+	end
+	self.PreparativeBrick:get():traverseBodies(function(body)
+		local obj = body:get():getObject()
+		obj:setMaterial(self.PreparativeMaterial)
+		obj:setCastShadows(false)
+	end)
+
 	return self.PreparativeBrick
 end
 
@@ -102,12 +112,15 @@ local function dropBrick(self)
 		self.Callbacks.onDropingBrick(self)
 	end
 
-	--[[local config = s_BrickConfigNames[self.Random(#s_BrickConfigNames)]
-	local brick = Tanx.AgentPtr(self.Game:getWorld():createAgent(self.AgentsNode, config, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 1e-3, self.TopHeight + s_GridYSize, self.Center.z - 1e-3))))
-	brick.config = config]]
 	local brick = self.PreparativeBrick or prepareBrick(self)
 	brick:get():unfreeze()
 	brick:get():setCollisionFilterInfo(s_ActiveBrickGroupId)
+	Tanx.log("material: " .. brick.material:get():getName())
+	brick:get():traverseBodies(function(body)
+		local obj = body:get():getObject()
+		obj:setMaterial(brick.material)
+		obj:setCastShadows(true)
+	end)
 
 	self.PreparativeBrick = nil
 
@@ -433,10 +446,13 @@ class "TetrisPool"
 
 		local pivot = Tanx.Vector3(self.Center.x, 0, self.Center.z)
 
-		g_PoolIndex = (g_PoolIndex or 0) + 1
-		self.RootNode = paramters.RootNode or self.Game:getWorld():getRootSceneNode():createChildSceneNodeInheritName("PoolRoot" .. g_PoolIndex)
+		g_PoolId = (g_PoolId or 0) + 1
+		self.RootNode = paramters.RootNode or self.Game:getWorld():getRootSceneNode():createChildSceneNodeInheritName("PoolRoot" .. g_PoolId)
 		self.RootNode:setPosition(pivot)
-		self.AgentsNode = self.RootNode:createChildSceneNodeInheritName("PoolAgents" .. g_PoolIndex, -pivot)
+		self.AgentsNode = self.RootNode:createChildSceneNodeInheritName("PoolAgents" .. g_PoolId, -pivot)
+
+		-- create preparative brick material
+		self.PreparativeMaterial = Ogre.MaterialManager.getSingleton():getByName"Tetris/Brick/Preparative":get():toDerived():clone("Tetris/Brick/Preparative_" .. g_PoolId)
 
 		-- create fence
 		self.Fence = game:getWorld():createAgent(self.AgentsNode, "Tetris/Fence4x4", "fence%index", Tanx.RigidBodyState.make(pivot)):get():getName()
@@ -573,6 +589,11 @@ class "TetrisPool"
 							self.Callbacks.onGameOver(self)
 						end
 
+						if self.PreparativeBrick then
+							self.Game:getWorld():detachAgent(self.PreparativeBrick)
+							self.PreparativeBrick = nil
+						end
+
 						self.End = true
 						if g_Sounds then
 							g_Sounds.GameOver:get():play()
@@ -594,6 +615,15 @@ class "TetrisPool"
 			if self.ShowBrickFreezeClock and g_GuiWindows then
 				g_GuiWindows.BrickFreezeClock:hide()
 			end
+		end
+
+		-- process preparative brick
+		if self.PreparativeBrick then
+			self.PreparativeBrick.time = self.PreparativeBrick.time + elapsed
+
+			local diffuse = Ogre.ColourValue(self.PreparativeMaterial:get():getTechnique(0):getPass(0):getDiffuse())
+			diffuse.a = math.min(self.PreparativeBrick.time * 0.6, 1) * (math.sin(self.PreparativeBrick.time * 3) * 0.24 + 0.45)
+			self.PreparativeMaterial:get():setDiffuse(diffuse)
 		end
 
 		-- process rising cubes

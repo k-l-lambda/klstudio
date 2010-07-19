@@ -148,13 +148,13 @@ class "DigGame"
 				bonus = bonus + math.floor(self.CurrentLevel * (8 + math.max(8 - self.Pool.TopHeight + layer, 0)))
 			end
 		end
-		Tanx.log("bonus: " .. bonus)
+		Tanx.log("DigGame:onPoolLayersCleared: bonus: " .. bonus)
 		self.Score = self.Score + bonus
 
 		self.ClearedLayers = self.ClearedLayers + #layers
 		self:updateScorePanel()
 
-		self:addScoreMark(bonus, Tanx.Vector3(self.Pool.Center.x, layers[0] * s_GridYSize, self.Pool.Center.z))
+		self:addScoreMark(bonus, Tanx.Vector3(self.Pool.Center.x, layers[1] * s_GridYSize, self.Pool.Center.z))
 	end
 
 	function DigGame:onPoolDropingBrick()
@@ -174,7 +174,7 @@ class "DigGame"
 		height = height / count
 
 		local bonus = math.floor(math.max(50 - height, 1))
-		Tanx.log("bonus: " .. bonus)
+		Tanx.log("DigGame:onPoolBrickFrozen: bonus: " .. bonus)
 		self.Score = self.Score + bonus
 		self:updateScorePanel()
 
@@ -200,7 +200,5 @@ class "DigGame"
 	end
 
 	function DigGame:addScoreMark(score, position)
-		local l, t, r, b = g_MainCamera:projectSphereEx(Ogre.Sphere(position, 2))
-
-		table.insert(self.ScoreMarks, ScoreMark(CEGUI.WindowManager.getSingleton(), score, {x = l, y = (t + b) / 2}))
+		table.insert(self.ScoreMarks, ScoreMark(CEGUI.WindowManager.getSingleton(), score, position))
 	end

@@ -7,12 +7,13 @@
 	DigGame.lua
 --]]
 
-Tanx.log("[Tetris\\DigGame.lua]: parsed.")
+Tanx.log"[Tetris\\DigGame.lua]: parsed."
 
 Tanx.require"Core:bind.lua"
 Tanx.require"Core:Timer.lua"
 
 Tanx.require"TetrisPool.lua"
+Tanx.require"ScoreMark.lua"
 
 
 class "DigGame"
@@ -66,6 +67,8 @@ class "DigGame"
 		if self.ScorePanel.Frame then
 			self.ScorePanel.Frame:show()
 		end
+
+		self.ScoreMarks = {}
 	end
 
 	function DigGame:__finalize()
@@ -76,6 +79,12 @@ class "DigGame"
 		if self.Pool then
 			self.Pool:step(elapsed)
 		end
+
+		local i, mark
+		for i, mark in ipairs(self.ScoreMarks) do
+			mark:step(elapsed)
+		end
+		tableext.remove_if(self.ScoreMarks, function(m) return m.RemainTime <= 0 end)
 
 		self.Timer:tick(elapsed)
 	end
@@ -126,6 +135,8 @@ class "DigGame"
 			self:beginLevel(self.CurrentLevel + 1)
 		end
 
+		assert(#layers > 0)
+
 		local i, layer
 		local bonus = 0
 		for i, layer in ipairs(layers) do
@@ -142,6 +153,8 @@ class "DigGame"
 
 		self.ClearedLayers = self.ClearedLayers + #layers
 		self:updateScorePanel()
+
+		self:addScoreMark(bonus, Tanx.Vector3(self.Pool.Center.x, layers[0] * s_GridYSize, self.Pool.Center.z))
 	end
 
 	function DigGame:onPoolDropingBrick()
@@ -164,6 +177,8 @@ class "DigGame"
 		Tanx.log("bonus: " .. bonus)
 		self.Score = self.Score + bonus
 		self:updateScorePanel()
+
+		self:addScoreMark(bonus, Tanx.Vector3(self.Pool.Center.x, height * s_GridYSize, self.Pool.Center.z))
 	end
 
 	function DigGame:onPoolGameOver()
@@ -182,4 +197,10 @@ class "DigGame"
 		if self.ScorePanel.Level then
 			self.ScorePanel.Level:setText(CEGUI.String(string.format("LEVEL    %d", self.CurrentLevel)))
 		end
+	end
+
+	function DigGame:addScoreMark(score, position)
+		local l, t, r, b = g_MainCamera:projectSphereEx(Ogre.Sphere(position, 2))
+
+		table.insert(self.ScoreMarks, ScoreMark(CEGUI.WindowManager.getSingleton(), score, {x = l, y = (t + b) / 2}))
 	end

@@ -43,7 +43,7 @@ local s_DefaultFreezeTime = 1.6
 local s_InitBodiesActiveTime = 1
 
 local s_GridSize = 1.07
-local s_GridYSize = 1
+s_GridYSize = 1
 
 local s_DefaultTopHeight = 30
 

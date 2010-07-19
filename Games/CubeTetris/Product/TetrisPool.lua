@@ -139,7 +139,11 @@ end
 
 local function isStill(agent)
 	local body = agent:get():getMainBody()
-	return body:get():getLinearVelocity():length() < 4e-2 and body:get():getAngularVelocity():length() < 9e-2
+	assert(body)
+	if body:get() then
+		return body:get():getLinearVelocity():length() < 4e-2 and body:get():getAngularVelocity():length() < 9e-2
+	end
+	return true
 end
 
 

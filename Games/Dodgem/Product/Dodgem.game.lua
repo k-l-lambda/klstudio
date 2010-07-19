@@ -223,8 +223,6 @@ function setCurtainIntensity(intensity)
 	intensity = math.min(math.max(intensity, 0), 1)
 
 	g_CurtainMaterial = g_CurtainMaterial or Ogre.MaterialManager.getSingleton():getByName"Dodgem/Curtain":get():toDerived()
-	--assert(g_CurtainCompositor)
-	--g_CurtainMaterial = g_CurtainMaterial or g_CurtainCompositor:getTechnique():getOutputTargetPass():getPass(0):getMaterial():get()
 
 	local color = Ogre.ColourValue.White * (1 - intensity)
 

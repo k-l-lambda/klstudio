@@ -441,7 +441,7 @@ material Dodgem/Curtain
 
 
 
-// -------------------------------
+/*// -------------------------------
 // Cel Shading Section
 // -------------------------------
 vertex_program Ogre/CelShadingVP cg
@@ -517,4 +517,4 @@ material	Examples/CelShading
 			}
 		}
 	}
-}
+}*/

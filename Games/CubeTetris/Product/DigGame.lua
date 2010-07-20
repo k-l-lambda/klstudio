@@ -16,6 +16,21 @@ Tanx.require"TetrisPool.lua"
 Tanx.require"ScoreMark.lua"
 
 
+local s_ScoreLabelStyleFrozen =
+{
+	Font = "Tetris/BlueHighway-24",
+	TextColor = "ffff0000",
+	SphereRadius = 2,
+}
+
+local s_ScoreLabelStyleClear =
+{
+	Font = "Tetris/BlueBold-32",
+	TextColor = "ff00c080",
+	SphereRadius = 3,
+}
+
+
 class "DigGame"
 
 	function DigGame:__init(configs, game, controller, cameranode, paramters)
@@ -154,7 +169,7 @@ class "DigGame"
 		self.ClearedLayers = self.ClearedLayers + #layers
 		self:updateScorePanel()
 
-		self:addScoreMark(bonus, Tanx.Vector3(self.Pool.Center.x, layers[1] * s_GridYSize, self.Pool.Center.z))
+		self:addScoreMark(bonus, Tanx.Vector3(self.Pool.Center.x, layers[1] * s_GridYSize, self.Pool.Center.z), s_ScoreLabelStyleClear)
 	end
 
 	function DigGame:onPoolDropingBrick()
@@ -178,7 +193,7 @@ class "DigGame"
 		self.Score = self.Score + bonus
 		self:updateScorePanel()
 
-		self:addScoreMark(bonus, Tanx.Vector3(self.Pool.Center.x, height * s_GridYSize, self.Pool.Center.z))
+		self:addScoreMark(bonus, Tanx.Vector3(self.Pool.Center.x, height * s_GridYSize, self.Pool.Center.z), s_ScoreLabelStyleFrozen)
 	end
 
 	function DigGame:onPoolGameOver()
@@ -199,6 +214,6 @@ class "DigGame"
 		end
 	end
 
-	function DigGame:addScoreMark(score, position)
-		table.insert(self.ScoreMarks, ScoreMark(CEGUI.WindowManager.getSingleton(), score, position))
+	function DigGame:addScoreMark(score, position, style)
+		table.insert(self.ScoreMarks, ScoreMark(CEGUI.WindowManager.getSingleton(), score, position, style))
 	end

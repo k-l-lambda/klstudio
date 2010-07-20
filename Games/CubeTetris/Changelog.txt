@@ -1,9 +1,13 @@
 TODO:
-	refine GUI
 	settings menu
 	novice tutorial
 	cooperative with computer game mode
 
+
+
+2010.7.20	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Refined GUI.
 
 
 2010.7.19	K.L.	<xxxK.L.xxx@gmail.com>

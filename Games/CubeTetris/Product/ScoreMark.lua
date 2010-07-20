@@ -18,17 +18,17 @@ local s_MarkWindowId = 0
 
 class "ScoreMark"
 
-	function ScoreMark:__init(windowManager, score, position)
+	function ScoreMark:__init(windowManager, score, position, style)
 		self.WindowManager = windowManager
-		--Tanx.log("position: " .. position.x .. ", " .. position.y)
+		self.Style = style
 
 		self.Window = windowManager:createWindow(CEGUI.String"TaharezLook/StaticText", CEGUI.String("ScoreMark" .. s_MarkWindowId))
 		self.Window:setSize(CEGUI.UVector2(CEGUI.UDim(0.2, 0), CEGUI.UDim(0.1, 0)))
 		self.Window:setProperty(CEGUI.String"BackgroundEnabled", CEGUI.String"false")
 		self.Window:setProperty(CEGUI.String"FrameEnabled", CEGUI.String"false")
-		self.Window:setFont(CEGUI.String"Tetris/BlueHighway-24")
+		self.Window:setFont(CEGUI.String(self.Style.Font))
 
-		self.Window:setProperty(CEGUI.String"TextColours", CEGUI.colorString"ffff0000")
+		self.Window:setProperty(CEGUI.String"TextColours", CEGUI.colorString(self.Style.TextColor))
 		self.Window:setText(CEGUI.String(tostring(score)))
 
 		local root = windowManager:getWindow(CEGUI.String"root")
@@ -59,7 +59,7 @@ class "ScoreMark"
 	end
 
 	function ScoreMark:updatePosition()
-		local rect = g_MainCamera:projectSphere(Ogre.Sphere(self.Position, 2))
+		local rect = g_MainCamera:projectSphere(Ogre.Sphere(self.Position, self.Style.SphereRadius))
 		local x = (rect.right + 1) / 2
 		local y = (-(rect.top + rect.bottom) / 2 + 1) / 2
 		--Tanx.log("position: " .. x .. ", " .. y)

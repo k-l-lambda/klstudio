@@ -198,6 +198,63 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="Audio"
+				Filter="wav;ogg;nsf"
+				>
+				<File
+					RelativePath=".\Product\beep.wav"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\collision2.wav"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\collision3.wav"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\CriticalPoint.wav"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\dang.wav"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\engine.wav"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\engine_e.wav"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\gain.wav"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\Gekitotu Yonku Battle.nsf"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\Level-up.wav"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\LevelFail.wav"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\loss.wav"
+					>
+				</File>
+				<File
+					RelativePath=".\Product\TailCollision.wav"
+					>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

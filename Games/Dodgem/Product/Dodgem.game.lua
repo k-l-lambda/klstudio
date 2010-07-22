@@ -49,6 +49,7 @@ function getLevelConfig(level)
 		AiCount			= #layout,
 		AiConfig		= {},
 		Duration		= static_config.Duration or math.floor(math.log(level + 1) * 3) * 10,
+		Music			= static_config.Music or "Music1"
 	}
 	config.CriticalTime = config.Duration / 2
 
@@ -101,6 +102,24 @@ local function loadSound()
 		CriticalPoint	= createSoundSource("CriticalPoint.wav", true),
 		Beep			= createSoundSource("beep.wav", true),
 		Dang			= createSoundSource("dang.wav", true),
+	}
+
+	g_BackgroundMusic = openalpp.Source.new()
+	g_BackgroundMusic:get():setAmbient(true)
+
+	g_NsfStream = openalpp.StreamPtr(openalpp.GmeStream.new(g_Game:getResourcePackage():get():open"Gekitotu Yonku Battle.nsf"))
+	g_MusicIndex =
+	{
+		Title		= 2,
+		Music1		= 3,
+		Music2		= 4,
+		Music3		= 5,
+		Music4		= 6,
+		End1		= 7,
+		End2		= 8,
+		Prelude		= 12,
+		Interlude	= 13,
+		GameOver	= 27,
 	}
 end
 
@@ -210,6 +229,13 @@ function resetGame(config)
 	end
 	if g_SoundListener then
 		updateSoundListenerByCamera(g_SoundListener, g_MainCamera:getCamera())
+	end
+
+	-- play background music
+	if g_BackgroundMusic and g_NsfStream then
+		g_BackgroundMusic:get():stop()
+		g_NsfStream:get():toDerived():setTrack(g_MusicIndex[config.Music])
+		g_BackgroundMusic:get():play(g_NsfStream)
 	end
 
 	g_Score = 0
@@ -589,6 +615,10 @@ g_BodyStateMachine = TanxStateMachine{
 			g_GuiWindows.Prompt:setProperty(CEGUI.String"TextColours", iif(passed, CEGUI.colorString"fffff0a0", CEGUI.colorString"ffc04040"))
 			g_GuiWindows.Prompt:show()
 
+			if g_BackgroundMusic and g_NsfStream then
+				g_BackgroundMusic:get():stop()
+			end
+
 			if g_Sounds then
 				iif(passed, g_Sounds.LevelUp, g_Sounds.LevelFail):get():play()
 			end
@@ -632,6 +662,10 @@ g_GameStateMachine = TanxStateMachine{
 			state.Remain = s_CoverDuration
 
 			g_Game:setWorldStepRate(0)
+
+			if g_BackgroundMusic and g_NsfStream then
+				g_BackgroundMusic:get():stop()
+			end
 		end,
 
 		__leave = function(state)

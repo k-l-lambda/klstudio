@@ -37,6 +37,20 @@ g_UserData =
 	Level		= 1,
 }
 
+g_JoyStickScheme = {
+	[0] = {
+		A = 2,
+		B = 3,
+		Start = 9,
+	},
+
+	["USB Vibration Joystick"] = {
+		A = 2,
+		B = 3,
+		Start = 11,
+	},
+}
+
 
 function getLevelConfig(level)
 	local static_config = g_LevelConfigs[level] or g_LevelConfigs[#g_LevelConfigs]
@@ -293,6 +307,17 @@ function initialize(game)
 		g_MouseListener = MouseListener()
 		g_Mouse:setEventCallback(g_MouseListener)
 	end
+
+	-- create joystick
+	pcall(function()
+		g_Joystick = g_Game:getInputSystem():createInputObject(OIS.Type.JoyStick, true):toDerived()
+		Tanx.log("[Dodgem\\Dodgem.game.lua]: JoyStick vendor: " .. g_Joystick:vendor())
+
+		g_ButtonMap = g_JoyStickScheme[g_Joystick:vendor()] or g_JoyStickScheme[0]
+
+		g_JoyStickListener = JoyStickListener()
+		g_JoyStick:setEventCallback(g_JoyStickListener)
+	end)
 
 	-- setup GUI
 	g_GuiSystem = CEGUI.System.getSingleton()
@@ -722,7 +747,9 @@ g_GameStateMachine = TanxStateMachine{
 				driver.m_positionX = 0
 				driver.m_positionY = 0
 				driver.m_handbrakeButtonPressed:set(g_Keyboard ~= nil and g_Keyboard:isKeyDown(OIS.KeyCode.SPACE))
+				driver.m_handbrakeButtonPressed:set(driver.m_handbrakeButtonPressed:get() or g_Joystick ~= nil and g_Joystick:getJoyStickState().mButtons:at(g_ButtonMap.B))
 				driver.m_reverseButtonPressed:set(g_Keyboard ~= nil and g_Keyboard:isKeyDown(OIS.KeyCode.LCONTROL))
+				driver.m_reverseButtonPressed:set(driver.m_reverseButtonPressed:get() or g_Joystick ~= nil and g_Joystick:getJoyStickState().mButtons:at(g_ButtonMap.A))
 
 				if g_Keyboard then
 					if g_Keyboard:isKeyDown(OIS.KeyCode.W) or g_Keyboard:isKeyDown(OIS.KeyCode.UP) then
@@ -739,6 +766,21 @@ g_GameStateMachine = TanxStateMachine{
 
 					if g_Keyboard:isKeyDown(OIS.KeyCode.D) or g_Keyboard:isKeyDown(OIS.KeyCode.RIGHT) then
 						driver.m_positionX = driver.m_positionX + 1
+					end
+				end
+
+				if g_Joystick then
+					local state = g_Joystick:getJoyStickState()
+
+					if state.mAxes:at(1).abs == 32767 or state.mAxes:at(3).abs == 32767 then
+						driver.m_positionX = driver.m_positionX + 1
+					elseif state.mAxes:at(1).abs == -32768 or state.mAxes:at(3).abs == -32768 then
+						driver.m_positionX = driver.m_positionX - 1
+					end
+					if state.mAxes:at(0).abs == -32768 or state.mAxes:at(2).abs == -32768 then
+						driver.m_positionY = driver.m_positionY + 1
+					elseif state.mAxes:at(0).abs == 32767 or state.mAxes:at(2).abs == 32767 then
+						driver.m_positionY = driver.m_positionY - 1
 					end
 				end
 			end
@@ -786,6 +828,14 @@ g_GameStateMachine = TanxStateMachine{
 		keyPressed = function(state, e)
 			if g_BodyStateMachine:stateKey() == "Gaming" then
 				if e.key == OIS.KeyCode.ESCAPE then
+					g_GameStateMachine:switch"Timeout"
+				end
+			end
+		end,
+
+		buttonPressed = function(arg, button)
+			if g_BodyStateMachine:stateKey() == "Gaming" then
+				if button == g_ButtonMap.Start then
 					g_GameStateMachine:switch"Timeout"
 				end
 			end
@@ -840,6 +890,12 @@ g_GameStateMachine = TanxStateMachine{
 
 		keyPressed = function(state, e)
 			if e.key == OIS.KeyCode.ESCAPE then
+				g_GameStateMachine:switch("Body", "resume")
+			end
+		end,
+
+		buttonPressed = function(arg, button)
+			if button == g_ButtonMap.Start then
 				g_GameStateMachine:switch("Body", "resume")
 			end
 		end,
@@ -933,6 +989,62 @@ class "MouseListener" (OIS.MouseListener)
 		local state = g_GameStateMachine:state()
 		if state and state.mouseMoved then
 			state.mouseMoved(e)
+		end
+
+		return true
+	end
+
+
+class "JoyStickListener" (OIS.JoyStickListener)
+
+	function JoyStickListener:__init()
+		if _LUABIND_VERSION and _LUABIND_VERSION >= 800 then
+			OIS.JoyStickListener.__init(self)
+		else
+			super()
+		end
+	end
+
+	function JoyStickListener:buttonPressed(arg, button)
+		local state = g_GameStateMachine:state()
+		if state and state.buttonPressed then
+			state.buttonPressed(arg, button)
+		end
+
+		return true
+	end
+
+	function JoyStickListener:buttonReleased(arg, button)
+		local state = g_GameStateMachine:state()
+		if state and state.buttonReleased then
+			state.buttonReleased(arg, button)
+		end
+
+		return true
+	end
+
+	function JoyStickListener:axisMoved(arg, axis)
+		local state = g_GameStateMachine:state()
+		if state and state.axisMoved then
+			state.axisMoved(arg, axis)
+		end
+
+		return true
+	end
+
+	function JoyStickListener:sliderMoved(arg, id)
+		local state = g_GameStateMachine:state()
+		if state and state.sliderMoved then
+			state.sliderMoved(arg, id)
+		end
+
+		return true
+	end
+
+	function JoyStickListener:povMoved(arg, id)
+		local state = g_GameStateMachine:state()
+		if state and state.povMoved then
+			state.povMoved(arg, id)
 		end
 
 		return true

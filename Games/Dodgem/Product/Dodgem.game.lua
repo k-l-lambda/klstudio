@@ -361,6 +361,10 @@ end
 
 
 function onStep(elapsed)
+	if g_Joystick then
+		g_Joystick:capture()
+	end
+
 	local state = g_GameStateMachine:state()
 	if state and state.step then
 		state:step(elapsed)
@@ -781,6 +785,22 @@ g_GameStateMachine = TanxStateMachine{
 						driver.m_positionY = driver.m_positionY + 1
 					elseif state.mAxes:at(0).abs == 32767 or state.mAxes:at(2).abs == 32767 then
 						driver.m_positionY = driver.m_positionY - 1
+					end
+
+					if g_Joystick:vendor() == "USB Vibration Joystick" then
+						local direction = state:mPOV(0):get().direction
+						--Tanx.log("direction: " .. direction)
+
+						if direction == OIS.Pov.East or direction == OIS.Pov.NorthEast or direction == OIS.Pov.SouthEast then
+							driver.m_positionX = driver.m_positionX + 1
+						elseif direction == OIS.Pov.West or direction == OIS.Pov.NorthWest or direction == OIS.Pov.SouthWest then
+							driver.m_positionX = driver.m_positionX - 1
+						end
+						if direction == OIS.Pov.North or direction == OIS.Pov.NorthEast or direction == OIS.Pov.NorthWest then
+							driver.m_positionY = driver.m_positionY + 1
+						elseif direction == OIS.Pov.South or direction == OIS.Pov.SouthEast or direction == OIS.Pov.SouthWest then
+							driver.m_positionY = driver.m_positionY - 1
+						end
 					end
 				end
 			end

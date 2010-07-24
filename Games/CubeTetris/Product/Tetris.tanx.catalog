@@ -4,7 +4,7 @@
 <Tanx_CatalogConfig class_id="0" tracking_level="0" version="1">
 	<Title>Cube Tetris</Title>
 	<Author>K.L.</Author>
-	<Version>beta 2010.7.20</Version>
+	<Version>beta 2010.7.24</Version>
 	<Description>A 3D Tetris game.</Description>
 	<ResourceDirectory>.</ResourceDirectory>
 	<GamePath>Tetris.game</GamePath>

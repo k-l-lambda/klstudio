@@ -81,7 +81,7 @@ end
 
 local function prepareBrick(self)
 	local config = s_BrickConfigNames[self.Random(#s_BrickConfigNames)]
-	self.PreparativeBrick = Tanx.AgentPtr(self.Game:getWorld():createAgent(self.AgentsNode, config, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 1e-3, self.TopHeight + s_GridYSize, self.Center.z - 1e-3))))
+	self.PreparativeBrick = Tanx.AgentPtr(self.Game:getWorld():createAgent(self.AgentsNode, config, "brick%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 0.4, self.TopHeight + s_GridYSize, self.Center.z - 0.4))))
 	self.PreparativeBrick:get():setCollisionFilterInfo(s_PreparativeBrickGroupId)
 	self.PreparativeBrick:get():freeze()
 	self.PreparativeBrick.config = config
@@ -668,6 +668,8 @@ class "TetrisPool"
 			--Tanx.log("force: " .. tostring(force))
 			unit.cube:get():getRigidBody():get():applyForce(elapsed, Tanx.madp(force))
 		end
+
+		tableext.remove_if(self.RisingCubes, function(unit) return unit.cube:get():getPosition().y < 0 end)
 
 		-- process big cube
 		--if self.BigCube and not self.BigCube:get():getBodies():at(0):get():isFrozen() then

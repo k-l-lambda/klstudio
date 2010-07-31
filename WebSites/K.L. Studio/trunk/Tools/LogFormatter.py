@@ -1,7 +1,7 @@
 import re
 
 
-logRegex = re.compile('(\d+\.\d+\.\d+\.\d+) \- \- \[(.*?)\] "([A-Z]+ ([\S]+?) [^"]*?)" (\d+) (\d+) (.*?)\n\t(\d+\:[\d\.]+) (.*?)\n', re.S)
+logRegex = re.compile('(\d+\.\d+\.\d+\.\d+) (\S*) (\S*) \[(.*?)\] "([A-Z]+ ([\S]+?) [^"]*?)" (\d+) (\d+) (.*?)\n\t(\d+\:[\d\.]+) (.*?)\n', re.S)
 
 def formatLog(source):
     lines = logRegex.finditer(source)

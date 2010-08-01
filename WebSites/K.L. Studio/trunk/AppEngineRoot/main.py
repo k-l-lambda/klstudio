@@ -31,6 +31,7 @@ class MainHandler(webapp.RequestHandler):
 
 class GuestNote(db.Model):
     author = db.UserProperty()
+    remote_addr = db.StringProperty()
     content = db.StringProperty(multiline=True)
     date = db.DateTimeProperty(auto_now_add=True)
 
@@ -44,6 +45,7 @@ class MessageSign(webapp.RequestHandler):
         else:
             note.author = users.User(self.request.get('author'))
 
+        note.remote_addr = self.request.remote_addr
         note.content = self.request.get('content')
         note.put()
         self.redirect('/MessageBoard')

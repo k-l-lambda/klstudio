@@ -5,6 +5,11 @@ TODO:
 
 
 
+2010.8.4	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Adapted for Havok 7.1.
+
+
 2010.7.24	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	TetrisPool.lua/TetrisPool:step: remove rising cubes which are too low.

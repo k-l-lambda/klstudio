@@ -9,6 +9,8 @@
 
 Tanx.log("[Tetris\\TetrisPool.lua]: parsed.")
 
+Tanx.require"Core:SlottedContactListener.lua"
+
 
 local s_BrickConfigNames =
 {
@@ -66,15 +68,15 @@ end
 local s_TopBoardConfig = s_TopBoardConfig or createTopBoardConfig()
 
 
-local function addCollisionListenerForAgent(agent, listener)
+local function addContactListenerForAgent(agent, listener)
 	agent:get():traverseBodies(function(body)
-		body:get():addCollisionListener(listener)
+		body:get():addContactListener(listener)
 	end)
 end
 
-local function removeCollisionListenerForAgent(agent, listener)
+local function removeContactListenerForAgent(agent, listener)
 	agent:get():traverseBodies(function(body)
-		body:get():removeCollisionListener(listener)
+		body:get():removeContactListener(listener)
 	end)
 end
 
@@ -129,7 +131,7 @@ local function dropBrick(self)
 
 	self.StillTime = 0
 
-	addCollisionListenerForAgent(brick, g_FocusBrickCollisionListener)
+	addContactListenerForAgent(brick, self.FocusBrickContactListener)
 
 	Tanx.log("[Tetris\\TetrisPool.lua]: brick dropped.", Ogre.LogMessageLevel.TRIVIAL)
 
@@ -363,32 +365,6 @@ local function fillBlocks(self, height)
 end
 
 
-class "SimpleCollisionListener" (Tanx.CollisionListener)
-
-	function SimpleCollisionListener:__init(cpcomfirmed)
-		if _LUABIND_VERSION and _LUABIND_VERSION >= 800 then
-			Tanx.CollisionListener.__init(self)
-		else
-			super()
-		end
-
-		self.FnContactPointConfirmed = cpcomfirmed
-	end
-
-	function SimpleCollisionListener:contactPointConfirmedCallback(event)
-		self.FnContactPointConfirmed(event)
-	end
-
-	function SimpleCollisionListener:contactPointAddedCallback(event)
-	end
-
-	function SimpleCollisionListener:contactPointRemovedCallback(event)
-	end
-
-	function SimpleCollisionListener:contactProcessCallback(event)
-	end
-
-
 
 class "FocusBrickAction" (Tanx.ArrayAction)
 
@@ -469,6 +445,67 @@ class "TetrisPool"
 			fillBlocks(self, paramters.BlockLayers)
 		end
 
+		self.FocusBrickContactListener = TanxSlottedContactListener{
+			-- for Havok 6.5 and older versions
+			onContactPointConfirmed = function(event)
+				if g_Sounds then
+					local rba = event.m_collidableA:getRigidBody()
+					local rbb = event.m_collidableB:getRigidBody()
+					if rba and rbb and (rba:isFixed():get() or rbb:isFixed():get()) and event.m_collidableB:getShape():getType() == Havok.hkpShapeType.BOX then
+						local vel = math.abs(event.m_projectedVelocity) - 0.4
+						if vel > 0 then
+							--Tanx.log(string.format("FocusBrickContactListener:contactPointConfirmedCallback: A fixed: %s, B fixed: %s, projected velocity: %f, contace point: %s.",
+							--	tostring(rba:isFixed():get()), tostring(rbb:isFixed():get()), event.m_projectedVelocity, tostring(Tanx.madp(event.m_contactPoint:getPosition()))))
+
+							local volume = vel * 0.8
+							--Tanx.log("setGain: " .. volume)
+							g_Sounds.BrickCollision:get():setGain(volume)
+							g_Sounds.BrickCollision:get():play()
+						end
+					end
+
+					if event.m_collidableA:getShape():getType() == Havok.hkpShapeType.BOX and event.m_collidableB:getShape():getType() == Havok.hkpShapeType.CONVEX_VERTICES then
+						local volume = math.abs(event.m_projectedVelocity) / 32
+						--Tanx.log("setGain: " .. volume)
+						g_Sounds.GlassCollision:get():setGain(volume)
+						g_Sounds.GlassCollision:get():play()
+					end
+				end
+			end,
+
+			onContactPoint = function(event)
+				if g_Sounds then
+					assert(event.m_source == 0 or event.m_source == 1)
+					local rba = event:getBody(event.m_source)
+					local rbb = event:getBody(1 - event.m_source)
+
+					if rbb:isFixed():get() then
+						local fence = self.Game:getWorld():findAgent(self.Fence)
+						if fence:get() then
+							local withfence = false
+							fence:get():traverseBodies(function(body)
+									if rbb:getUid() == body:get():getRigidBody():get():getUid() then
+										withfence = true
+									end
+								end)
+
+							if withfence then
+								local volume = math.abs(event:getSeparatingVelocity()) / 32
+								g_Sounds.GlassCollision:get():setGain(volume)
+								g_Sounds.GlassCollision:get():play()
+							else
+								local vel = math.abs(event:getSeparatingVelocity()) - 0.4
+								if vel > 0 then
+									local volume = vel * 0.8
+									g_Sounds.BrickCollision:get():setGain(volume)
+									g_Sounds.BrickCollision:get():play()
+								end
+							end
+						end
+					end
+				end
+			end}
+
 		-- adjust camera height to ideal position
 		self:adaptCameraHeight()
 
@@ -545,7 +582,7 @@ class "TetrisPool"
 				if g_Sounds then
 					g_Sounds.BrickFreeze:get():play()
 				end
-				removeCollisionListenerForAgent(self.FocusBrick, g_FocusBrickCollisionListener)
+				removeContactListenerForAgent(self.FocusBrick, self.FocusBrickContactListener)
 				local yset = fillBrickToHeap(self, self.FocusBrick)
 
 				if self.Callbacks.onBrickFrozen then
@@ -729,7 +766,7 @@ class "TetrisPool"
 		end
 
 		if self.FocusBrick then
-			removeCollisionListenerForAgent(self.FocusBrick, g_FocusBrickCollisionListener)
+			removeContactListenerForAgent(self.FocusBrick, self.FocusBrickContactListener)
 			self.Game:getWorld():detachAgent(self.FocusBrick)
 		end
 
@@ -801,29 +838,50 @@ class "TetrisPool"
 		end
 		self.BigCube = g_World:createAgent(self.AgentsNode, config, "bigcube%index", Tanx.RigidBodyState.make(Tanx.Vector3(self.Center.x - 1, params.height, self.Center.z - 1)))
 
-		self.BigCubeListener = SimpleCollisionListener(function(event)
-			if self.BigCube then
-				local rbb = event.m_collidableB:getRigidBody()
-				if rbb and rbb:isFixed():get() and (event.m_collidableB:getShape():getType() == Havok.hkpShapeType.BOX or self.BigCube:get():getMainNode():getPosition().y < 1.2) then
-					--Tanx.log("[Tetris\\TetrisPool.lua]: big cube collision.")
+		self.BigCubeListener = TanxSlottedContactListener{
+			-- for Havok 6.5 and older versions
+			onContactPointConfirmed = function(event)
+				if self.BigCube then
+					local rbb = event.m_collidableB:getRigidBody()
+					if rbb and rbb:isFixed():get() and (event.m_collidableB:getShape():getType() == Havok.hkpShapeType.BOX or self.BigCube:get():getMainNode():getPosition().y < 1.2) then
+						--Tanx.log("[Tetris\\TetrisPool.lua]: big cube collision.")
 
-					local bodies = self.Game:getWorld():detachAgent(self.BigCube)
-					local i
-					for i = 0, bodies:size() - 1 do
-						table.insert(self.CleaningCubes, {body = Tanx.BodyPtr(bodies:at(i)), remain = 0.8})
-					end
-					self.BigCube = nil
-					--self.BigCubeListener = nil
+						local bodies = self.Game:getWorld():detachAgent(self.BigCube)
+						local i
+						for i = 0, bodies:size() - 1 do
+							table.insert(self.CleaningCubes, {body = Tanx.BodyPtr(bodies:at(i)), remain = 0.8})
+						end
+						self.BigCube = nil
+						--self.BigCubeListener = nil
 
-					if g_Sounds then
-						g_Sounds.LayerClearSound:get():play()
+						if g_Sounds then
+							g_Sounds.LayerClearSound:get():play()
+						end
 					end
 				end
-			end
-		end)
+			end,
+
+			onContactPoint = function(event)
+				if self.BigCube then
+					assert(event.m_source == 0 or event.m_source == 1)
+					local rbb = event:getBody(1 - event.m_source)
+					if rbb and rbb:isFixed():get() then
+						local bodies = self.Game:getWorld():detachAgent(self.BigCube)
+						local i
+						for i = 0, bodies:size() - 1 do
+							table.insert(self.CleaningCubes, {body = Tanx.BodyPtr(bodies:at(i)), remain = 0.8})
+						end
+						self.BigCube = nil
+
+						if g_Sounds then
+							g_Sounds.LayerClearSound:get():play()
+						end
+					end
+				end
+			end}
 		local i
 		for i = 0, self.BigCube:get():getBodies():size() - 1 do
-			self.BigCube:get():getBodies():at(i):get():addCollisionListener(self.BigCubeListener)
+			self.BigCube:get():getBodies():at(i):get():addContactListener(self.BigCubeListener)
 		end
 
 		return self.BigCube
@@ -873,65 +931,3 @@ class "TetrisPool"
 			self.CameraNode:translate(0, differ, 0)
 		end
 	end
-
-
-class "FocusBrickCollisionListener" (Tanx.CollisionListener)
-
-	function FocusBrickCollisionListener:__init()
-		if _LUABIND_VERSION and _LUABIND_VERSION >= 800 then
-			Tanx.CollisionListener.__init(self)
-		else
-			super()
-		end
-
-		self.Entities = {}
-	end
-
-	function FocusBrickCollisionListener:__finalize()
-	end
-
-	function FocusBrickCollisionListener:contactPointAddedCallback(event)
-		--Tanx.log(string.format("FocusBrickCollisionListener:contactPointAddedCallback: A shape type: %d, B shape type: %d, contace point: %s.",
-		--	event.m_bodyA:getShape():getType(), event.m_bodyB:getShape():getType(), tostring(Tanx.madp(event.m_contactPoint:getPosition()))))
-	end
-
-	function FocusBrickCollisionListener:contactPointConfirmedCallback(event)
-		--[[if event.m_collidableB:getShape():getType() ~= Havok.hkpShapeType.BOX then
-			Tanx.log(string.format("FocusBrickCollisionListener:contactPointConfirmedCallback: A shape type: %d, B shape type: %d, projected velocity: %f, contace point: %s.",
-				event.m_collidableA:getShape():getType(), event.m_collidableB:getShape():getType(), event.m_projectedVelocity, tostring(Tanx.madp(event.m_contactPoint:getPosition()))))
-		end]]
-		if g_Sounds then
-			local rba = event.m_collidableA:getRigidBody()
-			local rbb = event.m_collidableB:getRigidBody()
-			if rba and rbb and (rba:isFixed():get() or rbb:isFixed():get()) and event.m_collidableB:getShape():getType() == Havok.hkpShapeType.BOX then
-				local vel = math.abs(event.m_projectedVelocity) - 0.4
-				if vel > 0 then
-					--Tanx.log(string.format("FocusBrickCollisionListener:contactPointConfirmedCallback: A fixed: %s, B fixed: %s, projected velocity: %f, contace point: %s.",
-					--	tostring(rba:isFixed():get()), tostring(rbb:isFixed():get()), event.m_projectedVelocity, tostring(Tanx.madp(event.m_contactPoint:getPosition()))))
-
-					local volume = vel * 0.8
-					--Tanx.log("setGain: " .. volume)
-					g_Sounds.BrickCollision:get():setGain(volume)
-					g_Sounds.BrickCollision:get():play()
-				end
-			end
-
-			if event.m_collidableA:getShape():getType() == Havok.hkpShapeType.BOX and event.m_collidableB:getShape():getType() == Havok.hkpShapeType.CONVEX_VERTICES then
-				local volume = math.abs(event.m_projectedVelocity) / 32
-				--Tanx.log("setGain: " .. volume)
-				g_Sounds.GlassCollision:get():setGain(volume)
-				g_Sounds.GlassCollision:get():play()
-			end
-		end
-	end
-
-	function FocusBrickCollisionListener:contactPointRemovedCallback(event)
-		--Tanx.log("FocusBrickCollisionListener:contactPointRemovedCallback: contact point id: " .. event.m_contactPointId)
-	end
-
-	function FocusBrickCollisionListener:contactProcessCallback(event)
-		--Tanx.log(string.format("FocusBrickCollisionListener:contactProcessCallback: A shape type: %d, B shape type: %d, contance points count: %d",
-		--	event.m_collidableA:getShape():getType(), event.m_collidableB:getShape():getType(), event.m_collisionData:getNumContactPoints()))
-	end
-
-g_FocusBrickCollisionListener = FocusBrickCollisionListener()

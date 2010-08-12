@@ -6,6 +6,11 @@ TODO:
 
 
 
+2010.8.12	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Dodgem.lua: refined collision listener.
+
+
 2010.7.23	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	Dodgem.game.lua: joystick controller added.

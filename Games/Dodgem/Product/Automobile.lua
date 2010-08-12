@@ -31,7 +31,7 @@ class "Automobile"
 	end
 
 	function Automobile:__finalize()
-		--self.Chassis:get():removeCollisionListener(self.CollisionListener)
+		--self.Chassis:get():removeContactListener(self.CollisionListener)
 	end
 
 	function Automobile:step(elapsed)

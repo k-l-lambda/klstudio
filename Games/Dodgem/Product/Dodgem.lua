@@ -10,6 +10,8 @@
 Tanx.log("[Dodgem\\Dodgem.lua]: parsed.")
 
 Tanx.require"Core:utility.lua"
+Tanx.require"Core:bind.lua"
+Tanx.require"Core:SlottedContactListener.lua"
 Tanx.dofile"Automobile.lua"
 
 
@@ -58,8 +60,9 @@ class "Dodgem" (Automobile)
 		self.World = world
 
 		local chassis = self.Chassis:lock()
-		self.CollisionListener = DodgemCollisionListener(self)
-		chassis:get():addCollisionListener(self.CollisionListener)
+		--self.CollisionListener = DodgemCollisionListener(self)
+		self.CollisionListener = TanxSlottedContactListener{onContactPointConfirmed = Tanx.bind(self.contactPointConfirmedCallback, self, Tanx._1)}
+		chassis:get():addContactListener(self.CollisionListener)
 
 		self.ChassisId = chassis:get():getRigidBody():get():getUid()
 
@@ -106,15 +109,17 @@ class "Dodgem" (Automobile)
 		local rbb = event.m_collidableB:getRigidBody()
 		if rba and rbb then
 			local position = Tanx.madp(event.m_contactPoint:getPosition())
-			local velocity = Tanx.madp(target:getOwner():toDerived():getAngularVelocity())
+			local velocity = Tanx.madp(target:getOwner():toDerived():getLinearVelocity())
+			local projectedVelocity = event.m_projectedVelocity
+			local normal = Tanx.madp(event.m_contactPoint:getNormal())
 
 			if target:getShape():getType() == Havok.hkpShapeType.BOX then
 				local sound = self.SoundSources.CollisionBox
 				if sound then
 					--Tanx.log(string.format("Dodgem:contactPointConfirmedCallback: A fixed: %s, B fixed: %s, projected velocity: %f, contace point: %s.",
-					--	tostring(rba:isFixed():get()), tostring(rbb:isFixed():get()), event.m_projectedVelocity, tostring(Tanx.madp(event.m_contactPoint:getPosition()))))
+					--	tostring(rba:isFixed():get()), tostring(rbb:isFixed():get()), projectedVelocity, tostring(position)))
 
-					local volume = math.abs(event.m_projectedVelocity) ^ 2 * 3
+					local volume = math.abs(projectedVelocity) ^ 2 * 3
 
 					sound:get():setPosition(position.x, position.y, position.z)
 					sound:get():setVelocity(velocity.x, velocity.y, velocity.z)
@@ -122,18 +127,18 @@ class "Dodgem" (Automobile)
 					sound:get():play()
 				end
 
-				self:emitChassisSparks(position, math.abs(event.m_projectedVelocity) * 4)
+				self:emitChassisSparks(position, math.abs(projectedVelocity) * 4)
 
 				if self.EventHandlers.onHitBox then
-					self.EventHandlers.onHitBox(target:getOwner():getUid(), self:translateToLocal(Tanx.madp(event.m_contactPoint:getPosition())),
-						self:rotateToLocal(Tanx.madp(event.m_contactPoint:getNormal())), event.m_projectedVelocity)
+					self.EventHandlers.onHitBox(target:getOwner():getUid(), self:translateToLocal(position),
+						self:rotateToLocal(normal), projectedVelocity)
 				end
 			elseif targetname == "chassis" then
 				-- to avoid double sound effect
 				if self.ChassisId < target:getOwner():getUid() then
 					local sound = self.SoundSources.CollisionConvex
 					if sound then
-						local vel = math.abs(event.m_projectedVelocity) ^ 2 - 0.1
+						local vel = math.abs(projectedVelocity) ^ 2 - 0.1
 						if vel > 0 then
 							local volume = vel * 0.1
 
@@ -145,16 +150,16 @@ class "Dodgem" (Automobile)
 					end
 				end
 
-				self:emitChassisSparks(position, math.abs(event.m_projectedVelocity) * 10)
+				self:emitChassisSparks(position, math.abs(projectedVelocity) * 10)
 
 				if self.EventHandlers.onHitChassis then
-					self.EventHandlers.onHitChassis(target:getOwner():getUid(), self:translateToLocal(Tanx.madp(event.m_contactPoint:getPosition())),
-						self:rotateToLocal(Tanx.madp(event.m_contactPoint:getNormal())), event.m_projectedVelocity)
+					self.EventHandlers.onHitChassis(target:getOwner():getUid(), self:translateToLocal(position),
+						self:rotateToLocal(normal), projectedVelocity)
 				end
 			elseif targetname == "tail" then
 				local sound = self.SoundSources.CollisionTail
 				if sound then
-					local volume = math.abs(event.m_projectedVelocity) ^ 2 * 0.04
+					local volume = math.abs(projectedVelocity) ^ 2 * 0.04
 
 					sound:get():setPosition(position.x, position.y, position.z)
 					sound:get():setVelocity(velocity.x, velocity.y, velocity.z)
@@ -162,10 +167,10 @@ class "Dodgem" (Automobile)
 					sound:get():play()
 				end
 
-				self:emitChassisSparks(position, math.abs(event.m_projectedVelocity) * 16)
+				self:emitChassisSparks(position, math.abs(projectedVelocity) * 16)
 
 				if self.EventHandlers.onHitTail and target:getOwner():getUid() ~= self.TailId then
-					self.EventHandlers.onHitTail(target:getOwner():getUid(), math.abs(event.m_projectedVelocity))
+					self.EventHandlers.onHitTail(target:getOwner():getUid(), math.abs(projectedVelocity))
 				end
 			end
 		end
@@ -187,30 +192,4 @@ class "Dodgem" (Automobile)
 			assert(self.ChassisSparks:getParentNode(), "self.ChassisSparks:getParentNode() is nil")
 			self.ChassisSparks:getParentNode():setPosition(localposition)
 		end
-	end
-
-
-class "DodgemCollisionListener" (Tanx.CollisionListener)
-
-	function DodgemCollisionListener:__init(receiver)
-		if _LUABIND_VERSION and _LUABIND_VERSION >= 800 then
-			Tanx.CollisionListener.__init(self)
-		else
-			super()
-		end
-
-		self.Receiver = receiver
-	end
-
-	function DodgemCollisionListener:contactPointAddedCallback(event)
-	end
-
-	function DodgemCollisionListener:contactPointConfirmedCallback(event)
-		self.Receiver:contactPointConfirmedCallback(event)
-	end
-
-	function DodgemCollisionListener:contactPointRemovedCallback(event)
-	end
-
-	function DodgemCollisionListener:contactProcessCallback(event)
 	end

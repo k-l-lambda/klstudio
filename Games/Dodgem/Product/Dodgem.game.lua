@@ -194,6 +194,9 @@ function resetGame(config)
 	local scene = g_Game:getResourcePackage():get():getResource("Park.scene")
 	g_World:loadScene(scene, g_Game:getResourcePackage())
 
+	g_AgentGround = g_World:findAgent"ground"
+	assert(g_AgentGround:get())
+
 	g_AutomobileList = {}
 
 	local car1 = g_World:createAgent("Dodgem/Dodgem", "player%index", config.PlayerInitState)

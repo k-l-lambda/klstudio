@@ -6,6 +6,11 @@ TODO:
 
 
 
+2010.8.15	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Dodgem.lua: collision callback based on Havok 7.1 implemented.
+
+
 2010.8.12	K.L.	<xxxK.L.xxx@gmail.com>
 
 	>	Dodgem.lua: refined collision listener.

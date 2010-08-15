@@ -116,10 +116,13 @@ host =
 		g_Agent = controller:agent()
 
 		local tailid = g_TargetBody:get():getRigidBody():get():getUid()
-		g_Car = Dodgem(g_World, g_Agent, "Dodgem/Dodgem", {Engine = "EngineEnemy"}, {onHitBox = onBlock, onHitChassis = onBlock, onHitTail = function(id, power) if id == tailid then onHitTail(power) end end})
+		g_Car = Dodgem(g_World, g_Agent, "Dodgem/Dodgem", {Engine = "EngineEnemy"}, {onHitFence = onBlock, onHitChassis = onBlock, onHitTail = function(id, power) if id == tailid then onHitTail(power) end end})
 
 		g_Time = 0
 		g_Enabled = false
+
+		g_AgentGround = g_World:findAgent"ground"
+		assert(g_AgentGround:get())
 	end,
 
 	onStep = function(elapsed)

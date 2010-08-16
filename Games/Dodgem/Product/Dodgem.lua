@@ -60,7 +60,6 @@ class "Dodgem" (Automobile)
 		self.World = world
 
 		local chassis = self.Chassis:lock()
-		--self.CollisionListener = DodgemCollisionListener(self)
 		self.CollisionListener = TanxSlottedContactListener{onContactPointConfirmed = Tanx.bind(self.contactPointConfirmedCallback, self, Tanx._1), onContactPoint = Tanx.bind(self.onContactPoint, self, Tanx._1)}
 		chassis:get():addContactListener(self.CollisionListener)
 
@@ -102,7 +101,6 @@ class "Dodgem" (Automobile)
 		--Tanx.log(string.format("Dodgem:contactPointConfirmedCallback: A name: %s, B name: %s", event.m_collidableA:getOwner():getName() or "", event.m_collidableB:getOwner():getName() or ""))
 
 		local target = iif(event.m_collidableA:getOwner():getUid() == self.ChassisId, event.m_collidableB, event.m_collidableA)
-		--local targetname = target:getOwner():getName()
 
 		local rba = event.m_collidableA:getRigidBody()
 		local rbb = event.m_collidableB:getRigidBody()
@@ -113,66 +111,6 @@ class "Dodgem" (Automobile)
 			local normal = Tanx.madp(event.m_contactPoint:getNormal())
 
 			self:onCollision(target:getOwner():toDerived(), position, velocity, projectedVelocity, normal)
-			--[[if target:getShape():getType() == Havok.hkpShapeType.BOX then
-				local sound = self.SoundSources.CollisionBox
-				if sound then
-					--Tanx.log(string.format("Dodgem:contactPointConfirmedCallback: A fixed: %s, B fixed: %s, projected velocity: %f, contace point: %s.",
-					--	tostring(rba:isFixed():get()), tostring(rbb:isFixed():get()), projectedVelocity, tostring(position)))
-
-					local volume = math.abs(projectedVelocity) ^ 2 * 3
-
-					sound:get():setPosition(position.x, position.y, position.z)
-					sound:get():setVelocity(velocity.x, velocity.y, velocity.z)
-					sound:get():setGain(volume)
-					sound:get():play()
-				end
-
-				self:emitChassisSparks(position, math.abs(projectedVelocity) * 4)
-
-				if self.EventHandlers.onHitFence then
-					self.EventHandlers.onHitFence(target:getOwner():getUid(), self:translateToLocal(position),
-						self:rotateToLocal(normal), projectedVelocity)
-				end
-			elseif targetname == "chassis" then
-				-- to avoid double sound effect
-				if self.ChassisId < target:getOwner():getUid() then
-					local sound = self.SoundSources.CollisionConvex
-					if sound then
-						local vel = math.abs(projectedVelocity) ^ 2 - 0.1
-						if vel > 0 then
-							local volume = vel * 0.1
-
-							sound:get():setPosition(position.x, position.y, position.z)
-							sound:get():setVelocity(velocity.x, velocity.y, velocity.z)
-							sound:get():setGain(volume)
-							sound:get():play()
-						end
-					end
-				end
-
-				self:emitChassisSparks(position, math.abs(projectedVelocity) * 10)
-
-				if self.EventHandlers.onHitChassis then
-					self.EventHandlers.onHitChassis(target:getOwner():getUid(), self:translateToLocal(position),
-						self:rotateToLocal(normal), projectedVelocity)
-				end
-			elseif targetname == "tail" then
-				local sound = self.SoundSources.CollisionTail
-				if sound then
-					local volume = math.abs(projectedVelocity) ^ 2 * 0.04
-
-					sound:get():setPosition(position.x, position.y, position.z)
-					sound:get():setVelocity(velocity.x, velocity.y, velocity.z)
-					sound:get():setGain(volume)
-					sound:get():play()
-				end
-
-				self:emitChassisSparks(position, math.abs(projectedVelocity) * 16)
-
-				if self.EventHandlers.onHitTail and target:getOwner():getUid() ~= self.TailId then
-					self.EventHandlers.onHitTail(target:getOwner():getUid(), math.abs(projectedVelocity))
-				end
-			end]]
 		end
 	end
 
@@ -189,6 +127,7 @@ class "Dodgem" (Automobile)
 	end
 
 	function Dodgem:onCollision(target, position, velocity, projectedVelocity, normal)
+		assert(g_AgentGround)
 		local groundbody = g_AgentGround:get():findRigidbodyOfId(target:getUid())
 		if groundbody then
 			local sound = self.SoundSources.CollisionBox

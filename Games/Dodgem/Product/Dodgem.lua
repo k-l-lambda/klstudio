@@ -60,7 +60,7 @@ class "Dodgem" (Automobile)
 		self.World = world
 
 		local chassis = self.Chassis:lock()
-		self.CollisionListener = TanxSlottedContactListener{onContactPointConfirmed = Tanx.bind(self.contactPointConfirmedCallback, self, Tanx._1), onContactPoint = Tanx.bind(self.onContactPoint, self, Tanx._1)}
+		self.CollisionListener = TanxSlottedContactListener{onContactPointConfirmed = Tanx.bind(self.onContactPointConfirmed, self, Tanx._1), onContactPoint = Tanx.bind(self.onContactPoint, self, Tanx._1)}
 		chassis:get():addContactListener(self.CollisionListener)
 
 		self.ChassisId = chassis:get():getRigidBody():get():getUid()
@@ -95,7 +95,8 @@ class "Dodgem" (Automobile)
 		end
 	end
 
-	function Dodgem:contactPointConfirmedCallback(event)
+	-- for Havok 6.5 and earlier
+	function Dodgem:onContactPointConfirmed(event)
 		--Tanx.log(string.format("Dodgem:contactPointConfirmedCallback: A shape type: %d, B shape type: %d, projected velocity: %f, contace point: %s.",
 		--	event.m_collidableA:getShape():getType(), event.m_collidableB:getShape():getType(), event.m_projectedVelocity, tostring(Tanx.madp(event.m_contactPoint:getPosition()))))
 		--Tanx.log(string.format("Dodgem:contactPointConfirmedCallback: A name: %s, B name: %s", event.m_collidableA:getOwner():getName() or "", event.m_collidableB:getOwner():getName() or ""))
@@ -114,6 +115,7 @@ class "Dodgem" (Automobile)
 		end
 	end
 
+	-- for Havok 7 and later
 	function Dodgem:onContactPoint(event)
 		assert(event.m_source == 0 or event.m_source == 1)
 		local target = event:getBody(1 - event.m_source)

@@ -2,6 +2,11 @@ TODO:
 
 
 
+2010.10.30	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	ChatRoom.game.lua: web client set up.
+
+
 2010.10.29	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	test.html: created.

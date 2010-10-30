@@ -173,6 +173,14 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="GUI"
+			>
+			<File
+				RelativePath=".\Product\Dialog.layout"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Product\ChatRoom.game"
 			>

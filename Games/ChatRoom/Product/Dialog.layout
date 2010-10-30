@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<GUILayout>
+	<Window Type="DefaultGUISheet" Name="root">
+		<Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
+
+		<Window Type="TaharezLook/StaticText" Name="Dialog/State">
+			<Property Name="UnifiedPosition" Value="{{0.2,0},{0.2,0}}}" />
+			<Property Name="UnifiedSize" Value="{{0.6,0},{0.4,0}}" />
+			<Property Name="Font" Value="BlueHighway-24" />
+			<Property Name="Text" Value="StaticText1" />
+		</Window>
+
+	</Window>
+</GUILayout>

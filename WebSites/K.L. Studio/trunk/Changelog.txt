@@ -4,7 +4,8 @@ TODO:
 
 2010.10.31	K.L.	<xxxK.L.xxx@gmail.com>
 
-	>	Directory renamed: WebRoot -> Source.
+	>	Directory renamed: WebRoot -> Source\static.
+	>	Directory renamed: AppEngineRoot -> Source.
 	>	Directory renamed: Source -> Footages.
 
 	+	ChangeLog.txt: created.

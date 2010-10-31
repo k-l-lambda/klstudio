@@ -5,11 +5,11 @@ api_version: 1
 
 handlers:
 - url: /favicon.ico
-  static_files: html/res/icons/CubeEarth.ico
-  upload: html/res/icons/CubeEarth.ico
+  static_files: favicon.ico
+  upload: favicon.ico
 
 - url: /html
-  static_dir: html
+  static_dir: static
 
 - url: .*
   script: main.py

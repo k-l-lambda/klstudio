@@ -1,5 +1,6 @@
 
 TODO:
+	redirect '\html\.*' to '\.*'
 
 
 2010.10.31	K.L.	<xxxK.L.xxx@gmail.com>

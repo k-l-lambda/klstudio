@@ -8,8 +8,40 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{DC5E78C0-6
 		Changelog.txt = Changelog.txt
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{6039FAA1-190F-41C5-BB92-22D664E36873}"
+	ProjectSection(SolutionItems) = preProject
+		Source\app.yaml = Source\app.yaml
+		Source\favicon.ico = Source\favicon.ico
+		Source\index.yaml = Source\index.yaml
+		Source\main.py = Source\main.py
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{507BFF60-1747-4568-B869-37F7B1AAD9E1}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\about.html = Source\static\about.html
+		Source\static\index.html = Source\static\index.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{E1C565A9-4542-4405-8CC0-2E3E8B31FD54}"
+	ProjectSection(SolutionItems) = preProject
+		Source\templates\MessageBoard.html = Source\templates\MessageBoard.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{FD903894-04D2-464C-8D3C-CFE2D8EAEE88}"
+	ProjectSection(SolutionItems) = preProject
+		Tools\deploy non-svn files.bat = Tools\deploy non-svn files.bat
+		Tools\GetLog.bat = Tools\GetLog.bat
+		Tools\LogFormatter.py = Tools\LogFormatter.py
+		Tools\Publish -dropbox.bat = Tools\Publish -dropbox.bat
+		Tools\Publish.bat = Tools\Publish.bat
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{507BFF60-1747-4568-B869-37F7B1AAD9E1} = {6039FAA1-190F-41C5-BB92-22D664E36873}
+		{E1C565A9-4542-4405-8CC0-2E3E8B31FD54} = {6039FAA1-190F-41C5-BB92-22D664E36873}
 	EndGlobalSection
 EndGlobal

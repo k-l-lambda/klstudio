@@ -62,7 +62,7 @@ class MessageBoard(webapp.RequestHandler):
             'login_url':    users.create_login_url(self.request.uri),
             'notes':        notes,
         }
-        path = os.path.join(os.path.dirname(__file__), 'MessageBoard/template.html')
+        path = os.path.join(os.path.dirname(__file__), 'templates/MessageBoard.html')
         self.response.out.write(template.render(path, template_values))
 
 

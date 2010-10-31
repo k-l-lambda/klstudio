@@ -36,6 +36,49 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{FD903894
 		Tools\Publish.bat = Tools\Publish.bat
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "projects", "projects", "{72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MagicCube", "MagicCube", "{01EDC4D0-6291-4AED-8298-EAD4D5A7968A}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\MagicCube\MagicCube.html = Source\static\projects\MagicCube\MagicCube.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tanx", "Tanx", "{7ADB6F2C-93D6-48CF-A8A9-9B6E3869B90C}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\Tanx\Tanx.html = Source\static\projects\Tanx\Tanx.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tanxjs", "Tanxjs", "{250A8786-9F3E-40BF-8D6A-D22BFFB9E75E}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\Tanx\Tanxjs\util.js = Source\static\projects\Tanx\Tanxjs\util.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demos", "Demos", "{1FDEE6C1-19FB-4B77-8476-140875D4958A}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\Tanx\Demos\CoulombField.html = Source\static\projects\Tanx\Demos\CoulombField.html
+		Source\static\projects\Tanx\Demos\CubeTetris.html = Source\static\projects\Tanx\Demos\CubeTetris.html
+		Source\static\projects\Tanx\Demos\CubeTetris_ScreenSaver.html = Source\static\projects\Tanx\Demos\CubeTetris_ScreenSaver.html
+		Source\static\projects\Tanx\Demos\Dodgem.html = Source\static\projects\Tanx\Demos\Dodgem.html
+		Source\static\projects\Tanx\Demos\Pool.html = Source\static\projects\Tanx\Demos\Pool.html
+		Source\static\projects\Tanx\Demos\Test.html = Source\static\projects\Tanx\Demos\Test.html
+		Source\static\projects\Tanx\Demos\ThreeBody.html = Source\static\projects\Tanx\Demos\ThreeBody.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{D40EEB9E-F6F2-459E-B858-A81D77F46A2A}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\Tanx\Demos\js\demo_template.js = Source\static\projects\Tanx\Demos\js\demo_template.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tetra", "Tetra", "{F4C21657-4C05-41B2-B15A-D5C026A62F00}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\Tetra\Tetra.html = Source\static\projects\Tetra\Tetra.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Trigo", "Trigo", "{B908F6D6-7B0F-439E-9933-BFACAE5FEADB}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\Trigo\Trigo.html = Source\static\projects\Trigo\Trigo.html
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -43,5 +86,13 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{507BFF60-1747-4568-B869-37F7B1AAD9E1} = {6039FAA1-190F-41C5-BB92-22D664E36873}
 		{E1C565A9-4542-4405-8CC0-2E3E8B31FD54} = {6039FAA1-190F-41C5-BB92-22D664E36873}
+		{72F8721A-6415-46C5-9AC3-30CE9FCBBDF9} = {507BFF60-1747-4568-B869-37F7B1AAD9E1}
+		{01EDC4D0-6291-4AED-8298-EAD4D5A7968A} = {72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}
+		{7ADB6F2C-93D6-48CF-A8A9-9B6E3869B90C} = {72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}
+		{F4C21657-4C05-41B2-B15A-D5C026A62F00} = {72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}
+		{B908F6D6-7B0F-439E-9933-BFACAE5FEADB} = {72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}
+		{250A8786-9F3E-40BF-8D6A-D22BFFB9E75E} = {7ADB6F2C-93D6-48CF-A8A9-9B6E3869B90C}
+		{1FDEE6C1-19FB-4B77-8476-140875D4958A} = {7ADB6F2C-93D6-48CF-A8A9-9B6E3869B90C}
+		{D40EEB9E-F6F2-459E-B858-A81D77F46A2A} = {1FDEE6C1-19FB-4B77-8476-140875D4958A}
 	EndGlobalSection
 EndGlobal

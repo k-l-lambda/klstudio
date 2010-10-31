@@ -1,7 +1,6 @@
 
-call	svn	export --force	"https://klstudio.googlecode.com/svn/WebSites/K.L. Studio/trunk/WebRoot"	"%KLSTUDIO_PUBLISH_DIR_AE%\HTML"
-call	"deploy non-svn files.bat"	"%KLSTUDIO_PUBLISH_DIR_AE%\HTML"
+call	svn	export --force	"https://klstudio.googlecode.com/svn/WebSites/K.L. Studio/trunk/Source"	"release"
 
-appcfg.py --email=xxxk.l.xxx@gmail.com update "%KLSTUDIO_PUBLISH_DIR_AE%\\"
+appcfg.py --email=xxxk.l.xxx@gmail.com update "release\\"
 
 pause

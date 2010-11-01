@@ -11,7 +11,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{6039FAA1-190F-41C5-BB92-22D664E36873}"
 	ProjectSection(SolutionItems) = preProject
 		Source\app.yaml = Source\app.yaml
-		Source\favicon.ico = Source\favicon.ico
 		Source\index.yaml = Source\index.yaml
 		Source\main.py = Source\main.py
 	EndProjectSection
@@ -84,6 +83,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "css", "css", "{A55A5D1C-ED8
 		Source\static\css\TanxDemo.css = Source\static\css\TanxDemo.css
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TanxWebService", "TanxWebService", "{9225C4DA-E842-4A54-B4AF-6804A7B33BF0}"
+	ProjectSection(SolutionItems) = preProject
+		Source\TanxWebService\ApplicationHandlers.py = Source\TanxWebService\ApplicationHandlers.py
+		Source\TanxWebService\main.py = Source\TanxWebService\main.py
+		Source\TanxWebService\Session.py = Source\TanxWebService\Session.py
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -91,6 +97,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{507BFF60-1747-4568-B869-37F7B1AAD9E1} = {6039FAA1-190F-41C5-BB92-22D664E36873}
 		{E1C565A9-4542-4405-8CC0-2E3E8B31FD54} = {6039FAA1-190F-41C5-BB92-22D664E36873}
+		{9225C4DA-E842-4A54-B4AF-6804A7B33BF0} = {6039FAA1-190F-41C5-BB92-22D664E36873}
 		{72F8721A-6415-46C5-9AC3-30CE9FCBBDF9} = {507BFF60-1747-4568-B869-37F7B1AAD9E1}
 		{A55A5D1C-ED8B-4922-BE88-8B60F53B8EE4} = {507BFF60-1747-4568-B869-37F7B1AAD9E1}
 		{01EDC4D0-6291-4AED-8298-EAD4D5A7968A} = {72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}

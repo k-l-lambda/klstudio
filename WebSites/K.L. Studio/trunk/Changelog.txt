@@ -4,6 +4,8 @@ TODO:
 
 2010.11.1	K.L.	<xxxK.L.xxx@gmail.com>
 
+	+	Source/TanxWebService: set up.
+
 	>	Source/main.py: redirect '\html\.*' to '\.*'.
 
 	>	Source/static/projects/Tanx.html: changed installers' URL.

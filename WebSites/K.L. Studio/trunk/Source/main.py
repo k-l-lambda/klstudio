@@ -1,21 +1,8 @@
-#!/usr/bin/env python
-#
-# Copyright 2007 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+
 import os
 import datetime
+import re
+import logging
 
 from google.appengine.ext import db
 from google.appengine.api import users
@@ -23,10 +10,10 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
 from google.appengine.ext.webapp import template
 
+
 class MainHandler(webapp.RequestHandler):
     def get(self):
-        #self.response.out.write('Hello world!')
-        self.redirect('/html/index.html')
+        self.redirect('/index.html')
 
 
 class GuestNote(db.Model):
@@ -66,11 +53,18 @@ class MessageBoard(webapp.RequestHandler):
         self.response.out.write(template.render(path, template_values))
 
 
+class HtmlHandler(webapp.RequestHandler):
+    def get(self):
+        logging.info('self.request.path: %s', self.request.path)
+        self.redirect('/%s?%s' % (re.sub('/html/(.*)', r'\1', self.request.path), self.request.query_string))
+
+
 def main():
     application = webapp.WSGIApplication([
-        ('/', MainHandler),
-        ('/MessageBoard', MessageBoard),
-        ('/MessageBoard/sign', MessageSign),
+        ('/',                   MainHandler),
+        ('/html/.*',            HtmlHandler),
+        ('/MessageBoard',       MessageBoard),
+        ('/MessageBoard/sign',  MessageSign),
         ], debug=True)
     util.run_wsgi_app(application)
 

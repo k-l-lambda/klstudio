@@ -1,9 +1,10 @@
 
 TODO:
-	redirect '\html\.*' to '\.*'
 
 
 2010.11.1	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Source/main.py: redirect '\html\.*' to '\.*'.
 
 	>	Source/static/projects/Tanx.html: changed installers' URL.
 

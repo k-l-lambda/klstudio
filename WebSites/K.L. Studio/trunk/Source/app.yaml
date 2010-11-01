@@ -8,8 +8,17 @@ handlers:
   static_files: favicon.ico
   upload: favicon.ico
 
-- url: /html
-  static_dir: static
-
-- url: .*
+- url: /
   script: main.py
+
+- url: /MessageBoard
+  script: main.py
+
+- url: /MessageBoard/.*
+  script: main.py
+
+- url: /html/.*
+  script: main.py
+
+- url: /
+  static_dir: static

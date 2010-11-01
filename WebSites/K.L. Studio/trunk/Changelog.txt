@@ -3,6 +3,11 @@ TODO:
 	redirect '\html\.*' to '\.*'
 
 
+2010.11.1	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Source/static/projects/Tanx.html: changed installers' URL.
+
+
 2010.10.31	K.L.	<xxxK.L.xxx@gmail.com>
 
 	>	Directory renamed: WebRoot -> Source\static.

@@ -10,12 +10,20 @@
 Tanx.log("[ChatRoom\\ChatRoom.game.lua]: parsed.")
 
 Tanx.require"Core:WebClient.lua"
+Tanx.require"Core:serializer.lua"
+Tanx.require"Core:bind.lua"
 
 
-function reportFinish(result)
+function reportFinish(result, handler)
 	g_StateLabel:setText(CEGUI.String"Loading finished.")
 
 	Tanx.log("[ChatRoom\\ChatRoom.game.lua]: web result: " .. result)
+
+	if handler then
+		local r = Tanx.serializer.load(result)
+		handler(r)
+		--g_StateLabel:setText(CEGUI.String("result: " .. r.result))
+	end
 end
 
 function reportState(state)
@@ -48,7 +56,8 @@ function initialize(game, params)
 	g_StateLabel:setText(CEGUI.String"ChatRoom")
 
 	g_WebClient = g_Game:getWebClient(params)
-	g_LoadEntry = g_WebClient:getUrl("http://doubanfriends.appspot.com/", reportFinish, reportState)
+	g_LoadEntry = g_WebClient:getUrl("http://localhost:8080/tanx-web-service/v1/user-info", Tanx.bind(reportFinish, Tanx._1, function(data) g_StateLabel:setText(CEGUI.String(string.format("nickname: %s\nemail: %s\nuser_id: %s", data.nickname or "", data.email or "", data.user_id or ""))) end), reportState)
+	--g_LoadEntry = g_WebClient:postUrl("http://localhost:8080/tanx-web-service/v1/", "Content-Type:\tapplication/x-www-form-urlencoded\n\narg=hello;data={a=\"abc\\;def\"}", reportFinish, reportState)
 end
 
 

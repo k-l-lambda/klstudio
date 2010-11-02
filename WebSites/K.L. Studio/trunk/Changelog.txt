@@ -1,5 +1,6 @@
 
 TODO:
+	application create admin
 
 
 2010.11.1	K.L.	<xxxK.L.xxx@gmail.com>

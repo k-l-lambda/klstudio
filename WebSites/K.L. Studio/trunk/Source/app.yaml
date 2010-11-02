@@ -19,6 +19,7 @@ handlers:
 
 - url: /tanx-web-service/v1/.*
   script: TanxWebService/main.py
+  login: required
 
 
 - url: /

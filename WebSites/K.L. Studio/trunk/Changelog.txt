@@ -3,6 +3,13 @@ TODO:
 	application create admin
 
 
+2010.11.4	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	ApplicationSessionListHandler added.
+
+	*!	To use a sub directory source file: add __init__.py in directory to make a module.
+
+
 2010.11.1	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	Source/TanxWebService: set up.

@@ -85,6 +85,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "css", "css", "{A55A5D1C-ED8
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TanxWebService", "TanxWebService", "{9225C4DA-E842-4A54-B4AF-6804A7B33BF0}"
 	ProjectSection(SolutionItems) = preProject
+		Source\TanxWebService\__init__.py = Source\TanxWebService\__init__.py
 		Source\TanxWebService\Application.py = Source\TanxWebService\Application.py
 		Source\TanxWebService\ApplicationHandlers.py = Source\TanxWebService\ApplicationHandlers.py
 		Source\TanxWebService\main.py = Source\TanxWebService\main.py

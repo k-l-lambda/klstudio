@@ -10,8 +10,8 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
 from google.appengine.ext.webapp import template
 
-from ApplicationHandlers import *
-from SessionHandlers import *
+from TanxWebService.ApplicationHandlers import *
+from TanxWebService.SessionHandlers import *
 
 
 class MainHandler(webapp.RequestHandler):
@@ -34,10 +34,11 @@ class UserInfoHandler(webapp.RequestHandler):
 
 def main():
     application = webapp.WSGIApplication([
-        ('/tanx-web-service/.*/',                               MainHandler),
-        ('/tanx-web-service/.*/user-info',                      UserInfoHandler),
-        ('/tanx-web-service/.*/app/.*/setup-session',           ApplicationSetupSessionHandler),
-        ('/tanx-web-service/.*/app/.*/session/.*/info',         SessionInfoHandler),
+        ('/tanx-web-service/[^/]*/',                               MainHandler),
+        ('/tanx-web-service/[^/]*/user-info',                      UserInfoHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/setup-session',           ApplicationSetupSessionHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session-list',            ApplicationSessionListHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/info',         SessionInfoHandler),
         ], debug=True)
     util.run_wsgi_app(application)
 

@@ -6,6 +6,8 @@ TODO:
 
 2010.11.7	K.L.	<xxxK.L.xxx@gmail.com>
 
+	+	TanxWebService.SessionChannel: added.
+
 	+	TanxWebService.SessionSetTagsHandler: added.
 	+	TanxWebService.SessionKeepAliveHandler: added.
 

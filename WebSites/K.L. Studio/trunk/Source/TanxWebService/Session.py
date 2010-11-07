@@ -17,18 +17,20 @@ class Session(db.Model):
     def id(self):
         return self.key().name()
 
+    def genNewHostMessageId(self):
+        self.next_host_message_id = self.next_host_message_id or 0
+        id = str(self.next_host_message_id)
 
-class SessionChannel(db.Model):
-    members = db.ListProperty(users.User)
+        self.next_host_message_id += 1
+        self.put()
 
-    def id(self):
-        return self.key().name()
+        return id
 
-    @staticmethod
-    def getById(id, session):
-        channel = SessionChannel.get_by_key_name(id, session)
-        if channel is None:
-            channel = SessionChannel(key_name = id, parent = session)
-            channel.put()
+    def genNewGuestMessageId(self):
+        self.next_guest_message_id = self.next_guest_message_id or 0
+        id = str(self.next_guest_message_id)
 
-        return channel
+        self.next_guest_message_id += 1
+        self.put()
+
+        return id

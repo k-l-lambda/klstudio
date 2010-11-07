@@ -175,9 +175,56 @@ class SessionChannelClearMemberHandler(webapp.RequestHandler):
 
 class SessionPostMessageHandler(webapp.RequestHandler):
     def post(self):
-        pass
+        app_id, session_id, session = findSessionByPath(self.request.path)
+        if session:
+            current_user = users.get_current_user()
+            if session.host == current_user:
+                # post host message
+                msg = SessionHostMessage(key_name = session.genNewHostMessageId(), parent = session)
+                msg.data = self.request.get('data')
+                msg.channels = self.request.get_all('channel')
+                msg.audiences = [users.User(email) for email in self.request.get_all('audience')]
+                msg.put()
+
+                logging.info('a host(%s) message post in session "%s" of app "%s": %s %s %s', current_user.nickname(), session_id, app_id, msg.data,
+                    msg.channels and ('via:%s' % msg.channels) or '', msg.audiences and ('to:%s' % [user.nickname() for user in msg.audiences]) or '')
+
+                self.response.out.write('{result="OK",time="%s"}' % msg.time)
+            else:
+                # post guest message
+                msg = SessionGuestMessage(key_name = session.genNewGuestMessageId(), parent = session)
+                msg.data = self.request.get('data')
+                msg.sender = current_user
+                msg.put()
+
+                logging.info('a guest(%s) message post in session "%s" of app "%s": %s', current_user.nickname(), session_id, app_id, msg.data)
+
+                self.response.out.write('{result="OK",time="%s"}' % msg.time)
+        else:
+            logging.error('cannot find session of "%s/%s"', app_id, session_id)
+            self.response.out.write('{result="Error",error="cannot find session"}')
 
 
 class SessionFetchMessageHandler(webapp.RequestHandler):
     def get(self):
-        pass
+        app_id, session_id, session = findSessionByPath(self.request.path)
+        if session:
+            if session.host == users.get_current_user():
+                # fetch guest message
+                start = int(self.request.str_GET.get('id', 0))
+                next = session.next_guest_message_id
+
+                messages = filter(lambda msg : msg, [SessionGuestMessage.get_by_key_name(str(id), session) for id in range(start, next)])
+
+                self.response.out.write('{next=%s,messages=%s}' % Serializer.saveTuple(next, [dict([('data', Serializer.PlainText(msg.data)), ('time', msg.time), ('sender', msg.sender)]) for msg in messages]))
+            else:
+                # fetch host message
+                start = int(self.request.str_GET.get('id', 0))
+                next = session.next_host_message_id
+
+                messages = filter(lambda msg : msg and msg.isReceiver(users.get_current_user()), [SessionHostMessage.get_by_key_name(str(id), session) for id in range(start, next)])
+
+                self.response.out.write('{next=%s,messages=%s}' % Serializer.saveTuple(next, [dict([('data', Serializer.PlainText(msg.data)), ('time', msg.time)]) for msg in messages]))
+        else:
+            logging.error('cannot find session of "%s/%s"', app_id, session_id)
+            self.response.out.write('{error="cannot find session"}')

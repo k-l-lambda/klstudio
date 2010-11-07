@@ -1,11 +1,13 @@
 
 import uuid
 import logging
+import string
 import re
 
 from google.appengine.ext import webapp
 
 from Application import *
+import Serializer
 
 
 class ApplicationSetupSessionHandler(webapp.RequestHandler):
@@ -19,7 +21,7 @@ class ApplicationSetupSessionHandler(webapp.RequestHandler):
 
         session = Session(key_name = session_id, parent = app)
         session.host = host
-        session.active = True
+        session.alive = True
         session.next_host_message_id = 0
         session.next_guest_message_id = 0
         session.put()
@@ -36,15 +38,21 @@ class ApplicationSessionListHandler(webapp.RequestHandler):
 
         offset = int(self.request.str_GET.get('offset', 0))
         limit = int(self.request.str_GET.get('limit', 100))
+        tag = self.request.str_GET.get('tag')
+        host = self.request.str_GET.get('host')
 
         session_list = app.sessionList(True)
         total = session_list.count()
 
         session_list = session_list.fetch(limit, offset)
+        try:
+            if host:
+                session_list = filter(lambda session : re.match(host, session.host.nickname()), session_list)
+        except:
+            pass
+        if tag:
+            session_list = filter(lambda session : tag in session.tags, session_list)
 
-        session_list_str = '{'
-        for session in session_list:
-            session_list_str += '{host="%s",setup_time="%s"},' % (session.host.nickname(), session.setup_time)
-        session_list_str += '}'
+        session_list_str = '{%s}' % string.join(['{id="%s",host="%s",setup_time="%s",tags=%s},' % (session.id(), session.host.nickname(), session.setup_time, Serializer.save(session.tags)) for session in session_list], ',')
 
         self.response.out.write('{total=%d,list=%s}' % (total, session_list_str))

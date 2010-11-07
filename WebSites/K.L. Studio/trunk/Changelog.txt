@@ -1,10 +1,14 @@
 
 TODO:
 	TanxWebService: admin console
-	TanxWebService: application create admin
+		application create
+		data clear
 
 
 2010.11.7	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	TanxWebService.SessionPostMessageHandler: implemented.
+	+	TanxWebService.SessionFetchMessageHandler: implemented.
 
 	+	TanxWebService.SessionChannel: added.
 

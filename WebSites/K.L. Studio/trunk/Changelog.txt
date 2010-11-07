@@ -1,6 +1,15 @@
 
 TODO:
-	application create admin
+	TanxWebService: admin console
+	TanxWebService: application create admin
+
+
+2010.11.7	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	TanxWebService.SessionSetTagsHandler: added.
+	+	TanxWebService.SessionKeepAliveHandler: added.
+
+	+	Source/TanxWebService/Serializer.py: created.
 
 
 2010.11.4	K.L.	<xxxK.L.xxx@gmail.com>

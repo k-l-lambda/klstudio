@@ -34,11 +34,13 @@ class UserInfoHandler(webapp.RequestHandler):
 
 def main():
     application = webapp.WSGIApplication([
-        ('/tanx-web-service/[^/]*/',                               MainHandler),
-        ('/tanx-web-service/[^/]*/user-info',                      UserInfoHandler),
-        ('/tanx-web-service/[^/]*/app/[^/]*/setup-session',           ApplicationSetupSessionHandler),
-        ('/tanx-web-service/[^/]*/app/[^/]*/session-list',            ApplicationSessionListHandler),
-        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/info',         SessionInfoHandler),
+        ('/tanx-web-service/[^/]*/',                                        MainHandler),
+        ('/tanx-web-service/[^/]*/user-info',                               UserInfoHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/setup-session',                 ApplicationSetupSessionHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session-list',                  ApplicationSessionListHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/info',            SessionInfoHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/keep-alive',      SessionKeepAliveHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/set-tags',        SessionSetTagsHandler),
         ], debug=True)
     util.run_wsgi_app(application)
 

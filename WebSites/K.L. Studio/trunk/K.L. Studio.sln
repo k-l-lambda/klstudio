@@ -86,13 +86,27 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TanxWebService", "TanxWebService", "{9225C4DA-E842-4A54-B4AF-6804A7B33BF0}"
 	ProjectSection(SolutionItems) = preProject
 		Source\TanxWebService\__init__.py = Source\TanxWebService\__init__.py
+		Source\TanxWebService\admin.py = Source\TanxWebService\admin.py
 		Source\TanxWebService\Application.py = Source\TanxWebService\Application.py
+		Source\TanxWebService\ApplicationAdminHandlers.py = Source\TanxWebService\ApplicationAdminHandlers.py
 		Source\TanxWebService\ApplicationHandlers.py = Source\TanxWebService\ApplicationHandlers.py
 		Source\TanxWebService\main.py = Source\TanxWebService\main.py
 		Source\TanxWebService\Serializer.py = Source\TanxWebService\Serializer.py
 		Source\TanxWebService\Session.py = Source\TanxWebService\Session.py
 		Source\TanxWebService\SessionHandlers.py = Source\TanxWebService\SessionHandlers.py
 		Source\TanxWebService\SessionMessage.py = Source\TanxWebService\SessionMessage.py
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{A5DC49E7-3DB2-4971-9290-95AB0A35BCF2}"
+	ProjectSection(SolutionItems) = preProject
+		Source\TanxWebService\templates\AdminHome.html = Source\TanxWebService\templates\AdminHome.html
+		Source\TanxWebService\templates\ApplicationViewer.html = Source\TanxWebService\templates\ApplicationViewer.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{8134952A-5A0F-4385-9740-F20016F182B9}"
+	ProjectSection(SolutionItems) = preProject
+		Source\TanxWebService\static\admin.css = Source\TanxWebService\static\admin.css
+		Source\TanxWebService\static\admin.js = Source\TanxWebService\static\admin.js
 	EndProjectSection
 EndProject
 Global
@@ -112,5 +126,7 @@ Global
 		{250A8786-9F3E-40BF-8D6A-D22BFFB9E75E} = {7ADB6F2C-93D6-48CF-A8A9-9B6E3869B90C}
 		{1FDEE6C1-19FB-4B77-8476-140875D4958A} = {7ADB6F2C-93D6-48CF-A8A9-9B6E3869B90C}
 		{D40EEB9E-F6F2-459E-B858-A81D77F46A2A} = {1FDEE6C1-19FB-4B77-8476-140875D4958A}
+		{A5DC49E7-3DB2-4971-9290-95AB0A35BCF2} = {9225C4DA-E842-4A54-B4AF-6804A7B33BF0}
+		{8134952A-5A0F-4385-9740-F20016F182B9} = {9225C4DA-E842-4A54-B4AF-6804A7B33BF0}
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,17 @@
+
+h1 { text-align: center; }
+
+table tr td
+{
+	text-align: center;
+	padding: 0 10px;
+}
+
+
+.section
+{
+	margin-top: 40px;
+	border-bottom: 1px dashed #d4d4d4;
+}
+
+.head-check { text-align: justify; padding: 0; }

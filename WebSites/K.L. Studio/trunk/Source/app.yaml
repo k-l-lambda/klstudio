@@ -17,6 +17,13 @@ handlers:
   script: main.py
 
 
+- url: /tanx-web-service/v1/static/
+  static_dir: TanxWebService/static
+
+- url: /tanx-web-service/v1/admin/.*
+  script: TanxWebService/admin.py
+  login: admin
+
 - url: /tanx-web-service/v1/.*
   script: TanxWebService/main.py
   login: required

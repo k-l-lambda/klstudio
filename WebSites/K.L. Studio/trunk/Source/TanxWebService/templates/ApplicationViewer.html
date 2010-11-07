@@ -1,0 +1,49 @@
+<html>
+	<head>
+		<title>Tanx Web Service Admin - Application {{application.id}}</title>
+		<link href="../../../static/admin.css" rel="stylesheet" type="text/css" />
+		<script src="../../../static/admin.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<h1>Application <i>{{application.id}}</i></h1>
+		<p><a href="../../">&lt;&lt; back to Admin Home</a></p>
+		<div class="section">
+			<h2>Session List</h2>
+			<form action="delete-session" method="post">
+				<table>
+					<tr>
+						<th><input type="checkbox" onclick="checkAll(this, 'sessionchk')" />select all/none</th>
+						<th>id</th>
+						<th>host</th>
+						<th>setup_time</th>
+						<th>alive_time</th>
+						<th>alive</th>
+						<th>next_host_message_id</th>
+						<th>next_guest_message_id</th>
+						<th>tags</th>
+					</tr>
+					{% for session in application.sessionList %}
+						<tr>
+							<td class="head-check"><input type="checkbox" name="id" value="{{session.id}}" class="sessionchk"/></td>
+							<td><a href="session/{{session.id}}/">{{session.id}}</a></td>
+							<td>{{session.host.email}}</td>
+							<td>{{session.setup_time}}</td>
+							<td>{{session.alive_time}}</td>
+							<td>{{session.alive}}</td>
+							<td>{{session.next_host_message_id}}</td>
+							<td>{{session.next_guest_message_id}}</td>
+							<td>{{session.tags}}</td>
+						</tr>
+					{% endfor %}
+				</table>
+				<input type="hidden" name="app_id" value="{{application.id}}" />
+				<input type="submit" value="Delete" onClick="confirmEvent('Sure to delete selected session(s)?')" />
+			</form>
+		</div>
+		<div class="section">
+			<form action="../../../app/{{application.id}}/setup-session" method="post">
+				<h2><input type="submit" value="Setup Session" style="font:inherit" /></h2>
+			</form>
+		</div>
+	</body>
+</html>

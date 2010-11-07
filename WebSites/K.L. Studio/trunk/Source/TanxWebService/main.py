@@ -1,14 +1,9 @@
 
-import os
-import datetime
-import re
 import logging
 
-from google.appengine.ext import db
 from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
-from google.appengine.ext.webapp import template
 
 from TanxWebService.ApplicationHandlers import *
 from TanxWebService.SessionHandlers import *
@@ -31,7 +26,7 @@ class UserInfoHandler(webapp.RequestHandler):
 
 def main():
     application = webapp.WSGIApplication([
-        ('/tanx-web-service/[^/]*/',                                                        MainHandler),
+        #('/tanx-web-service/[^/]*/',                                                        MainHandler),
         ('/tanx-web-service/[^/]*/user-info',                                               UserInfoHandler),
         ('/tanx-web-service/[^/]*/app/[^/]*/setup-session',                                 ApplicationSetupSessionHandler),
         ('/tanx-web-service/[^/]*/app/[^/]*/session-list',                                  ApplicationSessionListHandler),

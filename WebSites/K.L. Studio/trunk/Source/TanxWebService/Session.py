@@ -1,4 +1,6 @@
 
+import logging
+
 from google.appengine.ext import db
 from google.appengine.api import users
 
@@ -34,3 +36,12 @@ class Session(db.Model):
         self.put()
 
         return id
+
+    def deleteData(self):
+        db.delete(SessionChannel.all().ancestor(self))
+        db.delete(SessionHostMessage.all().ancestor(self))
+        db.delete(SessionGuestMessage.all().ancestor(self))
+
+        self.delete()
+
+        logging.info('session "%s" data deleted.', self.id())

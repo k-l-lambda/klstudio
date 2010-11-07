@@ -12,6 +12,7 @@ from google.appengine.ext.webapp import template
 
 from TanxWebService.ApplicationHandlers import *
 from TanxWebService.SessionHandlers import *
+import TanxWebService.Serializer
 
 
 class MainHandler(webapp.RequestHandler):
@@ -25,22 +26,25 @@ class MainHandler(webapp.RequestHandler):
 
 class UserInfoHandler(webapp.RequestHandler):
     def get(self):
-        current_user = users.get_current_user()
-        if current_user:
-            self.response.out.write('{nickname="%s",email="%s",user_id="%s"}' % (current_user.nickname(), current_user.email(), current_user.user_id()))
-        else:
-            self.response.out.write('{}')
+        self.response.out.write(Serializer.save(users.get_current_user()))
 
 
 def main():
     application = webapp.WSGIApplication([
-        ('/tanx-web-service/[^/]*/',                                        MainHandler),
-        ('/tanx-web-service/[^/]*/user-info',                               UserInfoHandler),
-        ('/tanx-web-service/[^/]*/app/[^/]*/setup-session',                 ApplicationSetupSessionHandler),
-        ('/tanx-web-service/[^/]*/app/[^/]*/session-list',                  ApplicationSessionListHandler),
-        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/info',            SessionInfoHandler),
-        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/keep-alive',      SessionKeepAliveHandler),
-        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/set-tags',        SessionSetTagsHandler),
+        ('/tanx-web-service/[^/]*/',                                                        MainHandler),
+        ('/tanx-web-service/[^/]*/user-info',                                               UserInfoHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/setup-session',                                 ApplicationSetupSessionHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session-list',                                  ApplicationSessionListHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/info',                            SessionInfoHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/keep-alive',                      SessionKeepAliveHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/end',                             SessionEndHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/set-tags',                        SessionSetTagsHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/post-message',                    SessionPostMessageHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/fetch-message',                   SessionFetchMessageHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/channel/[^/]*/members',           SessionChannelMembersHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/channel/[^/]*/add-member',        SessionChannelAddMemberHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/channel/[^/]*/remove-member',     SessionChannelRemoveMemberHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/channel/[^/]*/clear-member',      SessionChannelClearMemberHandler),
         ], debug=True)
     util.run_wsgi_app(application)
 

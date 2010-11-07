@@ -7,6 +7,7 @@ from Session import *
 class Application(db.Model):
     @staticmethod
     def getById(id):
+        # TODO: check authority
         app = Application.get_by_key_name(id)
         if app is None:
             app = Application(key_name = id)

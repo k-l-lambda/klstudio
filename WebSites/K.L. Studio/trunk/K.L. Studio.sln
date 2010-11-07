@@ -92,6 +92,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TanxWebService", "TanxWebSe
 		Source\TanxWebService\Serializer.py = Source\TanxWebService\Serializer.py
 		Source\TanxWebService\Session.py = Source\TanxWebService\Session.py
 		Source\TanxWebService\SessionHandlers.py = Source\TanxWebService\SessionHandlers.py
+		Source\TanxWebService\SessionMessage.py = Source\TanxWebService\SessionMessage.py
 	EndProjectSection
 EndProject
 Global

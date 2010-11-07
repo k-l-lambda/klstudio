@@ -7,6 +7,9 @@ TODO:
 
 2010.11.7	K.L.	<xxxK.L.xxx@gmail.com>
 
+	+	Source/TanxWebService/ApplicationAdminHandlers.py: created.
+	+	Source/TanxWebService/admin.py: created.
+
 	+	TanxWebService.SessionPostMessageHandler: implemented.
 	+	TanxWebService.SessionFetchMessageHandler: implemented.
 

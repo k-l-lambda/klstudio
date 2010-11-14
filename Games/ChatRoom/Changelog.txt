@@ -2,6 +2,14 @@ TODO:
 
 
 
+2010.11.14	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	RoomList.layout: created.
+	+	ChatRoom.layout: created.
+
+	*!	Post url without header data ('Content-Type' is necessary at least) may result in browser page crush.
+
+
 2010.10.30	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	ChatRoom.game.lua: web client set up.

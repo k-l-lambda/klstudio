@@ -13,4 +13,16 @@ indexes:
 - kind: Session
   ancestor: yes
   properties:
+  - name: active
+  - name: setup_time
+
+- kind: Session
+  ancestor: yes
+  properties:
+  - name: alive
+  - name: setup_time
+
+- kind: Session
+  ancestor: yes
+  properties:
   - name: setup_time

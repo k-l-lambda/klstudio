@@ -12,11 +12,11 @@ class Application(db.Model):
     def getById(id):
         return Application.get_by_key_name(id)
 
-    def sessionList(self, active = None):
+    def sessionList(self, alive = None):
         sessions = Session.all().ancestor(self)
 
-        if not active is None:
-            sessions = sessions.filter('active = ', active)
+        if not alive is None:
+            sessions = sessions.filter('alive =', alive)
 
         sessions = sessions.order('setup_time')
 

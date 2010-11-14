@@ -53,6 +53,6 @@ class ApplicationSessionListHandler(webapp.RequestHandler):
         if tag:
             session_list = filter(lambda session : tag in session.tags, session_list)
 
-        session_list_str = '{%s}' % string.join(['{id="%s",host="%s",setup_time="%s",tags=%s},' % (session.id(), session.host.nickname(), session.setup_time, Serializer.save(session.tags)) for session in session_list], ',')
+        session_list_str = '{%s}' % string.join(['{id="%s",host=%s,setup_time="%s",tags=%s}' % (session.id(), Serializer.save(session.host), session.setup_time, Serializer.save(session.tags)) for session in session_list], ',')
 
         self.response.out.write('{total=%d,list=%s}' % (total, session_list_str))

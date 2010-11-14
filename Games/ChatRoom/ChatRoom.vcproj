@@ -177,7 +177,15 @@
 			Name="GUI"
 			>
 			<File
+				RelativePath=".\Product\ChatRoom.layout"
+				>
+			</File>
+			<File
 				RelativePath=".\Product\Dialog.layout"
+				>
+			</File>
+			<File
+				RelativePath=".\Product\RoomList.layout"
 				>
 			</File>
 		</Filter>

@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<GUILayout>
+	<Window Type="DefaultGUISheet" Name="ChatRoom/root">
+		<Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
+
+		<Window Type="TaharezLook/StaticText" Name="ChatRoom/State">
+			<Property Name="UnifiedPosition" Value="{{0,0},{0.96,0}}}" />
+			<Property Name="UnifiedSize" Value="{{1,0},{0.05,0}}" />
+			<Property Name="Font" Value="BlueHighway-12" />
+			<Property Name="Text" Value="" />
+			<Property Name="FrameEnabled" Value="false" />
+			<Property Name="BackgroundEnabled" Value="false" />
+			<Property Name="TextColours" Value="tl:FF000000 tr:FF000000 bl:FF000000 br:FF000000" />
+		</Window>
+
+	</Window>
+</GUILayout>

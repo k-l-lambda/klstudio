@@ -11,7 +11,6 @@ Tanx.log("[ChatRoom\\ChatRoom.game.lua]: parsed.")
 
 Tanx.require"Core:WebClient.lua"
 Tanx.require"Core:serializer.lua"
-Tanx.require"Core:bind.lua"
 Tanx.require"Core:CeguiKeyListener.lua"
 Tanx.require"Core:CeguiMouseListener.lua"
 
@@ -26,14 +25,9 @@ s_WebAppLocation = s_WebServiceLocation .. "app/ChatRoom/"
 
 
 function setupRoom()
-	g_StateLabel:setText(CEGUI.String("Seting up room..."))
+	g_StateLabel:setText(CEGUI.String("Setting up room..."))
 
-	local result
-	local entry = g_WebClient:postUrl(s_WebAppLocation .. "setup-session", "Content-Type:\tapplication/x-www-form-urlencoded\n\n", function(response) result = Tanx.serializer.load(response) end, reportState)
-
-	while not entry:get():checkState() do
-		coroutine.yield()
-	end
+	local result = Tanx.serializer.load(g_WebClient:postUrlSync(s_WebAppLocation .. "setup-session", "", reportState))
 
 	--Tanx.log("session-list: " .. archive)
 	g_StateLabel:setText(CEGUI.String"Ready.")
@@ -52,14 +46,7 @@ end
 function refreshRoomList()
 	g_StateLabel:setText(CEGUI.String("Loading room list..."))
 
-	local result
-	local entry = g_WebClient:getUrl(s_WebAppLocation .. "session-list", function(response) result = Tanx.serializer.load(response) end, reportState)
-
-	while not entry:get():checkState() do
-		coroutine.yield()
-	end
-
-	g_StateLabel:setText(CEGUI.String"Ready.")
+	local result = Tanx.serializer.load(g_WebClient:getUrlSync(s_WebAppLocation .. "session-list", reportState))
 
 	if result then
 		local i, room
@@ -72,6 +59,8 @@ function refreshRoomList()
 	else
 		g_StateLabel:setText(CEGUI.String"Room list loading failed.")
 	end
+
+	g_StateLabel:setText(CEGUI.String"Ready.")
 end
 
 
@@ -111,8 +100,19 @@ function initialize(game, params)
 	g_StateLabel:setText(CEGUI.String"Ready")
 
 	g_WebClient = g_Game:getWebClient(params)
+	if g_WebClient then
+		g_WebThread = coroutine.create(setupRoom)
+	else
+		g_StateLabel:setText(CEGUI.String"Web client is not available")
+	end
+end
 
-	g_WebThread = coroutine.create(setupRoom)
+
+function dispose()
+	if g_WebClient then
+		--g_WebClient:postUrl(s_WebAppLocation .. "session/" .. g_OwnSessionId .. "/end", "")
+		g_WebClient:postUrlSync(s_WebAppLocation .. "session/" .. g_OwnSessionId .. "/end", "", function() end)
+	end
 end
 
 

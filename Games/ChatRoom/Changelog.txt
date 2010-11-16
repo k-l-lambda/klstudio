@@ -1,4 +1,6 @@
+
 TODO:
+	end session at exit
 
 
 

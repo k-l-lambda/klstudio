@@ -13,6 +13,7 @@ Tanx.require"Core:WebClient.lua"
 Tanx.require"Core:serializer.lua"
 Tanx.require"Core:CeguiKeyListener.lua"
 Tanx.require"Core:CeguiMouseListener.lua"
+Tanx.require"Core:ThreadManager.lua"
 
 
 function reportState(state)
@@ -34,11 +35,26 @@ function setupRoom()
 
 	if result then
 		g_OwnSessionId = result.id
-		Tanx.log("g_OwnSessionId: " .. g_OwnSessionId)
+		--Tanx.log("g_OwnSessionId: " .. g_OwnSessionId)
+		g_SelfSessionLocation = s_WebAppLocation .. "session/" .. g_OwnSessionId .. "/"
+
+		g_ThreadManager:addThread(keepAlive)
 
 		refreshRoomList()
 	else
 		g_StateLabel:setText(CEGUI.String"Room setup failed.")
+	end
+end
+
+
+function keepAlive(location)
+	location = location or g_SelfSessionLocation
+
+	while g_WebClient do
+		g_WebClient:postUrl(location .. "keep-alive", Tanx.WebClient.FormHeader)
+
+		-- sleep 1 minute
+		Tanx.sleep(60)
 	end
 end
 
@@ -99,9 +115,11 @@ function initialize(game, params)
 
 	g_StateLabel:setText(CEGUI.String"Ready")
 
+	g_ThreadManager = TanxThreadManager()
+
 	g_WebClient = g_Game:getWebClient(params)
 	if g_WebClient then
-		g_WebThread = coroutine.create(setupRoom)
+		g_ThreadManager:addThread(setupRoom)
 	else
 		g_StateLabel:setText(CEGUI.String"Web client is not available")
 	end
@@ -110,17 +128,12 @@ end
 
 function dispose()
 	if g_WebClient then
-		--g_WebClient:postUrl(s_WebAppLocation .. "session/" .. g_OwnSessionId .. "/end", "")
-		g_WebClient:postUrlSync(s_WebAppLocation .. "session/" .. g_OwnSessionId .. "/end", "", function() end)
+		--g_WebClient:postUrl(g_SelfSessionLocation .. "end", Tanx.WebClient.FormHeader)
+		g_WebClient:postUrlSync(g_SelfSessionLocation .. "end", "", function() end)
 	end
 end
 
 
 function onStep(elapsed)
-	if g_WebThread and coroutine.status(g_WebThread) == "suspended" then
-		local s, e = coroutine.resume(g_WebThread)
-		if not s then
-			error(e)
-		end
-	end
+	g_ThreadManager:resume()
 end

@@ -80,6 +80,18 @@ function refreshRoomList()
 end
 
 
+function updateRoomListSized()
+	--Tanx.log("[ChatRoom\\ChatRoom.game.lua]: onRoomListSized.")
+	local titleheight = 0.056
+	local frameheight = g_RoomList:getParent():getHeight():asRelative(g_RoomList:getParent():getParentPixelHeight())
+
+	local y = titleheight / frameheight
+	--Tanx.log("[ChatRoom\\ChatRoom.game.lua]: frameheight: " .. g_RoomList:getParent():getHeight():asRelative(g_RoomList:getParent():getParentPixelHeight()))
+	g_RoomList:setYPosition(CEGUI.UDim(y, 0))
+	g_RoomList:setHeight(CEGUI.UDim(1 - y - 0.1, 0))
+end
+
+
 function initialize(game, params)
 	g_Game = game
 
@@ -92,7 +104,7 @@ function initialize(game, params)
 	g_GuiSystem = CEGUI.System.getSingleton()
 	g_WindowManager = CEGUI.WindowManager.getSingleton()
 	CEGUI.SchemeManager.getSingleton():loadScheme(CEGUI.String"TaharezLookSkin.scheme")
-	--g_GuiSystem:setDefaultMouseCursor(CEGUI.String"TaharezLook", CEGUI.String"MouseArrow")
+	g_GuiSystem:setDefaultMouseCursor(CEGUI.String"TaharezLook", CEGUI.String"MouseArrow")
 	g_GuiSystem:setDefaultTooltip(CEGUI.String"TaharezLook/Tooltip")
 
 	local sheet = g_WindowManager:loadWindowLayout(CEGUI.String"ChatRoom.layout")
@@ -103,6 +115,8 @@ function initialize(game, params)
 
 	g_RootWindow:addChildWindow(g_WindowManager:loadWindowLayout(CEGUI.String"RoomList.layout"))
 	g_RoomList = g_WindowManager:getWindow(CEGUI.String"ChatRoom/RoomList/List"):toDerived()
+	updateRoomListSized()
+	g_RoomList:getParent():subscribeEvent(CEGUI.Window.EventSized, CEGUI.EventSubscriber(updateRoomListSized))
 
 
 	-- setup viewport
@@ -127,10 +141,10 @@ end
 
 
 function dispose()
-	if g_WebClient then
+	--[[if g_WebClient then
 		--g_WebClient:postUrl(g_SelfSessionLocation .. "end", Tanx.WebClient.FormHeader)
 		g_WebClient:postUrlSync(g_SelfSessionLocation .. "end", "", function() end)
-	end
+	end]]
 end
 
 

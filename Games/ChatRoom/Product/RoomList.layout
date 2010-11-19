@@ -13,5 +13,12 @@
 			<Property Name="UnifiedSize" Value="{{1,0},{1,0}}" />
 			<Property Name="Alpha" Value="0.8" />
 		</Window>
+
+		<Window Type="TaharezLook/Button" Name="ChatRoom/RoomList/Refresh">
+			<Property Name="UnifiedPosition" Value="{{0.04,0},{0.9,0}}}" />
+			<Property Name="UnifiedSize" Value="{{0.2,0},{0.1,0}}" />
+			<Property Name="Text" Value="Refresh" />
+			<Property Name="Font" Value="Tetris/BlueHighway-24" />
+		</Window>
 	</Window>
 </GUILayout>

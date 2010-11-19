@@ -45,5 +45,13 @@
 				<h2><input type="submit" value="Setup Session" style="font:inherit" /></h2>
 			</form>
 		</div>
+		<div class="section">
+			<h2>Clear Sessions</h2>
+			<form action="clear-sessions" method="post">
+				<input type="hidden" name="app_id" value="{{application.id}}" />
+				timeout: <input type="text" name="timeout" value="6" size="2" />
+				<input type="submit" value="Clear" />
+			</form>
+		</div>
 	</body>
 </html>

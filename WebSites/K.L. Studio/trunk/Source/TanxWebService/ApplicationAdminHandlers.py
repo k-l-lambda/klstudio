@@ -2,6 +2,7 @@
 import os
 import logging
 import re
+import datetime
 
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
@@ -28,6 +29,26 @@ class DeleteSessionHandler(webapp.RequestHandler):
 
         for id in self.request.get_all('id'):
             session = Session.get_by_key_name(id, app)
+            session.deleteData()
+
+        self.redirect('./')
+
+
+class ClearSessionsHandler(webapp.RequestHandler):
+    def post(self):
+        app_id = self.request.get('app_id')
+        app = Application.getById(app_id)
+
+        timeout = float(self.request.get('timeout') or 6)
+
+        logging.info('clearing sessions of application "%s"...', app_id)
+
+        # clear dead sessions
+        for session in Session.all().ancestor(app).filter('alive =', False):
+            session.deleteData()
+
+        # clear time out sessions
+        for session in Session.all().ancestor(app).filter('alive_time <', datetime.datetime.now() - datetime.timedelta(hours = timeout)):
             session.deleteData()
 
         self.redirect('./')

@@ -46,6 +46,7 @@ def main():
         ('/tanx-web-service/[^/]*/admin/create-app',                            CreateApplicationHandler),
         ('/tanx-web-service/[^/]*/admin/app/[^/]*/',                            ApplicationViewerHandler),
         ('/tanx-web-service/[^/]*/admin/app/[^/]*/delete-session',              DeleteSessionHandler),
+        ('/tanx-web-service/[^/]*/admin/app/[^/]*/clear-sessions',              ClearSessionsHandler),
         ], debug=True)
     util.run_wsgi_app(application)
 

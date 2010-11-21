@@ -1,13 +1,13 @@
 <?xml version="1.0" ?>
 <GUILayout>
-	<Window Type="DefaultGUISheet" Name="root">
-		<Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
+	<Window Type="TaharezLook/FrameWindow" Name="ChatRoom/Dialog">
+		<Property Name="UnifiedAreaRect" Value="{{0.2,0},{0.2,0},{0.4,0},{0.6,0}}" />
+		<Property Name="UnifiedMinSize" Value="{{0.2,0},{0.1,0}}" />
+		<Property Name="Text" Value="" />
 
-		<Window Type="TaharezLook/StaticText" Name="Dialog/State">
-			<Property Name="UnifiedPosition" Value="{{0.2,0},{0.2,0}}}" />
-			<Property Name="UnifiedSize" Value="{{0.6,0},{0.4,0}}" />
-			<Property Name="Font" Value="BlueHighway-24" />
-			<Property Name="Text" Value="StaticText1" />
+		<Window Type="TaharezLook/Listbox" Name="ChatRoom/Dialog/MemberList">
+			<Property Name="UnifiedPosition" Value="{{0.7,0},{0,0}}" />
+			<Property Name="UnifiedSize" Value="{{0.3,0},{1,0}}" />
 		</Window>
 
 	</Window>

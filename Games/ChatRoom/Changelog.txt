@@ -1,7 +1,13 @@
 
 TODO:
+	coroutine callback problem
 	end session at exit
 
+
+
+2010.11.22	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	DialogWindow.lua: created.
 
 
 2010.11.14	K.L.	<xxxK.L.xxx@gmail.com>

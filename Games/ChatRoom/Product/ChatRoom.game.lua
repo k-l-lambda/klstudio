@@ -9,6 +9,7 @@
 
 Tanx.log("[ChatRoom\\ChatRoom.game.lua]: parsed.")
 
+Tanx.require"Core:bind.lua"
 Tanx.require"Core:WebClient.lua"
 Tanx.require"Core:serializer.lua"
 Tanx.require"Core:CeguiKeyListener.lua"
@@ -25,6 +26,11 @@ end
 
 s_WebServiceLocation = "http://localhost:8080/tanx-web-service/v1/"
 s_WebAppLocation = s_WebServiceLocation .. "app/ChatRoom/"
+
+
+function onPostMessage(session_id, message)
+	Tanx.log(string.format("message post in session %s: %s", session_id, message))
+end
 
 
 function setupRoom()
@@ -90,7 +96,7 @@ function startSync()
 
 	if setupRoom() then
 		g_SelfSessionLocation = s_WebAppLocation .. "session/" .. g_OwnSessionId .. "/"
-		g_SelfDialogWindow = DialogWindow(CEGUI.WindowManager.getSingleton(), g_SelfUserInfo.nickname, {g_SelfUserInfo})
+		g_SelfDialogWindow = DialogWindow(CEGUI.WindowManager.getSingleton(), g_SelfUserInfo.nickname, {g_SelfUserInfo}, {PostMessage = Tanx.bind(onPostMessage, g_OwnSessionId, Tanx._1)})
 
 		g_ThreadManager:addThread(keepAlive)
 

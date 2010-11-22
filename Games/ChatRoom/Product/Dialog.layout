@@ -1,11 +1,11 @@
 <?xml version="1.0" ?>
 <GUILayout>
 	<Window Type="TaharezLook/FrameWindow" Name="ChatRoom/Dialog">
-		<Property Name="UnifiedAreaRect" Value="{{0.6,0},{0.2,0},{0.4,0},{0.6,0}}" />
+		<Property Name="UnifiedAreaRect" Value="{{0.6,0},{0.2,0},{0.6,0},{0.6,0}}" />
 		<Property Name="UnifiedMinSize" Value="{{0.2,0},{0.2,0}}" />
 		<Property Name="Text" Value="" />
 
-		<Window Type="TaharezLook/StaticText" Name="ChatRoom/Records">
+		<Window Type="TaharezLook/StaticText" Name="ChatRoom/Dialog/Records">
 			<Property Name="UnifiedPosition" Value="{{0,0},{0.1,0}}" />
 			<Property Name="UnifiedSize" Value="{{0.7,0},{0.7,0}}" />
 			<Property Name="HorzFormatting" Value="WordWrapLeftAligned" />
@@ -13,7 +13,7 @@
 			<Property Name="Alpha" Value="0.9" />
 		</Window>
 
-		<Window Type="TaharezLook/Editbox" Name="ChatRoom/Edit">
+		<Window Type="TaharezLook/Editbox" Name="ChatRoom/Dialog/Edit">
 			<Property Name="UnifiedPosition" Value="{{0,0},{0.8,0}}}" />
 			<Property Name="UnifiedSize" Value="{{0.7,0},{0.2,0}}" />
 			<Property Name="Font" Value="BlueHighway-24" />

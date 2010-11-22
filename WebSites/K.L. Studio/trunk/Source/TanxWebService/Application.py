@@ -18,7 +18,7 @@ class Application(db.Model):
         if not alive is None:
             sessions = sessions.filter('alive =', alive)
 
-        sessions = sessions.order('setup_time')
+        sessions = sessions.order('-setup_time')
 
         return sessions
 

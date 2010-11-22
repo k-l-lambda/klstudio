@@ -19,9 +19,22 @@ indexes:
 - kind: Session
   ancestor: yes
   properties:
+  - name: alive
+  - name: setup_time
+    direction: desc
+
+- kind: Session
+  ancestor: yes
+  properties:
   - name: alive_time
 
 - kind: Session
   ancestor: yes
   properties:
   - name: setup_time
+
+- kind: Session
+  ancestor: yes
+  properties:
+  - name: setup_time
+    direction: desc

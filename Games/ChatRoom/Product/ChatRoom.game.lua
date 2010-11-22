@@ -15,9 +15,11 @@ Tanx.require"Core:CeguiKeyListener.lua"
 Tanx.require"Core:CeguiMouseListener.lua"
 Tanx.require"Core:ThreadManager.lua"
 
+Tanx.dofile"DialogWindow.lua"
+
 
 function reportState(state)
-	g_StateLabel:setText(CEGUI.String("Loading: " .. state))
+	g_StateLabel:setText(CEGUI.String(state))
 end
 
 
@@ -35,14 +37,12 @@ function setupRoom()
 
 	if result then
 		g_OwnSessionId = result.id
-		--Tanx.log("g_OwnSessionId: " .. g_OwnSessionId)
-		g_SelfSessionLocation = s_WebAppLocation .. "session/" .. g_OwnSessionId .. "/"
 
-		g_ThreadManager:addThread(keepAlive)
-
-		refreshRoomList()
+		return true
 	else
 		g_StateLabel:setText(CEGUI.String"Room setup failed.")
+
+		return false
 	end
 end
 
@@ -80,7 +80,26 @@ function refreshRoomList()
 end
 
 
-function updateRoomListSized()
+function startSync()
+	g_SelfUserInfo = Tanx.serializer.load(g_WebClient:getUrlSync(s_WebServiceLocation .. "user-info", reportState))
+	if not g_SelfUserInfo then
+		g_StateLabel:setText(CEGUI.String"Get user info failed.")
+
+		return false
+	end
+
+	if setupRoom() then
+		g_SelfSessionLocation = s_WebAppLocation .. "session/" .. g_OwnSessionId .. "/"
+		g_SelfDialogWindow = DialogWindow(CEGUI.WindowManager.getSingleton(), g_SelfUserInfo.nickname, {g_SelfUserInfo})
+
+		g_ThreadManager:addThread(keepAlive)
+
+		refreshRoomList()
+	end
+end
+
+
+function updateRoomListSize()
 	--Tanx.log("[ChatRoom\\ChatRoom.game.lua]: onRoomListSized.")
 	local titleheight = 0.056
 	local frameheight = g_RoomList:getParent():getHeight():asRelative(g_RoomList:getParent():getParentPixelHeight())
@@ -115,8 +134,8 @@ function initialize(game, params)
 
 	g_RootWindow:addChildWindow(g_WindowManager:loadWindowLayout(CEGUI.String"RoomList.layout"))
 	g_RoomList = g_WindowManager:getWindow(CEGUI.String"ChatRoom/RoomList/List"):toDerived()
-	updateRoomListSized()
-	g_RoomList:getParent():subscribeEvent(CEGUI.Window.EventSized, CEGUI.EventSubscriber(updateRoomListSized))
+	updateRoomListSize()
+	g_RoomList:getParent():subscribeEvent(CEGUI.Window.EventSized, CEGUI.EventSubscriber(updateRoomListSize))
 
 
 	-- setup viewport
@@ -133,7 +152,7 @@ function initialize(game, params)
 
 	g_WebClient = g_Game:getWebClient(params)
 	if g_WebClient then
-		g_ThreadManager:addThread(setupRoom)
+		g_ThreadManager:addThread(startSync)
 	else
 		g_StateLabel:setText(CEGUI.String"Web client is not available")
 	end

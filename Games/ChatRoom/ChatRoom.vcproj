@@ -165,7 +165,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Product\Dialog.lua"
+				RelativePath=".\Product\DialogWindow.lua"
 				>
 			</File>
 		</Filter>

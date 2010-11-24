@@ -98,16 +98,19 @@ function startSync()
 		g_SelfSessionLocation = s_WebAppLocation .. "session/" .. g_OwnSessionId .. "/"
 		g_SelfDialogWindow = DialogWindow(CEGUI.WindowManager.getSingleton(), g_SelfUserInfo.nickname, {g_SelfUserInfo}, {PostMessage = Tanx.bind(onPostMessage, g_OwnSessionId, Tanx._1)})
 
-		g_ThreadManager:addThread(keepAlive)
+		--g_ThreadManager:addThread(keepAlive)
 
 		refreshRoomList()
 	end
+
+	--Tanx.sleep(10000)
+	keepAlive(g_SelfSessionLocation)
 end
 
 
 function updateRoomListSize()
 	--Tanx.log("[ChatRoom\\ChatRoom.game.lua]: onRoomListSized.")
-	local titleheight = 0.056
+	local titleheight = 0.046
 	local frameheight = g_RoomList:getParent():getHeight():asRelative(g_RoomList:getParent():getParentPixelHeight())
 
 	local y = titleheight / frameheight

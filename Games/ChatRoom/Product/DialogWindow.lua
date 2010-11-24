@@ -12,8 +12,6 @@ Tanx.log("[ChatRoom\\DialogWindow.lua]: parsed.")
 Tanx.require"Core:bind.lua"
 Tanx.require"Core:CeguiUtil.lua"
 
-g_functor = function(e) Tanx.log"__onEditTextAccepted__" end
-
 class "DialogWindow"
 
 	function DialogWindow:__init(windowManager, hostname, members, callbacks)
@@ -31,8 +29,7 @@ class "DialogWindow"
 		self.MemberList = self.FrameWindow:getChildRecursive(CEGUI.String(self.NamePrefix .. "ChatRoom/Dialog/MemberList")):toDerived()
 		self.EditBox = self.FrameWindow:getChildRecursive(CEGUI.String(self.NamePrefix .. "ChatRoom/Dialog/Edit")):toDerived()
 
-		--g_functor = Tanx.bind(self.onEditTextAccepted, self)
-		self.EditBox:subscribeEvent(CEGUI.Editbox.EventTextAccepted, CEGUI.EventSubscriber(g_functor))
+		self.EditBox:subscribeEvent(CEGUI.Editbox.EventTextAccepted, CEGUI.EventSubscriber(Tanx.bind(self.onEditTextAccepted, self)))
 
 		self.Members = members or {}
 		self:refreshMemberList()
@@ -49,7 +46,7 @@ class "DialogWindow"
 	end
 
 	function DialogWindow:onEditTextAccepted()
-		Tanx.log"DialogWindow:onEditTextAccepted"
+		--Tanx.log"DialogWindow:onEditTextAccepted"
 		if self.Callbacks.PostMessage then
 			self.Callbacks.PostMessage(self.EditBox:getText():c_str())
 		end

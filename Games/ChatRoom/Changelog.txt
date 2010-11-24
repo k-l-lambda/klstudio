@@ -5,6 +5,11 @@ TODO:
 
 
 
+2010.11.24	K.L.	<xxxK.L.xxx@gmail.com>
+
+	*!	Lua coroutine thread has own lua_State, and the thread must keep alive until all objects from its stack not been used.
+
+
 2010.11.22	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	DialogWindow.lua: created.

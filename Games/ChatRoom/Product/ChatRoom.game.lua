@@ -30,6 +30,18 @@ s_WebAppLocation = s_WebServiceLocation .. "app/ChatRoom/"
 
 function onPostMessage(session_id, message)
 	Tanx.log(string.format("message post in session %s: %s", session_id, message))
+
+	g_ThreadManager:addThread(function()
+		local data = {
+			action = "say",
+			message = message,
+		}
+		g_WebClient:postUrlSync(s_WebAppLocation .. "session/" .. session_id .. "/post-message", string.format("data=%s;", Tanx.serializer.save(data)), reportState)
+	end)
+
+	if session_id == g_OwnSessionId then
+		-- TODO: show message in dialog window
+	end
 end
 
 

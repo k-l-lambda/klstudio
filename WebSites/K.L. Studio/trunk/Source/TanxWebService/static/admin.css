@@ -1,12 +1,6 @@
 
 h1 { text-align: center; }
 
-table tr td
-{
-	text-align: center;
-	padding: 0 10px;
-}
-
 
 .section
 {
@@ -15,3 +9,15 @@ table tr td
 }
 
 .head-check { text-align: justify; padding: 0; }
+
+.long-table tr td
+{
+	text-align: center;
+	padding: 0 10px;
+}
+
+.property-table tr th
+{
+	text-align: left;
+	padding: 0 20px;
+}

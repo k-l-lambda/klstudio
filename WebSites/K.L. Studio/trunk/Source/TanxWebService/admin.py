@@ -8,6 +8,7 @@ from google.appengine.ext.webapp import template
 
 from TanxWebService.Application import *
 from TanxWebService.ApplicationAdminHandlers import *
+from TanxWebService.SessionAdminHandlers import *
 
 
 class AdminHomeHandler(webapp.RequestHandler):
@@ -47,6 +48,7 @@ def main():
         ('/tanx-web-service/[^/]*/admin/app/[^/]*/',                            ApplicationViewerHandler),
         ('/tanx-web-service/[^/]*/admin/app/[^/]*/delete-session',              DeleteSessionHandler),
         ('/tanx-web-service/[^/]*/admin/app/[^/]*/clear-sessions',              ClearSessionsHandler),
+        ('/tanx-web-service/[^/]*/admin/app/[^/]*/session/[^/]*/',              SessionViewerHandler),
         ], debug=True)
     util.run_wsgi_app(application)
 

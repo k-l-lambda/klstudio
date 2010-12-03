@@ -1,8 +1,12 @@
 
 TODO:
 	TanxWebService: admin console
-		message viewer
 		data clear job
+
+
+2010.12.3	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Source/TanxWebService/SessionAdminHandlers.py: created, implemented.
 
 
 2010.11.19	K.L.	<xxxK.L.xxx@gmail.com>

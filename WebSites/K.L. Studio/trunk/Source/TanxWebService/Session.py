@@ -45,3 +45,12 @@ class Session(db.Model):
         self.delete()
 
         logging.info('session "%s" data deleted.', self.id())
+
+    def channels(self):
+        return SessionChannel.all().ancestor(self)
+
+    def hostMessages(self):
+        return SessionHostMessage.all().ancestor(self)
+
+    def guestMessages(self):
+        return SessionGuestMessage.all().ancestor(self)

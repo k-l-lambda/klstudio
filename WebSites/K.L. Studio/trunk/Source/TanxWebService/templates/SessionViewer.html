@@ -42,6 +42,10 @@
 					<td>{{session.tags}}</td>
 				</tr>
 			</table>
+			<br />
+			<form action="../../../../../app/{{session.parent.id}}/session/{{session.id}}/keep-alive" method="post">
+				<input type="submit" value="Keep Alive" />
+			</form>
 		</div>
 		<div class="section">
 			<h2>Channels</h2>
@@ -54,9 +58,26 @@
 					<tr>
 						<td>{{channel.key.name}}</td>
 						<td>{{channel.members}}</td>
+						<td>
+							<form action="../../../../../app/{{session.parent.id}}/session/{{session.id}}/channel/{{channel.key.name}}/remove-member" method="post">
+								member:<input type="text" name="member" title="member email" size="12" />
+								<input type="submit" value="Remove" />
+							</form>
+						</td>
+						<td>
+							<form action="../../../../../app/{{session.parent.id}}/session/{{session.id}}/channel/{{channel.key.name}}/clear-members" method="post">
+								<input type="submit" value="Clear" />
+							</form>
+						</td>
 					</tr>
 				{% endfor %}
 			</table>
+			<br />
+			<form action="add-channel-member" method="post">
+				channel:<input type="text" name="channel" title="channel id" size="5" />
+				member:<input type="text" name="member" title="member email" size="12" />
+				<input type="submit" value="Add" />
+			</form>
 		</div>
 		<div class="section">
 			<h2>Host Messages</h2>
@@ -93,6 +114,41 @@
 					</tr>
 				{% endfor %}
 			</table>
+		</div>
+		<div class="section">
+			<h2>Post a Message</h2>
+			<form action="../../../../../app/{{session.parent.id}}/session/{{session.id}}/post-message" method="post">
+				<table class="property-table">
+					<tr>
+						<th>data</th>
+						<td><input type="text" name="data" size="120" /></td>
+					</tr>
+					{% if is_host %}
+						<script type="text/javascript">
+							function addChannelField() {
+								var fields = document.getElementById('channel-fields')
+								fields.innerHTML += '<input type="text" name="channel" size="5" />'
+							}
+
+							function addAudienceField() {
+								var fields = document.getElementById('channel-audience')
+								fields.innerHTML += '<input type="text" name="audience" size="12" />'
+							}
+						</script>
+						<tr>
+							<th>channels(<a href="#" onclick="addChannelField()">+</a>)</th>
+							<td id="channel-fields"></td>
+						</tr>
+						<tr>
+							<th>audience(<a href="#" onclick="addAudienceField()">+</a>)</th>
+							<td id="channel-audience"></td>
+						</tr>
+					{% endif %}
+					<tr>
+						<th><input type="submit" value="Post" /></th>
+					</tr>
+				</table>
+			</form>
 		</div>
 	</body>
 </html>

@@ -42,13 +42,14 @@ class CreateApplicationHandler(webapp.RequestHandler):
 
 def main():
     application = webapp.WSGIApplication([
-        ('/tanx-web-service/[^/]*/admin/',                                      AdminHomeHandler),
-        ('/tanx-web-service/[^/]*/admin/delete-app',                            DeleteApplicationHandler),
-        ('/tanx-web-service/[^/]*/admin/create-app',                            CreateApplicationHandler),
-        ('/tanx-web-service/[^/]*/admin/app/[^/]*/',                            ApplicationViewerHandler),
-        ('/tanx-web-service/[^/]*/admin/app/[^/]*/delete-session',              DeleteSessionHandler),
-        ('/tanx-web-service/[^/]*/admin/app/[^/]*/clear-sessions',              ClearSessionsHandler),
-        ('/tanx-web-service/[^/]*/admin/app/[^/]*/session/[^/]*/',              SessionViewerHandler),
+        ('/tanx-web-service/[^/]*/admin/',                                                  AdminHomeHandler),
+        ('/tanx-web-service/[^/]*/admin/delete-app',                                        DeleteApplicationHandler),
+        ('/tanx-web-service/[^/]*/admin/create-app',                                        CreateApplicationHandler),
+        ('/tanx-web-service/[^/]*/admin/app/[^/]*/',                                        ApplicationViewerHandler),
+        ('/tanx-web-service/[^/]*/admin/app/[^/]*/delete-session',                          DeleteSessionHandler),
+        ('/tanx-web-service/[^/]*/admin/app/[^/]*/clear-sessions',                          ClearSessionsHandler),
+        ('/tanx-web-service/[^/]*/admin/app/[^/]*/session/[^/]*/',                          SessionViewerHandler),
+        ('/tanx-web-service/[^/]*/admin/app/[^/]*/session/[^/]*/add-channel-member',        SessionAddChannelMemberHandler),
         ], debug=True)
     util.run_wsgi_app(application)
 

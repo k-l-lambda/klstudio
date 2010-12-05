@@ -11,7 +11,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{6039FAA1-190F-41C5-BB92-22D664E36873}"
 	ProjectSection(SolutionItems) = preProject
 		Source\app.yaml = Source\app.yaml
-		Source\index.yaml = Source\index.yaml
 		Source\main.py = Source\main.py
 	EndProjectSection
 EndProject
@@ -93,6 +92,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TanxWebService", "TanxWebSe
 		Source\TanxWebService\main.py = Source\TanxWebService\main.py
 		Source\TanxWebService\Serializer.py = Source\TanxWebService\Serializer.py
 		Source\TanxWebService\Session.py = Source\TanxWebService\Session.py
+		Source\TanxWebService\SessionAdminHandlers.py = Source\TanxWebService\SessionAdminHandlers.py
 		Source\TanxWebService\SessionHandlers.py = Source\TanxWebService\SessionHandlers.py
 		Source\TanxWebService\SessionMessage.py = Source\TanxWebService\SessionMessage.py
 	EndProjectSection
@@ -101,6 +101,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{
 	ProjectSection(SolutionItems) = preProject
 		Source\TanxWebService\templates\AdminHome.html = Source\TanxWebService\templates\AdminHome.html
 		Source\TanxWebService\templates\ApplicationViewer.html = Source\TanxWebService\templates\ApplicationViewer.html
+		Source\TanxWebService\templates\SessionViewer.html = Source\TanxWebService\templates\SessionViewer.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{8134952A-5A0F-4385-9740-F20016F182B9}"

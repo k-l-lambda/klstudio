@@ -36,12 +36,21 @@ function onPostMessage(session_id, message)
 			action = "say",
 			message = message,
 		}
-		g_WebClient:postUrlSync(s_WebAppLocation .. "session/" .. session_id .. "/post-message", string.format("data=%s;", Tanx.serializer.save(data)), reportState)
+		if session_id == g_OwnSessionId then
+			-- TODO: get self user info
+			--data.author = 
+		end
+		g_WebClient:postUrlSync(s_WebAppLocation .. "session/" .. session_id .. "/post-message", string.format("data=%s;channel=talk", Tanx.serializer.save(data)), reportState)
 	end)
 
 	if session_id == g_OwnSessionId then
 		-- TODO: show message in dialog window
 	end
+end
+
+
+function onMessageArrived(session_id, message)
+	Tanx.log(string.format("message arrived in session %s: %s", session_id, message.data))
 end
 
 
@@ -73,6 +82,24 @@ function keepAlive(location)
 
 		-- sleep 1 minute
 		Tanx.sleep(60)
+	end
+end
+
+
+function fetchMessages(session_id)
+	local next_id = 0
+
+	while g_WebClient do
+		local result = Tanx.serializer.load(g_WebClient:getUrlSync(string.format("%ssession/%s/fetch-message?id=%d", s_WebAppLocation, session_id, next_id), reportState))
+		next_id = result.next
+
+		local i, message
+		for i, message in ipairs(result.messages) do
+			onMessageArrived(session_id, message)
+		end
+
+		-- sleep 1 second
+		Tanx.sleep(1)
 	end
 end
 
@@ -113,10 +140,11 @@ function startSync()
 		--g_ThreadManager:addThread(keepAlive)
 
 		refreshRoomList()
-	end
 
-	--Tanx.sleep(10000)
-	keepAlive(g_SelfSessionLocation)
+		g_ThreadManager:addThread(Tanx.bind(fetchMessages, g_OwnSessionId))
+
+		keepAlive(g_SelfSessionLocation)
+	end
 end
 
 

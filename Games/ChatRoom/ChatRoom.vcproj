@@ -198,6 +198,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\test ie.html"
+			>
+		</File>
+		<File
 			RelativePath=".\test.html"
 			>
 		</File>

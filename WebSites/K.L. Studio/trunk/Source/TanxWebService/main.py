@@ -39,7 +39,7 @@ def main():
         ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/channel/[^/]*/members',           SessionChannelMembersHandler),
         ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/channel/[^/]*/add-member',        SessionChannelAddMemberHandler),
         ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/channel/[^/]*/remove-member',     SessionChannelRemoveMemberHandler),
-        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/channel/[^/]*/clear-member',      SessionChannelClearMemberHandler),
+        ('/tanx-web-service/[^/]*/app/[^/]*/session/[^/]*/channel/[^/]*/clear-members',     SessionChannelClearMembersHandler),
         ], debug=True)
     util.run_wsgi_app(application)
 

@@ -152,7 +152,7 @@ class SessionChannelRemoveMemberHandler(webapp.RequestHandler):
             self.response.out.write('{result="Error",error="cannot find session"}')
 
 
-class SessionChannelClearMemberHandler(webapp.RequestHandler):
+class SessionChannelClearMembersHandler(webapp.RequestHandler):
     def post(self):
         app_id, session_id, session = findSessionByPath(self.request.path)
         if session:

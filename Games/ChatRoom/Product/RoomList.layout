@@ -20,5 +20,12 @@
 			<Property Name="Text" Value="Refresh" />
 			<Property Name="Font" Value="Tetris/BlueHighway-24" />
 		</Window>
+
+		<Window Type="TaharezLook/Button" Name="ChatRoom/RoomList/Join">
+			<Property Name="UnifiedPosition" Value="{{0.28,0},{0.9,0}}}" />
+			<Property Name="UnifiedSize" Value="{{0.2,0},{0.1,0}}" />
+			<Property Name="Text" Value="Join" />
+			<Property Name="Font" Value="Tetris/BlueHighway-24" />
+		</Window>
 	</Window>
 </GUILayout>

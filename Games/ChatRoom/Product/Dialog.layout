@@ -9,7 +9,7 @@
 			<Property Name="UnifiedPosition" Value="{{0,0},{0.1,0}}" />
 			<Property Name="UnifiedSize" Value="{{0.7,0},{0.7,0}}" />
 			<Property Name="HorzFormatting" Value="WordWrapLeftAligned" />
-			<Property Name="Font" Value="BlueHighway-24" />
+			<Property Name="Font" Value="BlueHighway-12" />
 			<Property Name="Alpha" Value="0.9" />
 		</Window>
 

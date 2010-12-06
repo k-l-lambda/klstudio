@@ -37,14 +37,13 @@ function onPostMessage(session_id, message)
 			message = message,
 		}
 		if session_id == g_OwnSessionId then
-			-- TODO: get self user info
-			--data.author = 
+			data.author = g_SelfUserInfo.email
 		end
 		g_WebClient:postUrlSync(s_WebAppLocation .. "session/" .. session_id .. "/post-message", string.format("data=%s;channel=talk", Tanx.serializer.save(data)), reportState)
 	end)
 
 	if session_id == g_OwnSessionId then
-		-- TODO: show message in dialog window
+		g_SelfDialogWindow:showMessage(g_SelfUserInfo.nickname, message)
 	end
 end
 
@@ -98,8 +97,8 @@ function fetchMessages(session_id)
 			onMessageArrived(session_id, message)
 		end
 
-		-- sleep 1 second
-		Tanx.sleep(1)
+		-- sleep 4 seconds
+		Tanx.sleep(4)
 	end
 end
 

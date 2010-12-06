@@ -10,6 +10,7 @@
 Tanx.log("[ChatRoom\\DialogWindow.lua]: parsed.")
 
 Tanx.require"Core:bind.lua"
+Tanx.require"Core:OsUtil.lua"
 Tanx.require"Core:CeguiUtil.lua"
 
 class "DialogWindow"
@@ -27,6 +28,7 @@ class "DialogWindow"
 		self.WindowManager:getWindow(CEGUI.String"ChatRoom/root"):addChildWindow(self.FrameWindow)
 
 		self.MemberList = self.FrameWindow:getChildRecursive(CEGUI.String(self.NamePrefix .. "ChatRoom/Dialog/MemberList")):toDerived()
+		self.Records = self.FrameWindow:getChildRecursive(CEGUI.String(self.NamePrefix .. "ChatRoom/Dialog/Records")):toDerived()
 		self.EditBox = self.FrameWindow:getChildRecursive(CEGUI.String(self.NamePrefix .. "ChatRoom/Dialog/Edit")):toDerived()
 
 		self.EditBox:subscribeEvent(CEGUI.Editbox.EventTextAccepted, CEGUI.EventSubscriber(Tanx.bind(self.onEditTextAccepted, self)))
@@ -52,4 +54,12 @@ class "DialogWindow"
 		end
 
 		self.EditBox:setText(CEGUI.String"")
+	end
+
+	function DialogWindow:showMessage(author, message, date)
+		date = date or OsUtil.getUniversalTime()
+
+		local record = string.format("%s %s\n  %s\n", author, date, message)
+
+		self.Records:setText(CEGUI.String(self.Records:getText():c_str() .. record))
 	end

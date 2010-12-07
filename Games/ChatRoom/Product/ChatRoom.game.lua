@@ -10,8 +10,7 @@
 Tanx.log("[ChatRoom\\ChatRoom.game.lua]: parsed.")
 
 Tanx.require"Core:bind.lua"
-Tanx.require"Core:WebClient.lua"
-Tanx.require"Core:serializer.lua"
+Tanx.require"Core:WebService.lua"
 Tanx.require"Core:CeguiKeyListener.lua"
 Tanx.require"Core:CeguiMouseListener.lua"
 Tanx.require"Core:ThreadManager.lua"
@@ -28,23 +27,25 @@ s_WebServiceLocation = "http://localhost:8080/tanx-web-service/v1/"
 s_WebAppLocation = s_WebServiceLocation .. "app/ChatRoom/"
 
 
-function onPostMessage(session_id, message)
-	Tanx.log(string.format("message post in session %s: %s", session_id, message))
+function onPostMessage(session, message)
+	Tanx.log(string.format("message post in session %s: %s", session.ID, message))
 
 	g_ThreadManager:addThread(function()
 		local data = {
 			action = "say",
 			message = message,
 		}
-		if session_id == g_OwnSessionId then
+		if session.ID == g_OwnSession.ID then
 			data.author = g_SelfUserInfo.email
 		end
-		g_WebClient:postUrlSync(s_WebAppLocation .. "session/" .. session_id .. "/post-message", string.format("data=%s;channel=talk", Tanx.serializer.save(data)), reportState)
-	end)
+		--g_WebClient:postUrlSync(s_WebAppLocation .. "session/" .. session.ID .. "/post-message", string.format("data=%s;channel=talk", Tanx.serializer.save(data)), reportState)
 
-	if session_id == g_OwnSessionId then
-		g_SelfDialogWindow:showMessage(g_SelfUserInfo.nickname, message)
-	end
+		session:postMessage(reportState, data, {"talk"})
+
+		if session.ID == g_OwnSession.ID then
+			g_SelfDialogWindow:showMessage(g_SelfUserInfo.nickname, message)
+		end
+	end)
 end
 
 
@@ -56,7 +57,7 @@ end
 function setupRoom()
 	g_StateLabel:setText(CEGUI.String("Setting up room..."))
 
-	local result = Tanx.serializer.load(g_WebClient:postUrlSync(s_WebAppLocation .. "setup-session", "", reportState))
+	--[[local result = Tanx.serializer.load(g_WebClient:postUrlSync(s_WebAppLocation .. "setup-session", "", reportState))
 
 	--Tanx.log("session-list: " .. archive)
 	g_StateLabel:setText(CEGUI.String"Ready.")
@@ -69,11 +70,21 @@ function setupRoom()
 		g_StateLabel:setText(CEGUI.String"Room setup failed.")
 
 		return false
+	end]]
+	--[[local s, e = pcall(function()
+		g_OwnSession = g_WebService:getApplication"ChatRoom":setupSession(reportState)
+	end)
+	if not s then
+		g_StateLabel:setText(CEGUI.String("Room setup failed: " .. e))
 	end
+
+	return s]]
+	g_OwnSession = g_WebService:getApplication"ChatRoom":setupSession(reportState)
+	return true
 end
 
 
-function keepAlive(location)
+--[[function keepAlive(location)
 	location = location or g_SelfSessionLocation
 
 	while g_WebClient do
@@ -82,10 +93,10 @@ function keepAlive(location)
 		-- sleep 1 minute
 		Tanx.sleep(60)
 	end
-end
+end]]
 
 
-function fetchMessages(session_id)
+--[[function fetchMessages(session_id)
 	local next_id = 0
 
 	while g_WebClient do
@@ -100,13 +111,14 @@ function fetchMessages(session_id)
 		-- sleep 4 seconds
 		Tanx.sleep(4)
 	end
-end
+end]]
 
 
 function refreshRoomList()
 	g_StateLabel:setText(CEGUI.String("Loading room list..."))
 
-	local result = Tanx.serializer.load(g_WebClient:getUrlSync(s_WebAppLocation .. "session-list", reportState))
+	--local result = Tanx.serializer.load(g_WebClient:getUrlSync(s_WebAppLocation .. "session-list", reportState))
+	local result = g_WebService:getApplication"ChatRoom":getSessionList(reportState)
 
 	if result then
 		local i, room
@@ -125,7 +137,8 @@ end
 
 
 function startSync()
-	g_SelfUserInfo = Tanx.serializer.load(g_WebClient:getUrlSync(s_WebServiceLocation .. "user-info", reportState))
+	--g_SelfUserInfo = Tanx.serializer.load(g_WebClient:getUrlSync(s_WebServiceLocation .. "user-info", reportState))
+	g_SelfUserInfo = g_WebService:getUserInfo(reportState)
 	if not g_SelfUserInfo then
 		g_StateLabel:setText(CEGUI.String"Get user info failed.")
 
@@ -133,16 +146,18 @@ function startSync()
 	end
 
 	if setupRoom() then
-		g_SelfSessionLocation = s_WebAppLocation .. "session/" .. g_OwnSessionId .. "/"
-		g_SelfDialogWindow = DialogWindow(CEGUI.WindowManager.getSingleton(), g_SelfUserInfo.nickname, {g_SelfUserInfo}, {PostMessage = Tanx.bind(onPostMessage, g_OwnSessionId, Tanx._1)})
+		--g_SelfSessionLocation = s_WebAppLocation .. "session/" .. g_OwnSession.ID .. "/"
+		g_SelfDialogWindow = DialogWindow(CEGUI.WindowManager.getSingleton(), g_SelfUserInfo.nickname, {g_SelfUserInfo}, {PostMessage = Tanx.bind(onPostMessage, g_OwnSession, Tanx._1)})
 
 		--g_ThreadManager:addThread(keepAlive)
 
 		refreshRoomList()
 
-		g_ThreadManager:addThread(Tanx.bind(fetchMessages, g_OwnSessionId))
+		--g_ThreadManager:addThread(Tanx.bind(fetchMessages, g_OwnSession.ID))
+		g_ThreadManager:addThread(Tanx.bind(g_OwnSession.fetchMessageLoop, g_OwnSession, reportState, onMessageArrived))
 
-		keepAlive(g_SelfSessionLocation)
+		--keepAlive(g_SelfSessionLocation)
+		g_OwnSession:keepAliveLoop()
 	end
 end
 
@@ -200,6 +215,8 @@ function initialize(game, params)
 
 	g_WebClient = g_Game:getWebClient(params)
 	if g_WebClient then
+		g_WebService = TanxWebService(g_WebClient, s_WebServiceLocation)
+
 		g_ThreadManager:addThread(startSync)
 	else
 		g_StateLabel:setText(CEGUI.String"Web client is not available")

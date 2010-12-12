@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <GUILayout>
 	<Window Type="TaharezLook/FrameWindow" Name="ChatRoom/RoomList">
-		<Property Name="UnifiedAreaRect" Value="{{0.2,0},{0.1,0},{0.6,0},{0.6,0}}" />
+		<Property Name="UnifiedAreaRect" Value="{{0.02,0},{0.1,0},{0.38,0},{0.6,0}}" />
 		<Property Name="UnifiedMinSize" Value="{{0.2,0},{0.1,0}}" />
 		<Property Name="Alpha" Value="0.9" />
 		<Property Name="Text" Value="Room List" />
@@ -19,6 +19,7 @@
 			<Property Name="UnifiedSize" Value="{{0.2,0},{0.1,0}}" />
 			<Property Name="Text" Value="Refresh" />
 			<Property Name="Font" Value="Tetris/BlueHighway-24" />
+			<Property Name="Disabled" Value="true" />
 		</Window>
 
 		<Window Type="TaharezLook/Button" Name="ChatRoom/RoomList/Join">
@@ -26,6 +27,7 @@
 			<Property Name="UnifiedSize" Value="{{0.2,0},{0.1,0}}" />
 			<Property Name="Text" Value="Join" />
 			<Property Name="Font" Value="Tetris/BlueHighway-24" />
+			<Property Name="Disabled" Value="true" />
 		</Window>
 	</Window>
 </GUILayout>

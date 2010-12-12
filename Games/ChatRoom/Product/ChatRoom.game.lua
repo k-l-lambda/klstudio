@@ -18,8 +18,11 @@ Tanx.require"Core:ThreadManager.lua"
 Tanx.dofile"DialogWindow.lua"
 
 
+g_GuiWindows = {}
+
+
 function reportState(state)
-	g_StateLabel:setText(CEGUI.String(state))
+	g_GuiWindows.StateLabel:setText(CEGUI.String(state))
 end
 
 
@@ -53,13 +56,13 @@ end
 
 
 function setupRoom()
-	g_StateLabel:setText(CEGUI.String("Setting up room..."))
+	g_GuiWindows.StateLabel:setText(CEGUI.String("Setting up room..."))
 
 	--[[local s, e = pcall(function()
 		g_OwnSession = g_WebService:getApplication"ChatRoom":setupSession(reportState)
 	end)
 	if not s then
-		g_StateLabel:setText(CEGUI.String("Room setup failed: " .. e))
+		g_GuiWindows.StateLabel:setText(CEGUI.String("Room setup failed: " .. e))
 	end
 
 	return s]]
@@ -69,31 +72,34 @@ end
 
 
 function refreshRoomList()
-	g_StateLabel:setText(CEGUI.String("Loading room list..."))
+	g_GuiWindows.RoomList.Refresh:disable()
+	g_GuiWindows.StateLabel:setText(CEGUI.String("Loading room list..."))
 
 	--local result = Tanx.serializer.load(g_WebClient:getUrlSync(s_WebAppLocation .. "session-list", reportState))
 	local result = g_WebService:getApplication"ChatRoom":getSessionList(reportState)
 
 	if result then
+		g_GuiWindows.RoomList.List:resetList()
 		local i, room
 		for i, room in ipairs(result.list) do
 			local listboxitem = CEGUI.ListboxTextItem.new(CEGUI.String(room.host.nickname))
 			listboxitem:setFont(CEGUI.String"BlueHighway-24")
 			listboxitem:setSelectionBrushImage(CEGUI.String"TaharezLook", CEGUI.String"ListboxSelectionBrush")
-			g_RoomList:addItem(listboxitem)
+			g_GuiWindows.RoomList.List:addItem(listboxitem)
 		end
 	else
-		g_StateLabel:setText(CEGUI.String"Room list loading failed.")
+		g_GuiWindows.StateLabel:setText(CEGUI.String"Room list loading failed.")
 	end
 
-	g_StateLabel:setText(CEGUI.String"Ready.")
+	g_GuiWindows.RoomList.Refresh:enable()
+	g_GuiWindows.StateLabel:setText(CEGUI.String"Ready.")
 end
 
 
 function startSync()
 	g_SelfUserInfo = g_WebService:getUserInfo(reportState)
 	if not g_SelfUserInfo then
-		g_StateLabel:setText(CEGUI.String"Get user info failed.")
+		g_GuiWindows.StateLabel:setText(CEGUI.String"Get user info failed.")
 
 		return false
 	end
@@ -113,12 +119,12 @@ end
 function updateRoomListSize()
 	--Tanx.log("[ChatRoom\\ChatRoom.game.lua]: onRoomListSized.")
 	local titleheight = 0.046
-	local frameheight = g_RoomList:getParent():getHeight():asRelative(g_RoomList:getParent():getParentPixelHeight())
+	local frameheight = g_GuiWindows.RoomList:getHeight():asRelative(g_GuiWindows.RoomList:getParent():getParentPixelHeight())
 
 	local y = titleheight / frameheight
-	--Tanx.log("[ChatRoom\\ChatRoom.game.lua]: frameheight: " .. g_RoomList:getParent():getHeight():asRelative(g_RoomList:getParent():getParentPixelHeight()))
-	g_RoomList:setYPosition(CEGUI.UDim(y, 0))
-	g_RoomList:setHeight(CEGUI.UDim(1 - y - 0.1, 0))
+	--Tanx.log("[ChatRoom\\ChatRoom.game.lua]: frameheight: " .. g_GuiWindows.RoomList:getHeight():asRelative(g_GuiWindows.RoomList:getParentPixelHeight()))
+	g_GuiWindows.RoomList.List:setYPosition(CEGUI.UDim(y, 0))
+	g_GuiWindows.RoomList.List:setHeight(CEGUI.UDim(1 - y - 0.1, 0))
 end
 
 
@@ -140,13 +146,17 @@ function initialize(game, params)
 	local sheet = g_WindowManager:loadWindowLayout(CEGUI.String"ChatRoom.layout")
 	g_GuiSystem:setGUISheet(sheet)
 
-	g_RootWindow = g_WindowManager:getWindow(CEGUI.String"ChatRoom/root")
-	g_StateLabel = g_WindowManager:getWindow(CEGUI.String"ChatRoom/State")
+	g_GuiWindows.Root = g_WindowManager:getWindow(CEGUI.String"ChatRoom/root")
+	g_GuiWindows.StateLabel = g_WindowManager:getWindow(CEGUI.String"ChatRoom/State")
 
-	g_RootWindow:addChildWindow(g_WindowManager:loadWindowLayout(CEGUI.String"RoomList.layout"))
-	g_RoomList = g_WindowManager:getWindow(CEGUI.String"ChatRoom/RoomList/List"):toDerived()
+	g_GuiWindows.Root:addChildWindow(g_WindowManager:loadWindowLayout(CEGUI.String"RoomList.layout"))
+	g_GuiWindows.RoomList = g_WindowManager:getWindow(CEGUI.String"ChatRoom/RoomList"):toDerived()
+	g_GuiWindows.RoomList.List = g_WindowManager:getWindow(CEGUI.String"ChatRoom/RoomList/List"):toDerived()
+	g_GuiWindows.RoomList.Refresh = g_WindowManager:getWindow(CEGUI.String"ChatRoom/RoomList/Refresh"):toDerived()
+	g_GuiWindows.RoomList.Join = g_WindowManager:getWindow(CEGUI.String"ChatRoom/RoomList/Join"):toDerived()
 	updateRoomListSize()
-	g_RoomList:getParent():subscribeEvent(CEGUI.Window.EventSized, CEGUI.EventSubscriber(updateRoomListSize))
+	g_GuiWindows.RoomList:subscribeEvent(CEGUI.Window.EventSized, CEGUI.EventSubscriber(updateRoomListSize))
+	g_GuiWindows.RoomList.Refresh:subscribeEvent(CEGUI.PushButton.EventClicked, CEGUI.EventSubscriber(function() g_ThreadManager:addThread(refreshRoomList) end))
 
 
 	-- setup viewport
@@ -157,7 +167,7 @@ function initialize(game, params)
 	g_Viewport:setBackgroundColour(Ogre.ColourValue(0.234, 0.382, 0.633))
 
 
-	g_StateLabel:setText(CEGUI.String"Ready")
+	g_GuiWindows.StateLabel:setText(CEGUI.String"Ready")
 
 	g_ThreadManager = TanxThreadManager()
 
@@ -167,7 +177,7 @@ function initialize(game, params)
 
 		g_ThreadManager:addThread(startSync)
 	else
-		g_StateLabel:setText(CEGUI.String"Web client is not available")
+		g_GuiWindows.StateLabel:setText(CEGUI.String"Web client is not available")
 	end
 end
 

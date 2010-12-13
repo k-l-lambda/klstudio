@@ -19,6 +19,7 @@ Tanx.dofile"DialogWindow.lua"
 
 
 g_GuiWindows = {}
+g_GuestDialogWindows = {}
 
 
 function reportState(state)
@@ -59,14 +60,14 @@ function setupRoom()
 	g_GuiWindows.StateLabel:setText(CEGUI.String("Setting up room..."))
 
 	--[[local s, e = pcall(function()
-		g_OwnSession = g_WebService:getApplication"ChatRoom":setupSession(reportState)
+		g_OwnSession = g_ChatRoomApp:setupSession(reportState)
 	end)
 	if not s then
 		g_GuiWindows.StateLabel:setText(CEGUI.String("Room setup failed: " .. e))
 	end
 
 	return s]]
-	g_OwnSession = g_WebService:getApplication"ChatRoom":setupSession(reportState)
+	g_OwnSession = g_ChatRoomApp:setupSession(reportState)
 	return true
 end
 
@@ -76,15 +77,18 @@ function refreshRoomList()
 	g_GuiWindows.StateLabel:setText(CEGUI.String("Loading room list..."))
 
 	--local result = Tanx.serializer.load(g_WebClient:getUrlSync(s_WebAppLocation .. "session-list", reportState))
-	local result = g_WebService:getApplication"ChatRoom":getSessionList(reportState)
+	local result = g_ChatRoomApp:getSessionList(reportState)
 
 	if result then
+		g_SessionList = result.list
+
 		g_GuiWindows.RoomList.List:resetList()
 		local i, room
-		for i, room in ipairs(result.list) do
+		for i, room in ipairs(g_SessionList) do
 			local listboxitem = CEGUI.ListboxTextItem.new(CEGUI.String(room.host.nickname))
 			listboxitem:setFont(CEGUI.String"BlueHighway-24")
 			listboxitem:setSelectionBrushImage(CEGUI.String"TaharezLook", CEGUI.String"ListboxSelectionBrush")
+			listboxitem:setID(i)
 			g_GuiWindows.RoomList.List:addItem(listboxitem)
 		end
 	else
@@ -93,6 +97,24 @@ function refreshRoomList()
 
 	g_GuiWindows.RoomList.Refresh:enable()
 	g_GuiWindows.StateLabel:setText(CEGUI.String"Ready.")
+end
+
+
+function onRoomListJoin()
+	local selection = g_SessionList and g_SessionList[g_GuiWindows.RoomList.List:getFirstSelectedItem():getID()]
+	if selection then
+		local session = g_ChatRoomApp:getSession(selection.id)
+
+		g_ThreadManager:addThread(function()
+			session:postMessage(reportState, {action = "join"})
+
+			-- create dialog window
+			local session_info = session:getInfo(reportState).info
+			g_GuestDialogWindows[session.ID] = DialogWindow(CEGUI.WindowManager.getSingleton(), session_info.host.nickname, {g_SelfUserInfo, session_info.host}, {PostMessage = Tanx.bind(onPostMessage, session, Tanx._1)})
+
+			session:fetchMessageLoop(reportState, onMessageArrived)
+		end)
+	end
 end
 
 
@@ -128,6 +150,17 @@ function updateRoomListSize()
 end
 
 
+function RoomList_SelectionChanged()
+	if g_SessionList then
+		local selection = g_SessionList[g_GuiWindows.RoomList.List:getFirstSelectedItem():getID()]
+		if selection then
+			local can_join = selection.host.email ~= g_SelfUserInfo.email
+			g_GuiWindows.RoomList.Join:setEnabled(can_join)
+		end
+	end
+end
+
+
 function initialize(game, params)
 	g_Game = game
 
@@ -156,7 +189,9 @@ function initialize(game, params)
 	g_GuiWindows.RoomList.Join = g_WindowManager:getWindow(CEGUI.String"ChatRoom/RoomList/Join"):toDerived()
 	updateRoomListSize()
 	g_GuiWindows.RoomList:subscribeEvent(CEGUI.Window.EventSized, CEGUI.EventSubscriber(updateRoomListSize))
+	g_GuiWindows.RoomList.List:subscribeEvent(CEGUI.Listbox.EventSelectionChanged, CEGUI.EventSubscriber(RoomList_SelectionChanged))
 	g_GuiWindows.RoomList.Refresh:subscribeEvent(CEGUI.PushButton.EventClicked, CEGUI.EventSubscriber(function() g_ThreadManager:addThread(refreshRoomList) end))
+	g_GuiWindows.RoomList.Join:subscribeEvent(CEGUI.PushButton.EventClicked, CEGUI.EventSubscriber(onRoomListJoin))
 
 
 	-- setup viewport
@@ -174,6 +209,7 @@ function initialize(game, params)
 	g_WebClient = g_Game:getWebClient(params)
 	if g_WebClient then
 		g_WebService = TanxWebService(g_WebClient, s_WebServiceLocation)
+		g_ChatRoomApp = g_WebService:getApplication"ChatRoom"
 
 		g_ThreadManager:addThread(startSync)
 	else

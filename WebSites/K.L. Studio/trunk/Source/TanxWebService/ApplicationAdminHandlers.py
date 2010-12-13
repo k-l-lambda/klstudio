@@ -6,6 +6,7 @@ import datetime
 
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
+from google.appengine.api import users
 
 from Application import *
 
@@ -16,6 +17,8 @@ class ApplicationViewerHandler(webapp.RequestHandler):
         app = Application.getById(id)
 
         template_values = {
+            'current_user':             users.get_current_user(),
+            'logout_url':               users.create_logout_url(self.request.uri),
             'application':              app,
         }
         path = os.path.join(os.path.dirname(__file__), 'templates/ApplicationViewer.html')

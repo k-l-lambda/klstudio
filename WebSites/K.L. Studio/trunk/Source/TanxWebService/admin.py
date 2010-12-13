@@ -5,6 +5,7 @@ import logging
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
 from google.appengine.ext.webapp import template
+from google.appengine.api import users
 
 from TanxWebService.Application import *
 from TanxWebService.ApplicationAdminHandlers import *
@@ -16,6 +17,8 @@ class AdminHomeHandler(webapp.RequestHandler):
         applications = Application.all()
 
         template_values = {
+            'current_user':             users.get_current_user(),
+            'logout_url':               users.create_logout_url(self.request.uri),
             'applications':             applications,
         }
         path = os.path.join(os.path.dirname(__file__), 'templates/AdminHome.html')

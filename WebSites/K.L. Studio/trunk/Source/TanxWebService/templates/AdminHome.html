@@ -5,6 +5,10 @@
 		<script src="../static/admin.js" type="text/javascript"></script>
 	</head>
 	<body>
+		<div id="account-bar">
+			<b>{{current_user.email}}</b> |
+			<a href="{{logout_url}}">logout</a>
+		</div>
 		<h1>Tanx Web Service Admin</h1>
 		<div class="section">
 			<h2>Applications</h2>

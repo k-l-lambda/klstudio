@@ -5,6 +5,10 @@
 		<script src="../../../../../static/admin.js" type="text/javascript"></script>
 	</head>
 	<body>
+		<div id="account-bar">
+			<b>{{current_user.email}}</b> |
+			<a href="{{logout_url}}">logout</a>
+		</div>
 		<h1>Session <i>{{session.id}}</i></h1>
 		<p><a href="../../">&lt;&lt; back to parent Application <i>{{session.parent.id}}</i></a></p>
 		<div class="section">

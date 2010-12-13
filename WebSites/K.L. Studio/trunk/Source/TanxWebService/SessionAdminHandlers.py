@@ -6,6 +6,7 @@ import datetime
 
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
+from google.appengine.api import users
 
 from Session import *
 from Application import *
@@ -18,6 +19,8 @@ class SessionViewerHandler(webapp.RequestHandler):
         session = Session.get_by_key_name(id, Application.getById(app_id))
 
         template_values = {
+            'current_user':             users.get_current_user(),
+            'logout_url':               users.create_logout_url(self.request.uri),
             'session':                  session,
             'is_host':                  session.host == users.get_current_user(),
         }

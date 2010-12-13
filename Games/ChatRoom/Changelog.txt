@@ -1,8 +1,14 @@
 
 TODO:
+	implement onMessageArrived
 	coroutine callback problem
 	end session at exit
 
+
+
+2010.12.13	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	DialogWindow.lua: onRoomListJoin added.
 
 
 2010.12.6	K.L.	<xxxK.L.xxx@gmail.com>

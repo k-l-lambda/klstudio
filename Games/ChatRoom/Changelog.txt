@@ -6,9 +6,14 @@ TODO:
 
 
 
+2010.12.14	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	ChatRoom.game.lua: 'onMessageArrived' implemented.
+
+
 2010.12.13	K.L.	<xxxK.L.xxx@gmail.com>
 
-	+	DialogWindow.lua: onRoomListJoin added.
+	+	ChatRoom.game.lua: onRoomListJoin added.
 
 
 2010.12.6	K.L.	<xxxK.L.xxx@gmail.com>

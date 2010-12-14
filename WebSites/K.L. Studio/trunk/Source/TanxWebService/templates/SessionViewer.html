@@ -5,12 +5,18 @@
 		<script src="../../../../../static/admin.js" type="text/javascript"></script>
 	</head>
 	<body>
-		<div id="account-bar">
-			<b>{{current_user.email}}</b> |
-			<a href="{{logout_url}}">logout</a>
+		<div id="header">
+			<div id="account-bar">
+				<b>{{current_user.email}}</b> |
+				<a href="{{logout_url}}">logout</a>
+			</div>
+			<div>
+				<a href="../../../../">Admin Home</a> -&gt;
+				<a href="../../">Application <b>{{session.parent.id}}</b></a> -&gt;
+				<a href="./">Session <b>{{session.id}}</b></a>
+			</div>
 		</div>
 		<h1>Session <i>{{session.id}}</i></h1>
-		<p><a href="../../">&lt;&lt; back to parent Application <i>{{session.parent.id}}</i></a></p>
 		<div class="section">
 			<table class="property-table">
 				<tr>

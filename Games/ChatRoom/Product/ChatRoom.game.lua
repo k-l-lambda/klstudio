@@ -52,7 +52,33 @@ end
 
 
 function onMessageArrived(session_id, message)
-	Tanx.log(string.format("message arrived in session %s: %s", session_id, message.data))
+	Tanx.log(string.format("message arrived in session %s: %s", session_id, Tanx.serializer.save(message.data)))
+
+	local data = message.data
+
+	if session_id == g_OwnSession.ID then
+		if data.action == "join" then
+			g_OwnSession:getChannel"talk":addMember(reportState, message.sender.email)
+		elseif data.action == "say" then
+			g_SelfDialogWindow:showMessage(message.sender.nickname, data.message)
+
+			-- publish guest message
+			local outdata = {
+				action = "say",
+				message = data.message,
+				author = message.sender.email,
+			}
+			g_OwnSession:postMessage(reportState, outdata, {"talk"})
+		end
+	else
+		if g_GuestDialogWindows[session_id] then
+			if data.action == "say" then
+				g_GuestDialogWindows[session_id]:showMessage(data.author, data.message)
+			end
+		else
+			Tanx.log("[ChatRoom\\ChatRoom.game.lua]: cannot find guest dialog window for session " .. session_id, Ogre.LogMessageLevel.CRITICAL)
+		end
+	end
 end
 
 

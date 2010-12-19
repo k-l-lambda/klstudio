@@ -53,6 +53,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tanxjs", "Tanxjs", "{250A87
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demos", "Demos", "{1FDEE6C1-19FB-4B77-8476-140875D4958A}"
 	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\Tanx\Demos\ChatRoom.html = Source\static\projects\Tanx\Demos\ChatRoom.html
 		Source\static\projects\Tanx\Demos\CoulombField.html = Source\static\projects\Tanx\Demos\CoulombField.html
 		Source\static\projects\Tanx\Demos\CubeTetris.html = Source\static\projects\Tanx\Demos\CubeTetris.html
 		Source\static\projects\Tanx\Demos\CubeTetris_ScreenSaver.html = Source\static\projects\Tanx\Demos\CubeTetris_ScreenSaver.html

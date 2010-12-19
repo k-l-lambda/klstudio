@@ -14,6 +14,7 @@ init = function() {
 		var game = canvas.attributes["game"].value;
 		var envelopePathFormat = canvas.attributes["envelopePathFormat"];
 		var envelope = canvas.attributes["envelope"];
+		var gameparams = canvas.attributes["gameparams"];
 
 		var inner = ""
 		if (tanxjs.util.IsMSIE()) {
@@ -21,6 +22,8 @@ init = function() {
 			inner += '	<param name="type" value="application/x-klstudio.tanx" />';
 			inner += '	<param name="src" value="' + pack + '" />';
 			inner += '	<param name="game" value="' + game + '" />';
+			if (gameparams)
+				inner += '	<param name="gameparams" value="' + gameparams.value + '" />';
 			if (envelopePathFormat)
 				inner += '	<param name="envelopepathformat" value="' + envelopePathFormat.value + '" />';
 			if (envelope)
@@ -29,6 +32,8 @@ init = function() {
 		}
 		else {
 			inner += '<embed type="application/x-klstudio.tanx" style="width: 100%; height: 100%;" src="' + pack + '" game="' + game + '"';
+			if (gameparams)
+				inner += ' gameparams="' + gameparams.value + '"';
 			if (envelopePathFormat)
 				inner += ' envelopepathformat="' + envelopePathFormat.value + '"';
 			if (envelope)

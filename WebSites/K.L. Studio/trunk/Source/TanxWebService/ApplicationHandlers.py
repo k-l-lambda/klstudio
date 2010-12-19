@@ -45,11 +45,11 @@ class ApplicationSessionListHandler(webapp.RequestHandler):
         total = session_list.count()
 
         session_list = session_list.fetch(limit, offset)
-        try:
-            if host:
+        if host:
+            try:
                 session_list = filter(lambda session : re.match(host, session.host.nickname()), session_list)
-        except:
-            pass
+            except:
+                pass
         if tag:
             session_list = filter(lambda session : tag in session.tags, session_list)
 

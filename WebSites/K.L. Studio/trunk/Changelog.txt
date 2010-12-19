@@ -4,6 +4,11 @@ TODO:
 		data clear job
 
 
+2010.12.19	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Source/static/projects/Tanx/Demos/ChatRoom.html created.
+
+
 2010.12.14	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	Source/TanxWebService: header on administrator console added.

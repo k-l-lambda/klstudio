@@ -6,6 +6,11 @@ TODO:
 
 
 
+2010.12.19	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	ChatRoom.game.lua: host action "add-member" added.
+
+
 2010.12.14	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	ChatRoom.game.lua: 'onMessageArrived' implemented.

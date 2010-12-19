@@ -38,6 +38,8 @@ class "DialogWindow"
 	end
 
 	function DialogWindow:refreshMemberList()
+		self.MemberList:resetList()
+
 		local i, member
 		for i, member in ipairs(self.Members) do
 			local listboxitem = CEGUI.ListboxTextItem.new(CEGUI.String(member.nickname))

@@ -27,7 +27,7 @@ function reportState(state)
 end
 
 
-s_WebServiceLocation = "http://localhost:8080/tanx-web-service/v1/"
+--s_WebServiceLocation = "http://localhost:8080/tanx-web-service/v1/"
 
 
 function onPostMessage(session, message)
@@ -59,6 +59,11 @@ function onMessageArrived(session_id, message)
 	if session_id == g_OwnSession.ID then
 		if data.action == "join" then
 			g_OwnSession:getChannel"talk":addMember(reportState, message.sender.email)
+
+			g_OwnSession:postMessage(reportState, {action = "add-member", member = message.sender}, {"talk"})
+
+			table.insert(g_SelfDialogWindow.Members, message.sender)
+			g_SelfDialogWindow:refreshMemberList()
 		elseif data.action == "say" then
 			g_SelfDialogWindow:showMessage(message.sender.nickname, data.message)
 
@@ -71,9 +76,13 @@ function onMessageArrived(session_id, message)
 			g_OwnSession:postMessage(reportState, outdata, {"talk"})
 		end
 	else
-		if g_GuestDialogWindows[session_id] then
+		local dialog_win = g_GuestDialogWindows[session_id]
+		if dialog_win then
 			if data.action == "say" then
-				g_GuestDialogWindows[session_id]:showMessage(data.author, data.message)
+				dialog_win:showMessage(data.author, data.message)
+			elseif data.action == "add-member" then
+				table.insert(dialog_win.Members, data.member)
+				dialog_win:refreshMemberList()
 			end
 		else
 			Tanx.log("[ChatRoom\\ChatRoom.game.lua]: cannot find guest dialog window for session " .. session_id, Ogre.LogMessageLevel.CRITICAL)
@@ -136,7 +145,7 @@ function onRoomListJoin()
 
 			-- create dialog window
 			local session_info = session:getInfo(reportState).info
-			g_GuestDialogWindows[session.ID] = DialogWindow(CEGUI.WindowManager.getSingleton(), session_info.host.nickname, {g_SelfUserInfo, session_info.host}, {PostMessage = Tanx.bind(onPostMessage, session, Tanx._1)})
+			g_GuestDialogWindows[session.ID] = DialogWindow(CEGUI.WindowManager.getSingleton(), session_info.host.nickname, {session_info.host}, {PostMessage = Tanx.bind(onPostMessage, session, Tanx._1)})
 
 			session:fetchMessageLoop(reportState, onMessageArrived)
 		end)
@@ -234,6 +243,8 @@ function initialize(game, params)
 
 	g_WebClient = g_Game:getWebClient(params)
 	if g_WebClient then
+		s_WebServiceLocation = params:at"WebServiceLocation":get()
+
 		g_WebService = TanxWebService(g_WebClient, s_WebServiceLocation)
 		g_ChatRoomApp = g_WebService:getApplication"ChatRoom"
 

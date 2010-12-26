@@ -236,13 +236,13 @@ function initialize(game, params)
 
 	g_GuiWindows.StateLabel:setText(CEGUI.String"Ready")
 
-	g_ThreadManager = TanxThreadManager()
+	g_ThreadManager = Tanx.ThreadManager()
 
 	g_WebClient = g_Game:getWebClient(params)
 	if g_WebClient then
 		s_WebServiceLocation = params:at"WebServiceLocation":get()
 
-		g_WebService = TanxWebService(g_WebClient, s_WebServiceLocation)
+		g_WebService = Tanx.WebService(g_WebClient, s_WebServiceLocation)
 		g_ChatRoomApp = g_WebService:getApplication"ChatRoom"
 
 		g_ThreadManager:addThread(startSync)

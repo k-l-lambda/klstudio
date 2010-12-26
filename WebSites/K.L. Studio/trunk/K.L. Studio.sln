@@ -109,6 +109,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{813495
 	ProjectSection(SolutionItems) = preProject
 		Source\TanxWebService\static\admin.css = Source\TanxWebService\static\admin.css
 		Source\TanxWebService\static\admin.js = Source\TanxWebService\static\admin.js
+		Source\TanxWebService\static\ajax.js = Source\TanxWebService\static\ajax.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ChatRoom", "ChatRoom", "{8F9934FF-F91F-42EF-AF99-59483CB266D5}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\ChatRoom\chat-form = Source\static\projects\ChatRoom\chat-form
+		Source\static\projects\ChatRoom\ChatRoom.js = Source\static\projects\ChatRoom\ChatRoom.js
+		Source\static\projects\ChatRoom\host-dialog.html = Source\static\projects\ChatRoom\host-dialog.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{6F1FA9CD-DB7B-4E57-9023-7BCE1E044B72}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\js\jquery.js = Source\static\js\jquery.js
 	EndProjectSection
 EndProject
 Global
@@ -121,10 +134,12 @@ Global
 		{9225C4DA-E842-4A54-B4AF-6804A7B33BF0} = {6039FAA1-190F-41C5-BB92-22D664E36873}
 		{72F8721A-6415-46C5-9AC3-30CE9FCBBDF9} = {507BFF60-1747-4568-B869-37F7B1AAD9E1}
 		{A55A5D1C-ED8B-4922-BE88-8B60F53B8EE4} = {507BFF60-1747-4568-B869-37F7B1AAD9E1}
+		{6F1FA9CD-DB7B-4E57-9023-7BCE1E044B72} = {507BFF60-1747-4568-B869-37F7B1AAD9E1}
 		{01EDC4D0-6291-4AED-8298-EAD4D5A7968A} = {72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}
 		{7ADB6F2C-93D6-48CF-A8A9-9B6E3869B90C} = {72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}
 		{F4C21657-4C05-41B2-B15A-D5C026A62F00} = {72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}
 		{B908F6D6-7B0F-439E-9933-BFACAE5FEADB} = {72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}
+		{8F9934FF-F91F-42EF-AF99-59483CB266D5} = {72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}
 		{250A8786-9F3E-40BF-8D6A-D22BFFB9E75E} = {7ADB6F2C-93D6-48CF-A8A9-9B6E3869B90C}
 		{1FDEE6C1-19FB-4B77-8476-140875D4958A} = {7ADB6F2C-93D6-48CF-A8A9-9B6E3869B90C}
 		{D40EEB9E-F6F2-459E-B858-A81D77F46A2A} = {1FDEE6C1-19FB-4B77-8476-140875D4958A}

@@ -39,6 +39,9 @@ class SessionHostMessage(db.Model):
 
         return False
 
+    def toDict(self):
+        return {'data': Serializer.PlainText(self.data), 'time': self.time}
+
 
 class SessionGuestMessage(db.Model):
     data = db.TextProperty()
@@ -47,3 +50,6 @@ class SessionGuestMessage(db.Model):
 
     def id(self):
         return self.key().name()
+
+    def toDict(self):
+        return {'data': Serializer.PlainText(self.data), 'time': self.time, 'sender': self.sender}

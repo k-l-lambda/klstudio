@@ -27,9 +27,6 @@ function reportState(state)
 end
 
 
---s_WebServiceLocation = "http://localhost:8080/tanx-web-service/v1/"
-
-
 function onPostMessage(session, message)
 	Tanx.log(string.format("message post in session %s: %s", session.ID, message))
 

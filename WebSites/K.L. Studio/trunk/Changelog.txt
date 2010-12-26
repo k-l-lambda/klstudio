@@ -4,6 +4,17 @@ TODO:
 		data clear job
 
 
+2010.12.26	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Source/static/projects/ChatRoom: created.
+
+	+	Source/TanxWebService/static/ajax.js: created.
+
+	+	Source/static/js/jquery.js: imported.
+
+	>	Source/TanxWebService/Serializer.py: rewrited encoding by json.
+
+
 2010.12.19	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	Source/static/projects/Tanx/Demos/ChatRoom.html created.

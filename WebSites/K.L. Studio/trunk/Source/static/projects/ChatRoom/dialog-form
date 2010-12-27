@@ -1,0 +1,96 @@
+<style type="text/css">
+	.dialog-form
+	{
+		position: absolute;
+		float: left;
+		margin-right: 5px;
+		bottom: 0;
+		width: 100%;
+	}
+
+	.dialog-form-title
+	{
+		background-color: #73a6ff;
+		height: 20px;
+		border-top-left-radius: 3px;
+		border-top-right-radius: 3px;
+	}
+
+	.dialog-form-title-text
+	{
+		padding: 1px 4px;
+		font-weight: bold;
+		color: White;
+	}
+
+	.dialog-form-body
+	{
+		border-left: solid 1px #bbb;
+		border-right: solid 1px #bbb;
+		height: 240px;
+	}
+
+	.dialog-form-memberlist
+	{
+		float: right;
+		width: 30%;
+		height: 100%;
+		background-color: #eee;
+	}
+
+	.dialog-form-bodytext
+	{
+		float: left;
+		width: 70%;
+		height: 100%;
+	}
+
+	.dialog-form-record
+	{
+		width: 100%;
+		height: 70%;
+		border-bottom: solid 1px #ddd;
+	}
+
+	.dialog-form-input
+	{
+		width: 100%;
+	}
+
+	.dialog-form-edit
+	{
+		margin: 4px;
+		border: 0px;
+		border-collapse: collapse;
+		position: relative;
+		height: 62px;
+	}
+
+	.dialog-form-memberlist-text
+	{
+		min-height: 98%;
+		overflow: auto;
+	}
+</style>
+<div style="position:relative; width:360px; height:100%; margin-right: 6px;">
+	<div class="dialog-form">
+		<div class="dialog-form-title">
+			<div class="dialog-form-title-text"></div>
+		</div>
+		<div class="dialog-form-body">
+			<div class="dialog-form-bodytext">
+				<div class="dialog-form-record">
+				</div>
+				<div class="dialog-form-input">
+					<div class="dialog-form-edit">
+						<textarea  style="height:100%; width:100%; resize: none;"></textarea>
+					</div>
+				</div>
+			</div>
+			<div class="dialog-form-memberlist">
+				<div class="dialog-form-memberlist-text">
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

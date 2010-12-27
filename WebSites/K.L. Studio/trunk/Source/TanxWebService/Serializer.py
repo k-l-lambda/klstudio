@@ -26,9 +26,10 @@ def normalizeData(data):
         or (t in [types.StringType, types.UnicodeType]) or isinstance(data, db.Text) \
         or t is types.BooleanType \
         or t is types.NoneType \
-        or t in [types.IntType, types.LongType, types.FloatType] \
-        or isinstance(data, PlainText):
-            return data
+        or t in [types.IntType, types.LongType, types.FloatType]:
+        return data
+    elif isinstance(data, PlainText):
+        return str(data)
     elif isinstance(data, datetime.datetime):
         return str(data)
     elif isinstance(data, users.User):

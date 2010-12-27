@@ -4,6 +4,11 @@ TODO:
 		data clear job
 
 
+2010.12.27	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Source/TanxWebService/static/ajax.js: implemented.
+
+
 2010.12.26	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	Source/static/projects/ChatRoom: created.

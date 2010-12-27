@@ -2,6 +2,8 @@
 from google.appengine.ext import db
 from google.appengine.api import users
 
+import Serializer
+
 
 class SessionChannel(db.Model):
     members = db.ListProperty(users.User)

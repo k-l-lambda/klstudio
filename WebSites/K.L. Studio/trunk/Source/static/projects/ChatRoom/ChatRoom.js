@@ -41,7 +41,7 @@ chatroom.loadHostDialogWindow = function() {
 			chatroom.SelfSession = session;
 			chatroom.SelfSession.keepAliveLoop();
 			chatroom.SelfSession.fetchMessageLoop(function(session_id, message){
-				alert("session_id: " + session_id + "   message: " + message);
+				alert("session_id: " + session_id + "   action: " + $.evalJSON(message.data).action);
 			});
 		});
 

@@ -108,8 +108,8 @@ tanxjs.WebSession = function(root_location, id)
 		setInterval(function(){
 			self.fetchMessage(next_id, function(data){
 				next_id = data.next;
-				for(var message in data.messages)
-					onMessageArrived(self.ID, message);
+				for(var i in data.messages)
+					onMessageArrived(self.ID, data.messages[i]);
 			});
 		}, interval * 1000);
 	}

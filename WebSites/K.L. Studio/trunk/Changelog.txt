@@ -3,6 +3,9 @@ TODO:
 	TanxWebService: admin console
 		data clear job
 
+Pending Issues:
+	json encoding: wildcards for semicolon ';' and '&'.
+
 
 2010.12.27	K.L.	<xxxK.L.xxx@gmail.com>
 

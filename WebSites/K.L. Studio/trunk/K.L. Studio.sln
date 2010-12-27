@@ -114,14 +114,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{813495
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ChatRoom", "ChatRoom", "{8F9934FF-F91F-42EF-AF99-59483CB266D5}"
 	ProjectSection(SolutionItems) = preProject
-		Source\static\projects\ChatRoom\chat-form = Source\static\projects\ChatRoom\chat-form
 		Source\static\projects\ChatRoom\ChatRoom.js = Source\static\projects\ChatRoom\ChatRoom.js
+		Source\static\projects\ChatRoom\dialog-form = Source\static\projects\ChatRoom\dialog-form
 		Source\static\projects\ChatRoom\host-dialog.html = Source\static\projects\ChatRoom\host-dialog.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{6F1FA9CD-DB7B-4E57-9023-7BCE1E044B72}"
 	ProjectSection(SolutionItems) = preProject
 		Source\static\js\jquery.js = Source\static\js\jquery.js
+		Source\static\js\jquery.json.js = Source\static\js\jquery.json.js
 	EndProjectSection
 EndProject
 Global

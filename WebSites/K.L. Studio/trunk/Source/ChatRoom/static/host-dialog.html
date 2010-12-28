@@ -1,0 +1,33 @@
+<html>
+	<head>
+		<title>host-dialog</title>
+		<link href="ChatRoom.css" rel="stylesheet" type="text/css" />
+		<script src="/js/jquery.js" type="text/javascript"></script>
+		<script src="/js/jquery.json.js" type="text/javascript"></script>
+		<script src="/tanx-web-service/v1/static/ajax.js" type="text/javascript"></script>
+		<script src="ChatRoom.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			$(document).ready(function() {
+				chatroom.loadHostDialogWindow();
+			});
+		</script>
+	</head>
+	<body class="dialog-form-body">
+		<div id="dialog_form">
+			<div class="dialog-form-bodytext">
+				<div class="dialog-form-record">
+					<dl class="dialog-form-record-text"></dl>
+				</div>
+				<div class="dialog-form-input">
+					<div class="dialog-form-edit">
+						<textarea class="dialog-form-inputbox"></textarea>
+					</div>
+				</div>
+			</div>
+			<div class="dialog-form-memberlist">
+				<ul class="dialog-form-memberlist-list">
+				</ul>
+			</div>
+		</div>
+	</body>
+</html>

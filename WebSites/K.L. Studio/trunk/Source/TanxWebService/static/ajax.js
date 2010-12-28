@@ -8,7 +8,21 @@ tanxjs.WebService = function(root_location)
 
 	this.getUserInfo = function(callback)
 	{
-		$.getJSON(this.RootLocation + "user-info", callback);
+		if(callback)
+			$.getJSON(this.RootLocation + "user-info", callback);
+		else
+		{
+			var info;
+			$.ajax({
+				url: this.RootLocation + "user-info",
+				dataType: "json",
+				async: false,
+				success: function(data){
+					info = data;
+				},
+			});
+			return info;
+		}
 	};
 
 	this.getApplication = function(id)
@@ -34,10 +48,27 @@ tanxjs.WebApplication = function(root_location, id)
 	this.setupSession = function(callback)
 	{
 		var self = this;
-		$.post(this.RootLocation + "setup-session", function(data){
-			self.Sessions[data.id] = new tanxjs.WebSession(root_location + "session/" + data.id + "/", data.id);
-			callback(self.Sessions[data.id]);
-		}, "json");
+
+		if(callback)
+			$.post(this.RootLocation + "setup-session", function(data){
+				self.Sessions[data.id] = new tanxjs.WebSession(root_location + "session/" + data.id + "/", data.id);
+				callback(self.Sessions[data.id]);
+			}, "json");
+		else
+		{
+			var session;
+			$.ajax({
+				url: this.RootLocation + "setup-session",
+				type: "POST",
+				dataType: "json",
+				async: false,
+				success: function(data){
+					self.Sessions[data.id] = new tanxjs.WebSession(root_location + "session/" + data.id + "/", data.id);
+					session = self.Sessions[data.id];
+				},
+			});
+			return session;
+		}
 	};
 
 	this.getSession = function(id)

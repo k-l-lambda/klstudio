@@ -74,6 +74,7 @@ chatroom.DialogForm = function(form, host, members, callbacks)
 	{
 		var text = this.Form.find(".dialog-form-record-text");
 		text.append("<dt>" + author.nickname + " <span class='date'>" + date.format("yyyy-MM-dd hh:mm:ss") + "</span></dt><dd>" + message + "</dd>");
+		text.scrollTop(text.height());
 	};
 
 	this.refreshMemberList();
@@ -84,11 +85,27 @@ chatroom.loadHostDialogWindow = function() {
 	chatroom.SelfSession = chatroom.ChatRoomApp.setupSession();
 	chatroom.SelfSession.keepAliveLoop();
 	chatroom.SelfSession.fetchMessageLoop(function(session_id, message){
-		alert("session_id: " + session_id + "   action: " + $.evalJSON(message.data).action);
+		//alert("session_id: " + session_id + "   action: " + $.evalJSON(message.data).action);
+		var data = $.evalJSON(message.data);
+		switch(data.action)
+		{
+		case "join":
+			chatroom.SelfSession.getChannel("talk").addMember(message.sender.email);
+			chatroom.SelfSession.postMessage({action: "add-member", member: message.sender}, ["talk"]);
+
+			chatroom.SelfDialogForm.Members.push(message.sender);
+			chatroom.SelfDialogForm.refreshMemberList();
+
+			break;
+		case "say":
+			break;
+		default:
+			alert("message arrived with unknown action: " + data.action);
+		}
 	});
 
 	var dialog_form = $("#dialog_form");
-	chatroom.SelfDialogForm = chatroom.DialogForm(dialog_form, chatroom.SelfUserInfo, [chatroom.SelfUserInfo], {PostMessage: function(form, message){
+	chatroom.SelfDialogForm = new chatroom.DialogForm(dialog_form, chatroom.SelfUserInfo, [chatroom.SelfUserInfo], {PostMessage: function(form, message){
 		chatroom.SelfSession.postMessage({action: "say", message: message, author: chatroom.SelfUserInfo.email}, ["talk"], [], function(){
 			form.showMessage(chatroom.SelfUserInfo, message, new Date());
 		});

@@ -174,6 +174,7 @@ class SessionChannelClearMembersHandler(webapp.RequestHandler):
 
 class SessionPostMessageHandler(webapp.RequestHandler):
     def post(self):
+        #logging.info('arguments: %s', self.request.arguments())
         app_id, session_id, session = findSessionByPath(self.request.path)
         if session:
             current_user = users.get_current_user()
@@ -183,9 +184,9 @@ class SessionPostMessageHandler(webapp.RequestHandler):
                 msg.data = self.request.get('data')
                 msg.channels = self.request.get_all('channel')
                 try:
-                    msg.audiences = [users.User(email) for email in self.request.get_all('audience')]
+                    msg.audiences = [users.User(email) for email in filter(lambda email: email, self.request.get_all('audience'))]
                 except users.UserNotFoundError:
-                    logging.info('audiences: %s', self.request.get_all('audience'))
+                    logging.error('UserNotFoundError, audiences: %s', self.request.get_all('audience'))
                 msg.put()
 
                 logging.info('a host(%s) message post in session "%s" of app "%s": %s %s %s', current_user.nickname(), session_id, app_id, msg.data,

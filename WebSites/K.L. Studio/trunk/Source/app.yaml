@@ -30,7 +30,7 @@ handlers:
 
 
 - url: /projects/ChatRoom/
-  static_dir: static/projects/ChatRoom
+  static_dir: ChatRoom/static
   login: required
 
 

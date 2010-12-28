@@ -7,6 +7,11 @@ Pending Issues:
 	json encoding: wildcards for semicolon ';' and '&'.
 
 
+2010.12.28	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Source/ChatRoom: host dialog setup.
+
+
 2010.12.27	K.L.	<xxxK.L.xxx@gmail.com>
 
 	>	Source/TanxWebService/static/ajax.js: implemented.

@@ -182,7 +182,10 @@ class SessionPostMessageHandler(webapp.RequestHandler):
                 msg = SessionHostMessage(key_name = session.genNewHostMessageId(), parent = session)
                 msg.data = self.request.get('data')
                 msg.channels = self.request.get_all('channel')
-                msg.audiences = [users.User(email) for email in self.request.get_all('audience')]
+                try:
+                    msg.audiences = [users.User(email) for email in self.request.get_all('audience')]
+                except users.UserNotFoundError:
+                    logging.info('audiences: %s', self.request.get_all('audience'))
                 msg.put()
 
                 logging.info('a host(%s) message post in session "%s" of app "%s": %s %s %s', current_user.nickname(), session_id, app_id, msg.data,

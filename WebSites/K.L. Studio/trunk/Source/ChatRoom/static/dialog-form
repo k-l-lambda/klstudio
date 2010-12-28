@@ -1,0 +1,10 @@
+<div style="position:relative; width:360px; height:100%; margin-right: 6px;">
+	<div class="dialog-form">
+		<div class="dialog-form-title">
+			<div class="dialog-form-title-text"></div>
+		</div>
+		<div class="dialog-form-body">
+			<iframe class="dialog-form-body-frame"></iframe>
+		</div>
+	</div>
+</div>

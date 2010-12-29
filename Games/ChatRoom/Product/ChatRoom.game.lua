@@ -49,9 +49,9 @@ end
 
 
 function onMessageArrived(session_id, message)
-	Tanx.log(string.format("message arrived in session %s: %s", session_id, Tanx.serializer.save(message.data)))
+	Tanx.log(string.format("message arrived in session %s: %s", session_id, tostring(message.data)))
 
-	local data = message.data
+	local data = Tanx.serializer.load(message.data)
 
 	if session_id == g_OwnSession.ID then
 		if data.action == "join" then
@@ -80,6 +80,8 @@ function onMessageArrived(session_id, message)
 			elseif data.action == "add-member" then
 				table.insert(dialog_win.Members, data.member)
 				dialog_win:refreshMemberList()
+			else
+				Tanx.log("[ChatRoom\\ChatRoom.game.lua]: unknown action: " .. tostring(data.action), Ogre.LogMessageLevel.CRITICAL)
 			end
 		else
 			Tanx.log("[ChatRoom\\ChatRoom.game.lua]: cannot find guest dialog window for session " .. session_id, Ogre.LogMessageLevel.CRITICAL)
@@ -108,7 +110,6 @@ function refreshRoomList()
 	g_GuiWindows.RoomList.Refresh:disable()
 	g_GuiWindows.StateLabel:setText(CEGUI.String("Loading room list..."))
 
-	--local result = Tanx.serializer.load(g_WebClient:getUrlSync(s_WebAppLocation .. "session-list", reportState))
 	local result = g_ChatRoomApp:getSessionList(reportState)
 
 	if result then

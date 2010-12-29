@@ -116,14 +116,22 @@ tanxjs.WebSession = function(root_location, id)
 
 		this.postMessage = function(data, channels, audiences, callback)
 		{
-			$.post(this.RootLocation + "post-message", {data: $.toJSON(data), channel: channels || [], audience: audiences || []}, callback || function(){}, "json");
-			/*$.ajax({
+			//$.post(this.RootLocation + "post-message", {data: $.toJSON(data), channel: channels || [], audience: audiences || []}, callback || function(){}, "json");
+			var str = "data=" + $.toJSON(data)+ ";";
+			if(channels)
+				for(var i in channels)
+					str += "channel=" + channels[i] + ";";
+			if(audiences)
+				for(var i in audiences)
+					str += "audience=" + audiences[i] + ";";
+
+			$.ajax({
 				url: this.RootLocation + "post-message",
 				type: "POST",
-				data: {data: $.toJSON(data), channel: channels || [], audience: audiences || []},
+				data: str,
 				dataType: "json",
 				success: callback || function(){},
-			});*/
+			});
 		};
 
 		this.fetchMessage = function(start, callback)

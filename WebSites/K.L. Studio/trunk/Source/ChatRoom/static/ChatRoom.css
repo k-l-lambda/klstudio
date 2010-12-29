@@ -83,7 +83,12 @@
 .dialog-form-record-text dt
 {
 	color: #444;
+}
+
+.dialog-form-record-text dt .author
+{
 	font-weight: bold;
+	color: #444;
 }
 
 .dialog-form-record-text dt .date

@@ -73,7 +73,7 @@ chatroom.DialogForm = function(form, host, members, callbacks)
 	this.showMessage = function(author, message, date)
 	{
 		var text = this.Form.find(".dialog-form-record-text");
-		text.append("<dt>" + author.nickname + " <span class='date'>" + date.format("yyyy-MM-dd hh:mm:ss") + "</span></dt><dd>" + message + "</dd>");
+		text.append("<dt><span class='author'>" + author.nickname + "</span> says at <span class='date'>" + date.format("yyyy-MM-dd hh:mm:ss") + "</span></dt><dd>" + message + "</dd>");
 		text.scrollTop(text.height());
 	};
 
@@ -98,6 +98,10 @@ chatroom.loadHostDialogWindow = function() {
 
 			break;
 		case "say":
+			chatroom.SelfDialogForm.showMessage(message.sender, data.message, new Date());
+
+			chatroom.SelfSession.postMessage({action: "say", message: data.message, author: message.sender.email}, ["talk"]);
+
 			break;
 		default:
 			alert("message arrived with unknown action: " + data.action);

@@ -9,6 +9,7 @@ chatroom.ChatRoomApp = chatroom.WebService.getApplication("ChatRoom");
 chatroom.SelfUserInfo = chatroom.WebService.getUserInfo();
 
 chatroom.GuestSessions = {}
+chatroom.GuestDialogForms = {}
 
 
 chatroom.DialogForm = function(form, host, members, callbacks)
@@ -85,7 +86,7 @@ chatroom.loadHostDialogWindow = function() {
 		case "say":
 			chatroom.SelfDialogForm.showMessage(message.sender, data.message, Date.parseFormat(message.time, tanxjs.WebService.DateFormat));
 
-			chatroom.SelfSession.postMessage({action: "say", message: data.message, author: message.sender.email}, ["talk"]);
+			chatroom.SelfSession.postMessage({action: "say", message: data.message, author: message.sender}, ["talk"]);
 
 			break;
 		default:
@@ -94,7 +95,7 @@ chatroom.loadHostDialogWindow = function() {
 	});
 
 	chatroom.SelfDialogForm = new chatroom.DialogForm($("#dialog_form"), chatroom.SelfUserInfo, [chatroom.SelfUserInfo], {PostMessage: function(form, message){
-		chatroom.SelfSession.postMessage({action: "say", message: message, author: chatroom.SelfUserInfo.email}, ["talk"], [], function(){
+		chatroom.SelfSession.postMessage({action: "say", message: message, author: chatroom.SelfUserInfo}, ["talk"], [], function(){
 			form.showMessage(chatroom.SelfUserInfo, message, new Date());
 		});
 	},});
@@ -103,19 +104,48 @@ chatroom.loadHostDialogWindow = function() {
 
 chatroom.loadGuestDialogWindow = function(parameters) {
 	var id = parameters.id;
+	var host;
+
 	if(!id)
 	{
 		var lastsessions = chatroom.ChatRoomApp.getSessionList({host: parameters.host}).list;
 		if(lastsessions.length)
+		{
 			id = lastsessions[0].id;
+			host = lastsessions[0].host;
+		}
 	}
 	//alert("id: " + id);
 
 	if(id)
 	{
 		chatroom.GuestSessions[id] = chatroom.ChatRoomApp.getSession(id);
-		chatroom.SelfSession.keepAliveLoop();
-		// TODO:
+		chatroom.GuestSessions[id].fetchMessageLoop(function(session_id, message){
+			var data = $.evalJSON(message.data);
+			switch(data.action)
+			{
+			case "add-member":
+				chatroom.GuestDialogForms[session_id].Members[data.member.email] = data.member;
+				chatroom.GuestDialogForms[session_id].refreshMemberList();
+
+				break;
+			case "say":
+				chatroom.GuestDialogForms[session_id].showMessage(data.author, data.message, Date.parseFormat(message.time, tanxjs.WebService.DateFormat));
+
+				break;
+			default:
+				alert("message arrived with unknown action: " + data.action);
+			}
+		});
+
+		chatroom.GuestSessions[id].postMessage({action: "join"});
+
+		if(!host)
+			host = chatroom.GuestSessions[id].getInfo().info.host;
+
+		chatroom.GuestDialogForms[id] = new chatroom.DialogForm($("#dialog_form"), host, [host], {PostMessage: function(form, message){
+			chatroom.GuestSessions[id].postMessage({action: "say", message: message}, ["talk"]);
+		},});
 	}
 	else
 	{

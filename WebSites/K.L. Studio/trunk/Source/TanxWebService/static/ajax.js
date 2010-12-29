@@ -123,7 +123,21 @@ tanxjs.WebSession = function(root_location, id)
 
 		tanxjs.WebSession.prototype.getInfo = function(callback)
 		{
-			$.getJSON(this.RootLocation + "info", callback);
+			if(callback)
+				$.getJSON(this.RootLocation + "info", callback);
+			else
+			{
+				var result;
+				$.ajax({
+					url: this.RootLocation + "info",
+					dataType: "json",
+					async: false,
+					success: function(data){
+						result = data;
+					},
+				});
+				return result;
+			}
 		};
 
 		tanxjs.WebSession.prototype.setTags = function(tags, callback)
@@ -161,9 +175,15 @@ tanxjs.WebSession = function(root_location, id)
 			});
 		};
 
-		tanxjs.WebSession.prototype.fetchMessage = function(start, callback)
+		tanxjs.WebSession.prototype.fetchMessage = function(start, callback, err)
 		{
-			$.getJSON(this.RootLocation + "fetch-message", {id: start}, callback);
+			$.ajax({
+				url: this.RootLocation + "fetch-message",
+				data: {id: start},
+				dataType: "json",
+				success: callback,
+				error: err || function(){},
+			});
 		};
 
 		tanxjs.WebSession.prototype.getChannel = function(id)
@@ -200,6 +220,10 @@ tanxjs.WebSession = function(root_location, id)
 							alert("message process error: " + err);
 						}
 					});
+
+					setTimeout(fetch, interval * 1000);
+				}, function(xhr, textStatus, error){
+					//alert("message fetch error, status: " + textStatus + ", error: " + error);
 
 					setTimeout(fetch, interval * 1000);
 				});

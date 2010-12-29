@@ -4,6 +4,7 @@ TODO:
 	google contacts APIs
 
 Pending Issues:
+	Python json encode: unicode issue.
 	json encoding: wildcards for semicolon ';' and '&'.
 
 

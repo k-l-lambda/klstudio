@@ -38,3 +38,13 @@ indexes:
   properties:
   - name: setup_time
     direction: desc
+
+- kind: SessionGuestMessage
+  ancestor: yes
+  properties:
+  - name: time
+
+- kind: SessionHostMessage
+  ancestor: yes
+  properties:
+  - name: time

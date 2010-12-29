@@ -262,6 +262,7 @@ tanxjs.WebSessionChannel = function(root_location, id)
 	}
 }
 
+
 // Date extension
 Date.prototype.format = function(format){
 	/*
@@ -271,10 +272,10 @@ Date.prototype.format = function(format){
 		"M+" :  this.getMonth()+1,  //month
 		"d+" :  this.getDate(),     //day
 		"h+" :  this.getHours(),    //hour
-		 "m+" :  this.getMinutes(),  //minute
-		 "s+" :  this.getSeconds(), //second
-		 "q+" :  Math.floor((this.getMonth()+3)/3),  //quarter
-		 "S"  :  this.getMilliseconds() //millisecond
+		"m+" :  this.getMinutes(),  //minute
+		"s+" :  this.getSeconds(), //second
+		"q+" :  Math.floor((this.getMonth()+3)/3),  //quarter
+		"S"  :  this.getMilliseconds() //millisecond
 	}
 
 	if(/(y+)/.test(format)) {

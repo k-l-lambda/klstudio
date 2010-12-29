@@ -50,10 +50,10 @@ class Session(db.Model):
         return SessionChannel.all().ancestor(self)
 
     def hostMessages(self):
-        return SessionHostMessage.all().ancestor(self)
+        return SessionHostMessage.all().ancestor(self).order('time')
 
     def guestMessages(self):
-        return SessionGuestMessage.all().ancestor(self)
+        return SessionGuestMessage.all().ancestor(self).order('time')
 
     def toDict(self):
         return {'host': self.host, 'setup_time': self.setup_time, 'alive_time': self.alive_time, 'alive': self.alive, 'next_host_message_id': self.next_host_message_id, 'next_guest_message_id': self.next_guest_message_id, 'tags': self.tags}

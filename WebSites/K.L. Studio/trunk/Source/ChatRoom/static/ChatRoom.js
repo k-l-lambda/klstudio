@@ -1,31 +1,4 @@
 
-Date.prototype.format = function(format){
-	/*
-	 * eg:format="yyyy-MM-dd hh:mm:ss";
-	 */
-	var o = {
-		"M+" :  this.getMonth()+1,  //month
-		"d+" :  this.getDate(),     //day
-		"h+" :  this.getHours(),    //hour
-		 "m+" :  this.getMinutes(),  //minute
-		 "s+" :  this.getSeconds(), //second
-		 "q+" :  Math.floor((this.getMonth()+3)/3),  //quarter
-		 "S"  :  this.getMilliseconds() //millisecond
-	}
-
-	if(/(y+)/.test(format)) {
-		format = format.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));
-	}
-
-	for(var k in o) {
-		if(new RegExp("("+ k +")").test(format)) {
-			format = format.replace(RegExp.$1, RegExp.$1.length==1 ? o[k] : ("00"+ o[k]).substr((""+ o[k]).length));
-		}
-	}
-	return format;
-}
-
-
 var chatroom = chatroom || {};
 
 chatroom.WEB_SERVICE_LOCATION = chatroom.WEB_SERVICE_LOCATION || '/tanx-web-service/v1/';
@@ -34,6 +7,8 @@ chatroom.WebService = new tanxjs.WebService(chatroom.WEB_SERVICE_LOCATION);
 chatroom.ChatRoomApp = chatroom.WebService.getApplication("ChatRoom");
 
 chatroom.SelfUserInfo = chatroom.WebService.getUserInfo();
+
+chatroom.GuestSessions = {}
 
 
 chatroom.DialogForm = function(form, host, members, callbacks)
@@ -108,7 +83,7 @@ chatroom.loadHostDialogWindow = function() {
 
 			break;
 		case "say":
-			chatroom.SelfDialogForm.showMessage(message.sender, data.message, new Date());
+			chatroom.SelfDialogForm.showMessage(message.sender, data.message, Date.parseFormat(message.time, tanxjs.WebService.DateFormat));
 
 			chatroom.SelfSession.postMessage({action: "say", message: data.message, author: message.sender.email}, ["talk"]);
 
@@ -118,10 +93,33 @@ chatroom.loadHostDialogWindow = function() {
 		}
 	});
 
-	var dialog_form = $("#dialog_form");
-	chatroom.SelfDialogForm = new chatroom.DialogForm(dialog_form, chatroom.SelfUserInfo, [chatroom.SelfUserInfo], {PostMessage: function(form, message){
+	chatroom.SelfDialogForm = new chatroom.DialogForm($("#dialog_form"), chatroom.SelfUserInfo, [chatroom.SelfUserInfo], {PostMessage: function(form, message){
 		chatroom.SelfSession.postMessage({action: "say", message: message, author: chatroom.SelfUserInfo.email}, ["talk"], [], function(){
 			form.showMessage(chatroom.SelfUserInfo, message, new Date());
 		});
 	},});
+}
+
+
+chatroom.loadGuestDialogWindow = function(parameters) {
+	var id = parameters.id;
+	if(!id)
+	{
+		var lastsessions = chatroom.ChatRoomApp.getSessionList({host: parameters.host}).list;
+		if(lastsessions.length)
+			id = lastsessions[0].id;
+	}
+	//alert("id: " + id);
+
+	if(id)
+	{
+		chatroom.GuestSessions[id] = chatroom.ChatRoomApp.getSession(id);
+		chatroom.SelfSession.keepAliveLoop();
+		// TODO:
+	}
+	else
+	{
+		$("#dialog_form").text("");
+		$("#dialog_form").append("<div class='chatroom-dialog-na'>NA</div>");
+	}
 }

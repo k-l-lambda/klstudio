@@ -8,7 +8,9 @@ tanxjs.WebService = function(root_location)
 
 	if(typeof tanxjs.WebService._initialized == "undefined")
 	{
-		this.getUserInfo = function(callback)
+		tanxjs.WebService.DateFormat = /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+\.\d{3})\d*/;
+
+		tanxjs.WebService.prototype.getUserInfo = function(callback)
 		{
 			if(callback)
 				$.getJSON(this.RootLocation + "user-info", callback);
@@ -27,7 +29,7 @@ tanxjs.WebService = function(root_location)
 			}
 		};
 
-		this.getApplication = function(id)
+		tanxjs.WebService.prototype.getApplication = function(id)
 		{
 			if(!this.Applications[id])
 				this.Applications[id] = new tanxjs.WebApplication(root_location + "app/" + id + "/", id);
@@ -45,7 +47,7 @@ tanxjs.WebApplication = function(root_location, id)
 
 	if(typeof tanxjs.WebApplication._initialized == "undefined")
 	{
-		this.getSessionList = function(queries, callback)
+		tanxjs.WebApplication.prototype.getSessionList = function(queries, callback)
 		{
 			if(callback)
 				$.getJSON(this.RootLocation + "session-list", queries || {}, callback);
@@ -65,7 +67,7 @@ tanxjs.WebApplication = function(root_location, id)
 			}
 		};
 
-		this.setupSession = function(callback)
+		tanxjs.WebApplication.prototype.setupSession = function(callback)
 		{
 			var self = this;
 
@@ -91,7 +93,7 @@ tanxjs.WebApplication = function(root_location, id)
 			}
 		};
 
-		this.getSession = function(id)
+		tanxjs.WebApplication.prototype.getSession = function(id)
 		{
 			if(!this.Sessions[id])
 				this.Sessions[id] = new tanxjs.WebSession(root_location + "session/" + id + "/", id);
@@ -109,22 +111,22 @@ tanxjs.WebSession = function(root_location, id)
 
 	if(typeof tanxjs.WebSession._initialized == "undefined")
 	{
-		this.end = function(callback)
+		tanxjs.WebSession.prototype.end = function(callback)
 		{
 			$.post(this.RootLocation + "end", callback, "json");
 		};
 
-		this.keepAlive = function(callback)
+		tanxjs.WebSession.prototype.keepAlive = function(callback)
 		{
 			$.post(this.RootLocation + "keep-alive", callback || function(){}, "json");
 		};
 
-		this.getInfo = function(callback)
+		tanxjs.WebSession.prototype.getInfo = function(callback)
 		{
 			$.getJSON(this.RootLocation + "info", callback);
 		};
 
-		this.setTags = function(tags, callback)
+		tanxjs.WebSession.prototype.setTags = function(tags, callback)
 		{
 			var str = "";
 			if(tags)
@@ -140,7 +142,7 @@ tanxjs.WebSession = function(root_location, id)
 			});
 		};
 
-		this.postMessage = function(data, channels, audiences, callback)
+		tanxjs.WebSession.prototype.postMessage = function(data, channels, audiences, callback)
 		{
 			var str = "data=" + $.toJSON(data)+ ";";
 			if(channels)
@@ -159,12 +161,12 @@ tanxjs.WebSession = function(root_location, id)
 			});
 		};
 
-		this.fetchMessage = function(start, callback)
+		tanxjs.WebSession.prototype.fetchMessage = function(start, callback)
 		{
 			$.getJSON(this.RootLocation + "fetch-message", {id: start}, callback);
 		};
 
-		this.getChannel = function(id)
+		tanxjs.WebSession.prototype.getChannel = function(id)
 		{
 			if(!this.Channels[id])
 				this.Channels[id] = new tanxjs.WebSessionChannel(root_location + "channel/" + id + "/", id);
@@ -172,14 +174,14 @@ tanxjs.WebSession = function(root_location, id)
 			return this.Channels[id];
 		};
 
-		this.keepAliveLoop = function(interval)
+		tanxjs.WebSession.prototype.keepAliveLoop = function(interval)
 		{
 			interval = interval || 60;
 			var self = this;
 			setInterval(function(){self.keepAlive();}, interval * 1000);
 		}
 
-		this.fetchMessageLoop = function(onMessageArrived, interval, start)
+		tanxjs.WebSession.prototype.fetchMessageLoop = function(onMessageArrived, interval, start)
 		{
 			interval = interval || 4;
 			var next_id = start || 0;
@@ -214,24 +216,59 @@ tanxjs.WebSessionChannel = function(root_location, id)
 
 	if(typeof tanxjs.WebSessionChannel._initialized == "undefined")
 	{
-		this.getMembers = function(callback)
+		tanxjs.WebSessionChannel.prototype.getMembers = function(callback)
 		{
 			$.getJSON(this.RootLocation + "members", callback);
 		};
 
-		this.addMember = function(member, callback)
+		tanxjs.WebSessionChannel.prototype.addMember = function(member, callback)
 		{
 			$.post(this.RootLocation + "add-member", {member: member}, callback, "json");
 		};
 
-		this.removeMember = function(member, callback)
+		tanxjs.WebSessionChannel.prototype.removeMember = function(member, callback)
 		{
 			$.post(this.RootLocation + "remove-member", {member: member}, callback, "json");
 		};
 
-		this.clearMembers = function(callback)
+		tanxjs.WebSessionChannel.prototype.clearMembers = function(callback)
 		{
 			$.post(this.RootLocation + "clear-member", callback, "json");
 		};
 	}
+}
+
+// Date extension
+Date.prototype.format = function(format){
+	/*
+	 * eg:format="yyyy-MM-dd hh:mm:ss";
+	 */
+	var o = {
+		"M+" :  this.getMonth()+1,  //month
+		"d+" :  this.getDate(),     //day
+		"h+" :  this.getHours(),    //hour
+		 "m+" :  this.getMinutes(),  //minute
+		 "s+" :  this.getSeconds(), //second
+		 "q+" :  Math.floor((this.getMonth()+3)/3),  //quarter
+		 "S"  :  this.getMilliseconds() //millisecond
+	}
+
+	if(/(y+)/.test(format)) {
+		format = format.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));
+	}
+
+	for(var k in o) {
+		if(new RegExp("("+ k +")").test(format)) {
+			format = format.replace(RegExp.$1, RegExp.$1.length==1 ? o[k] : ("00"+ o[k]).substr((""+ o[k]).length));
+		}
+	}
+	return format;
+}
+
+Date.parseFormat = function(str, format)
+{
+	var date = new Date();
+	date.setTime(Date.parse(str.replace(format, "$1/$2/$3 $4:$5:$6 UTC")));
+
+	return date;
 }

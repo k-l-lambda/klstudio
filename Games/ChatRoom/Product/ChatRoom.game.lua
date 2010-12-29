@@ -36,7 +36,7 @@ function onPostMessage(session, message)
 			message = message,
 		}
 		if session.ID == g_OwnSession.ID then
-			data.author = g_SelfUserInfo.email
+			data.author = g_SelfUserInfo
 		end
 
 		session:postMessage(reportState, data, {"talk"})
@@ -68,15 +68,17 @@ function onMessageArrived(session_id, message)
 			local outdata = {
 				action = "say",
 				message = data.message,
-				author = message.sender.email,
+				author = message.sender,
 			}
 			g_OwnSession:postMessage(reportState, outdata, {"talk"})
+		else
+			Tanx.log("[ChatRoom\\ChatRoom.game.lua]: unknown action: " .. tostring(data.action), Ogre.LogMessageLevel.CRITICAL)
 		end
 	else
 		local dialog_win = g_GuestDialogWindows[session_id]
 		if dialog_win then
 			if data.action == "say" then
-				dialog_win:showMessage(data.author, data.message)
+				dialog_win:showMessage(data.author.nickname, data.message)
 			elseif data.action == "add-member" then
 				table.insert(dialog_win.Members, data.member)
 				dialog_win:refreshMemberList()

@@ -9,6 +9,8 @@ Pending Issues:
 
 2010.12.29	K.L.	<xxxK.L.xxx@gmail.com>
 
+	+	Source/ChatRoom: python scripts setup.
+
 	>	Source/ChatRoom: host dialog implemented.
 
 

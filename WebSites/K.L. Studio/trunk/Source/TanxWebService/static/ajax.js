@@ -47,7 +47,22 @@ tanxjs.WebApplication = function(root_location, id)
 	{
 		this.getSessionList = function(queries, callback)
 		{
-			$.getJSON(this.RootLocation + "session-list", queries, callback);
+			if(callback)
+				$.getJSON(this.RootLocation + "session-list", queries || {}, callback);
+			else
+			{
+				var result;
+				$.ajax({
+					url: this.RootLocation + "session-list",
+					data: queries || {},
+					dataType: "json",
+					async: false,
+					success: function(data){
+						result = data;
+					},
+				});
+				return result;
+			}
 		};
 
 		this.setupSession = function(callback)
@@ -111,12 +126,22 @@ tanxjs.WebSession = function(root_location, id)
 
 		this.setTags = function(tags, callback)
 		{
-			$.post(this.RootLocation + "set-tags", {tag: tags || []}, callback, "json");
+			var str = "";
+			if(tags)
+				for(var i in tags)
+					str += "tag=" + tags[i] + ";";
+
+			$.ajax({
+				url: this.RootLocation + "set-tags",
+				type: "POST",
+				data: str,
+				dataType: "json",
+				success: callback || function(){},
+			});
 		};
 
 		this.postMessage = function(data, channels, audiences, callback)
 		{
-			//$.post(this.RootLocation + "post-message", {data: $.toJSON(data), channel: channels || [], audience: audiences || []}, callback || function(){}, "json");
 			var str = "data=" + $.toJSON(data)+ ";";
 			if(channels)
 				for(var i in channels)
@@ -163,8 +188,16 @@ tanxjs.WebSession = function(root_location, id)
 			var fetch = function(){
 				self.fetchMessage(next_id, function(data){
 					next_id = data.next;
-					for(var i in data.messages)
-						onMessageArrived(self.ID, data.messages[i]);
+					$.each(data.messages, function(i, msg){
+						try
+						{
+							onMessageArrived(self.ID, msg);
+						}
+						catch(err)
+						{
+							alert("message process error: " + err);
+						}
+					});
 
 					setTimeout(fetch, interval * 1000);
 				});

@@ -29,8 +29,11 @@ handlers:
   login: required
 
 
-- url: /projects/ChatRoom/
+- url: /projects/ChatRoom/static/
   static_dir: ChatRoom/static
+
+- url: /projects/ChatRoom/.*
+  script: ChatRoom/main.py
   login: required
 
 

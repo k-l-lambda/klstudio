@@ -1,12 +1,24 @@
 
+#header
+{
+	border-bottom: solid 1px #c9d7f1;
+	padding-bottom: 2px;
+}
+
+#account-bar
+{
+	float: right;
+}
+
 #dialogs_frame
 {
 	float:right;
 	height: 100%;
 	margin: 0 12px;
+	visibility: hidden;
 }
 
-.dialog-form-body
+.dialog-frame-body
 {
 	margin:0;
 	font-size: 60%;
@@ -14,6 +26,7 @@
 
 .dialog-form
 {
+	visibility: visible;
 	position: absolute;
 	float: left;
 	margin: 0 4px;
@@ -48,6 +61,8 @@
 	width: 100%;
 	height: 100%;
 	border: none;
+	font-family: arial, sans-serif;
+	font-size: 80%;
 }
 
 .dialog-form-memberlist

@@ -1,7 +1,7 @@
 
 Date.prototype.format = function(format){
 	/*
-	 * eg:format="YYYY-MM-dd hh:mm:ss";
+	 * eg:format="yyyy-MM-dd hh:mm:ss";
 	 */
 	var o = {
 		"M+" :  this.getMonth()+1,  //month
@@ -28,7 +28,7 @@ Date.prototype.format = function(format){
 
 var chatroom = chatroom || {};
 
-chatroom.WEB_SERVICE_LOCATION = chatroom.WEB_SERVICE_LOCATION || '/tanx-web-service/v1/'
+chatroom.WEB_SERVICE_LOCATION = chatroom.WEB_SERVICE_LOCATION || '/tanx-web-service/v1/';
 
 chatroom.WebService = new tanxjs.WebService(chatroom.WEB_SERVICE_LOCATION);
 chatroom.ChatRoomApp = chatroom.WebService.getApplication("ChatRoom");
@@ -38,8 +38,12 @@ chatroom.SelfUserInfo = chatroom.WebService.getUserInfo();
 
 chatroom.DialogForm = function(form, host, members, callbacks)
 {
+	var self = this;
+
 	this.Form = form;
-	this.Members = members || [];
+	this.Members = {};
+	if(members)
+		$.each(members, function(i, m){self.Members[m.email] = m});
 	this.Callbacks = callbacks || {};
 
 	var self = this;
@@ -49,8 +53,9 @@ chatroom.DialogForm = function(form, host, members, callbacks)
 		var list = this.Form.find(".dialog-form-memberlist-list");
 		list.text("");
 
-		for(var i in this.Members)
-			list.append("<li>" + this.Members[i].nickname + "</li>");
+		$.each(this.Members, function(i, m){
+			list.append("<li>" + m.nickname + "</li>");
+		});
 	};
 
 	this.Form.keypress(function(event){
@@ -82,19 +87,24 @@ chatroom.DialogForm = function(form, host, members, callbacks)
 
 
 chatroom.loadHostDialogWindow = function() {
-	chatroom.SelfSession = chatroom.ChatRoomApp.setupSession();
+	// query last host session, reuse it if exist.
+	var lastsessions = chatroom.ChatRoomApp.getSessionList({host: chatroom.SelfUserInfo.email}).list;
+
+	chatroom.SelfSession = lastsessions.length ? chatroom.ChatRoomApp.getSession(lastsessions[0].id) : chatroom.ChatRoomApp.setupSession();
 	chatroom.SelfSession.keepAliveLoop();
 	chatroom.SelfSession.fetchMessageLoop(function(session_id, message){
-		//alert("session_id: " + session_id + "   action: " + $.evalJSON(message.data).action);
 		var data = $.evalJSON(message.data);
 		switch(data.action)
 		{
 		case "join":
-			chatroom.SelfSession.getChannel("talk").addMember(message.sender.email);
-			chatroom.SelfSession.postMessage({action: "add-member", member: message.sender}, ["talk"]);
+			if(!chatroom.SelfDialogForm.Members[message.sender.email])
+			{
+				chatroom.SelfSession.getChannel("talk").addMember(message.sender.email);
+				chatroom.SelfSession.postMessage({action: "add-member", member: message.sender}, ["talk"]);
 
-			chatroom.SelfDialogForm.Members.push(message.sender);
-			chatroom.SelfDialogForm.refreshMemberList();
+				chatroom.SelfDialogForm.Members[message.sender.email] = message.sender;
+				chatroom.SelfDialogForm.refreshMemberList();
+			}
 
 			break;
 		case "say":

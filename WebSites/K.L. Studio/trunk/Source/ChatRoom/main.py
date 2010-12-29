@@ -24,10 +24,20 @@ class HostDialogHandler(webapp.RequestHandler):
         self.response.out.write(template.render(path, {}))
 
 
+class GuestDialogHandler(webapp.RequestHandler):
+    def get(self):
+        id = self.request.str_GET.get('id') or ""
+        host = self.request.str_GET.get('host') or ""
+
+        path = os.path.join(os.path.dirname(__file__), 'templates/GuestDialog.html')
+        self.response.out.write(template.render(path, {'dialog_parameters': '{id: "%s", host: "%s"}' % (id, host)}))
+
+
 def main():
     application = webapp.WSGIApplication([
         ('/projects/ChatRoom/',                                    HomeHandler),
         ('/projects/ChatRoom/host-dialog',                         HostDialogHandler),
+        ('/projects/ChatRoom/guest-dialog',                        GuestDialogHandler),
         ], debug=True)
     util.run_wsgi_app(application)
 

@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Host Dialog</title>
+		<title>Guest Dialog</title>
 		<link href="static/ChatRoom.css" rel="stylesheet" type="text/css" />
 		<script src="/js/jquery.js" type="text/javascript"></script>
 		<script src="/js/jquery.json.js" type="text/javascript"></script>
@@ -8,7 +8,7 @@
 		<script src="static/ChatRoom.js" type="text/javascript"></script>
 		<script type="text/javascript">
 			$(document).ready(function() {
-				chatroom.loadHostDialogWindow();
+				chatroom.loadGuestDialogWindow({{dialog_parameters}});
 			});
 		</script>
 	</head>

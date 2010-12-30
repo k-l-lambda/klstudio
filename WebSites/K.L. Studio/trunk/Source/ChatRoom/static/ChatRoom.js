@@ -162,3 +162,8 @@ chatroom.loadGuestDialogWindow = function(parameters) {
 		$("#dialog_form").append("<div class='chatroom-dialog-na'>NA</div>");
 	}
 }
+
+
+chatroom.loadRoomList = function() {
+	// TODO:
+}

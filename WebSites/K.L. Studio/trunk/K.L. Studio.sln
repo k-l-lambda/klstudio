@@ -129,6 +129,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{7A0416
 		Source\ChatRoom\static\ChatRoom.css = Source\ChatRoom\static\ChatRoom.css
 		Source\ChatRoom\static\ChatRoom.js = Source\ChatRoom\static\ChatRoom.js
 		Source\ChatRoom\static\dialog-form = Source\ChatRoom\static\dialog-form
+		Source\ChatRoom\static\Dialog.css = Source\ChatRoom\static\Dialog.css
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{02369B77-AC05-452D-9083-1D6E5B411B60}"
@@ -136,6 +137,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{
 		Source\ChatRoom\templates\GuestDialog.html = Source\ChatRoom\templates\GuestDialog.html
 		Source\ChatRoom\templates\Home.html = Source\ChatRoom\templates\Home.html
 		Source\ChatRoom\templates\HostDialog.html = Source\ChatRoom\templates\HostDialog.html
+		Source\ChatRoom\templates\RoomList.html = Source\ChatRoom\templates\RoomList.html
 	EndProjectSection
 EndProject
 Global

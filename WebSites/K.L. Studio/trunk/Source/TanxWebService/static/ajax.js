@@ -113,7 +113,15 @@ tanxjs.WebSession = function(root_location, id)
 	{
 		tanxjs.WebSession.prototype.end = function(callback)
 		{
-			$.post(this.RootLocation + "end", callback, "json");
+			if(callback)
+				$.post(this.RootLocation + "end", callback, "json");
+			else
+				$.ajax({
+					url: this.RootLocation + "end",
+					type: "POST",
+					dataType: "json",
+					async: false,
+				});
 		};
 
 		tanxjs.WebSession.prototype.keepAlive = function(callback)

@@ -1,4 +1,28 @@
 
+html
+{
+	font-family: arial, sans-serif;
+	font-size: 80%;
+}
+
+body
+{
+	margin: 0;
+}
+
+h2
+{
+	margin: 0;
+	font-size: 100%;
+}
+
+iframe
+{
+	width: 100%;
+	border: none;
+}
+
+
 #header
 {
 	border-bottom: solid 1px #c9d7f1;
@@ -10,6 +34,19 @@
 	float: right;
 }
 
+#nav
+{
+	float: left;
+	width: 232px;
+	padding-left: 8px;
+}
+
+#canvas
+{
+	margin-left: 240px;
+	border-left: solid 1px #c2cff1;
+}
+
 #dialogs_frame
 {
 	float:right;
@@ -18,10 +55,34 @@
 	visibility: hidden;
 }
 
-.dialog-frame-body
+#online
 {
-	margin:0;
-	font-size: 60%;
+	overflow-y: auto;
+}
+
+.online-frame
+{
+	height: 180px;
+}
+
+.layer-container
+{
+	position: absolute;
+	visibility: hidden;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+
+/* dialog-form */
+.dialog-form-wrapper
+{
+	position: relative;
+	width: 360px;
+	height: 100%;
+	margin-right: 6px;
 }
 
 .dialog-form
@@ -58,90 +119,7 @@
 
 .dialog-form-body-frame
 {
-	width: 100%;
 	height: 100%;
-	border: none;
 	font-family: arial, sans-serif;
 	font-size: 80%;
-}
-
-.dialog-form-memberlist
-{
-	float: right;
-	width: 30%;
-	height: 100%;
-	background-color: #eee;
-}
-
-.dialog-form-bodytext
-{
-	float: left;
-	width: 70%;
-	height: 100%;
-}
-
-.dialog-form-record
-{
-	width: 100%;
-	height: 70%;
-	border-bottom: solid 1px #ddd;
-}
-
-.dialog-form-record-text
-{
-	margin: 0;
-	height: 100%;
-	overflow-y: auto;
-	word-wrap: break-word;
-}
-
-.dialog-form-record-text dt
-{
-	color: #444;
-}
-
-.dialog-form-record-text dt .author
-{
-	font-weight: bold;
-	color: #444;
-}
-
-.dialog-form-record-text dt .date
-{
-	color: #888;
-}
-
-.dialog-form-record-text dd
-{
-	margin-left: 1em;
-}
-
-.dialog-form-input
-{
-	width: 100%;
-}
-
-.dialog-form-edit
-{
-	margin: 4px;
-	border: 0px;
-	border-collapse: collapse;
-	position: relative;
-	height: 62px;
-}
-
-.dialog-form-inputbox
-{
-	height:100%;
-	width:100%;
-	resize: none;
-}
-
-.dialog-form-memberlist-list
-{
-	min-height: 98%;
-	overflow: auto;
-	margin: 0;
-	list-style-type: none;
-	padding-left: 0;
 }

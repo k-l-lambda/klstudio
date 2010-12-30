@@ -1,0 +1,87 @@
+
+.dialog-frame-body
+{
+	margin:0;
+	font-size: 60%;
+}
+
+.dialog-memberlist
+{
+	float: right;
+	width: 30%;
+	height: 100%;
+	background-color: #eee;
+}
+
+.dialog-memberlist-list
+{
+	min-height: 98%;
+	overflow: auto;
+	margin: 0;
+	list-style-type: none;
+	padding-left: 0;
+}
+
+.dialog-bodytext
+{
+	float: left;
+	width: 70%;
+	height: 100%;
+}
+
+.dialog-record
+{
+	width: 100%;
+	height: 70%;
+	border-bottom: solid 1px #ddd;
+}
+
+.dialog-record-text
+{
+	margin: 0;
+	height: 100%;
+	overflow-y: auto;
+	word-wrap: break-word;
+}
+
+.dialog-record-text dt
+{
+	color: #444;
+}
+
+.dialog-record-text dt .author
+{
+	font-weight: bold;
+	color: #444;
+}
+
+.dialog-record-text dt .date
+{
+	color: #888;
+}
+
+.dialog-record-text dd
+{
+	margin-left: 1em;
+}
+
+.dialog-input
+{
+	width: 100%;
+}
+
+.dialog-edit
+{
+	margin: 4px;
+	border: 0px;
+	border-collapse: collapse;
+	position: relative;
+	height: 62px;
+}
+
+.dialog-inputbox
+{
+	height:100%;
+	width:100%;
+	resize: none;
+}

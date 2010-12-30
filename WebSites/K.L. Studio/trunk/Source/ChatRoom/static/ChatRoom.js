@@ -26,7 +26,7 @@ chatroom.DialogForm = function(form, host, members, callbacks)
 
 	this.refreshMemberList = function()
 	{
-		var list = this.Form.find(".dialog-form-memberlist-list");
+		var list = this.Form.find(".dialog-memberlist-list");
 		list.text("");
 
 		$.each(this.Members, function(i, m){
@@ -38,7 +38,7 @@ chatroom.DialogForm = function(form, host, members, callbacks)
 		switch(event.keyCode)
 		{
 		case 13:
-			var inputbox = self.Form.find(".dialog-form-inputbox");
+			var inputbox = self.Form.find(".dialog-inputbox");
 
 			if(inputbox.val().length)
 				if(self.Callbacks.PostMessage)
@@ -51,9 +51,12 @@ chatroom.DialogForm = function(form, host, members, callbacks)
 		}
 	});
 
+	if(this.Callbacks.Unload)
+		$(window).unload(this.Callbacks.Unload);
+
 	this.showMessage = function(author, message, date)
 	{
-		var text = this.Form.find(".dialog-form-record-text");
+		var text = this.Form.find(".dialog-record-text");
 		text.append("<dt><span class='author'>" + author.nickname + "</span> says at <span class='date'>" + date.format("yyyy-MM-dd hh:mm:ss") + "</span></dt><dd>" + message + "</dd>");
 		text.scrollTop(text.height());
 	};
@@ -94,11 +97,17 @@ chatroom.loadHostDialogWindow = function() {
 		}
 	});
 
-	chatroom.SelfDialogForm = new chatroom.DialogForm($("#dialog_form"), chatroom.SelfUserInfo, [chatroom.SelfUserInfo], {PostMessage: function(form, message){
-		chatroom.SelfSession.postMessage({action: "say", message: message, author: chatroom.SelfUserInfo}, ["talk"], [], function(){
-			form.showMessage(chatroom.SelfUserInfo, message, new Date());
-		});
-	},});
+	chatroom.SelfDialogForm = new chatroom.DialogForm($("#dialog_form"), chatroom.SelfUserInfo, [chatroom.SelfUserInfo], {
+		PostMessage: function(form, message){
+			chatroom.SelfSession.postMessage({action: "say", message: message, author: chatroom.SelfUserInfo}, ["talk"], [], function(){
+				form.showMessage(chatroom.SelfUserInfo, message, new Date());
+			});
+		},
+		Unload: function(){
+			//alert("self form unload");
+			chatroom.SelfSession.end();
+		},
+	});
 }
 
 
@@ -149,7 +158,7 @@ chatroom.loadGuestDialogWindow = function(parameters) {
 	}
 	else
 	{
-		$("#dialog_form").text("");
+		$("#dialog_form").empty();
 		$("#dialog_form").append("<div class='chatroom-dialog-na'>NA</div>");
 	}
 }

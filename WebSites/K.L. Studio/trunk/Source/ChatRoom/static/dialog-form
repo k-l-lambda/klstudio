@@ -1,10 +1,8 @@
-<div class="dialog-form-wrapper">
-	<div class="dialog-form">
-		<div class="dialog-form-title">
-			<div class="dialog-form-title-text"></div>
-		</div>
-		<div class="dialog-form-body">
-			<iframe class="dialog-form-body-frame"></iframe>
-		</div>
+<div class="dialog-form">
+	<div class="dialog-form-title">
+		<div class="dialog-form-title-text"></div>
+	</div>
+	<div class="dialog-form-body">
+		<iframe class="dialog-form-body-frame"></iframe>
 	</div>
 </div>

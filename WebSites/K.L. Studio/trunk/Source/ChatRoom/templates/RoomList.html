@@ -1,16 +1,25 @@
 <html>
 	<head>
 		<title>Room List</title>
+		<link href="static/RoomList.css" rel="stylesheet" type="text/css" />
 		<script src="/js/jquery.js" type="text/javascript"></script>
 		<script src="/js/jquery.json.js" type="text/javascript"></script>
 		<script src="/tanx-web-service/v1/static/ajax.js" type="text/javascript"></script>
 		<script src="static/ChatRoom.js" type="text/javascript"></script>
 		<script type="text/javascript">
 			$(document).ready(function() {
-				chatroom.loadRoomList();
+				var room_list = new chatroom.RoomList();
 			});
 		</script>
 	</head>
 	<body>
+		<div id="room-list-form">
+			<h2>
+				<span id="room-list-header" class="clickable">Online Players</span>
+				<span id="room-list-refreshing" class="title-status"> refreshing...</span>
+			</h2>
+			<ul id="room-list">
+			</ul>
+		</div>
 	</body>
 </html>

@@ -1,0 +1,51 @@
+
+html
+{
+	font-family: arial, sans-serif;
+	font-size: 80%;
+}
+
+body
+{
+	margin: 0;
+}
+
+h2
+{
+	margin: 0;
+	font-size: 100%;
+}
+
+ul
+{
+	margin: 2px 0;
+	padding-left: 20px;
+}
+
+
+.hidden
+{
+	visibility: hidden;
+}
+
+.clickable
+{
+	cursor: pointer;
+}
+
+.title-status
+{
+	font-size: small;
+	color: #aaa;
+}
+
+.room-list-selfitem
+{
+	color: #66c;
+}
+
+
+#room-list li
+{
+	cursor: pointer;
+}

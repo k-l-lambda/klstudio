@@ -1,11 +1,17 @@
 
 TODO:
+	room list callback for load guest dialog.
 	TanxWebService: data clear job
 	google contacts APIs
 
 Pending Issues:
 	Python json encode: unicode issue.
 	json encoding: wildcards for semicolon ';' and '&'.
+
+
+2010.12.31	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Source/ChatRoom: room list panel added.
 
 
 2010.12.29	K.L.	<xxxK.L.xxx@gmail.com>

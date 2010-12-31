@@ -7,14 +7,27 @@
 			$(document).ready(function(){
 				updateLayout();
 
-				var dialogs_frame = $("#dialogs_frame");
-				dialogs_frame.load("static/dialog-form", function(){
-					var dialog_form = dialogs_frame.find(".dialog-form:last");
-					dialog_form.find(".dialog-form-title-text").text("My Room");
+				loadDialog("My Room", "host-dialog");
 
-					dialog_form.find(".dialog-form-body-frame").attr("src", "host-dialog");
-				});
+				// set parameters for #online-frame
+				$("#online-frame").get(0).contentWindow.callbacks = {
+					"ItemClick": function(session){
+						loadDialog(session.host.nickname + "'s Room", "guest-dialog?id=" + session.id);
+					},
+				};
 			});
+
+			var loadDialog = function(title, src)
+			{
+				var dialogs_frame = $("#dialogs_frame");
+				dialogs_frame.append("<div class='dialog-form-wrapper'></div>");
+				dialogs_frame.find(".dialog-form-wrapper").load("static/dialog-form", function(){
+					var dialog_form = dialogs_frame.find(".dialog-form:last");
+					dialog_form.find(".dialog-form-title-text").text(title);
+
+					dialog_form.find(".dialog-form-body-frame").attr("src", src);
+				});
+			};
 
 			var updateLayout = function()
 			{

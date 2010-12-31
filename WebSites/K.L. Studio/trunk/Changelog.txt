@@ -1,6 +1,6 @@
 
 TODO:
-	room list callback for load guest dialog.
+	guest dialog loading issue.
 	TanxWebService: data clear job
 	google contacts APIs
 

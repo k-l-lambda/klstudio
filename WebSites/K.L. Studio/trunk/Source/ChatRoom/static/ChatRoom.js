@@ -164,10 +164,10 @@ chatroom.loadGuestDialogWindow = function(parameters) {
 }
 
 
-chatroom.RoomList = function(form) {
+chatroom.RoomList = function(callbacks) {
 	var self = this;
 
-	this.Form = form;
+	this.Callbacks = callbacks;
 
 	this.refresh = function()
 	{
@@ -184,6 +184,14 @@ chatroom.RoomList = function(form) {
 				var title = "host: " + session.host.nickname + "\nid: " + session.id + "\nsetup time: " + session.setup_time;
 				var isself = session.host.user_id == chatroom.SelfUserInfo.user_id;
 				room_list.append("<li class='" + (isself ? "room-list-selfitem" : "room-list-item") + "' title='" + title + "'>" + session.host.nickname + "</li>");
+
+				if(!isself && self.Callbacks.ItemClick)
+				{
+					var item = room_list.find("li:last");
+					item.click(function(){
+						self.Callbacks.ItemClick(session);
+					});
+				}
 			});
 
 			refreshing.hide();

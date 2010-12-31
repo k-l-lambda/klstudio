@@ -27,7 +27,7 @@ chatroom.DialogForm = function(form, host, members, callbacks)
 	this.refreshMemberList = function()
 	{
 		var list = this.Form.find(".dialog-memberlist-list");
-		list.text("");
+		list.empty();
 
 		$.each(this.Members, function(i, m){
 			list.append("<li>" + m.nickname + "</li>");
@@ -164,6 +164,43 @@ chatroom.loadGuestDialogWindow = function(parameters) {
 }
 
 
-chatroom.loadRoomList = function() {
-	// TODO:
+chatroom.RoomList = function(form) {
+	var self = this;
+
+	this.Form = form;
+
+	this.refresh = function()
+	{
+		var refreshing = $("#room-list-refreshing");
+		refreshing.show();
+
+		chatroom.ChatRoomApp.getSessionList({}, function(data){
+			var sesssion_list = data.list;
+
+			var room_list = $("#room-list");
+
+			room_list.empty();
+			$.each(sesssion_list, function(i, session){
+				var title = "host: " + session.host.nickname + "\nid: " + session.id + "\nsetup time: " + session.setup_time;
+				var isself = session.host.user_id == chatroom.SelfUserInfo.user_id;
+				room_list.append("<li class='" + (isself ? "room-list-selfitem" : "room-list-item") + "' title='" + title + "'>" + session.host.nickname + "</li>");
+			});
+
+			refreshing.hide();
+		});
+	};
+
+	$("#room-list-header").click(function(){
+		self.refresh();
+	});
+
+	this.refresh();
+
+	setTimeout(function(){
+		self.refresh();
+
+		setInterval(function(){
+			self.refresh();
+		}, 30000);
+	}, 3000);
 }

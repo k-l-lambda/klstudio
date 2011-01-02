@@ -108,6 +108,7 @@ tanxjs.WebSession = function(root_location, id)
 	this.RootLocation = root_location;
 	this.ID = id;
 	this.Channels = {};
+	this.Active = true;
 
 	if(typeof tanxjs.WebSession._initialized == "undefined")
 	{
@@ -209,9 +210,10 @@ tanxjs.WebSession = function(root_location, id)
 			setInterval(function(){self.keepAlive();}, interval * 1000);
 		}
 
-		tanxjs.WebSession.prototype.fetchMessageLoop = function(onMessageArrived, interval, start)
+		tanxjs.WebSession.prototype.fetchMessageLoop = function(onMessageArrived, interval, deactive_interval, start)
 		{
 			interval = interval || 4;
+			deactive_interval = deactive_interval || 10;
 			var next_id = start || 0;
 			var self = this;
 
@@ -229,14 +231,32 @@ tanxjs.WebSession = function(root_location, id)
 						}
 					});
 
-					setTimeout(fetch, interval * 1000);
+					setTimeout(fetch, (self.Active ? interval : deactive_interval) * 1000);
 				}, function(xhr, textStatus, error){
 					//alert("message fetch error, status: " + textStatus + ", error: " + error);
 
-					setTimeout(fetch, interval * 1000);
+					setTimeout(fetch, (self.Active ? interval : deactive_interval) * 1000);
 				});
 			};
 			fetch();
+		}
+
+		tanxjs.WebSession.prototype.activate = function()
+		{
+			this.Active = true;
+
+			if(this.onresume)
+			{
+				var onresume = this.onresume;
+				this.onresume = null;
+				//alert("onresume()");
+				onresume();
+			}
+		}
+
+		tanxjs.WebSession.prototype.deactivate = function()
+		{
+			this.Active = false;
 		}
 	}
 }

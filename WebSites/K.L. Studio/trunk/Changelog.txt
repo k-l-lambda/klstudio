@@ -10,6 +10,10 @@ Pending Issues:
 
 2011.1.2	K.L.	<xxxK.L.xxx@gmail.com>
 
+	+	Source/TanxWebService/static/ajax.js: tanxjs.WebSession.activate, tanxjs.WebSession.deactivate added.
+
+	+	Source/ChatRoom: system information for join and quit added.
+
 	+	Source/ChatRoom: guest dialog on home page added.
 
 

@@ -60,6 +60,11 @@
 	color: #888;
 }
 
+.dialog-record-text dt .sysinfo
+{
+	color: #888;
+}
+
 .dialog-record-text dd
 {
 	margin-left: 1em;

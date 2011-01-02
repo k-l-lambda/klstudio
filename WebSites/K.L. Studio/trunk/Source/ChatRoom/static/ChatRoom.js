@@ -86,6 +86,17 @@ chatroom.loadHostDialogWindow = function() {
 			}
 
 			break;
+		case "quit":
+			if(chatroom.SelfDialogForm.Members[message.sender.email])
+			{
+				chatroom.SelfSession.getChannel("talk").removeMember(message.sender.email);
+				chatroom.SelfSession.postMessage({action: "remove-member", member: message.sender}, ["talk"]);
+
+				delete chatroom.SelfDialogForm.Members[message.sender.email];
+				chatroom.SelfDialogForm.refreshMemberList();
+			}
+
+			break;
 		case "say":
 			chatroom.SelfDialogForm.showMessage(message.sender, data.message, Date.parseFormat(message.time, tanxjs.WebService.DateFormat));
 
@@ -104,7 +115,6 @@ chatroom.loadHostDialogWindow = function() {
 			});
 		},
 		Unload: function(){
-			//alert("self form unload");
 			chatroom.SelfSession.end();
 		},
 	});
@@ -138,6 +148,11 @@ chatroom.loadGuestDialogWindow = function(parameters) {
 				chatroom.GuestDialogForms[session_id].refreshMemberList();
 
 				break;
+			case "remove-member":
+				delete chatroom.GuestDialogForms[session_id].Members[data.member.email];
+				chatroom.GuestDialogForms[session_id].refreshMemberList();
+
+				break;
 			case "say":
 				chatroom.GuestDialogForms[session_id].showMessage(data.author, data.message, Date.parseFormat(message.time, tanxjs.WebService.DateFormat));
 
@@ -152,9 +167,14 @@ chatroom.loadGuestDialogWindow = function(parameters) {
 		if(!host)
 			host = chatroom.GuestSessions[id].getInfo().info.host;
 
-		chatroom.GuestDialogForms[id] = new chatroom.DialogForm($("#dialog_form"), host, [host], {PostMessage: function(form, message){
-			chatroom.GuestSessions[id].postMessage({action: "say", message: message}, ["talk"]);
-		},});
+		chatroom.GuestDialogForms[id] = new chatroom.DialogForm($("#dialog_form"), host, [host], {
+			PostMessage: function(form, message){
+				chatroom.GuestSessions[id].postMessage({action: "say", message: message});
+			},
+			Unload: function(){
+				chatroom.GuestSessions[id].postMessage({action: "quit"});
+			},
+		});
 	}
 	else
 	{

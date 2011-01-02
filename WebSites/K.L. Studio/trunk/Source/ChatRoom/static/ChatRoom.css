@@ -75,9 +75,27 @@ iframe
 	height: 100%;
 }
 
+.float-right
+{
+	float: right;
+}
+
 .clickable
 {
 	cursor: pointer;
+}
+
+.icon-close
+{
+	background-image: url(/projects/ChatRoom/static/ui.png);
+	background-position: -40px -80px;
+	width: 16px;
+	height: 16px;
+}
+
+.icon-close:hover
+{
+	background-color: #3072fe;
 }
 
 
@@ -104,14 +122,13 @@ iframe
 .dialog-form-title
 {
 	background-color: #73a6ff;
-	height: 20px;
 	border-top-left-radius: 3px;
 	border-top-right-radius: 3px;
+	padding: 2px 4px;
 }
 
 .dialog-form-title-text
 {
-	padding: 1px 4px;
 	font-weight: bold;
 	color: White;
 }

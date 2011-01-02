@@ -61,6 +61,13 @@ chatroom.DialogForm = function(form, host, members, callbacks)
 		text.scrollTop(text.height());
 	};
 
+	this.showSystemInfo = function(message)
+	{
+		var text = this.Form.find(".dialog-record-text");
+		text.append("<dt><span class='sysinfo'>" + message + "</span></dt><dd></dd>");
+		text.scrollTop(text.height());
+	};
+
 	this.refreshMemberList();
 }
 
@@ -81,6 +88,8 @@ chatroom.loadHostDialogWindow = function() {
 				chatroom.SelfSession.getChannel("talk").addMember(message.sender.email);
 				chatroom.SelfSession.postMessage({action: "add-member", member: message.sender}, ["talk"]);
 
+				chatroom.SelfDialogForm.showSystemInfo(message.sender.nickname + " entered.");
+
 				chatroom.SelfDialogForm.Members[message.sender.email] = message.sender;
 				chatroom.SelfDialogForm.refreshMemberList();
 			}
@@ -91,6 +100,8 @@ chatroom.loadHostDialogWindow = function() {
 			{
 				chatroom.SelfSession.getChannel("talk").removeMember(message.sender.email);
 				chatroom.SelfSession.postMessage({action: "remove-member", member: message.sender}, ["talk"]);
+
+				chatroom.SelfDialogForm.showSystemInfo(message.sender.nickname + " left.");
 
 				delete chatroom.SelfDialogForm.Members[message.sender.email];
 				chatroom.SelfDialogForm.refreshMemberList();
@@ -147,10 +158,16 @@ chatroom.loadGuestDialogWindow = function(parameters) {
 				chatroom.GuestDialogForms[session_id].Members[data.member.email] = data.member;
 				chatroom.GuestDialogForms[session_id].refreshMemberList();
 
+				if(data.member.user_id != chatroom.SelfUserInfo.user_id)
+					chatroom.SelfDialogForm.showSystemInfo(data.member.nickname + " entered.");
+
 				break;
 			case "remove-member":
 				delete chatroom.GuestDialogForms[session_id].Members[data.member.email];
 				chatroom.GuestDialogForms[session_id].refreshMemberList();
+
+				if(data.member.user_id != chatroom.SelfUserInfo.user_id)
+					chatroom.SelfDialogForm.showSystemInfo(data.member.nickname + " left.");
 
 				break;
 			case "say":
@@ -231,4 +248,26 @@ chatroom.RoomList = function(callbacks) {
 			self.refresh();
 		}, 30000);
 	}, 3000);
+}
+
+
+chatroom.activateAllSessions = function()
+{
+	if(chatroom.SelfSession)
+		chatroom.SelfSession.activate();
+
+	$.each(chatroom.GuestSessions, function(i, session){
+		session.activate();
+	});
+}
+
+
+chatroom.deactivateAllSessions = function()
+{
+	if(chatroom.SelfSession)
+		chatroom.SelfSession.deactivate();
+
+	$.each(chatroom.GuestSessions, function(i, session){
+		session.deactivate();
+	});
 }

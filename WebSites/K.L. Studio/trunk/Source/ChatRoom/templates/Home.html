@@ -21,6 +21,17 @@
 						}});
 					},
 				};
+
+				$(window).focus(function() {
+					$.each($(".dialog-form-body-frame"), function(i, frame){
+						frame.contentWindow.chatroom.activateAllSessions();
+					});
+				});
+				$(window).blur(function() {
+					$.each($(".dialog-form-body-frame"), function(i, frame){
+						frame.contentWindow.chatroom.deactivateAllSessions();
+					});
+				});
 			});
 
 			var Room = function(options)

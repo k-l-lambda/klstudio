@@ -29,7 +29,7 @@ def normalizeData(data):
         or t in [types.IntType, types.LongType, types.FloatType]:
         return data
     elif isinstance(data, PlainText):
-        return str(data)
+        return unicode(data)
     elif isinstance(data, datetime.datetime):
         return str(data)
     elif isinstance(data, users.User):

@@ -11,6 +11,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{6039FAA1-190F-41C5-BB92-22D664E36873}"
 	ProjectSection(SolutionItems) = preProject
 		Source\app.yaml = Source\app.yaml
+		Source\cron.yaml = Source\cron.yaml
+		Source\index.yaml = Source\index.yaml
 		Source\main.py = Source\main.py
 	EndProjectSection
 EndProject

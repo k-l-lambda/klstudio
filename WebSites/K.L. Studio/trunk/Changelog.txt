@@ -1,14 +1,14 @@
 
 TODO:
-	TanxWebService: data clear job
 	google contacts APIs
 
 Pending Issues:
-	Python json encode: unicode issue.
 	json encoding: wildcards for semicolon ';' and '&'.
 
 
 2011.1.2	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Source/cron.yaml: created.
 
 	+	Source/TanxWebService/static/ajax.js: tanxjs.WebSession.activate, tanxjs.WebSession.deactivate added.
 

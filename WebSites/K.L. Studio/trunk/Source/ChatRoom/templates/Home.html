@@ -7,26 +7,53 @@
 			$(document).ready(function(){
 				updateLayout();
 
-				loadDialog("My Room", "host-dialog");
+				var selfroom = new Room({title: "My Room", src: "host-dialog", no_close: true});
+				var guestrooms = {};
 
 				// set parameters for #online-frame
 				$("#online-frame").get(0).contentWindow.callbacks = {
 					"ItemClick": function(session){
-						loadDialog(session.host.nickname + "'s Room", "guest-dialog?id=" + session.id);
+						guestrooms[session.id] = guestrooms[session.id] || new Room({title: session.host.nickname + "'s Room", src: "guest-dialog?id=" + session.id, callbacks:{
+							close: function(){
+								guestrooms[session.id].close();
+								delete guestrooms[session.id];
+							},
+						}});
 					},
 				};
 			});
 
-			var loadDialog = function(title, src)
+			var Room = function(options)
 			{
+				options.callbacks = options.callbacks || {};
+
 				var dialogs_frame = $("#dialogs_frame");
 				dialogs_frame.append("<div class='dialog-form-wrapper'></div>");
-				dialogs_frame.find(".dialog-form-wrapper").load("static/dialog-form", function(){
+				var wrapper = dialogs_frame.find(".dialog-form-wrapper:last");
+				wrapper.load("static/dialog-form", function(){
 					var dialog_form = dialogs_frame.find(".dialog-form:last");
-					dialog_form.find(".dialog-form-title-text").text(title);
+					dialog_form.find(".dialog-form-title-text").text(options.title);
 
-					dialog_form.find(".dialog-form-body-frame").attr("src", src);
+					dialog_form.find(".dialog-form-body-frame").attr("src", options.src);
+
+					if(options.no_close)
+						dialog_form.find(".icon-close").hide();
+
+					if(options.callbacks.close)
+						dialog_form.find(".icon-close").click(options.callbacks.close);
+
+					dialog_form.find(".dialog-form-title").click(function(){
+						var body = dialog_form.find(".dialog-form-body");
+						if(body.height())
+							body.height(0);
+						else
+							body.height(240);
+					});
 				});
+
+				this.close = function(){
+					wrapper.remove();
+				};
 			};
 
 			var updateLayout = function()

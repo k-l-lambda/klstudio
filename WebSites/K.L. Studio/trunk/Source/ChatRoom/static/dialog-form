@@ -1,5 +1,6 @@
 <div class="dialog-form">
-	<div class="dialog-form-title">
+	<div class="dialog-form-title clickable">
+		<div class="icon-close float-right clickable"></div>
 		<div class="dialog-form-title-text"></div>
 	</div>
 	<div class="dialog-form-body">

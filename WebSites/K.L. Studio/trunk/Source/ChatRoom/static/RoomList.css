@@ -44,6 +44,11 @@ ul
 	color: #66c;
 }
 
+.room-list-selfitem:hover, .room-list-item:hover
+{
+	background-color: #e3e9ff;
+}
+
 
 #room-list li
 {

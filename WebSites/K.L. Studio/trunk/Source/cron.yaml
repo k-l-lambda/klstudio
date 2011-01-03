@@ -1,4 +1,4 @@
 cron:
 - description: clear sessions for app ChatRoom
-  url: /tanx-web-service/v1/admin/app/ChatRoom/clear-sessions?timeout=60
+  url: /tanx-web-service/v1/admin/app/ChatRoom/clear-sessions?timeout=1
   schedule: every 6 hours

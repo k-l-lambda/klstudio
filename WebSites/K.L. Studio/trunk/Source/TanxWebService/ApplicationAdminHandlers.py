@@ -46,7 +46,7 @@ class ClearSessionsHandler(webapp.RequestHandler):
 
     def get(self):
         app_id = re.sub('.*/app/([^/]+)/.*', r'\1', self.request.path)
-        timeout = float(self.request.str_GET.get('timeout') or 30)
+        timeout = float(self.request.str_GET.get('timeout') or 6)
 
         self.clear(app_id, timeout);
 

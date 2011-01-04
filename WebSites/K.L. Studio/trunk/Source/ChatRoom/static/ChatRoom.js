@@ -44,7 +44,7 @@ chatroom.DialogForm = function(form, host, members, callbacks)
 				if(self.Callbacks.PostMessage)
 					self.Callbacks.PostMessage(self, inputbox.val());
 
-			inputbox.text("");
+			inputbox.val("");
 			event.preventDefault();
 
 			break;
@@ -58,14 +58,14 @@ chatroom.DialogForm = function(form, host, members, callbacks)
 	{
 		var text = this.Form.find(".dialog-record-text");
 		text.append("<dt><span class='author'>" + author.nickname + "</span> says at <span class='date'>" + date.format("yyyy-MM-dd hh:mm:ss") + "</span></dt><dd>" + message + "</dd>");
-		text.scrollTop(text.height());
+		text.scrollTop(text[0].scrollHeight);
 	};
 
 	this.showSystemInfo = function(message)
 	{
 		var text = this.Form.find(".dialog-record-text");
 		text.append("<dt><span class='sysinfo'>" + message + "</span></dt><dd></dd>");
-		text.scrollTop(text.height());
+		text.scrollTop(text[0].scrollHeight);
 	};
 
 	this.refreshMemberList();
@@ -127,7 +127,7 @@ chatroom.loadHostDialogWindow = function() {
 		},
 		Unload: function(){
 			chatroom.SelfSession.end();
-		},
+		}
 	});
 }
 
@@ -159,7 +159,7 @@ chatroom.loadGuestDialogWindow = function(parameters) {
 				chatroom.GuestDialogForms[session_id].refreshMemberList();
 
 				if(data.member.user_id != chatroom.SelfUserInfo.user_id)
-					chatroom.SelfDialogForm.showSystemInfo(data.member.nickname + " entered.");
+					chatroom.GuestDialogForms[session_id].showSystemInfo(data.member.nickname + " entered.");
 
 				break;
 			case "remove-member":
@@ -167,7 +167,7 @@ chatroom.loadGuestDialogWindow = function(parameters) {
 				chatroom.GuestDialogForms[session_id].refreshMemberList();
 
 				if(data.member.user_id != chatroom.SelfUserInfo.user_id)
-					chatroom.SelfDialogForm.showSystemInfo(data.member.nickname + " left.");
+					chatroom.GuestDialogForms[session_id].showSystemInfo(data.member.nickname + " left.");
 
 				break;
 			case "say":
@@ -190,7 +190,7 @@ chatroom.loadGuestDialogWindow = function(parameters) {
 			},
 			Unload: function(){
 				chatroom.GuestSessions[id].postMessage({action: "quit"});
-			},
+			}
 		});
 	}
 	else

@@ -17,9 +17,9 @@
 							close: function(){
 								guestrooms[session.id].close();
 								delete guestrooms[session.id];
-							},
+							}
 						}});
-					},
+					}
 				};
 
 				$(window).focus(function() {
@@ -55,7 +55,7 @@
 
 					dialog_form.find(".dialog-form-title").click(function(){
 						var body = dialog_form.find(".dialog-form-body");
-						if(body.height())
+						if(body.height() >= 240)
 							body.height(0);
 						else
 							body.height(240);
@@ -89,7 +89,7 @@
 		<div id="main">
 			<div id="nav">
 				<div id="online">
-					<iframe id="online-frame" src="room-list"></iframe>
+					<iframe id="online-frame" src="room-list" frameBorder="0"></iframe>
 				</div>
 			</div>
 			<div id="canvas">

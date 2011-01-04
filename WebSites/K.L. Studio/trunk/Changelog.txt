@@ -6,6 +6,17 @@ Pending Issues:
 	json encoding: wildcards for semicolon ';' and '&'.
 
 
+2011.1.4	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Source/ChatRoom: fixed to satisfy IE.
+
+	*!	IE bugs:
+			*	tail comma in brackets is error, e.g.:
+					{a=1,}
+			*	default width and height of element style of div with 100% size children is not 100%.
+			*	iframe border cannot be hidden by css, but by setting attribute frameBorder="0".
+
+
 2011.1.2	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	Source/cron.yaml: created.

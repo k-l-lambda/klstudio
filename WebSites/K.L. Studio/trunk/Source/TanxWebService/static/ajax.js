@@ -23,7 +23,7 @@ tanxjs.WebService = function(root_location)
 					async: false,
 					success: function(data){
 						info = data;
-					},
+					}
 				});
 				return info;
 			}
@@ -61,7 +61,7 @@ tanxjs.WebApplication = function(root_location, id)
 					async: false,
 					success: function(data){
 						result = data;
-					},
+					}
 				});
 				return result;
 			}
@@ -87,7 +87,7 @@ tanxjs.WebApplication = function(root_location, id)
 					success: function(data){
 						self.Sessions[data.id] = new tanxjs.WebSession(root_location + "session/" + data.id + "/", data.id);
 						session = self.Sessions[data.id];
-					},
+					}
 				});
 				return session;
 			}
@@ -121,7 +121,7 @@ tanxjs.WebSession = function(root_location, id)
 					url: this.RootLocation + "end",
 					type: "POST",
 					dataType: "json",
-					async: false,
+					async: false
 				});
 		};
 
@@ -143,7 +143,7 @@ tanxjs.WebSession = function(root_location, id)
 					async: false,
 					success: function(data){
 						result = data;
-					},
+					}
 				});
 				return result;
 			}
@@ -161,7 +161,7 @@ tanxjs.WebSession = function(root_location, id)
 				type: "POST",
 				data: str,
 				dataType: "json",
-				success: callback || function(){},
+				success: callback || function(){}
 			});
 		};
 
@@ -180,7 +180,7 @@ tanxjs.WebSession = function(root_location, id)
 				type: "POST",
 				data: str,
 				dataType: "json",
-				success: callback || function(){},
+				success: callback || function(){}
 			});
 		};
 
@@ -191,7 +191,7 @@ tanxjs.WebSession = function(root_location, id)
 				data: {id: start},
 				dataType: "json",
 				success: callback,
-				error: err || function(){},
+				error: err || function(){}
 			});
 		};
 

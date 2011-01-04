@@ -4,6 +4,6 @@
 		<div class="dialog-form-title-text"></div>
 	</div>
 	<div class="dialog-form-body">
-		<iframe class="dialog-form-body-frame"></iframe>
+		<iframe class="dialog-form-body-frame" frameBorder="0"></iframe>
 	</div>
 </div>

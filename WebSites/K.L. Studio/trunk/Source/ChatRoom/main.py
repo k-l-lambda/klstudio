@@ -39,12 +39,19 @@ class RoomListHandler(webapp.RequestHandler):
         self.response.out.write(template.render(path, {}))
 
 
+class ContactsListHandler(webapp.RequestHandler):
+    def get(self):
+        path = os.path.join(os.path.dirname(__file__), 'templates/ContactsList.html')
+        self.response.out.write(template.render(path, {}))
+
+
 def main():
     application = webapp.WSGIApplication([
         ('/projects/ChatRoom/',                                     HomeHandler),
         ('/projects/ChatRoom/host-dialog',                          HostDialogHandler),
         ('/projects/ChatRoom/guest-dialog',                         GuestDialogHandler),
         ('/projects/ChatRoom/room-list',                            RoomListHandler),
+        ('/projects/ChatRoom/contacts-list',                        ContactsListHandler),
         ], debug=True)
     util.run_wsgi_app(application)
 

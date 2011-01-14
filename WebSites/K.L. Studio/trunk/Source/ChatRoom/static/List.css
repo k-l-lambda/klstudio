@@ -39,18 +39,18 @@ ul
 	color: #aaa;
 }
 
-.room-list-selfitem
+.list-selfitem
 {
 	color: #66c;
 }
 
-.room-list-selfitem:hover, .room-list-item:hover
+.list-selfitem:hover, .list-item:hover
 {
 	background-color: #e3e9ff;
 }
 
 
-#room-list li
+#list li
 {
 	cursor: pointer;
 }

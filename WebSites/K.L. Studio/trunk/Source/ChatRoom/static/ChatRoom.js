@@ -208,19 +208,19 @@ chatroom.RoomList = function(callbacks) {
 
 	this.refresh = function()
 	{
-		var refreshing = $("#room-list-refreshing");
+		var refreshing = $("#list-refreshing");
 		refreshing.show();
 
 		chatroom.ChatRoomApp.getSessionList({}, function(data){
 			var sesssion_list = data.list;
 
-			var room_list = $("#room-list");
+			var room_list = $("#list");
 
 			room_list.empty();
 			$.each(sesssion_list, function(i, session){
 				var title = "host: " + session.host.nickname + "\nid: " + session.id + "\nsetup time: " + session.setup_time;
 				var isself = session.host.user_id == chatroom.SelfUserInfo.user_id;
-				room_list.append("<li class='" + (isself ? "room-list-selfitem" : "room-list-item") + "' title='" + title + "'>" + session.host.nickname + "</li>");
+				room_list.append("<li class='" + (isself ? "list-selfitem" : "list-item") + "' title='" + title + "'>" + session.host.nickname + "</li>");
 
 				if(!isself && self.Callbacks.ItemClick)
 				{
@@ -235,7 +235,37 @@ chatroom.RoomList = function(callbacks) {
 		});
 	};
 
-	$("#room-list-header").click(function(){
+	$("#list-header").click(function(){
+		self.refresh();
+	});
+
+	this.refresh();
+
+	setTimeout(function(){
+		self.refresh();
+
+		setInterval(function(){
+			self.refresh();
+		}, 30000);
+	}, 3000);
+}
+
+
+chatroom.ContactsList = function(callbacks) {
+	var self = this;
+
+	this.Callbacks = callbacks;
+
+	this.refresh = function()
+	{
+		var refreshing = $("#list-refreshing");
+
+		// TODO:
+
+		refreshing.hide();
+	};
+
+	$("#list-header").click(function(){
 		self.refresh();
 	});
 

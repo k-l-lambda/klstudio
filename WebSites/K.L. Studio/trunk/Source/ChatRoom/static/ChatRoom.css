@@ -22,11 +22,22 @@ iframe
 	border: none;
 }
 
+img
+{
+	border: 0;
+}
+
 
 #header
 {
 	border-bottom: solid 1px #c9d7f1;
 	padding-bottom: 2px;
+}
+
+#logo
+{
+	height: 54px;
+	padding: 2px 0 2px 8px;
 }
 
 #account-bar
@@ -37,13 +48,13 @@ iframe
 #nav
 {
 	float: left;
-	width: 232px;
-	padding-left: 8px;
+	width: 240px;
 }
 
 #canvas
 {
 	margin-left: 240px;
+	border-top: solid 1px #c2cff1;
 	border-left: solid 1px #c2cff1;
 }
 
@@ -55,9 +66,11 @@ iframe
 	visibility: hidden;
 }
 
-#online
+.nav-section
 {
+	padding: 0 8px;
 	overflow-y: auto;
+	border-top: 1px solid #E3E9FF;
 }
 
 #online-frame

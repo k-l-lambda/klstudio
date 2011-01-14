@@ -10,16 +10,23 @@
 				var selfroom = new Room({title: "My Room", src: "host-dialog", no_close: true});
 				var guestrooms = {};
 
+				var roomitemclick = function(session){
+					guestrooms[session.id] = guestrooms[session.id] || new Room({title: session.host.nickname + "'s Room", src: "guest-dialog?id=" + session.id, callbacks:{
+						close: function(){
+							guestrooms[session.id].close();
+							delete guestrooms[session.id];
+						}
+					}});
+				}
+
 				// set parameters for #online-frame
 				$("#online-frame").get(0).contentWindow.callbacks = {
-					"ItemClick": function(session){
-						guestrooms[session.id] = guestrooms[session.id] || new Room({title: session.host.nickname + "'s Room", src: "guest-dialog?id=" + session.id, callbacks:{
-							close: function(){
-								guestrooms[session.id].close();
-								delete guestrooms[session.id];
-							}
-						}});
-					}
+					"ItemClick": roomitemclick
+				};
+
+				// set parameters for #contacts-frame
+				$("#contacts-frame").get(0).contentWindow.callbacks = {
+					"ItemClick": roomitemclick
 				};
 
 				$(window).focus(function() {
@@ -69,8 +76,9 @@
 
 			var updateLayout = function()
 			{
-				$("#canvas").height($(window).height() - $("#header").outerHeight(true) - 2);
-				$("#online").css("max-height", $("#canvas").innerHeight());
+				$("#canvas").height($(window).height() - $("#header").outerHeight(true) - $("#logo").outerHeight() - 3);
+				$("#online").css("max-height", $("#canvas").innerHeight() - 1);
+				$("#contacts").css("max-height", $("#canvas").innerHeight() - $("#online").height() - 1);
 			};
 
 			$(window).resize(updateLayout);
@@ -99,10 +107,18 @@
 				<div style="clear:both;"></div>
 			</div>
 		</div>
+		<div id="logo">
+			<a href="/">
+				<img src="/res/images/K.L._Stuidio_Logo_small.png" />
+			</a>
+		</div>
 		<div id="main">
 			<div id="nav">
-				<div id="online">
+				<div id="online" class="nav-section">
 					<iframe id="online-frame" src="room-list" frameBorder="0"></iframe>
+				</div>
+				<div id="contacts" class="nav-section">
+					<iframe id="contacts-frame" src="contacts-list" frameBorder="0"></iframe>
 				</div>
 			</div>
 			<div id="canvas">

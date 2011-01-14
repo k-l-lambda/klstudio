@@ -6,6 +6,11 @@ Pending Issues:
 	json encoding: wildcards for semicolon ';' and '&'.
 
 
+2011.1.14	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Source/ChatRoom: page of contacts list added.
+
+
 2011.1.4	K.L.	<xxxK.L.xxx@gmail.com>
 
 	>	Source/ChatRoom: fixed to satisfy IE.

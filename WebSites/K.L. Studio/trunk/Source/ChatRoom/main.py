@@ -7,6 +7,8 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
 from google.appengine.ext.webapp import template
 
+from ChatRoom.GdataQuery import *
+
 
 class HomeHandler(webapp.RequestHandler):
     def get(self):
@@ -52,6 +54,8 @@ def main():
         ('/projects/ChatRoom/guest-dialog',                         GuestDialogHandler),
         ('/projects/ChatRoom/room-list',                            RoomListHandler),
         ('/projects/ChatRoom/contacts-list',                        ContactsListHandler),
+        ('/projects/ChatRoom/gdata-query',                          GdataQueryHandler),
+        ('/projects/ChatRoom/gdata-auth',                           GdataAuthHandler),
         ], debug=True)
     util.run_wsgi_app(application)
 

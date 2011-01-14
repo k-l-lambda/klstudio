@@ -251,13 +251,12 @@ chatroom.RoomList = function(callbacks) {
 }
 
 
-chatroom.ContactsList = function(callbacks) {
+chatroom.ContactsList = function(callbacks, main_url) {
 	var self = this;
 
 	this.Callbacks = callbacks;
 
-	this.refresh = function()
-	{
+	this.refresh = function() {
 		var refreshing = $("#list-refreshing");
 
 		// TODO:
@@ -265,16 +264,34 @@ chatroom.ContactsList = function(callbacks) {
 		refreshing.hide();
 	};
 
-	$("#list-header").click(function(){
+	// initial list
+	{
+		var list = $("#list");
+
+		$.getJSON("gdata-query?url=https://www.google.com/m8/feeds/contacts/default/full?alt=json", function(data){
+			if(data.error)
+			{
+				list.append("<a href='gdata-auth?next=" + main_url + "&scope=https://www.google.com/m8/feeds/'>Authorize for Google Contacts</a>");
+			}
+			else
+			{
+				$.each(data.feed.entry, function(i, entry){
+					list.append("<li class='list-item' title='" + entry.gd$email[0].address + "'>" + entry.gd$email[0].address + "</li>");
+				});
+			}
+		});
+	}
+
+	$("#list-header").click(function() {
 		self.refresh();
 	});
 
 	this.refresh();
 
-	setTimeout(function(){
+	setTimeout(function() {
 		self.refresh();
 
-		setInterval(function(){
+		setInterval(function() {
 			self.refresh();
 		}, 30000);
 	}, 3000);

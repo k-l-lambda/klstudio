@@ -8,6 +8,8 @@ Pending Issues:
 
 2011.1.14	K.L.	<xxxK.L.xxx@gmail.com>
 
+	+	Source/ChatRoom/GdataQuery.py: created, implemented.
+
 	+	Source/ChatRoom: page of contacts list added.
 
 

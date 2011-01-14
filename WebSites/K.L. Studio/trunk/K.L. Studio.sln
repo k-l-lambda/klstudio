@@ -117,6 +117,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ChatRoom", "ChatRoom", "{8F9934FF-F91F-42EF-AF99-59483CB266D5}"
 	ProjectSection(SolutionItems) = preProject
 		Source\ChatRoom\__init__.py = Source\ChatRoom\__init__.py
+		Source\ChatRoom\GdataQuery.py = Source\ChatRoom\GdataQuery.py
 		Source\ChatRoom\main.py = Source\ChatRoom\main.py
 	EndProjectSection
 EndProject
@@ -132,12 +133,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{7A0416
 		Source\ChatRoom\static\ChatRoom.js = Source\ChatRoom\static\ChatRoom.js
 		Source\ChatRoom\static\dialog-form = Source\ChatRoom\static\dialog-form
 		Source\ChatRoom\static\Dialog.css = Source\ChatRoom\static\Dialog.css
-		Source\ChatRoom\static\RoomList.css = Source\ChatRoom\static\RoomList.css
+		Source\ChatRoom\static\List.css = Source\ChatRoom\static\List.css
 		Source\ChatRoom\static\ui.png = Source\ChatRoom\static\ui.png
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{02369B77-AC05-452D-9083-1D6E5B411B60}"
 	ProjectSection(SolutionItems) = preProject
+		Source\ChatRoom\templates\ContactsList.html = Source\ChatRoom\templates\ContactsList.html
 		Source\ChatRoom\templates\GuestDialog.html = Source\ChatRoom\templates\GuestDialog.html
 		Source\ChatRoom\templates\Home.html = Source\ChatRoom\templates\Home.html
 		Source\ChatRoom\templates\HostDialog.html = Source\ChatRoom\templates\HostDialog.html

@@ -258,26 +258,42 @@ chatroom.ContactsList = function(callbacks, main_url) {
 
 	this.refresh = function() {
 		var refreshing = $("#list-refreshing");
+		refreshing.show();
 
-		// TODO:
+		if(this.ContactsData)
+		{
+			var list = $("#list");
+
+			list.empty();
+			$.each(this.ContactsData.feed.entry, function(i, entry) {
+				var photo = "static/nophoto.png";
+				$.each(entry.link, function(i, link) {
+					if(link.rel.match(/.*#photo/))
+						photo = "gdata-query?url=" + link.href;
+				});
+
+				list.append("<li class='list-item' title='" + entry.gd$email[0].address + "'><div class='contact'><img class='profile' src='" + photo + "' /><div class='nickname'>" + (entry.title.$t || entry.gd$email[0].address) + "</div><div class='clear'></div></div></li>");
+			});
+			// TODO:
+		}
 
 		refreshing.hide();
 	};
 
-	// initial list
+	// get contacts data
 	{
-		var list = $("#list");
+		var authlink = $("#list-auth-link");
+		authlink.hide();
 
-		$.getJSON("gdata-query?url=https://www.google.com/m8/feeds/contacts/default/full?alt=json", function(data){
+		$.getJSON("gdata-query?url=https://www.google.com/m8/feeds/contacts/default/full?alt=json", function(data) {
 			if(data.error)
 			{
-				list.append("<a href='gdata-auth?next=" + main_url + "&scope=https://www.google.com/m8/feeds/'>Authorize for Google Contacts</a>");
+				authlink.attr("href", "gdata-auth?next=" + main_url + "&scope=https://www.google.com/m8/feeds/");
+				authlink.show();
 			}
 			else
 			{
-				$.each(data.feed.entry, function(i, entry){
-					list.append("<li class='list-item' title='" + entry.gd$email[0].address + "'>" + entry.gd$email[0].address + "</li>");
-				});
+				self.ContactsData = data;
 			}
 		});
 	}

@@ -6,6 +6,11 @@ Pending Issues:
 	json encoding: wildcards for semicolon ';' and '&'.
 
 
+2011.1.15	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Source/ChatRoom: contacts' photos added.
+
+
 2011.1.14	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	Source/ChatRoom/GdataQuery.py: created, implemented.

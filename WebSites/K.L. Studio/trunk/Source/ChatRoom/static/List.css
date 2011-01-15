@@ -33,6 +33,11 @@ ul
 	cursor: pointer;
 }
 
+.clear
+{
+	clear: both;
+}
+
 .title-status
 {
 	font-size: small;
@@ -44,9 +49,31 @@ ul
 	color: #66c;
 }
 
+.list-item
+{
+}
+
 .list-selfitem:hover, .list-item:hover
 {
 	background-color: #e3e9ff;
+}
+
+.contact
+{
+	height: 36px;
+}
+
+.profile
+{
+	float: right;
+	margin: 2px 0;
+	width: 32px;
+	height: 32px;
+}
+
+.nickname
+{
+	padding-top: 10px;
 }
 
 

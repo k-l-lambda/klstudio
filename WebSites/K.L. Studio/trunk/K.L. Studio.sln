@@ -133,6 +133,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{7A0416
 		Source\ChatRoom\static\ChatRoom.js = Source\ChatRoom\static\ChatRoom.js
 		Source\ChatRoom\static\dialog-form = Source\ChatRoom\static\dialog-form
 		Source\ChatRoom\static\Dialog.css = Source\ChatRoom\static\Dialog.css
+		Source\ChatRoom\static\icons.png = Source\ChatRoom\static\icons.png
 		Source\ChatRoom\static\List.css = Source\ChatRoom\static\List.css
 		Source\ChatRoom\static\ui.png = Source\ChatRoom\static\ui.png
 	EndProjectSection

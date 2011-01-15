@@ -78,6 +78,11 @@ img
 	height: 180px;
 }
 
+#contacts-frame
+{
+	height: 320px;
+}
+
 .layer-container
 {
 	position: absolute;

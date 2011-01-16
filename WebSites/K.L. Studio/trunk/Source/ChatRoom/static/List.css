@@ -82,7 +82,9 @@ ul
 .nickname
 {
 	float: left;
-	padding-top: 10px;
+	width: 133px;
+	line-height: 36px;
+	vertical-align: middle;
 }
 
 .contacts-list

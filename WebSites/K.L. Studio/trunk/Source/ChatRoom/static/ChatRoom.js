@@ -275,7 +275,7 @@ chatroom.ContactsList = function(callbacks, main_url) {
 				});
 
 				var email = entry_email(entry);
-				var isself = email == chatroom.SelfUserInfo.email;
+				var isself = email.toLowerCase() == chatroom.SelfUserInfo.email.toLowerCase();
 
 				var li_content = "<li class='" + (isself ? "list-selfitem" : "list-item") + "' title='" + email + "'><div class='contact'><img class='profile' src='" + photo + "' /><div class='status icon-"
 					+ status + "'></div><div class='nickname'>" + (entry.title.$t || email) + "</div><div class='clear'></div></div></li>";
@@ -334,6 +334,8 @@ chatroom.ContactsList = function(callbacks, main_url) {
 					get_contact_data({ session: null, entry: entry }, onfinish);
 			});
 		}
+		else
+			refreshing.hide();
 	};
 
 	// get contacts data

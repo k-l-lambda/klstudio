@@ -47,7 +47,7 @@ class ApplicationSessionListHandler(webapp.RequestHandler):
         session_list = session_list.fetch(limit, offset)
         if host:
             try:
-                session_list = filter(lambda session: host == session.host.email() or re.match(host, session.host.nickname()), session_list)
+                session_list = filter(lambda session: string.lower(host) == string.lower(session.host.email()) or re.match(host, session.host.nickname(), re.I), session_list)
             except:
                 pass
         if tag:

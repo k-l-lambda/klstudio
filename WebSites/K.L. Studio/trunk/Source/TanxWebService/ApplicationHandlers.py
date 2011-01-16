@@ -53,4 +53,4 @@ class ApplicationSessionListHandler(webapp.RequestHandler):
         if tag:
             session_list = filter(lambda session : tag in session.tags, session_list)
 
-        self.response.out.write(Serializer.save({'total': total, 'list': [{'id': session.id(), 'host': session.host, 'setup_time': session.setup_time, 'tags': session.tags} for session in session_list]}))
+        self.response.out.write(Serializer.save({'total': total, 'list': [{'id': session.id(), 'host': session.host, 'setup_time': session.setup_time, 'alive_time': session.alive_time, 'tags': session.tags} for session in session_list]}))

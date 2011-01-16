@@ -1,9 +1,13 @@
 
 TODO:
-	google contacts APIs
 
 Pending Issues:
 	json encoding: wildcards for semicolon ';' and '&'.
+
+
+2011.1.16	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Source/ChatRoom: contacts list implemented.
 
 
 2011.1.15	K.L.	<xxxK.L.xxx@gmail.com>

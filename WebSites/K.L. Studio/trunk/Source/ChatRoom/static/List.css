@@ -47,6 +47,7 @@ ul
 .list-selfitem
 {
 	color: #66c;
+	font-weight: bold;
 }
 
 .list-item
@@ -61,6 +62,7 @@ ul
 .contact
 {
 	height: 36px;
+	overflow: hidden;
 }
 
 .profile
@@ -71,9 +73,44 @@ ul
 	height: 32px;
 }
 
+.status
+{
+	float: left;
+	margin: 10px;
+}
+
 .nickname
 {
+	float: left;
 	padding-top: 10px;
+}
+
+.contacts-list
+{
+	list-style-type: none;
+	padding-left: 0;
+}
+
+.icon-available, .icon-absence, .icon-invisible
+{
+	background-image: url(/projects/ChatRoom/static/icons.png);
+	width: 16px;
+	height: 16px;
+}
+
+.icon-available
+{
+	background-position: 0px -80px;
+}
+
+.icon-absence
+{
+	background-position: -40px -80px;
+}
+
+.icon-invisible
+{
+	background-position: -60px -80px;
 }
 
 

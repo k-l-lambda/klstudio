@@ -260,24 +260,80 @@ chatroom.ContactsList = function(callbacks, main_url) {
 		var refreshing = $("#list-refreshing");
 		refreshing.show();
 
-		if(this.ContactsData)
-		{
+		if (this.ContactsData) {
 			var list = $("#list");
 
-			list.empty();
-			$.each(this.ContactsData.feed.entry, function(i, entry) {
+			var entry_email = function(entry) {
+				return (entry.gd$email && entry.gd$email.length) ? entry.gd$email[0].address : "";
+			};
+
+			var insert_item = function(entry, status, session) {
 				var photo = "static/nophoto.png";
 				$.each(entry.link, function(i, link) {
-					if(link.rel.match(/.*#photo/))
+					if (link.rel.match(/.*#photo/))
 						photo = "gdata-query?url=" + link.href;
 				});
 
-				list.append("<li class='list-item' title='" + entry.gd$email[0].address + "'><div class='contact'><img class='profile' src='" + photo + "' /><div class='nickname'>" + (entry.title.$t || entry.gd$email[0].address) + "</div><div class='clear'></div></div></li>");
-			});
-			// TODO:
-		}
+				var email = entry_email(entry);
+				var isself = email == chatroom.SelfUserInfo.email;
 
-		refreshing.hide();
+				var li_content = "<li class='" + (isself ? "list-selfitem" : "list-item") + "' title='" + email + "'><div class='contact'><img class='profile' src='" + photo + "' /><div class='status icon-"
+					+ status + "'></div><div class='nickname'>" + (entry.title.$t || email) + "</div><div class='clear'></div></div></li>";
+
+				if (isself)
+					list.prepend(li_content);
+				else {
+					list.append(li_content);
+
+					if (session && self.Callbacks.ItemClick) {
+						var item = list.find("li:last");
+						item.click(function() {
+							self.Callbacks.ItemClick(session);
+						});
+					}
+				}
+			};
+
+			var contact_datas = [];
+			var get_contact_data = function(contact_data, onfinish) {
+				contact_datas.push(contact_data);
+
+				if (contact_datas.length >= self.ContactsData.feed.entry.length)
+					onfinish();
+			};
+
+			$.each(this.ContactsData.feed.entry, function(i, entry) {
+				var onfinish = function() {
+					list.empty();
+					$.each(contact_datas, function(i, data) {
+						if (data.session) {
+							var alive_time = Date.parseFormat(data.session.alive_time, tanxjs.WebService.DateFormat);
+							var now = new Date();
+
+							insert_item(data.entry, (now - alive_time) > 120000 ? "absence" : "available", data.session);
+						}
+					});
+					$.each(contact_datas, function(i, data) {
+						if (!data.session)
+							insert_item(data.entry, "invisible", data.session);
+					});
+
+					$("#contacts-frame", parent.document.body).height($("#list-form")[0].scrollHeight);
+
+					refreshing.hide();
+				}
+
+				var email = entry_email(entry)
+				if (email)
+					chatroom.ChatRoomApp.getSessionList({ host: email }, function(data) {
+						var session = data.list.length ? data.list[0] : null;
+
+						get_contact_data({ session: session, entry: entry }, onfinish);
+					});
+				else
+					get_contact_data({ session: null, entry: entry }, onfinish);
+			});
+		}
 	};
 
 	// get contacts data
@@ -286,13 +342,11 @@ chatroom.ContactsList = function(callbacks, main_url) {
 		authlink.hide();
 
 		$.getJSON("gdata-query?url=https://www.google.com/m8/feeds/contacts/default/full?alt=json", function(data) {
-			if(data.error)
-			{
+			if (data.error) {
 				authlink.attr("href", "gdata-auth?next=" + main_url + "&scope=https://www.google.com/m8/feeds/");
 				authlink.show();
 			}
-			else
-			{
+			else {
 				self.ContactsData = data;
 			}
 		});
@@ -309,7 +363,7 @@ chatroom.ContactsList = function(callbacks, main_url) {
 
 		setInterval(function() {
 			self.refresh();
-		}, 30000);
+		}, 90000);
 	}, 3000);
 }
 

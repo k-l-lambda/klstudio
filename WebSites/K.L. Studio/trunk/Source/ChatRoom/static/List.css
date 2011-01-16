@@ -85,6 +85,7 @@ ul
 	width: 133px;
 	line-height: 36px;
 	vertical-align: middle;
+	overflow: hidden;
 }
 
 .contacts-list

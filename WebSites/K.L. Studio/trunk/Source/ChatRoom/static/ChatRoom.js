@@ -325,11 +325,18 @@ chatroom.ContactsList = function(callbacks, main_url) {
 
 				var email = entry_email(entry)
 				if (email)
-					chatroom.ChatRoomApp.getSessionList({ host: email }, function(data) {
-						var session = data.list.length ? data.list[0] : null;
+				{
+					try {
+						chatroom.ChatRoomApp.getSessionList({ host: email }, function(data) {
+							var session = data.list.length ? data.list[0] : null;
 
-						get_contact_data({ session: session, entry: entry }, onfinish);
-					});
+							get_contact_data({ session: session, entry: entry }, onfinish);
+						});
+					}
+					catch (e) {
+						get_contact_data({ session: null, entry: entry }, onfinish);
+					}
+				}
 				else
 					get_contact_data({ session: null, entry: entry }, onfinish);
 			});

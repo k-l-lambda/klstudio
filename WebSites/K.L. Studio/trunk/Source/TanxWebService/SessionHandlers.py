@@ -192,7 +192,7 @@ class SessionPostMessageHandler(webapp.RequestHandler):
                 logging.info('a host(%s) message post in session "%s" of app "%s": %s %s %s', current_user.nickname(), session_id, app_id, msg.data,
                     msg.channels and ('via:%s' % msg.channels) or '', msg.audiences and ('to:%s' % [user.nickname() for user in msg.audiences]) or '')
 
-                self.response.out.write(Serializer.save({'result': "OK", 'time': msg.time}))
+                self.response.out.write(Serializer.save({'result': "OK", 'time': msg.time, 'id': msg.id()}))
             else:
                 # post guest message
                 msg = SessionGuestMessage(key_name = session.genNewGuestMessageId(), parent = session)

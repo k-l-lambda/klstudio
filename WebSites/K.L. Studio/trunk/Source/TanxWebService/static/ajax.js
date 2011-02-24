@@ -39,6 +39,10 @@ tanxjs.WebService = function(root_location)
 	}
 }
 
+tanxjs.WebService.escapeMessagePost = function(text) {
+	return text.replace(/[;&]/g, function(c){ return escape(c); });
+};
+
 tanxjs.WebApplication = function(root_location, id)
 {
 	this.RootLocation = root_location;
@@ -167,7 +171,7 @@ tanxjs.WebSession = function(root_location, id)
 
 		tanxjs.WebSession.prototype.postMessage = function(data, channels, audiences, callback)
 		{
-			var str = "data=" + $.toJSON(data)+ ";";
+			var str = "data=" + tanxjs.WebService.escapeMessagePost($.toJSON(data))+ ";";
 			if(channels)
 				for(var i in channels)
 					str += "channel=" + channels[i] + ";";

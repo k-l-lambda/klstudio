@@ -2,7 +2,11 @@
 TODO:
 
 Pending Issues:
-	json encoding: wildcards for semicolon ';' and '&'.
+
+
+2011.1.24	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	tanxjs.WebSession.prototype.postMessage: fixed json encoding issue.
 
 
 2011.1.16	K.L.	<xxxK.L.xxx@gmail.com>

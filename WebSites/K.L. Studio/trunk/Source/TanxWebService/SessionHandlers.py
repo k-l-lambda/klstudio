@@ -212,6 +212,10 @@ class SessionFetchMessageHandler(webapp.RequestHandler):
     def get(self):
         app_id, session_id, session = findSessionByPath(self.request.path)
         if session:
+            warning = None
+            if not session.alive:
+                warning = 'session dead'
+
             if session.host == users.get_current_user():
                 # fetch guest message
                 start = int(self.request.str_GET.get('id', 0))
@@ -219,7 +223,7 @@ class SessionFetchMessageHandler(webapp.RequestHandler):
 
                 messages = filter(lambda msg : msg, [SessionGuestMessage.get_by_key_name(str(id), session) for id in range(start, next)])
 
-                self.response.out.write(Serializer.save({'next': next, 'messages': [msg.toDict() for msg in messages]}))
+                self.response.out.write(Serializer.save({'next': next, 'messages': [msg.toDict() for msg in messages], 'warning': warning}))
             else:
                 # fetch host message
                 start = int(self.request.str_GET.get('id', 0))
@@ -227,7 +231,7 @@ class SessionFetchMessageHandler(webapp.RequestHandler):
 
                 messages = filter(lambda msg : msg and msg.isReceiver(users.get_current_user()), [SessionHostMessage.get_by_key_name(str(id), session) for id in range(start, next)])
 
-                self.response.out.write(Serializer.save({'next': next, 'messages': [msg.toDict() for msg in messages]}))
+                self.response.out.write(Serializer.save({'next': next, 'messages': [msg.toDict() for msg in messages], 'warning': warning}))
         else:
             logging.error('cannot find session of "%s/%s"', app_id, session_id)
             self.response.out.write(Serializer.save({'error': 'cannot find session'}))

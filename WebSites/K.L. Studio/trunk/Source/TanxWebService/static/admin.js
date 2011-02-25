@@ -17,5 +17,5 @@ function editTags() {
 	document.getElementById("tags-viewer").style.setProperty("display", "none");
 	document.getElementById("tags-editor").style.setProperty("display", "block");
 	var text = document.getElementById("tags-text");
-	text.value = text.value.match(/\[(.*)\]/)[1];
+	text.value = text.value.match(/\[(.*)\]/)[1].replace(/[u'\s]/g, '');
 }

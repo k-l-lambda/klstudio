@@ -6,6 +6,8 @@ Pending Issues:
 
 2011.2.25	K.L.	<xxxK.L.xxx@gmail.com>
 
+	>	Source/TanxWebService/static/ajax.js: refined tanxjs.WebSession.prototype.fetchMessageLoop.
+
 	>	Source/TanxWebService/static/ajax.js: refined error processing.
 
 

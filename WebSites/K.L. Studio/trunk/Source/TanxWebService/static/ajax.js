@@ -228,51 +228,60 @@ tanxjs.WebSession = function(root_location, id, hosting)
 			setInterval(function(){self.keepAlive();}, interval * 1000);
 		}
 
-		tanxjs.WebSession.prototype.fetchMessageLoop = function(onMessageArrived, interval, deactive_interval, start)
+		tanxjs.WebSession.prototype.fetchMessageLoop = function(onMessageArrived, options)
 		{
-			interval = interval || 4;
-			deactive_interval = deactive_interval || 10;
-			var next_id = start || 0;
+			options.interval = options.interval || 4;
+			options.deactive_interval = options.deactive_interval || 10;
+			var next_id = options.start || 0;
 			var self = this;
 
 			var fetch = function(){
 				self.fetchMessage(next_id, function(data){
-					next_id = data.next;
+					if(data.error) {
+						if(options.onerror)
+							options.onerror(data);
+					}
+					else {
+						if(data.warning && options.onwarn)
+							options.onwarn(data);
 
-					var brk = false;
-					$.each(data.messages, function(i, msg){
-						if(!brk && self.IgnoredMessageIds.indexOf(msg.id) < 0)
-							try
-							{
-								var mdata = $.evalJSON(msg.data);
-								if(!self.Hosting) {
-									switch(mdata._tanxjs) {
-									case "reset-message-id":
-										next_id = mdata.next_id;
-										brk = true;
+						next_id = data.next;
 
-										// ignore this message next time
-										self.IgnoredMessageIds.push(msg.id);
+						var brk = false;
+						$.each(data.messages, function(i, msg){
+							if(!brk && self.IgnoredMessageIds.indexOf(msg.id) < 0)
+								try
+								{
+									var mdata = $.evalJSON(msg.data);
+									if(!self.Hosting) {
+										switch(mdata._tanxjs) {
+										case "reset-message-id":
+											next_id = mdata.next_id;
+											brk = true;
 
-										break;
-									default:
-										onMessageArrived(self.ID, msg, mdata);
+											// ignore this message next time
+											self.IgnoredMessageIds.push(msg.id);
+
+											break;
+										default:
+											onMessageArrived(self.ID, msg, mdata);
+										}
 									}
+									else
+										onMessageArrived(self.ID, msg, mdata);
 								}
-								else
-									onMessageArrived(self.ID, msg, mdata);
-							}
-							catch(err)
-							{
-								alert("message process error: " + err);
-							}
-					});
+								catch(err)
+								{
+									alert("message process error: " + err);
+								}
+						});
 
-					setTimeout(fetch, (self.Active ? interval : deactive_interval) * 1000);
+						setTimeout(fetch, (self.Active ? options.interval : options.deactive_interval) * 1000);
+					}
 				}, function(xhr, textStatus, error){
 					//alert("message fetch error, status: " + textStatus + ", error: " + error);
 
-					setTimeout(fetch, (self.Active ? interval : deactive_interval) * 1000);
+					setTimeout(fetch, (self.Active ? options.interval : options.deactive_interval) * 1000);
 				});
 			};
 			fetch();

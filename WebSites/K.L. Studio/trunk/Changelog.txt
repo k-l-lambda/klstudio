@@ -6,6 +6,8 @@ Pending Issues:
 
 2011.2.25	K.L.	<xxxK.L.xxx@gmail.com>
 
+	+	Tags editor added in TanxWebService session admin page.
+
 	+	Source/TanxWebService/templates/SessionViewer.html: added session end button.
 
 	>	Source/TanxWebService/static/ajax.js: refined tanxjs.WebSession.prototype.fetchMessageLoop.

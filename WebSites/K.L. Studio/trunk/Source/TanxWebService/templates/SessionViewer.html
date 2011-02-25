@@ -49,7 +49,15 @@
 				</tr>
 				<tr>
 					<th>tags</th>
-					<td>{{session.tags}}</td>
+					<td>
+						<div id="tags-viewer"><span>{{session.tags}}</span><button onclick="editTags();">edit</button></div>
+						<div id="tags-editor" style="display:none">
+							<form action="edit-tags" method="post" style="margin:0">
+								<input id="tags-text" type="text" name="tags" value="{{session.tags}}" size="40" />
+								<input type="submit" value="Edit" />
+							</form>
+						</div>
+					</td>
 				</tr>
 			</table>
 			<br />

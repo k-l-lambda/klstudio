@@ -44,3 +44,15 @@ class SessionAddChannelMemberHandler(webapp.RequestHandler):
             logging.info('channel "%s" of session "%s" of app "%s" added member: %s.', channel.key().name(), session_id, app_id, member)
 
         self.redirect('./')
+
+
+class SessionEditTagsHandler(webapp.RequestHandler):
+    def post(self):
+        app_id = re.sub('.*/app/([^/]+)/.*', r'\1', self.request.path)
+        session_id = re.sub('.*/session/([^/]+)/.*', r'\1', self.request.path)
+        session = Session.get_by_key_name(session_id, Application.getById(app_id))
+
+        session.tags = self.request.get('tags').split(",")
+        session.put()
+
+        self.redirect('./')

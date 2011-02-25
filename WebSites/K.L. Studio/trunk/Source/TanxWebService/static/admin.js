@@ -12,3 +12,10 @@ function checkAll(obj, className) {
 			checkboxs[i].checked = obj.checked;
 	}
 }
+
+function editTags() {
+	document.getElementById("tags-viewer").style.setProperty("display", "none");
+	document.getElementById("tags-editor").style.setProperty("display", "block");
+	var text = document.getElementById("tags-text");
+	text.value = text.value.match(/\[(.*)\]/)[1];
+}

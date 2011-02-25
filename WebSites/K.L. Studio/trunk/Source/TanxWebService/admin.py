@@ -53,6 +53,7 @@ def main():
         ('/tanx-web-service/[^/]*/admin/app/[^/]*/clear-sessions',                          ClearSessionsHandler),
         ('/tanx-web-service/[^/]*/admin/app/[^/]*/session/[^/]*/',                          SessionViewerHandler),
         ('/tanx-web-service/[^/]*/admin/app/[^/]*/session/[^/]*/add-channel-member',        SessionAddChannelMemberHandler),
+        ('/tanx-web-service/[^/]*/admin/app/[^/]*/session/[^/]*/edit-tags',                 SessionEditTagsHandler),
         ], debug=True)
     util.run_wsgi_app(application)
 

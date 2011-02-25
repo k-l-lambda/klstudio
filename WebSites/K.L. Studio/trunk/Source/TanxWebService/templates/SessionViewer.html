@@ -56,6 +56,9 @@
 			<form action="../../../../../app/{{session.parent.id}}/session/{{session.id}}/keep-alive" method="post">
 				<input type="submit" value="Keep Alive" />
 			</form>
+			<form action="../../../../../app/{{session.parent.id}}/session/{{session.id}}/end" method="post">
+				<input type="submit" value="End" onclick="if(!confirm('Sure to end this session?')) event.preventDefault();" />
+			</form>
 		</div>
 		<div class="section">
 			<h2>Channels</h2>

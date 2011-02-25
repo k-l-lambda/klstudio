@@ -4,7 +4,12 @@ TODO:
 Pending Issues:
 
 
-2011.1.24	K.L.	<xxxK.L.xxx@gmail.com>
+2011.2.25	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Source/TanxWebService/static/ajax.js: refined error processing.
+
+
+2011.2.24	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	Source/TanxWebService/static/ajax.js: method of reset guest message id added.
 

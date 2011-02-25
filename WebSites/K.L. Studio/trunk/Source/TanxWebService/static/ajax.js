@@ -71,7 +71,7 @@ tanxjs.WebApplication = function(root_location, id)
 			}
 		};
 
-		tanxjs.WebApplication.prototype.setupSession = function(callback)
+		tanxjs.WebApplication.prototype.setupSession = function(callback, error)
 		{
 			var self = this;
 
@@ -91,7 +91,8 @@ tanxjs.WebApplication = function(root_location, id)
 					success: function(data){
 						self.Sessions[data.id] = new tanxjs.WebSession(root_location + "session/" + data.id + "/", data.id, true);
 						session = self.Sessions[data.id];
-					}
+					},
+					error: error
 				});
 				return session;
 			}
@@ -155,7 +156,7 @@ tanxjs.WebSession = function(root_location, id, hosting)
 			}
 		};
 
-		tanxjs.WebSession.prototype.setTags = function(tags, callback)
+		tanxjs.WebSession.prototype.setTags = function(tags, callback, error)
 		{
 			var str = "";
 			if(tags)
@@ -167,12 +168,15 @@ tanxjs.WebSession = function(root_location, id, hosting)
 				type: "POST",
 				data: str,
 				dataType: "json",
-				success: callback || function(){}
+				success: callback,
+				error: error
 			});
 		};
 
-		tanxjs.WebSession.prototype.postMessage = function(data, channels, audiences, callback)
+		tanxjs.WebSession.prototype.postMessage = function(data, channels, audiences, callback, onretry)
 		{
+			var self = this;
+
 			var str = "data=" + tanxjs.WebService.escapeMessagePost($.toJSON(data))+ ";";
 			if(channels)
 				for(var i in channels)
@@ -186,7 +190,15 @@ tanxjs.WebSession = function(root_location, id, hosting)
 				type: "POST",
 				data: str,
 				dataType: "json",
-				success: callback || function(){}
+				success: callback,
+				error: onretry && function(){
+					var recall = function(){self.postMessage(data, channels, audiences, callback, onretry);};
+					var retry = onretry();
+					if(retry == 0)
+						recall();
+					else if(retry > 0)
+						setTimeout(recall, retry * 1000);
+				}
 			});
 		};
 
@@ -197,7 +209,7 @@ tanxjs.WebSession = function(root_location, id, hosting)
 				data: {id: start},
 				dataType: "json",
 				success: callback,
-				error: err || function(){}
+				error: err
 			});
 		};
 

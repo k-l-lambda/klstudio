@@ -108,8 +108,7 @@ tanxjs.WebApplication = function(root_location, id)
 	}
 }
 
-tanxjs.WebSession = function(root_location, id, hosting)
-{
+tanxjs.WebSession = function(root_location, id, hosting) {
 	this.RootLocation = root_location;
 	this.ID = id;
 	this.Channels = {};
@@ -117,11 +116,9 @@ tanxjs.WebSession = function(root_location, id, hosting)
 	this.Hosting = hosting;
 	this.IgnoredMessageIds = [];
 
-	if(typeof tanxjs.WebSession._initialized == "undefined")
-	{
-		tanxjs.WebSession.prototype.end = function(callback)
-		{
-			if(callback)
+	if (typeof tanxjs.WebSession._initialized == "undefined") {
+		tanxjs.WebSession.prototype.end = function(callback) {
+			if (callback)
 				$.post(this.RootLocation + "end", callback, "json");
 			else
 				$.ajax({
@@ -132,23 +129,20 @@ tanxjs.WebSession = function(root_location, id, hosting)
 				});
 		};
 
-		tanxjs.WebSession.prototype.keepAlive = function(callback)
-		{
-			$.post(this.RootLocation + "keep-alive", callback || function(){}, "json");
+		tanxjs.WebSession.prototype.keepAlive = function(callback) {
+			$.post(this.RootLocation + "keep-alive", callback || function() { }, "json");
 		};
 
-		tanxjs.WebSession.prototype.getInfo = function(callback)
-		{
-			if(callback)
+		tanxjs.WebSession.prototype.getInfo = function(callback) {
+			if (callback)
 				$.getJSON(this.RootLocation + "info", callback);
-			else
-			{
+			else {
 				var result;
 				$.ajax({
 					url: this.RootLocation + "info",
 					dataType: "json",
 					async: false,
-					success: function(data){
+					success: function(data) {
 						result = data;
 					}
 				});
@@ -156,12 +150,11 @@ tanxjs.WebSession = function(root_location, id, hosting)
 			}
 		};
 
-		tanxjs.WebSession.prototype.setTags = function(tags, callback, error)
-		{
+		tanxjs.WebSession.prototype.setTags = function(tags, callback, error) {
 			var str = "";
-			if(tags)
-				for(var i in tags)
-					str += "tag=" + tags[i] + ";";
+			if (tags)
+				for (var i in tags)
+				str += "tag=" + tags[i] + ";";
 
 			$.ajax({
 				url: this.RootLocation + "set-tags",
@@ -173,16 +166,15 @@ tanxjs.WebSession = function(root_location, id, hosting)
 			});
 		};
 
-		tanxjs.WebSession.prototype.postMessage = function(data, channels, audiences, callback, onretry)
-		{
+		tanxjs.WebSession.prototype.postMessage = function(data, channels, audiences, callback, onretry) {
 			var self = this;
 
-			var str = "data=" + tanxjs.WebService.escapeMessagePost($.toJSON(data))+ ";";
-			if(channels)
-				for(var i in channels)
+			var str = "data=" + tanxjs.WebService.escapeMessagePost($.toJSON(data)) + ";";
+			if (channels)
+				for (var i in channels)
 					str += "channel=" + channels[i] + ";";
-			if(audiences)
-				for(var i in audiences)
+			if (audiences)
+				for (var i in audiences)
 					str += "audience=" + audiences[i] + ";";
 
 			$.ajax({
@@ -191,70 +183,66 @@ tanxjs.WebSession = function(root_location, id, hosting)
 				data: str,
 				dataType: "json",
 				success: callback,
-				error: onretry && function(){
-					var recall = function(){self.postMessage(data, channels, audiences, callback, onretry);};
+				error: onretry && function() {
+					var recall = function() { self.postMessage(data, channels, audiences, callback, onretry); };
 					var retry = onretry();
-					if(retry == 0)
+					if (retry == 0)
 						recall();
-					else if(retry > 0)
+					else if (retry > 0)
 						setTimeout(recall, retry * 1000);
 				}
 			});
 		};
 
-		tanxjs.WebSession.prototype.fetchMessage = function(start, callback, err)
-		{
+		tanxjs.WebSession.prototype.fetchMessage = function(start, callback, err) {
 			$.ajax({
 				url: this.RootLocation + "fetch-message",
-				data: {id: start},
+				data: { id: start },
 				dataType: "json",
 				success: callback,
 				error: err
 			});
 		};
 
-		tanxjs.WebSession.prototype.getChannel = function(id)
-		{
-			if(!this.Channels[id])
+		tanxjs.WebSession.prototype.getChannel = function(id) {
+			if (!this.Channels[id])
 				this.Channels[id] = new tanxjs.WebSessionChannel(root_location + "channel/" + id + "/", id);
 
 			return this.Channels[id];
 		};
 
-		tanxjs.WebSession.prototype.keepAliveLoop = function(interval)
-		{
+		tanxjs.WebSession.prototype.keepAliveLoop = function(interval) {
 			interval = interval || 60;
 			var self = this;
-			setInterval(function(){self.keepAlive();}, interval * 1000);
+			setInterval(function() { self.keepAlive(); }, interval * 1000);
 		}
 
-		tanxjs.WebSession.prototype.fetchMessageLoop = function(onMessageArrived, options)
-		{
+		tanxjs.WebSession.prototype.fetchMessageLoop = function(onMessageArrived, options) {
+			options = options || {};
 			options.interval = options.interval || 4;
 			options.deactive_interval = options.deactive_interval || 10;
 			var next_id = options.start || 0;
 			var self = this;
 
-			var fetch = function(){
-				self.fetchMessage(next_id, function(data){
-					if(data.error) {
-						if(options.onerror)
+			var fetch = function() {
+				self.fetchMessage(next_id, function(data) {
+					if (data.error) {
+						if (options.onerror)
 							options.onerror(data);
 					}
 					else {
-						if(data.warning && options.onwarn)
+						if (data.warning && options.onwarn)
 							options.onwarn(data);
 
 						next_id = data.next;
 
 						var brk = false;
-						$.each(data.messages, function(i, msg){
-							if(!brk && self.IgnoredMessageIds.indexOf(msg.id) < 0)
-								try
-								{
-									var mdata = $.evalJSON(msg.data);
-									if(!self.Hosting) {
-										switch(mdata._tanxjs) {
+						$.each(data.messages, function(i, msg) {
+							if (!brk && self.IgnoredMessageIds.indexOf(msg.id) < 0)
+								try {
+								var mdata = $.evalJSON(msg.data);
+								if (!self.Hosting) {
+									switch (mdata._tanxjs) {
 										case "reset-message-id":
 											next_id = mdata.next_id;
 											brk = true;
@@ -265,20 +253,19 @@ tanxjs.WebSession = function(root_location, id, hosting)
 											break;
 										default:
 											onMessageArrived(self.ID, msg, mdata);
-										}
 									}
-									else
-										onMessageArrived(self.ID, msg, mdata);
 								}
-								catch(err)
-								{
-									alert("message process error: " + err);
-								}
+								else
+									onMessageArrived(self.ID, msg, mdata);
+							}
+							catch (err) {
+								alert("message process error: " + err);
+							}
 						});
 
 						setTimeout(fetch, (self.Active ? options.interval : options.deactive_interval) * 1000);
 					}
-				}, function(xhr, textStatus, error){
+				}, function(xhr, textStatus, error) {
 					//alert("message fetch error, status: " + textStatus + ", error: " + error);
 
 					setTimeout(fetch, (self.Active ? options.interval : options.deactive_interval) * 1000);
@@ -287,12 +274,10 @@ tanxjs.WebSession = function(root_location, id, hosting)
 			fetch();
 		}
 
-		tanxjs.WebSession.prototype.activate = function()
-		{
+		tanxjs.WebSession.prototype.activate = function() {
 			this.Active = true;
 
-			if(this.onresume)
-			{
+			if (this.onresume) {
 				var onresume = this.onresume;
 				this.onresume = null;
 				//alert("onresume()");
@@ -300,15 +285,14 @@ tanxjs.WebSession = function(root_location, id, hosting)
 			}
 		}
 
-		tanxjs.WebSession.prototype.deactivate = function()
-		{
+		tanxjs.WebSession.prototype.deactivate = function() {
 			this.Active = false;
 		}
 
 		tanxjs.WebSession.prototype.resetGuestMessageId = this.Hosting && function(guest, next_id, callback) {
-			if(typeof(guest) === "string")
+			if (typeof (guest) === "string")
 				guest = [guest];
-			this.postMessage({_tanxjs: "reset-message-id", next_id: next_id}, null, guest, callback);
+			this.postMessage({ _tanxjs: "reset-message-id", next_id: next_id }, null, guest, callback);
 		};
 	}
 }

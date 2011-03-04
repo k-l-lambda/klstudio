@@ -8,7 +8,7 @@ tanxjs.WebService = function(root_location)
 
 	if(typeof tanxjs.WebService._initialized == "undefined")
 	{
-		tanxjs.WebService.DateFormat = /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+\.\d{3})\d*/;
+		tanxjs.WebService.DateFormat = $.browser.mozilla ? /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)\.\d*/ : /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+\.\d{3})\d*/;
 
 		tanxjs.WebService.prototype.getUserInfo = function(callback)
 		{

@@ -12,8 +12,8 @@ class Session(db.Model):
     setup_time = db.DateTimeProperty(auto_now_add = True)
     alive_time = db.DateTimeProperty(auto_now_add = True)
     alive = db.BooleanProperty()
-    next_host_message_id = db.IntegerProperty()
-    next_guest_message_id = db.IntegerProperty()
+    next_host_message_id = db.IntegerProperty(default = 0)
+    next_guest_message_id = db.IntegerProperty(default = 0)
     tags = db.StringListProperty()
 
     def id(self):

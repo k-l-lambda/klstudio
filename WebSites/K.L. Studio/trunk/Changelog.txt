@@ -7,6 +7,8 @@ Pending Issues:
 
 2011.3.5	K.L.	<xxxK.L.xxx@gmail.com>
 
+	*!	TanxWebService: next message id must be generated after new message put, or receiver may get null message.
+
 	>	Django version declarations added.
 
 

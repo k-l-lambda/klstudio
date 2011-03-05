@@ -180,7 +180,7 @@ class SessionPostMessageHandler(webapp.RequestHandler):
             current_user = users.get_current_user()
             if session.host == current_user:
                 # post host message
-                msg = SessionHostMessage(key_name = session.genNewHostMessageId(), parent = session)
+                msg = SessionHostMessage(key_name = str(session.next_host_message_id), parent = session)
                 msg.data = self.request.get('data')
                 msg.channels = self.request.get_all('channel')
                 try:
@@ -189,16 +189,20 @@ class SessionPostMessageHandler(webapp.RequestHandler):
                     logging.error('UserNotFoundError, audiences: %s', self.request.get_all('audience'))
                 msg.put()
 
+                session.genNewHostMessageId()
+
                 logging.info('a host(%s) message post in session "%s" of app "%s": %s %s %s', current_user.nickname(), session_id, app_id, msg.data,
                     msg.channels and ('via:%s' % msg.channels) or '', msg.audiences and ('to:%s' % [user.nickname() for user in msg.audiences]) or '')
 
                 self.response.out.write(Serializer.save({'result': "OK", 'time': msg.time, 'id': msg.id()}))
             else:
                 # post guest message
-                msg = SessionGuestMessage(key_name = session.genNewGuestMessageId(), parent = session)
+                msg = SessionGuestMessage(key_name = str(session.next_guest_message_id), parent = session)
                 msg.data = self.request.get('data')
                 msg.sender = current_user
                 msg.put()
+
+                session.genNewGuestMessageId()
 
                 logging.info('a guest(%s) message post in session "%s" of app "%s": %s', current_user.nickname(), session_id, app_id, msg.data)
 

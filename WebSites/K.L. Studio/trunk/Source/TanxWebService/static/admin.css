@@ -17,8 +17,9 @@ h1 { text-align: center; }
 
 .long-table tr td
 {
-	text-align: center;
+	text-align: left;
 	padding: 0 10px;
+	white-space: nowrap;
 }
 .long-table tr td form
 {

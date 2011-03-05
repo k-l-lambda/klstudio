@@ -4,6 +4,9 @@ import datetime
 import re
 import logging
 
+from google.appengine.dist import use_library
+use_library('django', '0.96')
+
 from google.appengine.ext import db
 from google.appengine.api import users
 from google.appengine.ext import webapp

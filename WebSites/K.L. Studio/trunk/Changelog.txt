@@ -1,7 +1,13 @@
 
 TODO:
+	add Trigo online
 
 Pending Issues:
+
+
+2011.3.5	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Django version declarations added.
 
 
 2011.2.25	K.L.	<xxxK.L.xxx@gmail.com>

@@ -1,146 +1,151 @@
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
- 	<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+﻿<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+		<title>Message Board</title>
+		<style type="text/css">
+			body {
+				font: 100% Verdana, Arial, Helvetica, sans-serif;
+				margin: 0; /* it's good practice to zero the margin and padding of the body element to account for differing browser defaults */
+				padding: 0;
+				text-align: center; /* this centers the container in IE 5* browsers. The text is then set to the left aligned default in the #container selector */
+				color: #000000;
+			}
+			.demo {
+				float: left;
+				position: relative;
+				z-index: -1;
+			}
+			.oneColFixCtr #container {
+				width: 800px;
+				margin: 0 auto;
+				text-align: left;
+			}
+			.oneColFixCtr #mainContent {
+				padding-top: 0;
+				padding-right: 0px;
+				padding-bottom: 0;
+				padding-left: 0px;
+				font-size: small;
+			}
+			.copyright {
+				float: right;
+				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
+				color: #aaa;
+				margin: 15px 7px;
+				font-size: 12px;
+			}
+			.footer {
+				position: relative;
+				left: inherit;
+				top: 200px;
+			}
+			.footer_col1 {
+				margin: 15px 46px 20px 34px;
+				float: left;
+				max-width: 200px;
+				color: #787878;
+				font-size: 18px;
+				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
+				text-align: left;
+			}
+			.header3 {
+				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
+				font-weight: bold;
+				font-size: 14px;
+				color: #787878;
+				list-style-type: none;
+				text-align: left;
+				margin: 2px;
+			}
+			.hover {
+				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
+				font-size: 14px;
+				color: #777;
+				list-style-type: none;
+				line-height: 18px;
+			}
+			.hover a {
+				color: #777;
+				margin-left: 1ex;
+			}
+			.logo {}
+			#text {
+				margin-top: 60px;
+			}
+		</style>
 		<script type="text/javascript">
+			var _gaq = _gaq || [];
+			_gaq.push(['_setAccount', 'UA-20678203-1']);
+			_gaq.push(['_trackPageview']);
 
-		  var _gaq = _gaq || [];
-		  _gaq.push(['_setAccount', 'UA-20678203-1']);
-		  _gaq.push(['_trackPageview']);
-
-		  (function() {
-			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-		  })();
-
+			(function() {
+				var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+				ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+				var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+			})();
 		</script>
-	<title>Message Board</title>
-<style type="text/css">
-<!--
-body {
-	font: 100% Verdana, Arial, Helvetica, sans-serif;
-	margin: 0; /* it's good practice to zero the margin and padding of the body element to account for differing browser defaults */
-	padding: 0;
-	text-align: center; /* this centers the container in IE 5* browsers. The text is then set to the left aligned default in the #container selector */
-	color: #000000;
-}
-.demo {
-	float: left;
-	position: relative;
-	z-index: -1;
-}
-.oneColFixCtr #container {
-	width: 800px;
-	margin: 0 auto;
-	text-align: left;
-}
-.oneColFixCtr #mainContent {
-	padding-top: 0;
-	padding-right: 0px;
-	padding-bottom: 0;
-	padding-left: 0px;
-	font-size: small;
-}
-.copyright {float: right;
-	font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
-	color: #aaa;
-	margin: 15px 7px;
-	font-size: 12px;
-}
-.footer {	position: relative;
-	left: inherit;
-	top: 200px;
-}
-.footer_col1 {margin: 15px 46px 20px 34px;
-	float: left;
-	max-width: 200px;
-	color: #787878;
-	font-size: 18px;
-	font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
-	text-align: left;
-}
-.header3 {font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
-	font-weight: bold;
-	font-size: 14px;
-	color: #787878;
-	list-style-type: none;
-	text-align: left;
-	margin: 2px;
-}
-.hover2 {font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
-	font-size: 14px;
-	color: #777;
-	list-style-type: none;
-}
-.hover_link3 {color: #777;
-	margin-left: 1ex;
-}
-.logo {}
-#text {	margin-top: 60px;
-}
--->
-</style>
-</head>
-    <body class="oneColFixCtr">
-    	<div id="container">
-    	  <div id="mainContent">
-    	    <div>
-    	      <p><a href="/"><img src="../res/images/K.L._Stuidio_Logo_small.png" alt="" border="0" class="logo" /></a></p>
-  	      </div>
-    	    <div id="text">
-              <form action="/MessageBoard/sign" method="post">
-           	 		<div>Nickname/email:
-           	 			<input name="author"
-                            {% if logined %}
-                                readonly="readonly"
-                            {% endif %}
-                            value="{{ author }}">
-                        </input>
-                        {% if not logined %}
-                        	<a href="{{ login_url }}">Login with your Google account</a>
-                        {% else %}
-                        	<a href="{{ login_url }}">Login with another account</a>
-                        {% endif %}
-                    </div>
-           	 		<div><textarea name="content" rows="4" cols="70"></textarea></div>
-            		<div><input type="submit" value="Leave a message"></div>
+	</head>
+	<body class="oneColFixCtr">
+		<div id="container">
+			<div id="mainContent">
+			<div>
+				<p><a href="/"><img src="../res/images/K.L._Stuidio_Logo_small.png" alt="" border="0" class="logo" /></a></p>
+			</div>
+			<div id="text">
+				<form action="/MessageBoard/sign" method="post">
+					<div>Nickname/email:
+						<input name="author"
+							{% if logined %}
+								readonly="readonly"
+							{% endif %}
+							value="{{ author }}">
+						</input>
+						{% if not logined %}
+							<a href="{{ login_url }}">Login with your Google account</a>
+						{% else %}
+							<a href="{{ login_url }}">Login with another account</a>
+						{% endif %}
+					</div>
+					<div><textarea name="content" rows="4" cols="70"></textarea></div>
+					<div><input type="submit" value="Leave a message"></div>
 				</form>
-                <p>&nbsp;</p>
-                <h2>Recent Messages</h2>
+				<p>&nbsp;</p>
+				<h2>Recent Messages</h2>
 				<div style="overflow:auto; height:260px;width:800px;background-color:#EEE">
-                    {% for note in notes %}
-                        <b>{{ note.author.nickname }}</b> wrote in {{note.date|date:"Y-n-d h:i:s"}} (GMT):
-                  		<blockquote>{{ note.content|escape }}</blockquote>
-                    {% endfor %}
-		  	  </div>
-            </div>
-    	    <div class="footer">
-    	      <div style="margin: 0 auto">
-    	        <p class="copyright"> &copy; 2010 K.L. Studio<br />
-  	          </p>
-    	        <div class="footer_col1">
-    	          <ul>
-    	            <li class="header3">Projects</li>
-    	            <li class="hover2"><a href="/projects/Tanx/Tanx.html" class="hover_link3">Tanx</a></li>
-    	            <li class="hover2"><a href="/projects/Tetra/Tetra.html" class="hover_link3">Tetra</a></li>
-    	            <li class="hover2"><a href="/projects/Trigo/Trigo.html" class="hover_link3">Trigo</a></li>
-    	            <li class="hover2"><a href="/projects/MagicCube/MagicCube.html" class="hover_link3">Magic Cube</a></li>
-  	            </ul>
-  	          </div>
-    	        <div class="footer_col1">
-    	          <ul>
-    	            <li class="header3">About Us</li>
-    	            <li class="hover2"><a href="/about.html" class="hover_link3">Contacts</a></li>
-					<li class="hover2"><a href="/MessageBoard" class="hover_link3">Leave a message</a><sup style="color:#F00">new!</sup></li>
-  	            </ul>
-  	          </div>
-  	        </div>
-  	      </div>
-    	    <!-- end #mainContent -->
-  	    </div>
-    	  <!-- end #container -->
-  	  </div>
-    	<p>&nbsp;</p>
-    </body>
+					{% for note in notes %}
+						<b>{{ note.author.nickname }}</b> wrote in {{note.date|date:"Y-n-d h:i:s"}} (GMT):
+						<blockquote>{{ note.content|escape }}</blockquote>
+					{% endfor %}
+				</div>
+			</div>
+			<div class="footer">
+				<div style="margin: 0 auto">
+				<p class="copyright"> &copy; 2010 K.L. Studio<br />
+				</p>
+				<div class="footer_col1">
+					<ul>
+					<li class="header3">Projects</li>
+					<li class="hover"><a href="/projects/Tanx/Tanx.html">Tanx</a></li>
+					<li class="hover"><a href="/projects/Tetra/Tetra.html">Tetra</a></li>
+					<li class="hover"><a href="http://klstrigo.appspot.com/" target="_blank">Trigo Online</a><sup style="color:#F00">new!</sup></li>
+					<li class="hover"><a href="/projects/Trigo/Trigo.html">Trigo</a></li>
+					<li class="hover"><a href="/projects/MagicCube/MagicCube.html">Magic Cube</a></li>
+				</ul>
+				</div>
+				<div class="footer_col1">
+					<ul>
+					<li class="header3">About Us</li>
+					<li class="hover"><a href="/about.html">Contacts</a></li>
+					<li class="hover"><a href="/MessageBoard">Leave a message</a></li>
+				</ul>
+				</div>
+			</div>
+			</div>
+			<!-- end #mainContent -->
+		</div>
+			<!-- end #container -->
+		</div>
+		<p>&nbsp;</p>
+	</body>
 </html>

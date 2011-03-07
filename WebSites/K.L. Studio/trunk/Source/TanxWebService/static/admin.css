@@ -32,6 +32,13 @@ h1 { text-align: center; }
 	padding: 0 20px;
 }
 
+.title-status
+{
+	font-size: smaller;
+	font-weight: lighter;
+	color: #888;
+}
+
 
 #header
 {

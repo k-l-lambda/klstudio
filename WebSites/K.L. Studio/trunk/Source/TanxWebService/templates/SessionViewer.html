@@ -16,7 +16,12 @@
 				<a href="./">Session <b>{{session.id}}</b></a>
 			</div>
 		</div>
-		<h1>Session <i>{{session.id}}</i></h1>
+		<h1>
+			Session <i>{{session.id}}</i>
+			{% if session.isCached %}
+				<span class="title-status">(cached)</span>
+			{% endif %}
+		</h1>
 		<div class="section">
 			<table class="property-table">
 				<tr>

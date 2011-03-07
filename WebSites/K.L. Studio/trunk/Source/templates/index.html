@@ -7,17 +7,37 @@
 		<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
 		<link rel="me" type="text/html" href="http://www.google.com/profiles/107810202308609674959" />
 		<meta name="google-site-verification" content="0BpWZPUuqx4CJmcqMNoMa3KKBMNevSNRmg4Gsircp9g" />
+		<title>K.L. Studio</title>
 		<style type="text/css">
+			body
+			{
+				height: 200px;
+				background-image: url(res/images/CubeEarth2.png);
+				background-repeat: no-repeat;
+				background-position: center 180px;
+				text-align: center;
+			}
+
 			img
 			{
-				border: 0;
+				border: none;
 			}
 
 			.main_container {
 				width: 800px;
 				margin: 0 auto;
-				min-height: 600px;
 				margin-bottom: 0px;
+			}
+			#logo
+			{
+				width: 800px;
+				margin-bottom: 400px;
+				border: none;
+			}
+			#motto
+			{
+				height: 160px;
+				text-align: center;
 			}
 			.footer_col {
 				margin: 15px 46px 20px 34px;
@@ -29,9 +49,6 @@
 				text-align: left;
 			}
 			.footer {
-				position: relative;
-				left: inherit;
-				top: 400px;
 			}
 			.header {
 				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
@@ -54,13 +71,21 @@
 				font-size: 14px;
 				color: #777;
 				list-style-type: none;
+				line-height: 18px;
 			}
-			.hover_link {
+			.hover a {
 				color: #777;
 				margin-left: 1ex;
 			}
 		</style>
-		<title>K.L. Studio</title>
+		<script type="text/javascript">
+			var onTrigoonlineClick = function() {
+				if (/\.tk/.test(location.hostname)) {
+					open("http://trigo.www.go3d.tk/");
+					event.preventDefault();
+				}
+			};
+		</script>
 		<script type="text/javascript">
 			var _gaq = _gaq || [];
 			_gaq.push(['_setAccount', 'UA-20678203-1']);
@@ -74,14 +99,14 @@
 		</script>
 	</head>
 
-	<body style="height: 200px; background-image: url(res/images/CubeEarth2.png); background-repeat:no-repeat; background-position:center 180px; text-align:center" >
+	<body>
 		<div class="main_container">
-			<table width="800" border="0" align="center">
+			<table id="logo">
 				<tr>
-					<td><a href="/"><img src="res/images/K.L._Stuidio_Logo_small.png"></a></td>
+					<td><a href="/"><img src="res/images/K.L._Stuidio_Logo_small.png" alt="K.L. Studio" /></a></td>
 				</tr>
 				<tr>
-					<td height="160" align="center"><img src="res/images/ToCreateaPlayfulWorld.png" width="640" height="48"></td>
+					<td id="motto"><img src="res/images/ToCreateaPlayfulWorld.png" alt="To Create a Playful World" /></td>
 				</tr>
 			</table>
 			<div class="footer">
@@ -92,17 +117,18 @@
 					<div class="footer_col">
 						<ul>
 							<li class="header">Projects</li>
-							<li class="hover"><a href="projects/Tanx/Tanx.html" class="hover_link">Tanx</a></li>
-							<li class="hover"><a href="projects/Tetra/Tetra.html" class="hover_link">Tetra</a></li>
-							<li class="hover"><a href="projects/Trigo/Trigo.html" class="hover_link">Trigo</a></li>
-							<li class="hover"><a href="projects/MagicCube/MagicCube.html" class="hover_link">Magic Cube</a></li>
+							<li class="hover"><a href="projects/Tanx/Tanx.html">Tanx</a></li>
+							<li class="hover"><a href="projects/Tetra/Tetra.html">Tetra</a></li>
+							<li class="hover"><a href="http://klstrigo.appspot.com/" target="_blank" onclick="onTrigoonlineClick()">Trigo Online</a><sup style="color:#F00">new!</sup></li>
+							<li class="hover"><a href="projects/Trigo/Trigo.html">Trigo</a></li>
+							<li class="hover"><a href="projects/MagicCube/MagicCube.html">Magic Cube</a></li>
 						</ul>
 					</div>
 					<div class="footer_col">
 						<ul>
 							<li class="header">About Us</li>
 							<li class="hover"><a href="about.html" class="hover_link">Contacts</a></li>
-							<li class="hover"><a href="/MessageBoard" class="hover_link">Leave a message</a><sup style="color:#F00">new!</sup></li>
+							<li class="hover"><a href="/MessageBoard" class="hover_link">Leave a message</a></li>
 						</ul>
 					</div>
 				</div>

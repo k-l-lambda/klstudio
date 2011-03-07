@@ -12,11 +12,13 @@ from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
 from google.appengine.ext.webapp import template
+from google.appengine.api import mail
 
 
-class MainHandler(webapp.RequestHandler):
+class HomeHandler(webapp.RequestHandler):
     def get(self):
-        self.redirect('/index.html')
+        path = os.path.join(os.path.dirname(__file__), 'templates/index.html')
+        self.response.out.write(template.render(path, {}))
 
 
 class GuestNote(db.Model):
@@ -38,6 +40,14 @@ class MessageSign(webapp.RequestHandler):
         note.remote_addr = self.request.remote_addr
         note.content = self.request.get('content')
         note.put()
+
+        mail.send_mail(
+            sender = 'K.L.Studio.indiegame@gmail.com',
+            to = 'K.L.Studio.indiegame@gmail.com',
+            subject = 'A guest note signed on K.L. Studio message board',
+            body = 'author: %s\nremote_addr: %s\ncontent: %s' % (note.author.email(), note.remote_addr, note.content)
+        )
+
         self.redirect('/MessageBoard')
 
 
@@ -64,7 +74,7 @@ class HtmlHandler(webapp.RequestHandler):
 
 def main():
     application = webapp.WSGIApplication([
-        ('/',                   MainHandler),
+        ('/',                   HomeHandler),
         ('/html/.*',            HtmlHandler),
         ('/MessageBoard',       MessageBoard),
         ('/MessageBoard/sign',  MessageSign),

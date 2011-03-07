@@ -1,8 +1,12 @@
 
 TODO:
-	add Trigo online
 
 Pending Issues:
+
+
+2011.3.7	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Trigo online link on home page added.
 
 
 2011.3.5	K.L.	<xxxK.L.xxx@gmail.com>

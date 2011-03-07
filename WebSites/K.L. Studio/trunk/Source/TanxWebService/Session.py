@@ -54,7 +54,7 @@ class Session(db.Model):
         if channels:
             return channels
 
-        session_data = memcache.get('SessionData:' + self.id())
+        session_data = memcache.get('TanxWebService_SessionData:' + self.id())
         if session_data:
             return session_data['channels']
 
@@ -65,7 +65,7 @@ class Session(db.Model):
         if messages and messages.count():
             return messages
 
-        session_data = memcache.get('SessionData:' + self.id())
+        session_data = memcache.get('TanxWebService_SessionData:' + self.id())
         if session_data:
             return session_data['hostMessages']
 
@@ -76,7 +76,7 @@ class Session(db.Model):
         if messages:
             return messages
 
-        session_data = memcache.get('SessionData:' + self.id())
+        session_data = memcache.get('TanxWebService_SessionData:' + self.id())
         if session_data:
             return session_data['guestMessages']
 
@@ -91,9 +91,9 @@ class Session(db.Model):
         if session:
             return session
 
-        session_data = memcache.get('SessionData:' + id)
+        session_data = memcache.get('TanxWebService_SessionData:' + id)
         if session_data:
             return session_data['session']
 
     def isCached(self):
-        return memcache.get('SessionData:' + self.id()) is not None
+        return memcache.get('TanxWebService_SessionData:' + self.id()) is not None

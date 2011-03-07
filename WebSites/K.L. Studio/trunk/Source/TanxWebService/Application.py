@@ -36,7 +36,7 @@ class Application(db.Model):
     def cacheSession(self, session):
         self.cache_session_ids.insert(0, session.id())
         while len(self.cache_session_ids) > 2000:
-            memcache.delete('SessionData:' + self.cache_session_ids.pop())
+            memcache.delete('TanxWebService_SessionData:' + self.cache_session_ids.pop())
         self.put()
 
         session_data = {
@@ -46,12 +46,12 @@ class Application(db.Model):
             'guestMessages': session.guestMessages().fetch(1000),
         }
 
-        memcache.set('SessionData:' + session.id(), session_data)
+        memcache.set('TanxWebService_SessionData:' + session.id(), session_data)
 
     def removeCacheSession(self, id):
         self.cache_session_ids.remove(id)
         self.put()
 
-        memcache.delete('SessionData:' + id)
+        memcache.delete('TanxWebService_SessionData:' + id)
 
         logging.info('cached session "%s" removed.', id)

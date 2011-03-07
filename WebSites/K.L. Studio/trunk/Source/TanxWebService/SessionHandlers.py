@@ -13,7 +13,7 @@ import Serializer
 def findSessionByPath(path):
     app_id = re.sub('.*/app/([^/]+)/.*', r'\1', path)
     id = re.sub('.*/session/([^/]+)/.*', r'\1', path)
-    session = Session.get_by_key_name(id, Application.getById(app_id))
+    session = Session.get(id, Application.getById(app_id))
 
     return (app_id, id, session)
 

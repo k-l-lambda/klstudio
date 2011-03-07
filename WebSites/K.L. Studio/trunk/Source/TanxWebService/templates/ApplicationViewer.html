@@ -2,6 +2,7 @@
 	<head>
 		<title>Tanx Web Service Admin - Application {{application.id}}</title>
 		<link href="../../../static/admin.css" rel="stylesheet" type="text/css" />
+		<script src="../../../static/jquery.js" type="text/javascript"></script>
 		<script src="../../../static/admin.js" type="text/javascript"></script>
 	</head>
 	<body>
@@ -60,6 +61,40 @@
 				<input type="hidden" name="app_id" value="{{application.id}}" />
 				timeout: <input type="text" name="timeout" value="0.2" size="2" />
 				<input type="submit" value="Clear" />
+			</form>
+		</div>
+		<div class="section">
+			<h2>
+				Cache Sessions
+				<button onclick="loadCachedSessionInfo('{{application.id}}')">Load Info</button>
+			</h2>
+			<form action="delete-session" method="post">
+				<table class="long-table">
+					<tr>
+						<th><input type="checkbox" onclick="checkAll(this, 'cachesessionchk')" title="select all/none" /></th>
+						<th>id</th>
+						<th>host</th>
+						<th>setup_time</th>
+						<th>alive_time</th>
+						<th>next_host_message_id</th>
+						<th>next_guest_message_id</th>
+						<th>tags</th>
+					</tr>
+					{% for id in application.cache_session_ids %}
+						<tr class="cached-session">
+							<td class="head-check"><input type="checkbox" name="id" value="{{id}}" class="cachesessionchk"/></td>
+							<td><a class="session-id" href="session/{{id}}/">{{id}}</a></td>
+							<td class="session-host">...</td>
+							<td class="session-setup_time">...</td>
+							<td class="session-alive_time">...</td>
+							<td class="session-next_host_message_id">...</td>
+							<td class="session-next_guest_message_id">...</td>
+							<td class="session-tags">...</td>
+						</tr>
+					{% endfor %}
+				</table>
+				<input type="hidden" name="app_id" value="{{application.id}}" />
+				<input type="submit" value="Delete" onClick="confirmEvent('Sure to delete selected session(s)?')" />
 			</form>
 		</div>
 	</body>

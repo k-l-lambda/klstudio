@@ -32,7 +32,10 @@ class DeleteSessionHandler(webapp.RequestHandler):
 
         for id in self.request.get_all('id'):
             session = Session.get_by_key_name(id, app)
-            session.deleteData()
+            if session:
+                session.deleteData()
+            if id in app.cache_session_ids:
+                app.removeCacheSession(id)
 
         self.redirect('./')
 

@@ -3,6 +3,7 @@ import logging
 
 from google.appengine.ext import db
 from google.appengine.api import users
+from google.appengine.api import memcache
 
 from SessionMessage import *
 
@@ -38,6 +39,8 @@ class Session(db.Model):
         return id
 
     def deleteData(self):
+        self.parent().cacheSession(self)
+
         db.delete(SessionChannel.all().ancestor(self))
         db.delete(SessionHostMessage.all().ancestor(self))
         db.delete(SessionGuestMessage.all().ancestor(self))
@@ -47,13 +50,50 @@ class Session(db.Model):
         logging.info('session "%s" data deleted.', self.id())
 
     def channels(self):
-        return SessionChannel.all().ancestor(self)
+        channels = SessionChannel.all().ancestor(self)
+        if channels:
+            return channels
+
+        session_data = memcache.get('SessionData:' + self.id())
+        if session_data:
+            return session_data['channels']
+
+        return channels
 
     def hostMessages(self):
-        return SessionHostMessage.all().ancestor(self).order('time')
+        messages = SessionHostMessage.all().ancestor(self).order('time')
+        if messages and messages.count():
+            return messages
+
+        session_data = memcache.get('SessionData:' + self.id())
+        if session_data:
+            return session_data['hostMessages']
+
+        return messages
 
     def guestMessages(self):
-        return SessionGuestMessage.all().ancestor(self).order('time')
+        messages = SessionGuestMessage.all().ancestor(self).order('time')
+        if messages:
+            return messages
+
+        session_data = memcache.get('SessionData:' + self.id())
+        if session_data:
+            return session_data['guestMessages']
+
+        return messages
 
     def toDict(self):
         return {'id': self.id(), 'host': self.host, 'setup_time': self.setup_time, 'alive_time': self.alive_time, 'alive': self.alive, 'next_host_message_id': self.next_host_message_id, 'next_guest_message_id': self.next_guest_message_id, 'tags': self.tags}
+
+    @staticmethod
+    def get(id, parent):
+        session = Session.get_by_key_name(id, parent)
+        if session:
+            return session
+
+        session_data = memcache.get('SessionData:' + id)
+        if session_data:
+            return session_data['session']
+
+    def isCached(self):
+        return memcache.get('SessionData:' + self.id()) is not None

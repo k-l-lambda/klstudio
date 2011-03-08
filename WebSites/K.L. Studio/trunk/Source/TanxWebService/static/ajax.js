@@ -115,7 +115,7 @@ tanxjs.WebSession = function(root_location, id, hosting) {
 	this.Active = true;
 	this.Hosting = hosting;
 	this.IgnoredMessageIds = [];
-	if(this.Hosting) {
+	if (this.Hosting) {
 		this.GuestConnectionTest = [];
 		this.NextGuestConnectionTestId = 0;
 	}
@@ -256,21 +256,33 @@ tanxjs.WebSession = function(root_location, id, hosting) {
 
 											break;
 										case "connection-test":
-											if(!self.Hosting) {
+											if (!self.Hosting) {
 												self.postMessage({ _tanxjs: "connection-test-response", receiveTime: new Date().getTime(), token: mdata.token });
 											}
 
 											break;
+										default:
+											onMessageArrived(self.ID, msg, mdata);
+									}
+								}
+								else {
+									switch (mdata._tanxjs) {
 										case "connection-test-response":
-											if(self.Hosting) {
+											if (self.Hosting) {
 												var tester = self.GuestConnectionTest[mdata.token];
-												if(tester) {
-													if(tester.onTimerHandler)
+												if (tester && msg.sender.email == tester.guest) {
+													if (tester.onTimerHandler)
 														clearInterval(tester.onTimerHandler);
 
 													var now = new Date();
-													if(tester.onResponse)
-														tester.onResponse({full: now - tester.startTime, guest: receiveTime - tester.sendTime});
+													if (tester.onResponse) {
+														tester.onResponse({
+															full: now - tester.startTime,
+															guest: mdata.receiveTime - tester.sendTime,
+															post: tester.sendTime - tester.startTime.getTime(),
+															fetch: now.getTime() - mdata.receiveTime
+														});
+													}
 
 													delete self.GuestConnectionTest[mdata.token];
 												}
@@ -281,8 +293,6 @@ tanxjs.WebSession = function(root_location, id, hosting) {
 											onMessageArrived(self.ID, msg, mdata);
 									}
 								}
-								else
-									onMessageArrived(self.ID, msg, mdata);
 							}
 							catch (err) {
 								alert("message process error: " + err);
@@ -328,10 +338,10 @@ tanxjs.WebSession = function(root_location, id, hosting) {
 				startTime: new Date()
 			};
 
-			this.postMessage({ _tanxjs: "connection-test", token: this.NextGuestConnectionTestId }, null, [guest], function(){
+			this.postMessage({ _tanxjs: "connection-test", token: this.NextGuestConnectionTestId }, null, [guest], function() {
 				tester.sendTime = new Date().getTime();
 
-				if(onTimer)
+				if (onTimer)
 					tester.onTimerHandler = setInterval(onTimer, 1000);
 			});
 

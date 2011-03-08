@@ -4,6 +4,11 @@ TODO:
 Pending Issues:
 
 
+2011.3.8	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	tanxjs.WebSession.prototype.testGuestConnection: added.
+
+
 2011.3.7	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	TanxWebService: cache session data when delete.

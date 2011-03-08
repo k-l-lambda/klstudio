@@ -115,6 +115,10 @@ tanxjs.WebSession = function(root_location, id, hosting) {
 	this.Active = true;
 	this.Hosting = hosting;
 	this.IgnoredMessageIds = [];
+	if(this.Hosting) {
+		this.GuestConnectionTest = [];
+		this.NextGuestConnectionTestId = 0;
+	}
 
 	if (typeof tanxjs.WebSession._initialized == "undefined") {
 		tanxjs.WebSession.prototype.end = function(callback) {
@@ -251,6 +255,28 @@ tanxjs.WebSession = function(root_location, id, hosting) {
 											self.IgnoredMessageIds.push(msg.id);
 
 											break;
+										case "connection-test":
+											if(!self.Hosting) {
+												self.postMessage({ _tanxjs: "connection-test-response", receiveTime: new Date().getTime(), token: mdata.token });
+											}
+
+											break;
+										case "connection-test-response":
+											if(self.Hosting) {
+												var tester = self.GuestConnectionTest[mdata.token];
+												if(tester) {
+													if(tester.onTimerHandler)
+														clearInterval(tester.onTimerHandler);
+
+													var now = new Date();
+													if(tester.onResponse)
+														tester.onResponse({full: now - tester.startTime, guest: receiveTime - tester.sendTime});
+
+													delete self.GuestConnectionTest[mdata.token];
+												}
+											}
+
+											break;
 										default:
 											onMessageArrived(self.ID, msg, mdata);
 									}
@@ -289,10 +315,28 @@ tanxjs.WebSession = function(root_location, id, hosting) {
 			this.Active = false;
 		}
 
-		tanxjs.WebSession.prototype.resetGuestMessageId = this.Hosting && function(guest, next_id, callback) {
+		tanxjs.WebSession.prototype.resetGuestMessageId = function(guest, next_id, callback) {
 			if (typeof (guest) === "string")
 				guest = [guest];
 			this.postMessage({ _tanxjs: "reset-message-id", next_id: next_id }, null, guest, callback);
+		};
+
+		tanxjs.WebSession.prototype.testGuestConnection = function(guest, onResponse, onTimer) {
+			var tester = {
+				guest: guest,
+				onResponse: onResponse,
+				startTime: new Date()
+			};
+
+			this.postMessage({ _tanxjs: "connection-test", token: this.NextGuestConnectionTestId }, null, [guest], function(){
+				tester.sendTime = new Date().getTime();
+
+				if(onTimer)
+					tester.onTimerHandler = setInterval(onTimer, 1000);
+			});
+
+			this.GuestConnectionTest[this.NextGuestConnectionTestId] = tester;
+			++this.NextGuestConnectionTestId;
 		};
 	}
 }

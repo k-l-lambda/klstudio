@@ -270,7 +270,7 @@ tanxjs.WebSession = function(root_location, id, hosting) {
 										case "connection-test-response":
 											if (self.Hosting) {
 												var tester = self.GuestConnectionTest[mdata.token];
-												if (tester && msg.sender.email == tester.guest) {
+												if (tester && msg.sender.email.toLowerCase() == tester.guest.toLowerCase()) {
 													if (tester.onTimerHandler)
 														clearInterval(tester.onTimerHandler);
 

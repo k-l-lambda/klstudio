@@ -176,10 +176,10 @@ tanxjs.WebSession = function(root_location, id, hosting) {
 			var str = "data=" + tanxjs.WebService.escapeMessagePost($.toJSON(data)) + ";";
 			if (channels)
 				for (var i in channels)
-					str += "channel=" + channels[i] + ";";
+				str += "channel=" + channels[i] + ";";
 			if (audiences)
 				for (var i in audiences)
-					str += "audience=" + audiences[i] + ";";
+				str += "audience=" + audiences[i] + ";";
 
 			$.ajax({
 				url: this.RootLocation + "post-message",
@@ -242,60 +242,64 @@ tanxjs.WebSession = function(root_location, id, hosting) {
 
 						var brk = false;
 						$.each(data.messages, function(i, msg) {
-							if (!brk && self.IgnoredMessageIds.indexOf(msg.id) < 0)
+							if (!brk && self.IgnoredMessageIds.indexOf(msg.id) < 0) {
 								try {
-								var mdata = $.evalJSON(msg.data);
-								if (!self.Hosting) {
-									switch (mdata._tanxjs) {
-										case "reset-message-id":
-											next_id = mdata.next_id;
-											brk = true;
+									var mdata = $.evalJSON(msg.data);
+									if (!self.Hosting) {
+										switch (mdata._tanxjs) {
+											case "reset-message-id":
+												next_id = mdata.next_id;
+												brk = true;
 
-											// ignore this message next time
-											self.IgnoredMessageIds.push(msg.id);
+												// ignore this message next time
+												self.IgnoredMessageIds.push(msg.id);
 
-											break;
-										case "connection-test":
-											if (!self.Hosting) {
-												self.postMessage({ _tanxjs: "connection-test-response", receiveTime: new Date().getTime(), token: mdata.token });
-											}
-
-											break;
-										default:
-											onMessageArrived(self.ID, msg, mdata);
-									}
-								}
-								else {
-									switch (mdata._tanxjs) {
-										case "connection-test-response":
-											if (self.Hosting) {
-												var tester = self.GuestConnectionTest[mdata.token];
-												if (tester && msg.sender.email.toLowerCase() == tester.guest.toLowerCase()) {
-													if (tester.onTimerHandler)
-														clearInterval(tester.onTimerHandler);
-
-													var now = new Date();
-													if (tester.onResponse) {
-														tester.onResponse({
-															full: now - tester.startTime,
-															guest: mdata.receiveTime - tester.sendTime,
-															post: tester.sendTime - tester.startTime.getTime(),
-															fetch: now.getTime() - mdata.receiveTime
-														});
-													}
-
-													delete self.GuestConnectionTest[mdata.token];
+												break;
+											case "connection-test":
+												if (!self.Hosting) {
+													self.postMessage({ _tanxjs: "connection-test-response", receiveTime: new Date().getTime(), token: mdata.token });
 												}
-											}
 
-											break;
-										default:
-											onMessageArrived(self.ID, msg, mdata);
+												break;
+											default:
+												onMessageArrived(self.ID, msg, mdata);
+										}
+									}
+									else {
+										switch (mdata._tanxjs) {
+											case "connection-test-response":
+												if (self.Hosting) {
+													var tester = self.GuestConnectionTest[mdata.token];
+													if (tester && msg.sender.email.toLowerCase() == tester.guest.toLowerCase()) {
+														if (tester.onTimerHandler)
+															clearInterval(tester.onTimerHandler);
+
+														var now = new Date();
+														if (tester.onResponse) {
+															tester.onResponse({
+																full: now - tester.startTime,
+																guest: mdata.receiveTime - tester.sendTime,
+																post: tester.sendTime - tester.startTime.getTime(),
+																fetch: now.getTime() - mdata.receiveTime
+															});
+														}
+
+														delete self.GuestConnectionTest[mdata.token];
+													}
+												}
+
+												break;
+											default:
+												onMessageArrived(self.ID, msg, mdata);
+										}
 									}
 								}
-							}
-							catch (err) {
-								alert("message process error: " + err);
+								catch (err) {
+									if (options.onMessageProcessError)
+										options.onMessageProcessError(err);
+									else
+										alert("message process error: " + err);
+								}
 							}
 						});
 

@@ -4,6 +4,11 @@ TODO:
 Pending Issues:
 
 
+2011.3.20	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	tanxjs.WebSession.prototype.fetchMessageLoop: added option of 'onMessageProcessError'.
+
+
 2011.3.8	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	tanxjs.WebSession.prototype.testGuestConnection: added.

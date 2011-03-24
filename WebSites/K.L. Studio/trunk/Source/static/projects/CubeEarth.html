@@ -105,11 +105,11 @@
 				createVertex: function(pos, normal, tu, tv) {
 					var v = new CL3D.Vertex3D(true);
 					v.Pos = pos;
-					if(normal)
+					if (normal)
 						v.Normal = normal;
-					if(tu || tu == 0)
+					if (tu || tu == 0)
 						v.TCoords.X = tu;
-					if(tv || tv == 0)
+					if (tv || tv == 0)
 						v.TCoords.Y = tv;
 
 					return v;
@@ -144,21 +144,61 @@
 					options = options || {};
 					options.Segments = options.Segments || 10;
 
+					var grids = options.Segments * 1.5 + 1;
+					var inv_grids = 1 / grids;
+
+					var eachRange2D = function(ul, uh, vl, vh, elem) {
+						for (var u = ul; u <= uh; ++u)
+							for (var v = vl; v <= vh; ++v)
+							elem(u, v);
+					};
+
+					var indicies = [];
+					var faceIndexCount = (options.Segments + 1) * (options.Segments + 1);
+					for (var f = 0; f < 6; ++f) {
+						eachRange2D(0, options.Segments - 1, 0, options.Segments - 1, function(u, v) {
+							var base = faceIndexCount * f;
+
+							indicies.push(base + u * (options.Segments + 1) + v);
+							indicies.push(base + (u + 1) * (options.Segments + 1) + v);
+							indicies.push(base + (u + 1) * (options.Segments + 1) + v + 1);
+
+							indicies.push(base + u * (options.Segments + 1) + v);
+							indicies.push(base + (u + 1) * (options.Segments + 1) + v + 1);
+							indicies.push(base + u * (options.Segments + 1) + v + 1);
+						});
+					}
+					//indicies = [0, 3, 4, 0, 4, 1];
+
+					var units = [];
+
 					// traverse all units
-					for(var ax = -1; ax <= 1; ++ax)
-						for(var ay = -1; ay <= 1; ++ay)
-							for(var az = -1; az <= 1; ++az) {
+					for (var ax = -1; ax <= 1; ++ax)
+						for (var ay = -1; ay <= 1; ++ay)
+							for (var az = -1; az <= 1; ++az) {
+								var vertices = [];
+
 								var xl = ax * (options.Segments + 1) - options.Segments / 2, xh = ax * (options.Segments + 1) + options.Segments / 2;
 								var yl = ay * (options.Segments + 1) - options.Segments / 2, yh = ay * (options.Segments + 1) + options.Segments / 2;
 								var zl = az * (options.Segments + 1) - options.Segments / 2, zh = az * (options.Segments + 1) + options.Segments / 2;
 
-								// TODO: create vertices & indices
+								eachRange2D(yl, yh, zl, zh, function(y, z) { vertices.push(util.createVertex(new CL3D.Vect3d(xl, y, z).multiplyWithScal(inv_grids))); });
+								eachRange2D(zl, zh, yl, yh, function(z, y) { vertices.push(util.createVertex(new CL3D.Vect3d(xh, y, z).multiplyWithScal(inv_grids))); });
+								eachRange2D(zl, zh, xl, xh, function(z, x) { vertices.push(util.createVertex(new CL3D.Vect3d(x, yl, z).multiplyWithScal(inv_grids))); });
+								eachRange2D(xl, xh, zl, zh, function(x, z) { vertices.push(util.createVertex(new CL3D.Vect3d(x, yh, z).multiplyWithScal(inv_grids))); });
+								eachRange2D(xl, xh, yl, yh, function(x, y) { vertices.push(util.createVertex(new CL3D.Vect3d(x, y, zl).multiplyWithScal(inv_grids))); });
+								eachRange2D(yl, yh, xl, xh, function(y, x) { vertices.push(util.createVertex(new CL3D.Vect3d(x, y, zh).multiplyWithScal(inv_grids))); });
+
+								units.push({ vertices: vertices, indicies: indicies });
 							}
+
+					return units;
 				}
 			};
 			util.SimpleCubeMesh = util.createSimpleCubeMesh(1);
+			util.CubeArrayMeshes = util.createCubeArrayMeshes();
 
-			$(function(){
+			$(function() {
 				var canvas = $("#cube-earth");
 				canvas.attr("width", canvas.width());
 				canvas.attr("height", canvas.height());
@@ -176,23 +216,28 @@
 					cam.setFov(Math.PI * 0.4);
 					var animator = new CL3D.AnimatorCameraModelViewer(cam, CL, [0]);
 					cam.addAnimator(animator);
-					animator.Radius = 1.6;
+					animator.Radius = 3;
 					Scene.getRootSceneNode().addChild(cam);
 					Scene.setActiveCamera(cam);
 					cam.setAspectRatio(canvas.width() / canvas.height());
 
-					{
+					var cube = new CL3D.SceneNode();
+					Scene.getRootSceneNode().addChild(cube);
+
+					var cubeMat = CL.getRenderer().createMaterialTypeEx($("#vs-simplecolor").text(), $("#fs-simplecolor").text(), { vColor: [0, 0.2, 0.4, 1] });
+
+					$.each(util.CubeArrayMeshes, function(i, unit) {
 						var buffer = new CL3D.MeshBuffer();
-						buffer.setVIMesh(util.SimpleCubeMesh);
-						buffer.Mat.Type = CL.getRenderer().createMaterialTypeEx($("#vs-simplecolor").text(), $("#fs-simplecolor").text(), {vColor: [0, 1, 0.7, 1]});
+						buffer.setVIMesh(unit);
+						buffer.Mat.Type = cubeMat;
 
 						var mesh = new CL3D.Mesh();
 						mesh.AddMeshBuffer(buffer);
 
 						var node = new CL3D.MeshSceneNode();
 						node.setMesh(mesh);
-						Scene.getRootSceneNode().addChild(node);
-					}
+						cube.addChild(node);
+					});
 				}
 			});
 		</script>

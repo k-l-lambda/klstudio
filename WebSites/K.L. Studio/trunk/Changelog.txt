@@ -4,6 +4,11 @@ TODO:
 Pending Issues:
 
 
+2011.3.24	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Source/static/projects/CubeEarth.html: created.
+
+
 2011.3.20	K.L.	<xxxK.L.xxx@gmail.com>
 
 	>	tanxjs.WebSession.prototype.fetchMessageLoop: added option of 'onMessageProcessError'.

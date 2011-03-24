@@ -33,7 +33,7 @@
 				gl_Position = worldviewproj * vPosition;
 			}
 		</script>
-		<script id="fs-simplecolor" type="x-shader/x-vertex">
+		<script id="fs-simplecolor" type="x-shader/x-fragment">
 			#ifdef GL_ES
 			precision highp float;
 			#endif
@@ -139,6 +139,21 @@
 					];
 
 					return { vertices: vertices, indicies: indicies };
+				},
+				createCubeArrayMeshes: function(options) {
+					options = options || {};
+					options.Segments = options.Segments || 10;
+
+					// traverse all units
+					for(var ax = -1; ax <= 1; ++ax)
+						for(var ay = -1; ay <= 1; ++ay)
+							for(var az = -1; az <= 1; ++az) {
+								var xl = ax * (options.Segments + 1) - options.Segments / 2, xh = ax * (options.Segments + 1) + options.Segments / 2;
+								var yl = ay * (options.Segments + 1) - options.Segments / 2, yh = ay * (options.Segments + 1) + options.Segments / 2;
+								var zl = az * (options.Segments + 1) - options.Segments / 2, zh = az * (options.Segments + 1) + options.Segments / 2;
+
+								// TODO: create vertices & indices
+							}
 				}
 			};
 			util.SimpleCubeMesh = util.createSimpleCubeMesh(1);

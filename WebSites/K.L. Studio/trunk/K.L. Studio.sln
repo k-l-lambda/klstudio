@@ -19,11 +19,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{507BFF60-1747-4568-B869-37F7B1AAD9E1}"
 	ProjectSection(SolutionItems) = preProject
 		Source\static\about.html = Source\static\about.html
-		Source\static\index.html = Source\static\index.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{E1C565A9-4542-4405-8CC0-2E3E8B31FD54}"
 	ProjectSection(SolutionItems) = preProject
+		Source\templates\index.html = Source\templates\index.html
 		Source\templates\MessageBoard.html = Source\templates\MessageBoard.html
 	EndProjectSection
 EndProject

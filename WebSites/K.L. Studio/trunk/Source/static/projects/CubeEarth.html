@@ -47,9 +47,9 @@
 		</script>
 		<script type="text/javascript">
 			CL3D.MeshBuffer.prototype.setVIMesh = function(mesh) {
-				if (this.Vertices != mesh.vertices || this.Indices != mesh.indicies) {
+				if (this.Vertices != mesh.vertices || this.Indices != mesh.indices) {
 					this.Vertices = mesh.vertices;
-					this.Indices = mesh.indicies;
+					this.Indices = mesh.indices;
 					this.update();
 				}
 			};
@@ -129,7 +129,7 @@
 						util.createVertex(new CL3D.Vect3d(+half, +half, -half)),
 						util.createVertex(new CL3D.Vect3d(+half, +half, +half))
 					];
-					var indicies = [
+					var indices = [
 						0, 1, 2, 1, 3, 2,
 						4, 6, 5, 5, 6, 7,
 						1, 5, 3, 5, 7, 3,
@@ -138,7 +138,7 @@
 						5, 1, 0, 0, 4, 5
 					];
 
-					return { vertices: vertices, indicies: indicies };
+					return { vertices: vertices, indices: indices };
 				},
 				createCubeArrayMeshes: function(options) {
 					options = options || {};
@@ -160,20 +160,21 @@
 						return faceVerticesCount * f + u * (options.Segments + 1) + v;
 					};
 
-					var indicies = [];
+					var indices = [];
 					for (var f = 0; f < 6; ++f) {
 						eachRange2D(0, options.Segments - 1, 0, options.Segments - 1, function(u, v) {
-							var base = faceVerticesCount * f;
+							indices.push(getVertexIndex(f, u, v));
+							indices.push(getVertexIndex(f, u + 1, v + 1));
+							indices.push(getVertexIndex(f, u + 1, v));
 
-							indicies.push(getVertexIndex(f, u, v));
-							indicies.push(getVertexIndex(f, u + 1, v + 1));
-							indicies.push(getVertexIndex(f, u + 1, v));
-
-							indicies.push(getVertexIndex(f, u, v));
-							indicies.push(getVertexIndex(f, u, v + 1));
-							indicies.push(getVertexIndex(f, u + 1, v + 1));
+							indices.push(getVertexIndex(f, u, v));
+							indices.push(getVertexIndex(f, u, v + 1));
+							indices.push(getVertexIndex(f, u + 1, v + 1));
 						});
 					}
+
+					var mendIndicesMap = {};
+					var mendIndicesInitialized = false;
 
 					var units = [];
 
@@ -193,6 +194,8 @@
 								eachRange2D(xl, xh, zl, zh, function(x, z) { vertices.push(util.createVertex(util.spherize(new CL3D.Vect3d(x, yh, z).multiplyWithScal(inv_grids), options.Spheral))); });
 								eachRange2D(xl, xh, yl, yh, function(x, y) { vertices.push(util.createVertex(util.spherize(new CL3D.Vect3d(x, y, zl).multiplyWithScal(inv_grids), options.Spheral))); });
 								eachRange2D(yl, yh, xl, xh, function(y, x) { vertices.push(util.createVertex(util.spherize(new CL3D.Vect3d(x, y, zh).multiplyWithScal(inv_grids), options.Spheral))); });
+
+								var mended = 0;
 
 								for (var f = 0; f < 6; ++f) {
 									eachRange2D(0, options.Segments, 0, options.Segments, function(u, v) {
@@ -229,11 +232,71 @@
 										var wuv = util.xyzToWuv(pos);
 										vertex.TCoords.X = wuv.U;
 										vertex.TCoords.Y = wuv.V;
+
+										// append a mend vertex
+										if (pos.Z == 0) {
+											++mended;
+
+											if (!mendIndicesInitialized)
+												mendIndicesMap[getVertexIndex(f, u, v)] = vertices.length;
+
+											var newVertex = vertex;
+											if (vertex.TCoords.X == 0) {
+												newVertex = new CL3D.Vertex3D(true);
+												newVertex.Pos = vertex.Pos;
+												newVertex.Normal = vertex.Normal;
+												newVertex.TCoords.Y = vertex.TCoords.Y;
+												newVertex.TCoords.X = 1;
+											}
+
+											vertices.push(newVertex);
+										}
 									});
 								}
 
-								units.push({ vertices: vertices, indicies: indicies });
+								units.push({ vertices: vertices, indices: indices, mended: mended });
+
+								mendIndicesInitialized = mendIndicesInitialized || mended;
 							}
+
+					// build mendIndices
+					var mendIndices = [];
+					for (var f = 0; f < 6; ++f) {
+						eachRange2D(0, options.Segments - 1, 0, options.Segments - 1, function(u, v) {
+							var i00 = getVertexIndex(f, u, v);
+							var i10 = getVertexIndex(f, u + 1, v);
+							var i01 = getVertexIndex(f, u, v + 1);
+							var i11 = getVertexIndex(f, u + 1, v + 1);
+
+							switch(f) {
+								case 0:
+								case 3:
+									i01 = mendIndicesMap[i01] || i01;
+									i11 = mendIndicesMap[i11] || i11;
+
+									break;
+								case 1:
+								case 2:
+									i10 = mendIndicesMap[i10] || i10;
+									i11 = mendIndicesMap[i11] || i11;
+
+									break;
+							}
+
+							mendIndices.push(i00);
+							mendIndices.push(i11);
+							mendIndices.push(i10);
+
+							mendIndices.push(i00);
+							mendIndices.push(i01);
+							mendIndices.push(i11);
+						});
+					}
+
+					$.each(units, function(i, unit){
+						if(unit.mended)
+							unit.indices = mendIndices;
+					});
 
 					return units;
 				},

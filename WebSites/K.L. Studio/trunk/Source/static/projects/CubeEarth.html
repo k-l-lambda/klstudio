@@ -125,6 +125,7 @@
 			};
 		</script>
 		<script type="text/javascript">
+			var CUBE_SPHERAL_RATE = 0.54;
 			var CL, Scene, Cube;
 
 			var util = {
@@ -169,7 +170,7 @@
 				createCubeArrayMeshes: function(options) {
 					options = options || {};
 					options.Segments = options.Segments || 10;
-					options.Spheral = options.Spheral || 0.54;
+					options.Spheral = options.Spheral || CUBE_SPHERAL_RATE;
 
 					var grids = options.Segments * 1.5 + 1;
 					var inv_grids = 1 / grids;
@@ -327,6 +328,8 @@
 					return units;
 				},
 				spherize: function(v, k) {
+					k = k || CUBE_SPHERAL_RATE;
+
 					var m = v.getLength();
 					var r = Math.max(Math.abs(v.X), Math.max(Math.abs(v.Y), Math.abs(v.Z)));
 					var radius = m * k + r * (1 - k);
@@ -408,6 +411,38 @@
 					node.RotationBase = node.Rotation;
 				});
 				this.updateArray();
+
+				this.ScrewPoints = [
+					{pos: util.spherize(new CL3D.Vect3d(1, 2 / 3, 0)),		face: [0, 1, 0]},
+					{pos: util.spherize(new CL3D.Vect3d(-1, 2 / 3, 0)),		face: [0, 1, 0]},
+					{pos: util.spherize(new CL3D.Vect3d(0, 2 / 3, 1)),		face: [0, 1, 0]},
+					{pos: util.spherize(new CL3D.Vect3d(0, 2 / 3, -1)),		face: [0, 1, 0]},
+
+					{pos: util.spherize(new CL3D.Vect3d(1, -2 / 3, 0)),		face: [0, -1, 0]},
+					{pos: util.spherize(new CL3D.Vect3d(-1, -2 / 3, 0)),	face: [0, -1, 0]},
+					{pos: util.spherize(new CL3D.Vect3d(0, -2 / 3, 1)),		face: [0, -1, 0]},
+					{pos: util.spherize(new CL3D.Vect3d(0, -2 / 3, -1)),	face: [0, -1, 0]},
+
+					{pos: util.spherize(new CL3D.Vect3d(2 / 3, 1, 0)),		face: [1, 0, 0]},
+					{pos: util.spherize(new CL3D.Vect3d(2 / 3, -1, 0)),		face: [1, 0, 0]},
+					{pos: util.spherize(new CL3D.Vect3d(2 / 3, 0, 1)),		face: [1, 0, 0]},
+					{pos: util.spherize(new CL3D.Vect3d(2 / 3, 0, -1)),		face: [1, 0, 0]},
+
+					{pos: util.spherize(new CL3D.Vect3d(-2 / 3, 1, 0)),		face: [-1, 0, 0]},
+					{pos: util.spherize(new CL3D.Vect3d(-2 / 3, -1, 0)),	face: [-1, 0, 0]},
+					{pos: util.spherize(new CL3D.Vect3d(-2 / 3, 0, 1)),		face: [-1, 0, 0]},
+					{pos: util.spherize(new CL3D.Vect3d(-2 / 3, 0, -1)),	face: [-1, 0, 0]},
+
+					{pos: util.spherize(new CL3D.Vect3d(1, 0, 2 / 3)),		face: [0, 0, 1]},
+					{pos: util.spherize(new CL3D.Vect3d(-1, 0, 2 / 3)),		face: [0, 0, 1]},
+					{pos: util.spherize(new CL3D.Vect3d(0, 1, 2 / 3)),		face: [0, 0, 1]},
+					{pos: util.spherize(new CL3D.Vect3d(0, -1, 2 / 3)),		face: [0, 0, 1]},
+
+					{pos: util.spherize(new CL3D.Vect3d(1, 0, -2 / 3)),		face: [0, 0, -1]},
+					{pos: util.spherize(new CL3D.Vect3d(-1, 0, -2 / 3)),	face: [0, 0, -1]},
+					{pos: util.spherize(new CL3D.Vect3d(0, 1, -2 / 3)),		face: [0, 0, -1]},
+					{pos: util.spherize(new CL3D.Vect3d(0, -1, -2 / 3)),	face: [0, 0, -1]},
+				];
 			};
 
 			CubeArray.prototype.getArrayNode = function(i, j, k) {

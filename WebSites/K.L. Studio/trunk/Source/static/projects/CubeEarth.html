@@ -97,9 +97,35 @@
 					});
 				}
 			};
+
+			CL3D.QMeshSceneNode = function() {
+				this.Rotation = new CL3D.Quaternion();
+			};
+
+			CL3D.QMeshSceneNode.prototype = new CL3D.MeshSceneNode();
+
+			CL3D.QMeshSceneNode.prototype.getRelativeTransformation = function () {
+				var trans = this.Rotation.getMatrix();
+				trans.setTranslation(this.Pos);
+				if (this.Scale.X != 1 || this.Scale.Y != 1 || this.Scale.Z != 1) {
+					var a = new CL3D.Matrix4();
+					a.setScale(this.Scale);
+					trans = trans.multiply(a);
+				}
+				return trans;
+			};
+
+			CL3D.Quaternion.prototype.multiplyWithQuat = function(q) {
+				return new CL3D.Quaternion(
+					this.W * q.X + this.X * q.W + this.Y * q.Z - this.Z * q.Y,
+					this.W * q.Y + this.Y * q.W + this.Z * q.X - this.X * q.Z,
+					this.W * q.Z + this.Z * q.W + this.X * q.Y - this.Y * q.X,
+					this.W * q.W - this.X * q.X - this.Y * q.Y - this.Z * q.Z
+				);
+			};
 		</script>
 		<script type="text/javascript">
-			var CL, Scene;
+			var CL, Scene, Cube;
 
 			var util = {
 				createVertex: function(pos, normal, tu, tv) {
@@ -360,12 +386,64 @@
 						var mesh = new CL3D.Mesh();
 						mesh.AddMeshBuffer(buffer);
 
-						var node = new CL3D.MeshSceneNode();
+						var node = new CL3D.QMeshSceneNode();
 						node.setMesh(mesh);
 						cube.addChild(node);
 					});
+
+					Cube = new CubeArray(cube.Children);
 				}
 			});
+
+			var CubeArray = function(nodes) {
+				var self = this;
+
+				this.Nodes = nodes;
+				this.Array = {};
+
+				$.each(nodes, function(i, node){
+					var pos = [Math.floor(i / 9) % 3 - 1, Math.floor(i / 3) % 3 - 1, i % 3 - 1];
+
+					node.ArrayPos = pos;
+					node.RotationBase = node.Rotation;
+				});
+				this.updateArray();
+			};
+
+			CubeArray.prototype.getArrayNode = function(i, j, k) {
+				return this.Array[i][j][k];
+			};
+
+			CubeArray.prototype.setArrayNode = function(node, i, j, k) {
+				this.Array[i] = this.Array[i] || {};
+				this.Array[i][j] = this.Array[i][j] || {};
+				this.Array[i][j][k] = node;
+			};
+
+			CubeArray.prototype.updateArray = function() {
+				var self = this;
+
+				$.each(this.Nodes, function(i, node){
+					self.setArrayNode(node, node.ArrayPos[0], node.ArrayPos[1], node.ArrayPos[2]);
+				});
+			};
+
+			CubeArray.prototype.setFaceRotation = function(face, angle) {
+				this.traverseArrayFace(face, function(node){
+					var r = new CL3D.Quaternion();
+					r.setFromEuler(face[0] * angle, face[1] * angle, face[2] * angle);
+					node.Rotation = node.RotationBase.multiplyWithQuat(r);
+				});
+			};
+
+			CubeArray.prototype.traverseArrayFace = function(face, callback) {
+				for (var i = -1; i <= 1; ++i)
+					for (var j = -1; j <= 1; ++j)
+						for (var k = -1; k <= 1; ++k) {
+							if ((!face[0] || face[0] == i) && (!face[1] || face[1] == j) && (!face[2] || face[2] == k))
+								callback(this.Array[i][j][k]);
+						}
+			};
 		</script>
 	</head>
 	<body>

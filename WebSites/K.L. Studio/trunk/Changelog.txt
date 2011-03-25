@@ -1,10 +1,13 @@
 
 TODO:
+	CubeEarth: screw operation
 
 Pending Issues:
 
 
 2011.3.25	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Source/static/projects/CubeEarth.html: CubeArray added.
 
 	>	Source/static/projects/CubeEarth.html: util.createCubeArrayMeshes: texture coordinates mend added.
 

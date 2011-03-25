@@ -37,6 +37,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{FD903894
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "projects", "projects", "{72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\CubeEarth.html = Source\static\projects\CubeEarth.html
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MagicCube", "MagicCube", "{01EDC4D0-6291-4AED-8298-EAD4D5A7968A}"
 	ProjectSection(SolutionItems) = preProject

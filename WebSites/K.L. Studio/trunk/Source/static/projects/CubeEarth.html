@@ -143,6 +143,7 @@
 				createCubeArrayMeshes: function(options) {
 					options = options || {};
 					options.Segments = options.Segments || 10;
+					options.Spheral = options.Spheral || 0.54;
 
 					var grids = options.Segments * 1.5 + 1;
 					var inv_grids = 1 / grids;
@@ -153,22 +154,26 @@
 							elem(u, v);
 					};
 
+					var faceVerticesCount = (options.Segments + 1) * (options.Segments + 1);
+
+					var getVertexIndex = function(f, u, v) {
+						return faceVerticesCount * f + u * (options.Segments + 1) + v;
+					};
+
 					var indicies = [];
-					var faceIndexCount = (options.Segments + 1) * (options.Segments + 1);
 					for (var f = 0; f < 6; ++f) {
 						eachRange2D(0, options.Segments - 1, 0, options.Segments - 1, function(u, v) {
-							var base = faceIndexCount * f;
+							var base = faceVerticesCount * f;
 
-							indicies.push(base + u * (options.Segments + 1) + v);
-							indicies.push(base + (u + 1) * (options.Segments + 1) + v);
-							indicies.push(base + (u + 1) * (options.Segments + 1) + v + 1);
+							indicies.push(getVertexIndex(f, u, v));
+							indicies.push(getVertexIndex(f, u + 1, v + 1));
+							indicies.push(getVertexIndex(f, u + 1, v));
 
-							indicies.push(base + u * (options.Segments + 1) + v);
-							indicies.push(base + (u + 1) * (options.Segments + 1) + v + 1);
-							indicies.push(base + u * (options.Segments + 1) + v + 1);
+							indicies.push(getVertexIndex(f, u, v));
+							indicies.push(getVertexIndex(f, u, v + 1));
+							indicies.push(getVertexIndex(f, u + 1, v + 1));
 						});
 					}
-					//indicies = [0, 3, 4, 0, 4, 1];
 
 					var units = [];
 
@@ -182,17 +187,73 @@
 								var yl = ay * (options.Segments + 1) - options.Segments / 2, yh = ay * (options.Segments + 1) + options.Segments / 2;
 								var zl = az * (options.Segments + 1) - options.Segments / 2, zh = az * (options.Segments + 1) + options.Segments / 2;
 
-								eachRange2D(yl, yh, zl, zh, function(y, z) { vertices.push(util.createVertex(new CL3D.Vect3d(xl, y, z).multiplyWithScal(inv_grids))); });
-								eachRange2D(zl, zh, yl, yh, function(z, y) { vertices.push(util.createVertex(new CL3D.Vect3d(xh, y, z).multiplyWithScal(inv_grids))); });
-								eachRange2D(zl, zh, xl, xh, function(z, x) { vertices.push(util.createVertex(new CL3D.Vect3d(x, yl, z).multiplyWithScal(inv_grids))); });
-								eachRange2D(xl, xh, zl, zh, function(x, z) { vertices.push(util.createVertex(new CL3D.Vect3d(x, yh, z).multiplyWithScal(inv_grids))); });
-								eachRange2D(xl, xh, yl, yh, function(x, y) { vertices.push(util.createVertex(new CL3D.Vect3d(x, y, zl).multiplyWithScal(inv_grids))); });
-								eachRange2D(yl, yh, xl, xh, function(y, x) { vertices.push(util.createVertex(new CL3D.Vect3d(x, y, zh).multiplyWithScal(inv_grids))); });
+								eachRange2D(yl, yh, zl, zh, function(y, z) { vertices.push(util.createVertex(util.spherize(new CL3D.Vect3d(xl, y, z).multiplyWithScal(inv_grids), options.Spheral))); });
+								eachRange2D(zl, zh, yl, yh, function(z, y) { vertices.push(util.createVertex(util.spherize(new CL3D.Vect3d(xh, y, z).multiplyWithScal(inv_grids), options.Spheral))); });
+								eachRange2D(zl, zh, xl, xh, function(z, x) { vertices.push(util.createVertex(util.spherize(new CL3D.Vect3d(x, yl, z).multiplyWithScal(inv_grids), options.Spheral))); });
+								eachRange2D(xl, xh, zl, zh, function(x, z) { vertices.push(util.createVertex(util.spherize(new CL3D.Vect3d(x, yh, z).multiplyWithScal(inv_grids), options.Spheral))); });
+								eachRange2D(xl, xh, yl, yh, function(x, y) { vertices.push(util.createVertex(util.spherize(new CL3D.Vect3d(x, y, zl).multiplyWithScal(inv_grids), options.Spheral))); });
+								eachRange2D(yl, yh, xl, xh, function(y, x) { vertices.push(util.createVertex(util.spherize(new CL3D.Vect3d(x, y, zh).multiplyWithScal(inv_grids), options.Spheral))); });
+
+								for (var f = 0; f < 6; ++f) {
+									eachRange2D(0, options.Segments, 0, options.Segments, function(u, v) {
+										var vertex = vertices[getVertexIndex(f, u, v)];
+
+										// compute normal
+										{
+											var pos = vertex.Pos;
+											var normals = [];
+											var L, R, U, D;
+
+											L = (u > 0) && (vertices[getVertexIndex(f, u - 1, v)].Pos.substract(pos));
+											R = (u < options.Segments) && (vertices[getVertexIndex(f, u + 1, v)].Pos.substract(pos));
+											U = (v > 0) && (vertices[getVertexIndex(f, u, v - 1)].Pos.substract(pos));
+											D = (v < options.Segments) && (vertices[getVertexIndex(f, u, v + 1)].Pos.substract(pos));
+
+											if (L && U)
+												normals.push(L.crossProduct(U).getNormalized());
+											if (L && D)
+												normals.push(D.crossProduct(L).getNormalized());
+											if (R && U)
+												normals.push(U.crossProduct(R).getNormalized());
+											if (R && D)
+												normals.push(R.crossProduct(D).getNormalized());
+
+											vertex.Normal = new CL3D.Vect3d(0, 0, 0);
+											$.each(normals, function(i, n) {
+												vertex.Normal.addToThis(n);
+											});
+											vertex.Normal.multiplyWithScal(1 / normals.length);
+											vertex.Normal.normalize();
+										}
+
+										var wuv = util.xyzToWuv(pos);
+										vertex.TCoords.X = wuv.U;
+										vertex.TCoords.Y = wuv.V;
+									});
+								}
 
 								units.push({ vertices: vertices, indicies: indicies });
 							}
 
 					return units;
+				},
+				spherize: function(v, k) {
+					var m = v.getLength();
+					var r = Math.max(Math.abs(v.X), Math.max(Math.abs(v.Y), Math.abs(v.Z)));
+					var radius = m * k + r * (1 - k);
+
+					return new CL3D.Vect3d(v.X * radius / m, v.Y * radius / m, v.Z * radius / m);
+				},
+				xyzToWuv: function(v) {
+					var m = v.getLength();
+					var r = Math.sqrt(v.X * v.X + v.Z * v.Z);
+
+					var V = Math.acos(v.Y / m) / Math.PI;
+					var U = r == 0 ? 0 : Math.acos(v.X / r) / (Math.PI * 2);
+					if (v.Z < 0)
+						U = 1 - U;
+
+					return {W: m, U: U, V: V};
 				}
 			};
 			util.SimpleCubeMesh = util.createSimpleCubeMesh(1);
@@ -213,10 +274,10 @@
 					var cam = new CL3D.CameraSceneNode();
 					cam.Pos = new CL3D.Vect3d(0, 0, 1);
 					cam.setTarget(new CL3D.Vect3d(0, 0, 0));
-					cam.setFov(Math.PI * 0.4);
+					cam.setFov(Math.PI * 0.3);
 					var animator = new CL3D.AnimatorCameraModelViewer(cam, CL, [0]);
 					cam.addAnimator(animator);
-					animator.Radius = 3;
+					animator.Radius = 4;
 					Scene.getRootSceneNode().addChild(cam);
 					Scene.setActiveCamera(cam);
 					cam.setAspectRatio(canvas.width() / canvas.height());
@@ -229,7 +290,9 @@
 					$.each(util.CubeArrayMeshes, function(i, unit) {
 						var buffer = new CL3D.MeshBuffer();
 						buffer.setVIMesh(unit);
-						buffer.Mat.Type = cubeMat;
+						//buffer.Mat.Type = cubeMat;
+						buffer.Mat.Type = CL3D.Material.EMT_SOLID;
+						buffer.Mat.Tex1 = CL.getTextureManager().getTexture("../res/images/Earth.JPG", true);
 
 						var mesh = new CL3D.Mesh();
 						mesh.AddMeshBuffer(buffer);

@@ -9,6 +9,7 @@
 			{
 				margin: 0;
 				background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#aaa));
+				background: -moz-linear-gradient(#fff, #aaa);
 			}
 
 			#cube-earth
@@ -43,6 +44,82 @@
 			void main()
 			{
 				gl_FragColor = vColor;
+			}
+		</script>
+		<script id="vs-3dposition" type="x-shader/x-vertex">
+			#ifdef GL_ES
+			precision highp float;
+			#endif
+
+
+			uniform mat4	worldviewproj;
+			uniform mat4	normaltransform;
+			uniform mat4	modelviewtransform;
+
+			attribute vec4	vPosition;
+			attribute vec4	vNormal;
+			attribute vec4	vTexCoord1;
+			attribute vec4	vTexCoord2;
+
+			varying vec3	v_Position;
+			varying vec3	v_Normal;
+			varying vec2	v_TexCoord1;
+			varying vec2	v_TexCoord2;
+
+
+			void main()
+			{
+				gl_Position = worldviewproj * vPosition;
+
+				v_Position = (modelviewtransform * vPosition).xyz;
+				v_Normal = normalize((normaltransform * vNormal).xyz);
+				v_TexCoord1 = vTexCoord1.st;
+				v_TexCoord2 = vTexCoord2.st;
+			}
+		</script>
+		<script id="fs-directionallight" type="x-shader/x-fragment">
+			#ifdef GL_ES
+			precision highp float;
+			#endif
+
+
+			uniform mat4		normaltransform;
+			uniform sampler2D	texture1;
+
+			uniform vec3	vLightAmbientColor;
+			uniform vec3	vLightDirection;
+			uniform vec3	vLightDirectionalColor;
+			uniform vec3	vMaterialEmissive;
+			uniform vec3	vMaterialSpecular;
+			uniform float	vMaterialShiness;
+
+			varying vec3	v_Normal;
+			varying vec2	v_TexCoord1;
+
+
+			void main()
+			{
+				vec4 color;
+
+				vec3 L = -normalize((normaltransform * vec4(vLightDirection, 1)).xyz);
+
+				vec4 tex = texture2D(texture1, v_TexCoord1);
+
+				vec3 ambient = tex.rgb * vLightAmbientColor;
+
+				float diffuseLight = max(dot(v_Normal, L), 0.);
+				vec3 diffuse = tex.rgb * vLightDirectionalColor * diffuseLight;
+
+				vec3 H = normalize(L + vec3(0, 0, -1));
+				float specularLight = pow(max(dot(v_Normal, H), 0.), vMaterialShiness);
+				if(diffuseLight <= 0.)
+					specularLight = 0.;
+				vec3 specular = vMaterialSpecular * vLightDirectionalColor * specularLight;
+
+				color.rgb = vMaterialEmissive + ambient + diffuse + specular;
+				color.a = 1.0;
+
+				gl_FragColor = color;
 			}
 		</script>
 		<script type="text/javascript">
@@ -240,13 +317,13 @@
 											D = (v < options.Segments) && (vertices[getVertexIndex(f, u, v + 1)].Pos.substract(pos));
 
 											if (L && U)
-												normals.push(L.crossProduct(U).getNormalized());
+												normals.push(U.crossProduct(L).getNormalized());
 											if (L && D)
-												normals.push(D.crossProduct(L).getNormalized());
+												normals.push(L.crossProduct(D).getNormalized());
 											if (R && U)
-												normals.push(U.crossProduct(R).getNormalized());
+												normals.push(R.crossProduct(U).getNormalized());
 											if (R && D)
-												normals.push(R.crossProduct(D).getNormalized());
+												normals.push(D.crossProduct(R).getNormalized());
 
 											vertex.Normal = new CL3D.Vect3d(0, 0, 0);
 											$.each(normals, function(i, n) {
@@ -377,14 +454,20 @@
 					var cube = new CL3D.SceneNode();
 					Scene.getRootSceneNode().addChild(cube);
 
-					var cubeMat = CL.getRenderer().createMaterialTypeEx($("#vs-simplecolor").text(), $("#fs-simplecolor").text(), { vColor: [0, 0.2, 0.4, 1] });
+					var cubeMat = CL.getRenderer().createMaterialTypeEx($("#vs-3dposition").text(), $("#fs-directionallight").text(), {
+						vLightAmbientColor: [0.5, 0.5, 0.5],
+						vLightDirection: [-1, -0.8, -1],
+						vLightDirectionalColor: [0.7, 0.7, 0.7],
+						vMaterialEmissive: [0, 0, 0],
+						vMaterialSpecular: [0.8, 0.8, 0.8],
+						vMaterialShiness: 64
+					});
 
 					$.each(util.CubeArrayMeshes, function(i, unit) {
 						var buffer = new CL3D.MeshBuffer();
 						buffer.setVIMesh(unit);
-						//buffer.Mat.Type = cubeMat;
-						buffer.Mat.Type = CL3D.Material.EMT_SOLID;
-						buffer.Mat.Tex1 = CL.getTextureManager().getTexture("../res/images/Earth.JPG", true);
+						buffer.Mat.Type = cubeMat;
+						buffer.Mat.Tex1 = CL.getTextureManager().getTexture("../res/images/earth.jpg", true);
 
 						var mesh = new CL3D.Mesh();
 						mesh.AddMeshBuffer(buffer);

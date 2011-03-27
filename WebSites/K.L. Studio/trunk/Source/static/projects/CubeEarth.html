@@ -15,10 +15,10 @@
 			#cube-earth
 			{
 				position: absolute;
-				left: 10%;
-				top: 10%;
-				width: 80%;
-				height: 80%;
+				left: 0%;
+				top: 0%;
+				width: 100%;
+				height: 100%;
 			}
 		</style>
 		<script id="vs-3dposition" type="x-shader/x-vertex">
@@ -472,7 +472,7 @@
 				},
 				createCubeArrayMeshes: function(options) {
 					options = options || {};
-					options.Segments = options.Segments || 12;
+					options.Segments = options.Segments || 16;
 					options.Spheral = options.Spheral || CUBE_SPHERAL_RATE;
 
 					var grids = options.Segments * 1.5 + 1;
@@ -537,6 +537,23 @@
 										var index = getVertexIndex(f, u, v);
 										var vertex = vertices[index];
 
+										// chamfer position on edge
+										if (u == 0 || u == options.Segments || v == 0 || v == options.Segments) {
+											var R = 0.2;
+											var pos = boxpos[index].clone();
+											pos.addToThis(backVector.multiplyWithScal(R));
+											if (u == 0)
+												pos.addToThis(boxpos[getVertexIndex(f, u + 1, v)].substract(boxpos[index]).multiplyWithScal(R));
+											if (u == options.Segments)
+												pos.addToThis(boxpos[getVertexIndex(f, u - 1, v)].substract(boxpos[index]).multiplyWithScal(R));
+											if (v == 0)
+												pos.addToThis(boxpos[getVertexIndex(f, u, v + 1)].substract(boxpos[index]).multiplyWithScal(R));
+											if (v == options.Segments)
+												pos.addToThis(boxpos[getVertexIndex(f, u, v - 1)].substract(boxpos[index]).multiplyWithScal(R));
+
+											vertex.Pos = util.spherize(pos, options.Spheral);
+										}
+
 										// compute normal, tangent & binormal
 										{
 											var pos = vertex.Pos;
@@ -544,10 +561,10 @@
 											var back = util.spherize(boxpos[index].add(backVector), options.Spheral).substract(pos).getNormalized();
 											var L, R, U, D;
 
-											L = (u > 0) ? (vertices[getVertexIndex(f, u - 1, v)].Pos.substract(pos)).getNormalized() : back;
-											R = (u < options.Segments) ? (vertices[getVertexIndex(f, u + 1, v)].Pos.substract(pos)).getNormalized() : back;
-											U = (v > 0) ? (vertices[getVertexIndex(f, u, v - 1)].Pos.substract(pos)).getNormalized() : back;
-											D = (v < options.Segments) ? (vertices[getVertexIndex(f, u, v + 1)].Pos.substract(pos)).getNormalized() : back;
+											L = (u > 0) ? (vertices[getVertexIndex(f, u - 1, v)].Pos.substract(pos)) : back;
+											R = (u < options.Segments) ? (vertices[getVertexIndex(f, u + 1, v)].Pos.substract(pos)) : back;
+											U = (v > 0) ? (vertices[getVertexIndex(f, u, v - 1)].Pos.substract(pos)) : back;
+											D = (v < options.Segments) ? (vertices[getVertexIndex(f, u, v + 1)].Pos.substract(pos)) : back;
 
 											normals.push(U.crossProduct(L));
 											normals.push(L.crossProduct(D));
@@ -556,7 +573,7 @@
 
 											vertex.Normal = new CL3D.Vect3d(0, 0, 0);
 											$.each(normals, function(i, n) {
-												vertex.Normal.addToThis(n);
+												vertex.Normal.addToThis(n.getNormalized());
 											});
 											vertex.Normal.multiplyWithScal(1 / normals.length);
 											vertex.Normal.normalize();
@@ -691,7 +708,7 @@
 					Scene.getRootSceneNode().addChild(cube);
 
 					var cubeMat = CL.getRenderer().createMaterialTypeEx($("#vs-3dposition").text(), $("#fs-earth").text(), {
-						vLightAmbientColor: [0.02, 0.02, 0.02],
+						vLightAmbientColor: [0.06, 0.06, 0.06],
 						vLightDirection: [0, 0, 1],
 						vLightDirectionalColor: [1.8, 1.8, 1.8],
 						vMaterialEmissive: [0, 0, 0],
@@ -715,16 +732,29 @@
 						cube.addChild(node);
 					});
 
+					$(top).focus(function() {
+						CL.IsPaused = false;
+					});
+
+					$(top).blur(function() {
+						CL.IsPaused = true;
+					});
+
 					Cube = new CubeArray(cube.Children);
+					CL.OnBeforeDrawAll = function() { Cube.update(); };
+
+					// screw randomly
+					var faces = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+					var phases = [-1, 1, 2];
+					var screw = function() {
+						Cube.startTransition({
+							face: faces[Math.floor(Math.random() * 6)],
+							phase: phases[Math.floor(Math.random() * 3)],
+							finish: screw
+						});
+					};
+					//screw();
 				}
-
-				$(top).focus(function() {
-					CL.IsPaused = false;
-				});
-
-				$(top).blur(function() {
-					CL.IsPaused = true;
-				});
 			});
 
 			var CubeArray = function(nodes) {
@@ -733,7 +763,7 @@
 				this.Nodes = nodes;
 				this.Array = {};
 
-				$.each(nodes, function(i, node){
+				$.each(nodes, function(i, node) {
 					var pos = [Math.floor(i / 9) % 3 - 1, Math.floor(i / 3) % 3 - 1, i % 3 - 1];
 
 					node.ArrayPos = pos;
@@ -741,36 +771,38 @@
 				});
 				this.updateArray();
 
+				this.ActiveFace = null;
+
 				this.ScrewPoints = [
-					{pos: util.spherize(new CL3D.Vect3d(1, 2 / 3, 0)),		face: [0, 1, 0]},
-					{pos: util.spherize(new CL3D.Vect3d(-1, 2 / 3, 0)),		face: [0, 1, 0]},
-					{pos: util.spherize(new CL3D.Vect3d(0, 2 / 3, 1)),		face: [0, 1, 0]},
-					{pos: util.spherize(new CL3D.Vect3d(0, 2 / 3, -1)),		face: [0, 1, 0]},
+					{ pos: util.spherize(new CL3D.Vect3d(1, 2 / 3, 0)), face: [0, 1, 0] },
+					{ pos: util.spherize(new CL3D.Vect3d(-1, 2 / 3, 0)), face: [0, 1, 0] },
+					{ pos: util.spherize(new CL3D.Vect3d(0, 2 / 3, 1)), face: [0, 1, 0] },
+					{ pos: util.spherize(new CL3D.Vect3d(0, 2 / 3, -1)), face: [0, 1, 0] },
 
-					{pos: util.spherize(new CL3D.Vect3d(1, -2 / 3, 0)),		face: [0, -1, 0]},
-					{pos: util.spherize(new CL3D.Vect3d(-1, -2 / 3, 0)),	face: [0, -1, 0]},
-					{pos: util.spherize(new CL3D.Vect3d(0, -2 / 3, 1)),		face: [0, -1, 0]},
-					{pos: util.spherize(new CL3D.Vect3d(0, -2 / 3, -1)),	face: [0, -1, 0]},
+					{ pos: util.spherize(new CL3D.Vect3d(1, -2 / 3, 0)), face: [0, -1, 0] },
+					{ pos: util.spherize(new CL3D.Vect3d(-1, -2 / 3, 0)), face: [0, -1, 0] },
+					{ pos: util.spherize(new CL3D.Vect3d(0, -2 / 3, 1)), face: [0, -1, 0] },
+					{ pos: util.spherize(new CL3D.Vect3d(0, -2 / 3, -1)), face: [0, -1, 0] },
 
-					{pos: util.spherize(new CL3D.Vect3d(2 / 3, 1, 0)),		face: [1, 0, 0]},
-					{pos: util.spherize(new CL3D.Vect3d(2 / 3, -1, 0)),		face: [1, 0, 0]},
-					{pos: util.spherize(new CL3D.Vect3d(2 / 3, 0, 1)),		face: [1, 0, 0]},
-					{pos: util.spherize(new CL3D.Vect3d(2 / 3, 0, -1)),		face: [1, 0, 0]},
+					{ pos: util.spherize(new CL3D.Vect3d(2 / 3, 1, 0)), face: [1, 0, 0] },
+					{ pos: util.spherize(new CL3D.Vect3d(2 / 3, -1, 0)), face: [1, 0, 0] },
+					{ pos: util.spherize(new CL3D.Vect3d(2 / 3, 0, 1)), face: [1, 0, 0] },
+					{ pos: util.spherize(new CL3D.Vect3d(2 / 3, 0, -1)), face: [1, 0, 0] },
 
-					{pos: util.spherize(new CL3D.Vect3d(-2 / 3, 1, 0)),		face: [-1, 0, 0]},
-					{pos: util.spherize(new CL3D.Vect3d(-2 / 3, -1, 0)),	face: [-1, 0, 0]},
-					{pos: util.spherize(new CL3D.Vect3d(-2 / 3, 0, 1)),		face: [-1, 0, 0]},
-					{pos: util.spherize(new CL3D.Vect3d(-2 / 3, 0, -1)),	face: [-1, 0, 0]},
+					{ pos: util.spherize(new CL3D.Vect3d(-2 / 3, 1, 0)), face: [-1, 0, 0] },
+					{ pos: util.spherize(new CL3D.Vect3d(-2 / 3, -1, 0)), face: [-1, 0, 0] },
+					{ pos: util.spherize(new CL3D.Vect3d(-2 / 3, 0, 1)), face: [-1, 0, 0] },
+					{ pos: util.spherize(new CL3D.Vect3d(-2 / 3, 0, -1)), face: [-1, 0, 0] },
 
-					{pos: util.spherize(new CL3D.Vect3d(1, 0, 2 / 3)),		face: [0, 0, 1]},
-					{pos: util.spherize(new CL3D.Vect3d(-1, 0, 2 / 3)),		face: [0, 0, 1]},
-					{pos: util.spherize(new CL3D.Vect3d(0, 1, 2 / 3)),		face: [0, 0, 1]},
-					{pos: util.spherize(new CL3D.Vect3d(0, -1, 2 / 3)),		face: [0, 0, 1]},
+					{ pos: util.spherize(new CL3D.Vect3d(1, 0, 2 / 3)), face: [0, 0, 1] },
+					{ pos: util.spherize(new CL3D.Vect3d(-1, 0, 2 / 3)), face: [0, 0, 1] },
+					{ pos: util.spherize(new CL3D.Vect3d(0, 1, 2 / 3)), face: [0, 0, 1] },
+					{ pos: util.spherize(new CL3D.Vect3d(0, -1, 2 / 3)), face: [0, 0, 1] },
 
-					{pos: util.spherize(new CL3D.Vect3d(1, 0, -2 / 3)),		face: [0, 0, -1]},
-					{pos: util.spherize(new CL3D.Vect3d(-1, 0, -2 / 3)),	face: [0, 0, -1]},
-					{pos: util.spherize(new CL3D.Vect3d(0, 1, -2 / 3)),		face: [0, 0, -1]},
-					{pos: util.spherize(new CL3D.Vect3d(0, -1, -2 / 3)),	face: [0, 0, -1]},
+					{ pos: util.spherize(new CL3D.Vect3d(1, 0, -2 / 3)), face: [0, 0, -1] },
+					{ pos: util.spherize(new CL3D.Vect3d(-1, 0, -2 / 3)), face: [0, 0, -1] },
+					{ pos: util.spherize(new CL3D.Vect3d(0, 1, -2 / 3)), face: [0, 0, -1] },
+					{ pos: util.spherize(new CL3D.Vect3d(0, -1, -2 / 3)), face: [0, 0, -1] },
 				];
 			};
 
@@ -793,9 +825,10 @@
 			};
 
 			CubeArray.prototype.setFaceRotation = function(face, angle) {
+				var r = new CL3D.Quaternion();
+				r.setFromEuler(face[0] * angle, face[1] * angle, face[2] * angle);
+
 				this.traverseArrayFace(face, function(node){
-					var r = new CL3D.Quaternion();
-					r.setFromEuler(face[0] * angle, face[1] * angle, face[2] * angle);
 					node.Rotation = node.RotationBase.multiplyWithQuat(r);
 				});
 			};
@@ -807,6 +840,62 @@
 							if ((!face[0] || face[0] == i) && (!face[1] || face[1] == j) && (!face[2] || face[2] == k))
 								callback(this.Array[i][j][k]);
 						}
+			};
+
+			CubeArray.prototype.update = function() {
+				if (this.Transition)
+					this.updateTransition(this.Transition);
+			};
+
+			CubeArray.prototype.startTransition = function(options) {
+				this.ActiveFace = options.face || this.ActiveFace;
+
+				this.Transition = {
+					Time: 0,
+					Length: options.length || 30,
+					Phase: options.phase || 1,
+					//Interpolater: options.interpolater || function(t) { return t; },
+					Interpolater: options.interpolater || function(t) { return (((6 * t) - 15) * t + 10) * t * t * t; },
+					Finish: options.finish
+				};
+			};
+
+			CubeArray.prototype.updateTransition = function(transition) {
+				if (!this.ActiveFace)
+					throw "ActiveFace required in CubeArray transition";
+
+				var angle = transition.Interpolater(transition.Time / transition.Length) * transition.Phase * Math.PI * 0.5;
+				this.setFaceRotation(this.ActiveFace, angle);
+
+				++transition.Time;
+				if (transition.Time >= transition.Length) {
+					this.Transition = null;
+					this.screw(this.ActiveFace, transition.Phase);
+
+					if (transition.Finish)
+						transition.Finish();
+				}
+			};
+
+			CubeArray.prototype.screw = function(face, phase) {
+				var angle = phase * Math.PI * 0.5;
+				var r = new CL3D.Quaternion();
+				r.setFromEuler(face[0] * angle, face[1] * angle, face[2] * angle);
+				var rm = r.getMatrix();
+
+				this.traverseArrayFace(face, function(node) {
+					node.RotationBase = node.RotationBase.multiplyWithQuat(r);
+
+					var v = new CL3D.Vect3d(node.ArrayPos[0], node.ArrayPos[1], node.ArrayPos[2]);
+					v.W = 1;
+					rm.multiplyWith1x4Matrix(v);
+					node.ArrayPos[0] = Math.round(v.X);
+					node.ArrayPos[1] = Math.round(v.Y);
+					node.ArrayPos[2] = Math.round(v.Z);
+				});
+
+				this.updateArray();
+				this.setFaceRotation(face, 0);
 			};
 		</script>
 	</head>

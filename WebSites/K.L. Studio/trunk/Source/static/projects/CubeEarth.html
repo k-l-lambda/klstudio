@@ -91,7 +91,7 @@
 				vec4 texNor = texture2D(texture3, v_TexCoord1);
 
 				vec3 L = -normalize(vLightDirection);
-				vec3 N = normalize(v_Normal * texNor.z + v_Tangent * (texNor.x - 0.5) * 5. + v_Binormal * (texNor.y - 0.5) * 5.);
+				vec3 N = normalize(v_Normal * texNor.z + v_Tangent * (texNor.x - 0.5) * 4. + v_Binormal * (texNor.y - 0.5) * 4.);
 
 				vec3 ambient = tex.rgb * vLightAmbientColor;
 
@@ -472,7 +472,7 @@
 				},
 				createCubeArrayMeshes: function(options) {
 					options = options || {};
-					options.Segments = options.Segments || 10;
+					options.Segments = options.Segments || 12;
 					options.Spheral = options.Spheral || CUBE_SPHERAL_RATE;
 
 					var grids = options.Segments * 1.5 + 1;
@@ -512,44 +512,47 @@
 					for (var ax = -1; ax <= 1; ++ax)
 						for (var ay = -1; ay <= 1; ++ay)
 							for (var az = -1; az <= 1; ++az) {
+								var boxpos = [];
 								var vertices = [];
 
 								var xl = ax * (options.Segments + 1) - options.Segments / 2, xh = ax * (options.Segments + 1) + options.Segments / 2;
 								var yl = ay * (options.Segments + 1) - options.Segments / 2, yh = ay * (options.Segments + 1) + options.Segments / 2;
 								var zl = az * (options.Segments + 1) - options.Segments / 2, zh = az * (options.Segments + 1) + options.Segments / 2;
 
-								eachRange2D(yl, yh, zl, zh, function(y, z) { vertices.push(util.createVertex(util.spherize(new CL3D.Vect3d(xl, y, z).multiplyWithScal(inv_grids), options.Spheral))); });
-								eachRange2D(zl, zh, yl, yh, function(z, y) { vertices.push(util.createVertex(util.spherize(new CL3D.Vect3d(xh, y, z).multiplyWithScal(inv_grids), options.Spheral))); });
-								eachRange2D(zl, zh, xl, xh, function(z, x) { vertices.push(util.createVertex(util.spherize(new CL3D.Vect3d(x, yl, z).multiplyWithScal(inv_grids), options.Spheral))); });
-								eachRange2D(xl, xh, zl, zh, function(x, z) { vertices.push(util.createVertex(util.spherize(new CL3D.Vect3d(x, yh, z).multiplyWithScal(inv_grids), options.Spheral))); });
-								eachRange2D(xl, xh, yl, yh, function(x, y) { vertices.push(util.createVertex(util.spherize(new CL3D.Vect3d(x, y, zl).multiplyWithScal(inv_grids), options.Spheral))); });
-								eachRange2D(yl, yh, xl, xh, function(y, x) { vertices.push(util.createVertex(util.spherize(new CL3D.Vect3d(x, y, zh).multiplyWithScal(inv_grids), options.Spheral))); });
+								eachRange2D(yl, yh, zl, zh, function(y, z) { var pos = new CL3D.Vect3d(xl, y, z).multiplyWithScal(inv_grids); boxpos.push(pos); vertices.push(util.createVertex(util.spherize(pos, options.Spheral))); });
+								eachRange2D(zl, zh, yl, yh, function(z, y) { var pos = new CL3D.Vect3d(xh, y, z).multiplyWithScal(inv_grids); boxpos.push(pos); vertices.push(util.createVertex(util.spherize(pos, options.Spheral))); });
+								eachRange2D(zl, zh, xl, xh, function(z, x) { var pos = new CL3D.Vect3d(x, yl, z).multiplyWithScal(inv_grids); boxpos.push(pos); vertices.push(util.createVertex(util.spherize(pos, options.Spheral))); });
+								eachRange2D(xl, xh, zl, zh, function(x, z) { var pos = new CL3D.Vect3d(x, yh, z).multiplyWithScal(inv_grids); boxpos.push(pos); vertices.push(util.createVertex(util.spherize(pos, options.Spheral))); });
+								eachRange2D(xl, xh, yl, yh, function(x, y) { var pos = new CL3D.Vect3d(x, y, zl).multiplyWithScal(inv_grids); boxpos.push(pos); vertices.push(util.createVertex(util.spherize(pos, options.Spheral))); });
+								eachRange2D(yl, yh, xl, xh, function(y, x) { var pos = new CL3D.Vect3d(x, y, zh).multiplyWithScal(inv_grids); boxpos.push(pos); vertices.push(util.createVertex(util.spherize(pos, options.Spheral))); });
 
 								var mended = 0;
 
+								var backVectors = [new CL3D.Vect3d(1, 0, 0), new CL3D.Vect3d(-1, 0, 0), new CL3D.Vect3d(0, 1, 0), new CL3D.Vect3d(0, -1, 0), new CL3D.Vect3d(0, 0, 1), new CL3D.Vect3d(0, 0, -1)];
+
 								for (var f = 0; f < 6; ++f) {
+									var backVector = backVectors[f].multiplyWithScal(inv_grids);
+
 									eachRange2D(0, options.Segments, 0, options.Segments, function(u, v) {
-										var vertex = vertices[getVertexIndex(f, u, v)];
+										var index = getVertexIndex(f, u, v);
+										var vertex = vertices[index];
 
 										// compute normal, tangent & binormal
 										{
 											var pos = vertex.Pos;
 											var normals = [];
+											var back = util.spherize(boxpos[index].add(backVector), options.Spheral).substract(pos).getNormalized();
 											var L, R, U, D;
 
-											L = (u > 0) && (vertices[getVertexIndex(f, u - 1, v)].Pos.substract(pos));
-											R = (u < options.Segments) && (vertices[getVertexIndex(f, u + 1, v)].Pos.substract(pos));
-											U = (v > 0) && (vertices[getVertexIndex(f, u, v - 1)].Pos.substract(pos));
-											D = (v < options.Segments) && (vertices[getVertexIndex(f, u, v + 1)].Pos.substract(pos));
+											L = (u > 0) ? (vertices[getVertexIndex(f, u - 1, v)].Pos.substract(pos)).getNormalized() : back;
+											R = (u < options.Segments) ? (vertices[getVertexIndex(f, u + 1, v)].Pos.substract(pos)).getNormalized() : back;
+											U = (v > 0) ? (vertices[getVertexIndex(f, u, v - 1)].Pos.substract(pos)).getNormalized() : back;
+											D = (v < options.Segments) ? (vertices[getVertexIndex(f, u, v + 1)].Pos.substract(pos)).getNormalized() : back;
 
-											if (L && U)
-												normals.push(U.crossProduct(L).getNormalized());
-											if (L && D)
-												normals.push(L.crossProduct(D).getNormalized());
-											if (R && U)
-												normals.push(R.crossProduct(U).getNormalized());
-											if (R && D)
-												normals.push(D.crossProduct(R).getNormalized());
+											normals.push(U.crossProduct(L));
+											normals.push(L.crossProduct(D));
+											normals.push(R.crossProduct(U));
+											normals.push(D.crossProduct(R));
 
 											vertex.Normal = new CL3D.Vect3d(0, 0, 0);
 											$.each(normals, function(i, n) {
@@ -558,9 +561,9 @@
 											vertex.Normal.multiplyWithScal(1 / normals.length);
 											vertex.Normal.normalize();
 
-											vertex.Tangent = R ? R : L.multiplyWithScal(-1);
+											vertex.Tangent = R.add(L.multiplyWithScal(-1));
 											vertex.Tangent.normalize();
-											vertex.Binormal = D ? D : U.multiplyWithScal(-1);
+											vertex.Binormal = D.add(U.multiplyWithScal(-1));
 											vertex.Binormal.normalize();
 										}
 
@@ -714,6 +717,14 @@
 
 					Cube = new CubeArray(cube.Children);
 				}
+
+				$(top).focus(function() {
+					CL.IsPaused = false;
+				});
+
+				$(top).blur(function() {
+					CL.IsPaused = true;
+				});
 			});
 
 			var CubeArray = function(nodes) {

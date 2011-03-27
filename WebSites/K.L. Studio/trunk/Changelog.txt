@@ -5,6 +5,11 @@ TODO:
 Pending Issues:
 
 
+2011.3.27	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Source/static/projects/CubeEarth.html: normal chamfer added.
+
+
 2011.3.26	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	Source/static/projects/CubeEarth.html: specular map and normal map on earth material added.

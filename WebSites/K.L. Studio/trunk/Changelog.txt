@@ -1,11 +1,15 @@
 
 TODO:
-	CubeEarth: screw operation
+	CubeEarth:
+		embed into other page
+		screw operation
 
 Pending Issues:
 
 
 2011.3.27	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Source/static/projects/CubeEarth.html: CubeArray screw method added.
 
 	+	Source/static/projects/CubeEarth.html: normal chamfer added.
 

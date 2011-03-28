@@ -219,7 +219,7 @@ tanxjs.WebSession = function(root_location, id, hosting) {
 			interval = interval || 60;
 			var self = this;
 			setInterval(function() { self.keepAlive(); }, interval * 1000);
-		}
+		};
 
 		tanxjs.WebSession.prototype.fetchMessageLoop = function(onMessageArrived, options) {
 			options = options || {};
@@ -312,7 +312,7 @@ tanxjs.WebSession = function(root_location, id, hosting) {
 				});
 			};
 			fetch();
-		}
+		};
 
 		tanxjs.WebSession.prototype.activate = function() {
 			this.Active = true;
@@ -323,11 +323,11 @@ tanxjs.WebSession = function(root_location, id, hosting) {
 				//alert("onresume()");
 				onresume();
 			}
-		}
+		};
 
 		tanxjs.WebSession.prototype.deactivate = function() {
 			this.Active = false;
-		}
+		};
 
 		tanxjs.WebSession.prototype.resetGuestMessageId = function(guest, next_id, callback) {
 			if (typeof (guest) === "string")
@@ -341,6 +341,10 @@ tanxjs.WebSession = function(root_location, id, hosting) {
 				onResponse: onResponse,
 				startTime: new Date()
 			};
+			tester.stopTimer = function() {
+				if (tester.onTimerHandler)
+					clearInterval(tester.onTimerHandler);
+			};
 
 			this.postMessage({ _tanxjs: "connection-test", token: this.NextGuestConnectionTestId }, null, [guest], function() {
 				tester.sendTime = new Date().getTime();
@@ -351,9 +355,11 @@ tanxjs.WebSession = function(root_location, id, hosting) {
 
 			this.GuestConnectionTest[this.NextGuestConnectionTestId] = tester;
 			++this.NextGuestConnectionTestId;
+
+			return tester;
 		};
 	}
-}
+};
 
 tanxjs.WebSessionChannel = function(root_location, id)
 {
@@ -382,7 +388,7 @@ tanxjs.WebSessionChannel = function(root_location, id)
 			$.post(this.RootLocation + "clear-member", callback, "json");
 		};
 	}
-}
+};
 
 
 // Date extension
@@ -398,7 +404,7 @@ Date.prototype.format = function(format){
 		"s+" :  this.getSeconds(), //second
 		"q+" :  Math.floor((this.getMonth()+3)/3),  //quarter
 		"S"  :  this.getMilliseconds() //millisecond
-	}
+	};
 
 	if(/(y+)/.test(format)) {
 		format = format.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));
@@ -410,7 +416,7 @@ Date.prototype.format = function(format){
 		}
 	}
 	return format;
-}
+};
 
 Date.parseFormat = function(str, format)
 {
@@ -418,4 +424,4 @@ Date.parseFormat = function(str, format)
 	date.setTime(Date.parse(str.replace(format, "$1/$2/$3 $4:$5:$6 UTC")));
 
 	return date;
-}
+};

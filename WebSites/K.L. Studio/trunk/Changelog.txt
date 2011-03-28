@@ -1,10 +1,15 @@
 
 TODO:
 	CubeEarth:
-		embed into other page
 		screw operation
 
 Pending Issues:
+	cube earth tangent space issue
+
+
+2011.3.28	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Home page: embedded cube earth 3D into.
 
 
 2011.3.27	K.L.	<xxxK.L.xxx@gmail.com>

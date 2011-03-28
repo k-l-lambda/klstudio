@@ -5,11 +5,17 @@
 		<script src="../js/jquery.js" type="text/javascript"></script>
 		<script src="../js/copperlicht.js" type="text/javascript"></script>
 		<style type="text/css">
+			html
+			{
+				background-color: transparent;
+			}
+
 			body
 			{
 				margin: 0;
-				background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#aaa));
-				background: -moz-linear-gradient(#fff, #aaa);
+				/*background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#aaa));
+				background: -moz-linear-gradient(#fff, #aaa);*/
+				background-color: transparent;
 			}
 
 			#cube-earth
@@ -292,7 +298,8 @@
 					g.uniformMatrix4fv(c.locModelViewMatrix, false, this.getMatrixAsWebGLFloatArray(f));
 				}
 				g.drawElements(a.drawMode, a.indexCount, g.UNSIGNED_SHORT, 0);
-			};
+			};
+
 			CL3D.Renderer.prototype.setMaterial = function(b) {
 				if (b == null) {
 					return;
@@ -686,7 +693,7 @@
 				canvas.attr("width", canvas.width());
 				canvas.attr("height", canvas.height());
 
-				CL = new CL3D.CopperLicht("cube-earth", null, 30);
+				CL = new CL3D.CopperLicht("cube-earth", false, 30);
 				if (CL.initRenderer({ antialias: true })) {
 					Scene = new CL3D.Scene();
 					CL.addScene(Scene);
@@ -694,12 +701,12 @@
 					Scene.setBackgroundColor(0x00000000);
 
 					var cam = new CL3D.CameraSceneNode();
-					cam.Pos = new CL3D.Vect3d(0, 0, 1);
+					cam.Pos = new CL3D.Vect3d(0.8, 0.7, -1);
 					cam.setTarget(new CL3D.Vect3d(0, 0, 0));
 					cam.setFov(Math.PI * 0.3);
 					var animator = new CL3D.AnimatorCameraModelViewer(cam, CL, [0]);
 					cam.addAnimator(animator);
-					animator.Radius = 4;
+					animator.Radius = 3.2;
 					Scene.getRootSceneNode().addChild(cam);
 					Scene.setActiveCamera(cam);
 					cam.setAspectRatio(canvas.width() / canvas.height());
@@ -750,10 +757,11 @@
 						Cube.startTransition({
 							face: faces[Math.floor(Math.random() * 6)],
 							phase: phases[Math.floor(Math.random() * 3)],
+							length: 150,
 							finish: screw
 						});
 					};
-					//screw();
+					setTimeout(screw, 4000);
 				}
 			});
 

@@ -1,7 +1,7 @@
 /*
 **	This source file is part of Tanx.
 **
-**	Copyright (c) 2009-2010	K.L.'s Studio	<xxxk.l.xxx@gmail.com>
+**	Copyright (c) 2009-2011	K.L.'s Studio	<xxxk.l.xxx@gmail.com>
 **	This program is free software without any warranty.
 */
 

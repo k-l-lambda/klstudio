@@ -5,6 +5,7 @@ import string
 import re
 
 from google.appengine.ext import webapp
+from google.appengine.api import memcache
 
 from Application import *
 import Serializer
@@ -41,6 +42,18 @@ class ApplicationSessionListHandler(webapp.RequestHandler):
         tag = self.request.str_GET.get('tag')
         host = self.request.str_GET.get('host')
 
+        key = "SessionList:app/%s/?%d;%d;%s;%s" % (id, offset, limit, tag or "", host or "")
+        feed = memcache.get(key)
+        if feed:
+            logging.info('memcache "%s" read.', key)
+            self.response.out.write(feed)
+        else:
+            feed = self.render(app, offset, limit, tag, host)
+            memcache.set(key, feed, time = 10)
+
+            self.response.out.write(feed)
+
+    def render(self, app, offset, limit, tag, host):
         session_list = app.sessionList(True)
         total = session_list.count()
 
@@ -53,4 +66,4 @@ class ApplicationSessionListHandler(webapp.RequestHandler):
         if tag:
             session_list = filter(lambda session : tag in session.tags, session_list)
 
-        self.response.out.write(Serializer.save({'total': total, 'list': [{'id': session.id(), 'host': session.host, 'setup_time': session.setup_time, 'alive_time': session.alive_time, 'tags': session.tags} for session in session_list]}))
+        return Serializer.save({'total': total, 'list': [{'id': session.id(), 'host': session.host, 'setup_time': session.setup_time, 'alive_time': session.alive_time, 'tags': session.tags} for session in session_list]})

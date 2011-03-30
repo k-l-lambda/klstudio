@@ -4,7 +4,12 @@ TODO:
 		screw operation
 
 Pending Issues:
-	cube earth tangent space issue
+	cube earth sphere tangent space issue
+
+
+2011.3.30	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Source/TanxWebService/ApplicationHandlers.py: ApplicationSessionListHandler added memory cache.
 
 
 2011.3.28	K.L.	<xxxK.L.xxx@gmail.com>

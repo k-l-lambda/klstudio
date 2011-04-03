@@ -433,7 +433,30 @@
 					this.W * q.W - this.X * q.X - this.Y * q.Y - this.Z * q.Z
 				);
 			};
-		</script>
+
+			CL3D.SceneNode.prototype.OnAnimate = function(h, k) {
+				var e = false;
+				if (this.Visible) {
+					var f;
+					var b = this.Animators.length;
+					for (f = 0; f < b; ) {
+						var d = this.Animators[f];
+						if (!d.Disabled)
+							e = d.animateNode(this, k) || e;
+						var g = b;
+						b = this.Animators.length;
+						if (g >= b) {
+							++f;
+						}
+					}
+					this.updateAbsolutePosition();
+					for (f = 0; f < this.Children.length; ++f) {
+						var j = this.Children[f];
+						e = j.OnAnimate(h, k) || e;
+					}
+				}
+				return e;
+			};		</script>
 		<script type="text/javascript">
 			var CUBE_SPHERAL_RATE = 0.48;
 			var CL, Scene, Cube;
@@ -451,6 +474,7 @@
 
 					return v;
 				},
+
 				createSimpleCubeMesh: function(length) {
 					length = length || 1;
 					var half = length / 2;
@@ -477,6 +501,7 @@
 
 					return { vertices: vertices, indices: indices };
 				},
+
 				createCubeArrayMeshes: function(options) {
 					options = options || {};
 					options.Segments = options.Segments || 16;
@@ -664,6 +689,7 @@
 
 					return units;
 				},
+
 				spherize: function(v, k) {
 					k = k || CUBE_SPHERAL_RATE;
 
@@ -673,6 +699,7 @@
 
 					return new CL3D.Vect3d(v.X * radius / m, v.Y * radius / m, v.Z * radius / m);
 				},
+
 				xyzToWuv: function(v) {
 					var m = v.getLength();
 					var r = Math.sqrt(v.X * v.X + v.Z * v.Z);
@@ -683,6 +710,20 @@
 						U = 1 - U;
 
 					return {W: m, U: U, V: V};
+				},
+
+				pointsRightDeflect: function(p1, p2, p3) {
+					return (p2.Y - p1.Y) * (p3.X - p2.X) - (p2.X - p1.X) * (p3.Y - p2.Y) > 0;
+				},
+
+				pointInQuadrangle: function(p, q) {
+					if (!(q[0] && q[1] && q[2] && q[3]))
+						return false;
+
+					if (util.pointsRightDeflect(q[0], q[1], q[2]))
+						return util.pointsRightDeflect(q[0], q[1], p) && util.pointsRightDeflect(q[1], q[2], p) && util.pointsRightDeflect(q[2], q[3], p) && util.pointsRightDeflect(q[3], q[0], p);
+					else
+						return util.pointsRightDeflect(q[1], q[0], p) && util.pointsRightDeflect(q[2], q[1], p) && util.pointsRightDeflect(q[3], q[2], p) && util.pointsRightDeflect(q[0], q[3], p);
 				}
 			};
 			util.SimpleCubeMesh = util.createSimpleCubeMesh(1);
@@ -704,7 +745,7 @@
 					cam.Pos = new CL3D.Vect3d(0.8, 0.7, -1);
 					cam.setTarget(new CL3D.Vect3d(0, 0, 0));
 					cam.setFov(Math.PI * 0.3);
-					var animator = new CL3D.AnimatorCameraModelViewer(cam, CL, [0]);
+					var animator = new CL3D.AnimatorCameraModelViewer(cam, CL, [0, 1]);
 					cam.addAnimator(animator);
 					animator.Radius = 3.2;
 					Scene.getRootSceneNode().addChild(cam);
@@ -719,6 +760,15 @@
 						vLightDirection: [0, 0, 1],
 						vLightDirectionalColor: [1.8, 1.8, 1.8],
 						vMaterialEmissive: [0, 0, 0],
+						vMaterialSpecular: [0.4, 0.4, 0.4],
+						vMaterialShiness: 64
+					});
+
+					var cubeHighlightMat = CL.getRenderer().createMaterialTypeEx($("#vs-3dposition").text(), $("#fs-earth").text(), {
+						vLightAmbientColor: [0.06, 0.06, 0.06],
+						vLightDirection: [0, 0, 1],
+						vLightDirectionalColor: [1.8, 1.8, 1.8],
+						vMaterialEmissive: [0.1, 0.13, 0.14],
 						vMaterialSpecular: [0.4, 0.4, 0.4],
 						vMaterialShiness: 64
 					});
@@ -739,6 +789,12 @@
 						cube.addChild(node);
 					});
 
+					$(window).resize(function() {
+						canvas.attr("width", canvas.width());
+						canvas.attr("height", canvas.height());
+						Scene.getActiveCamera().setAspectRatio(canvas.width() / canvas.height());
+					});
+
 					$(top).focus(function() {
 						CL.IsPaused = false;
 					});
@@ -751,17 +807,152 @@
 					CL.OnBeforeDrawAll = function() { Cube.update(); };
 
 					// screw randomly
-					var faces = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+					var faces = [[-1, 0, 0], [1, 0, 0], [0, -1, 0], [0, 1, 0], [0, 0, -1], [0, 0, 1]];
 					var phases = [-1, 1, 2];
-					var screw = function() {
-						Cube.startTransition({
-							face: faces[Math.floor(Math.random() * 6)],
-							phase: phases[Math.floor(Math.random() * 3)],
-							length: 150,
-							finish: screw
-						});
+					var stopAutoScrew = false;
+					var autoScrew = function() {
+						if (!stopAutoScrew) {
+							Cube.startTransition({
+								face: faces[Math.floor(Math.random() * 6)],
+								phase: phases[Math.floor(Math.random() * 3)],
+								length: 150,
+								finish: autoScrew
+							});
+						}
 					};
-					setTimeout(screw, 4000);
+					if (/screw_random/.test(location.hash))
+						setTimeout(autoScrew, 6000);
+
+					// screw operation
+					{
+						var tips = [
+							util.spherize(new CL3D.Vect3d(-1, -1, -1)), // 0
+							util.spherize(new CL3D.Vect3d(-1, -1, +1)), // 1
+							util.spherize(new CL3D.Vect3d(-1, +1, -1)), // 2
+							util.spherize(new CL3D.Vect3d(-1, +1, +1)), // 3
+							util.spherize(new CL3D.Vect3d(+1, -1, -1)), // 4
+							util.spherize(new CL3D.Vect3d(+1, -1, +1)), // 5
+							util.spherize(new CL3D.Vect3d(+1, +1, -1)), // 6
+							util.spherize(new CL3D.Vect3d(+1, +1, +1))  // 7
+						];
+						var faceTips = [
+							[tips[0], tips[1], tips[3], tips[2]],
+							[tips[4], tips[5], tips[7], tips[6]],
+							[tips[0], tips[1], tips[5], tips[4]],
+							[tips[2], tips[3], tips[7], tips[6]],
+							[tips[0], tips[2], tips[6], tips[4]],
+							[tips[1], tips[3], tips[7], tips[5]]
+						];
+						var faceNormals = [new CL3D.Vect3d(-1, 0, 0), new CL3D.Vect3d(1, 0, 0), new CL3D.Vect3d(0, -1, 0), new CL3D.Vect3d(0, 1, 0), new CL3D.Vect3d(0, 0, -1), new CL3D.Vect3d(0, 0, 1)];
+
+						var focusFace = null;
+						var screwing = false;
+						var cursorPos = null;
+						var screwInPoint = null;
+						var currentPhase = 0;
+						var mouseButtons = {};
+
+						$(window).mousedown(function(event) {
+							if (event.button == 0 && focusFace != null) {
+								stopAutoScrew = true;
+
+								if (!Cube.Transition) {
+									screwing = true;
+									screwInPoint = cursorPos;
+									currentPhase = 0;
+
+									Scene.getActiveCamera().Animators[0].Disabled = true;
+								}
+							}
+
+							mouseButtons[event.button] = true;
+						});
+
+						$(window).mouseup(function(event) {
+							if (event.button == 0 && screwing) {
+								screwing = false;
+
+								Scene.getActiveCamera().Animators[0].Disabled = false;
+
+								Cube.startTransition({
+									face: faces[focusFace],
+									length: 10,
+									startPhase: currentPhase,
+									phase: Math.round(currentPhase)
+								});
+							}
+
+							mouseButtons[event.button] = false;
+						});
+
+						var updateFocusFace = function() {
+							var cam = Scene.getActiveCamera();
+							var cameraDirection = cam.Pos.substract(cam.getTarget());
+
+							for (var f = 0; f < 6; ++f) {
+								if (cameraDirection.dotProduct(faceNormals[f]) > 0) {
+									var points = [
+										CL.get2DPositionFrom3DPosition(faceTips[f][3]),
+										CL.get2DPositionFrom3DPosition(faceTips[f][2]),
+										CL.get2DPositionFrom3DPosition(faceTips[f][1]),
+										CL.get2DPositionFrom3DPosition(faceTips[f][0])
+									];
+
+									if (util.pointInQuadrangle(cursorPos, points)) {
+										focusFace = f;
+										break;
+									}
+								}
+							}
+						};
+
+						$(window).mousemove(function(event) {
+							cursorPos = { X: event.pageX, Y: event.pageY };
+
+							if (screwing) {
+								var center = CL.get2DPositionFrom3DPosition(faceNormals[focusFace]);
+								var torque = new CL3D.Vect3d(cursorPos.X - screwInPoint.X, cursorPos.Y - screwInPoint.Y, 0).crossProduct(new CL3D.Vect3d(screwInPoint.X - center.X, screwInPoint.Y - center.Y, 0));
+								screwInPoint = cursorPos;
+								currentPhase += torque.Z * 0.00004;
+								Cube.setFaceRotation(faces[focusFace], currentPhase * Math.PI * 0.5);
+							}
+							else {
+								focusFace = null;
+
+								$.each(cube.Children, function(i, node) {
+									node.getMesh().GetMeshBuffers()[0].Mat.Type = cubeMat;
+								});
+
+								if (!mouseButtons[0] && !mouseButtons[1])
+									updateFocusFace();
+
+								if (!Cube.Transition) {
+									if (focusFace != null) {
+										Cube.traverseArrayFace(faces[focusFace], function(node) {
+											node.getMesh().GetMeshBuffers()[0].Mat.Type = cubeHighlightMat;
+										});
+									}
+								}
+
+								canvas.css("cursor", focusFace != null ? "pointer" : "default");
+							}
+						});
+
+						document.onmousewheel = function(event) {
+							if (!Cube.Transition && !screwing && focusFace != null) {
+								Cube.startTransition({
+									face: faces[focusFace],
+									phase: event.wheelDelta > 0 ? 1 : -1,
+									finish: updateFocusFace
+								});
+
+								focusFace = null;
+								screwing = false;
+
+								event.preventDefault();
+							}
+						};
+					}
 				}
 			});
 
@@ -780,38 +971,6 @@
 				this.updateArray();
 
 				this.ActiveFace = null;
-
-				this.ScrewPoints = [
-					{ pos: util.spherize(new CL3D.Vect3d(1, 2 / 3, 0)), face: [0, 1, 0] },
-					{ pos: util.spherize(new CL3D.Vect3d(-1, 2 / 3, 0)), face: [0, 1, 0] },
-					{ pos: util.spherize(new CL3D.Vect3d(0, 2 / 3, 1)), face: [0, 1, 0] },
-					{ pos: util.spherize(new CL3D.Vect3d(0, 2 / 3, -1)), face: [0, 1, 0] },
-
-					{ pos: util.spherize(new CL3D.Vect3d(1, -2 / 3, 0)), face: [0, -1, 0] },
-					{ pos: util.spherize(new CL3D.Vect3d(-1, -2 / 3, 0)), face: [0, -1, 0] },
-					{ pos: util.spherize(new CL3D.Vect3d(0, -2 / 3, 1)), face: [0, -1, 0] },
-					{ pos: util.spherize(new CL3D.Vect3d(0, -2 / 3, -1)), face: [0, -1, 0] },
-
-					{ pos: util.spherize(new CL3D.Vect3d(2 / 3, 1, 0)), face: [1, 0, 0] },
-					{ pos: util.spherize(new CL3D.Vect3d(2 / 3, -1, 0)), face: [1, 0, 0] },
-					{ pos: util.spherize(new CL3D.Vect3d(2 / 3, 0, 1)), face: [1, 0, 0] },
-					{ pos: util.spherize(new CL3D.Vect3d(2 / 3, 0, -1)), face: [1, 0, 0] },
-
-					{ pos: util.spherize(new CL3D.Vect3d(-2 / 3, 1, 0)), face: [-1, 0, 0] },
-					{ pos: util.spherize(new CL3D.Vect3d(-2 / 3, -1, 0)), face: [-1, 0, 0] },
-					{ pos: util.spherize(new CL3D.Vect3d(-2 / 3, 0, 1)), face: [-1, 0, 0] },
-					{ pos: util.spherize(new CL3D.Vect3d(-2 / 3, 0, -1)), face: [-1, 0, 0] },
-
-					{ pos: util.spherize(new CL3D.Vect3d(1, 0, 2 / 3)), face: [0, 0, 1] },
-					{ pos: util.spherize(new CL3D.Vect3d(-1, 0, 2 / 3)), face: [0, 0, 1] },
-					{ pos: util.spherize(new CL3D.Vect3d(0, 1, 2 / 3)), face: [0, 0, 1] },
-					{ pos: util.spherize(new CL3D.Vect3d(0, -1, 2 / 3)), face: [0, 0, 1] },
-
-					{ pos: util.spherize(new CL3D.Vect3d(1, 0, -2 / 3)), face: [0, 0, -1] },
-					{ pos: util.spherize(new CL3D.Vect3d(-1, 0, -2 / 3)), face: [0, 0, -1] },
-					{ pos: util.spherize(new CL3D.Vect3d(0, 1, -2 / 3)), face: [0, 0, -1] },
-					{ pos: util.spherize(new CL3D.Vect3d(0, -1, -2 / 3)), face: [0, 0, -1] },
-				];
 			};
 
 			CubeArray.prototype.getArrayNode = function(i, j, k) {
@@ -860,9 +1019,9 @@
 
 				this.Transition = {
 					Time: 0,
-					Length: options.length || 30,
-					Phase: options.phase || 1,
-					//Interpolater: options.interpolater || function(t) { return t; },
+					Length: options.length != null ? options.length : 30,
+					Phase: options.phase != null ? options.phase : 1,
+					StartPhase: options.startPhase != null ? options.startPhase : 0,
 					Interpolater: options.interpolater || function(t) { return (((6 * t) - 15) * t + 10) * t * t * t; },
 					Finish: options.finish
 				};
@@ -872,7 +1031,8 @@
 				if (!this.ActiveFace)
 					throw "ActiveFace required in CubeArray transition";
 
-				var angle = transition.Interpolater(transition.Time / transition.Length) * transition.Phase * Math.PI * 0.5;
+				var k = transition.Interpolater(transition.Time / transition.Length);
+				var angle = (transition.StartPhase + k * (transition.Phase - transition.StartPhase)) * Math.PI * 0.5;
 				this.setFaceRotation(this.ActiveFace, angle);
 
 				++transition.Time;
@@ -905,6 +1065,17 @@
 				this.updateArray();
 				this.setFaceRotation(face, 0);
 			};
+		</script>
+		<script type="text/javascript">
+			var _gaq = _gaq || [];
+			_gaq.push(['_setAccount', 'UA-20678203-1']);
+			_gaq.push(['_trackPageview']);
+
+			(function() {
+				var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+				ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+				var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+			})();
 		</script>
 	</head>
 	<body>

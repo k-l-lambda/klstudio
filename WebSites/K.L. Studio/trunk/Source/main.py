@@ -24,6 +24,7 @@ class HomeHandler(webapp.RequestHandler):
 class GuestNote(db.Model):
     author = db.UserProperty()
     remote_addr = db.StringProperty()
+    user_agent = db.StringProperty()
     content = db.StringProperty(multiline=True)
     date = db.DateTimeProperty(auto_now_add=True)
 
@@ -38,6 +39,7 @@ class MessageSign(webapp.RequestHandler):
             note.author = users.User(self.request.get('author'))
 
         note.remote_addr = self.request.remote_addr
+        note.user_agent = self.request.headers['User-Agent']
         note.content = self.request.get('content')
         note.put()
 
@@ -45,7 +47,7 @@ class MessageSign(webapp.RequestHandler):
             sender = 'K.L.Studio.indiegame@gmail.com',
             to = 'K.L.Studio.indiegame@gmail.com',
             subject = 'A guest note signed on K.L. Studio message board',
-            body = 'author: %s\nremote_addr: %s\ncontent: %s' % (note.author.email(), note.remote_addr, note.content)
+            body = 'author: %s\nremote_addr: %s\nuser_agent: %s\ncontent: %s' % (note.author.email(), note.remote_addr, note.user_agent, note.content)
         )
 
         self.redirect('/MessageBoard')

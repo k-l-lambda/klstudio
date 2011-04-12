@@ -36,9 +36,7 @@
 				font-size: 12px;
 			}
 			.footer {
-				position: relative;
-				left: inherit;
-				top: 200px;
+				margin-top: 2em;
 			}
 			.footer_col1 {
 				margin: 15px 46px 20px 34px;
@@ -46,7 +44,7 @@
 				max-width: 200px;
 				color: #787878;
 				font-size: 18px;
-				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
+				font-family: "Comic Sans MS", "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
 				text-align: left;
 			}
 			.footer_col1 ul
@@ -54,7 +52,6 @@
 				margin: 0;
 			}
 			.header3 {
-				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
 				font-weight: bold;
 				font-size: 14px;
 				color: #787878;
@@ -63,7 +60,6 @@
 				margin: 2px;
 			}
 			.hover {
-				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
 				font-size: 14px;
 				color: #777;
 				list-style-type: none;
@@ -78,6 +74,7 @@
 				margin-top: 60px;
 			}
 		</style>
+		<meta name="robots" content="nofollow" />
 		<script type="text/javascript">
 			var _gaq = _gaq || [];
 			_gaq.push(['_setAccount', 'UA-20678203-1']);
@@ -116,7 +113,7 @@
 				</form>
 				<p>&nbsp;</p>
 				<h2>Recent Messages</h2>
-				<div style="overflow:auto; height:260px;width:800px;background-color:#EEE">
+				<div style="overflow:auto; max-height:18em;width:800px;background-color:#f4f4f4">
 					{% for note in notes %}
 						<b>{{ note.author.nickname }}</b> wrote in {{note.date|date:"Y-n-d h:i:s"}} (GMT):
 						<blockquote>{{ note.content|escape }}</blockquote>

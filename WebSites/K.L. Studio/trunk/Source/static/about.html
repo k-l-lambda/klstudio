@@ -107,59 +107,22 @@
 				font-size: 12px;
 			}
 			.footer {
-				position: relative;
-				left: inherit;
-				top: 200px;
-			}
-			.footer_col {
-				margin: 15px 46px 20px 34px;
-				float: left;
-				max-width: 200px;
-				color: #787878;
-				font-size: 18px;
-				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
-			}
-			.footer_col ul
-			{
-				margin: 0;
-			}
-			.header {
-				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
-				font-weight: bold;
-				font-size: 18px;
-				color: #787878;
+				margin-top: 60px;
 			}
 			.hover {
-				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
 				font-size: 18px;
 				color: #777;
 			}
 			#text {
 				margin-top: 60px;
 			}
-			.header1 {
-				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
-				font-weight: bold;
-				font-size: 14px;
-				color: #787878;
-				list-style-type: disc;
-			}
 			.hover1 {
-				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
 				font-size: 14px;
 				color: #777;
 				list-style-type: square;
 			}
 			.hover_link {
 				color: #777;
-			}
-			.header2 {
-				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
-				font-weight: bold;
-				font-size: 14px;
-				color: #787878;
-				list-style-type: disc;
-				text-align: left;
 			}
 			.hover_link1 {
 				color: #777;
@@ -171,11 +134,10 @@
 				max-width: 200px;
 				color: #787878;
 				font-size: 18px;
-				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
+				font-family: "Comic Sans MS", "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
 				text-align: left;
 			}
 			.header3 {
-				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
 				font-weight: bold;
 				font-size: 14px;
 				color: #787878;
@@ -184,7 +146,6 @@
 				margin: 2px;
 			}
 			.hover {
-				font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
 				font-size: 14px;
 				color: #777;
 				list-style-type: none;
@@ -192,6 +153,16 @@
 			.hover a {
 				color: #777;
 				margin-left: 1ex;
+			}
+
+			.discard
+			{
+				text-decoration: line-through;
+				color: #ddd;
+			}
+			.discard *
+			{
+				color: inherit;
 			}
 		</style>
 		<script type="text/javascript">
@@ -209,43 +180,45 @@
 
 	<body class="oneColFixCtr">
 		<div id="container">
-		  <div id="mainContent">
-			<div>
-			  <p><a href="/"><img src="res/images/K.L._Stuidio_Logo_small.png" border="0" class="logo" /></a></p>
-			</div>
-			<div id="text">
-			  <h2>Contacts</h2>
-			  <p>&nbsp;</p>
-			  <p><strong>Mail to us:   <a href="mailto:k.l.studio.indiegame@gmail.com">K.L.Studio.IndieGame@gmail.com</a></strong></p>
-			  <p>&nbsp;</p>
-			  <p><strong>Chat group:   <a href="http://www.chatterous.com/klstudio/">http://www.chatterous.com/klstudio/</a></strong>      </p>
-			  <p>How to join:</p>
-			  <p>&nbsp;&nbsp;Gtalk or Jabber: add <strong>klstudio@chatterous.com</strong> to contacts. </p>
-			  <p>&nbsp;&nbsp;Email: send '@join' to <strong>klstudio@chatterous.com</strong>.</p>
-			</div>
-			<div class="footer">
-			  <div style="margin: 0 auto">
-				<p class="copyright"> &copy; 2010-2011 K.L. Studio<br />
-				</p>
-				<div class="footer_col1">
-				  <ul>
-					<li class="header3">Projects</li>
-					<li class="hover"><a href="projects/Tanx/Tanx.html">Tanx</a></li>
-					<li class="hover"><a href="projects/Tetra/Tetra.html">Tetra</a></li>
-					<li class="hover"><a href="http://klstrigo.appspot.com/" target="_blank">Trigo Online</a><sup style="color:#F00">new!</sup></li>
-					<li class="hover"><a href="projects/Trigo/Trigo.html">Trigo</a></li>
-					<li class="hover"><a href="projects/MagicCube/MagicCube.html">Magic Cube</a></li>
-				  </ul>
+			<div id="mainContent">
+				<div>
+					<p><a href="/"><img src="res/images/K.L._Stuidio_Logo_small.png" border="0" class="logo" /></a></p>
 				</div>
-				<div class="footer_col1">
-				  <ul>
-					<li class="header3">About Us</li>
-					<li class="hover"><a href="about.html">Contacts</a></li>
-					<li class="hover"><a href="/MessageBoard">Leave a message</a></li>
-				  </ul>
+				<div id="text">
+					<h2>Contacts</h2>
+					<p>&nbsp;</p>
+					<p><strong>Mail to us:   <a href="mailto:k.l.studio.indiegame@gmail.com">K.L.Studio.IndieGame@gmail.com</a></strong></p>
+					<p>&nbsp;</p>
+					<div class="discard">
+						<p><strong>Chat group:   <a href="http://www.chatterous.com/klstudio/">http://www.chatterous.com/klstudio/</a></strong>      </p>
+						<p>How to join:</p>
+						<p>&nbsp;&nbsp;Gtalk or Jabber: add <strong>klstudio@chatterous.com</strong> to contacts. </p>
+						<p>&nbsp;&nbsp;Email: send '@join' to <strong>klstudio@chatterous.com</strong>.</p>
+					</div>
 				</div>
-			  </div>
-			</div>
+				<div class="footer">
+					<div style="margin: 0 auto">
+						<p class="copyright"> &copy; 2010-2011 K.L. Studio<br />
+						</p>
+						<div class="footer_col1">
+							<ul>
+								<li class="header3">Projects</li>
+								<li class="hover"><a href="projects/Tanx/Tanx.html">Tanx</a></li>
+								<li class="hover"><a href="projects/Tetra/Tetra.html">Tetra</a></li>
+								<li class="hover"><a href="http://klstrigo.appspot.com/" target="_blank">Trigo Online</a><sup style="color:#F00">new!</sup></li>
+								<li class="hover"><a href="projects/Trigo/Trigo.html">Trigo</a></li>
+								<li class="hover"><a href="projects/MagicCube/MagicCube.html">Magic Cube</a></li>
+							</ul>
+						</div>
+						<div class="footer_col1">
+							<ul>
+								<li class="header3">About Us</li>
+								<li class="hover"><a href="about.html">Contacts</a></li>
+								<li class="hover"><a href="/MessageBoard">Leave a message</a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
 			<!-- end #mainContent --></div>
 		<!-- end #container --></div>
 	</body>

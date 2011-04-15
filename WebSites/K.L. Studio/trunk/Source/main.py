@@ -47,7 +47,7 @@ class MessageSign(webapp.RequestHandler):
             sender = 'K.L.Studio.indiegame@gmail.com',
             to = 'K.L.Studio.indiegame@gmail.com',
             subject = 'A guest note signed on K.L. Studio message board',
-            body = 'author: %s\nremote_addr: %s\nuser_agent: %s\ncontent: %s' % (note.author.email(), note.remote_addr, note.user_agent, note.content)
+            body = 'author: %s\nremote_addr: %s\nuser_agent: %s\nreferer: %s\ncontent: %s' % (note.author.email(), note.remote_addr, note.user_agent, self.request.headers['Referer'] or '', note.content)
         )
 
         self.redirect('/MessageBoard')

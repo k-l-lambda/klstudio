@@ -6,6 +6,10 @@ api_version: 1
 default_expiration: 7d
 
 handlers:
+- url: /robots.txt
+  static_files: robots.txt
+  upload: robots.txt
+
 - url: /
   script: main.py
 

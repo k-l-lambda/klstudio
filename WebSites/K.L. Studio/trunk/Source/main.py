@@ -5,7 +5,7 @@ import re
 import logging
 
 from google.appengine.dist import use_library
-use_library('django', '0.96')
+use_library('django', '1.2')
 
 from google.appengine.ext import db
 from google.appengine.api import users

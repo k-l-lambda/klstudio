@@ -5,6 +5,11 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2011.8.22	K.L.	<xxxK.L.xxx@gmail.com>
+
+	>	Source/main.py: excluded non-logged-on users' messages.
+
+
 2011.4.21	K.L.	<xxxK.L.xxx@gmail.com>
 
 	+	Source/robots.txt: created.

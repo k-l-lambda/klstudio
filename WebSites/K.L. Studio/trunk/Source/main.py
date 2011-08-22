@@ -41,7 +41,8 @@ class MessageSign(webapp.RequestHandler):
         note.remote_addr = self.request.remote_addr
         note.user_agent = self.request.headers['User-Agent']
         note.content = self.request.get('content')
-        note.put()
+        if users.get_current_user():
+            note.put()
 
         mail.send_mail(
             sender = 'K.L.Studio.indiegame@gmail.com',

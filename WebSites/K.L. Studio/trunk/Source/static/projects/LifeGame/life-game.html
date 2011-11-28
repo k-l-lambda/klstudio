@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>A Simulator for the Game of Life - K.L. Studio</title>
+		<title>A Simulator for Conway's Game of Life - K.L. Studio</title>
 		<style type="text/css">
 			.wrapper
 			{
@@ -45,14 +45,14 @@
 				this.RunInterval = options.interval || 10;
 			};
 
-			World.prototype.reset = function(width, height){
-				if(width != undefined)
+			World.prototype.reset = function(width, height) {
+				if (width != undefined)
 					this.Width = Number(width);
-				if(height != undefined)
+				if (height != undefined)
 					this.Height = Number(height);
 
 				this.Cells = [];
-				for(var i = 0; i < this.Height; ++i)
+				for (var i = 0; i < this.Height; ++i)
 					this.Cells.push(new Array());
 
 				this.copyCells();
@@ -61,24 +61,24 @@
 				this.IsRunning = false;
 			};
 
-			World.prototype.copyCells = function(){
+			World.prototype.copyCells = function() {
 				this.LastCells = [];
-				for(var i in this.Cells)
+				for (var i in this.Cells)
 					this.LastCells[i] = this.Cells[i].slice(0);
 			};
 
-			World.prototype.get = function(x, y, cells){
+			World.prototype.get = function(x, y, cells) {
 				cells = cells || this.Cells;
 
-				if(x < 0 || x >= this.Width || y < 0 || y >= this.Height){
-					if(!this.Wrap)
+				if (x < 0 || x >= this.Width || y < 0 || y >= this.Height) {
+					if (!this.Wrap)
 						return false;
-					else{
+					else {
 						x %= this.Width;
-						if(x < 0)
+						if (x < 0)
 							x += this.Width;
 						y %= this.Height;
-						if(y < 0)
+						if (y < 0)
 							y += this.Height;
 					}
 				}
@@ -86,38 +86,38 @@
 				return cells[y][x] ? true : false;
 			};
 
-			World.prototype.step = function(){
+			World.prototype.step = function() {
 				this.copyCells();
 
-				for(var y = 0; y < this.Height; ++y)
-					for(var x = 0; x < this.Width; ++x){
-						var value = this.evaluate(x, y);
-						if(value != this.Cells[y][x]) {
-							this.Cells[y][x] = value;
+				for (var y = 0; y < this.Height; ++y)
+					for (var x = 0; x < this.Width; ++x) {
+					var value = this.evaluate(x, y);
+					if (value != this.Cells[y][x]) {
+						this.Cells[y][x] = value;
 
-							if(this.Callbacks.onCellChange)
-								this.Callbacks.onCellChange(x, y, value);
-						}
+						if (this.Callbacks.onCellChange)
+							this.Callbacks.onCellChange(x, y, value);
 					}
+				}
 
 				++this.Time;
 
-				if(this.Callbacks.onStep)
+				if (this.Callbacks.onStep)
 					this.Callbacks.onStep(world);
 			};
 
-			World.prototype.run = function(){
+			World.prototype.run = function() {
 				var self = this;
 
-				this.RunHandler = setInterval(function(){
+				this.RunHandler = setInterval(function() {
 					self.step();
 				}, this.RunInterval);
 
 				this.IsRunning = true;
 			};
 
-			World.prototype.stop = function(){
-				if(this.RunHandler)
+			World.prototype.stop = function() {
+				if (this.RunHandler)
 					clearInterval(this.RunHandler);
 
 				this.IsRunning = false;
@@ -125,19 +125,19 @@
 
 			World.prototype.neighbors = [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]];
 
-			World.prototype.aliveNeighbors = function(x, y){
+			World.prototype.aliveNeighbors = function(x, y) {
 				var alives = 0;
-				for(var i in this.neighbors)
-					if(this.get(x + this.neighbors[i][0], y + this.neighbors[i][1], this.LastCells))
+				for (var i in this.neighbors)
+					if (this.get(x + this.neighbors[i][0], y + this.neighbors[i][1], this.LastCells))
 						++alives;
 
 				return alives;
 			};
 
-			World.prototype.evaluate = function(x, y){
+			World.prototype.evaluate = function(x, y) {
 				var alives = this.aliveNeighbors(x, y);
 
-				if(this.Cells[y][x])
+				if (this.Cells[y][x])
 					return alives >= 2 && alives <= 3;
 				else
 					return alives == 3;
@@ -147,8 +147,9 @@
 			var world = null;
 			var leftButtonDown = false;
 			var cc = null;
+			var lastMousePosition = null;
 
-			$(function(){
+			$(function() {
 				$("#reset").click(reset);
 				$("#start").click(start);
 				$("#step").click(step);
@@ -157,8 +158,8 @@
 				$("#canvas").mousemove(onMouseMove);
 				$("#canvas").mousedown(onMouseDown);
 				$("#canvas").mouseup(onMouseUp);
-				$("#canvas")[0].onselectstart = function(){return false;};
-				$("#canvas").mouseleave(function(){ $("#cursor-x").text(""); $("#cursor-y").text(""); });
+				$("#canvas")[0].onselectstart = function() { return false; };
+				$("#canvas").mouseleave(function() { $("#cursor-x").text(""); $("#cursor-y").text(""); });
 
 				cc = $("#canvas")[0].getContext("2d");
 
@@ -167,16 +168,16 @@
 				reset();
 			});
 
-			var mousePosition = function(event){
+			var mousePosition = function(event) {
 				var offset = $("#canvas").offset();
-				return {x: event.pageX - offset.left - 1, y: event.pageY - offset.top - 1};
+				return { x: Math.floor(event.pageX - offset.left - 1), y: Math.floor(event.pageY - offset.top - 1) };
 			};
 
-			var reset = function(){
-				if(world)
+			var reset = function() {
+				if (world)
 					stop();
 
-				world = new World({width: $("#world-width").val(), height: $("#world-height").val(), wrap: $("#world-wrap").attr("checked"), callbacks: {onCellChange: paintPoint, onStep: onStep}});
+				world = new World({ width: $("#world-width").val(), height: $("#world-height").val(), wrap: $("#world-wrap").attr("checked"), callbacks: { onCellChange: paintPoint, onStep: onStep} });
 
 				$("#canvas").width(world.Width);
 				$("#canvas").height(world.Height);
@@ -186,17 +187,21 @@
 				$("#time").text(world.Time);
 			};
 
-			var onMouseMove = function(event){
+			var onMouseMove = function(event) {
 				var pos = mousePosition(event);
 				$("#cursor-x").text(pos.x);
 				$("#cursor-y").text(pos.y);
 
-				if(leftButtonDown)
+				if (leftButtonDown) {
+					if (!lastMousePosition || lastMousePosition.x != pos.x || lastMousePosition.y != pos.y)
 					writePoint(pos.x, pos.y);
+
+					lastMousePosition = pos;
+				}
 			};
 
-			var onMouseDown = function(event){
-				if(event.button == 0) {
+			var onMouseDown = function(event) {
+				if (event.button == 0) {
 					leftButtonDown = true;
 
 					var pos = mousePosition(event);
@@ -204,13 +209,15 @@
 				}
 			};
 
-			var onMouseUp = function(event){
-				if(event.button == 0)
+			var onMouseUp = function(event) {
+				if (event.button == 0) {
 					leftButtonDown = false;
+					lastMousePosition = null;
+				}
 			};
 
-			var onKeyDown = function(event){
-				switch(event.keyCode){
+			var onKeyDown = function(event) {
+				switch (event.keyCode) {
 					case 32:
 						step();
 
@@ -218,18 +225,18 @@
 				}
 			};
 
-			var step = function(){
+			var step = function() {
 				stop();
 				world.step();
 			};
 
-			var onStep = function(){
+			var onStep = function() {
 				$("#time").text(world.Time);
 			};
 
-			var writePoint = function(x, y, value){
-				if(x >= 0 && x < world.Width && y >= 0 && y < world.Height) {
-					if(value == undefined)
+			var writePoint = function(x, y, value) {
+				if (x >= 0 && x < world.Width && y >= 0 && y < world.Height) {
+					if (value == undefined)
 						value = !world.Cells[y][x];
 					world.Cells[y][x] = value;
 
@@ -237,24 +244,24 @@
 				}
 			};
 
-			var paintPoint = function(x, y, value){
-				if(value)
+			var paintPoint = function(x, y, value) {
+				if (value)
 					cc.fillRect(x, y, 1, 1);
 				else
 					cc.clearRect(x, y, 1, 1);
 			};
 
-			var randomize = function(){
+			var randomize = function() {
 				world.reset();
 
-				for(var y = 0; y < world.Height; ++y)
-					for(var x = 0; x < world.Width; ++x){
-						writePoint(x, y, Math.random() < 0.5);
-					}
+				for (var y = 0; y < world.Height; ++y)
+					for (var x = 0; x < world.Width; ++x) {
+					writePoint(x, y, Math.random() < 0.5);
+				}
 			};
 
-			var start = function(){
-				if(!world.IsRunning){
+			var start = function() {
+				if (!world.IsRunning) {
 					$("#world-config input").attr("disabled", true);
 					$("#start").text("Stop");
 					$("#randomize").attr("disabled", true);
@@ -266,7 +273,7 @@
 					stop();
 			};
 
-			var stop = function(){
+			var stop = function() {
 				$("#world-config input").attr("disabled", false);
 				$("#start").text("Start");
 				$("#randomize").attr("disabled", false);
@@ -275,23 +282,28 @@
 				world.stop();
 			};
 		</script>
+
 	</head>
 	<body>
 		<div class="wrapper">
 			<p>
-				<span id="world-config">
-					W:<input type="text" id="world-width" value="128" size="3" />
+				<span id="world-config">W:<input type="text" id="world-width" value="128" size="3" />
 					H:<input type="text" id="world-height" value="128" size="3" />
 					wrap:<input type="checkbox" id="world-wrap" checked="checked" />
 				</span>
-				<button id="reset">Reset</button>
-				<button id="start">Start</button>
-				<button id="step">Step</button>
-				<button id="randomize">Randomize</button>
+				<button id="reset">
+					Reset</button>
+				<button id="start">
+					Start</button>
+				<button id="step">
+					Step</button>
+				<button id="randomize">
+					Randomize</button>
 			</p>
 			<canvas id="canvas"></canvas>
 			<p id="status-bar">
-				x: <span id="cursor-x" class="status-value"></span> y: <span id="cursor-y" class="status-value"></span> t: <span id="time" class="status-value"></span>
+				x: <span id="cursor-x" class="status-value"></span>y: <span id="cursor-y" class="status-value">
+				</span>t: <span id="time" class="status-value"></span>
 			</p>
 		</div>
 	</body>

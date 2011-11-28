@@ -5,6 +5,11 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2011.11.28	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Source/static/projects/LifeGame/life-game.html: created.
+
+
 2011.8.22	K.L.	<xxxK.L.xxx@gmail.com>
 
 	>	Source/main.py: excluded non-logged-on users' messages.

@@ -2,6 +2,11 @@
 	<head>
 		<title>A Simulator for Conway's Game of Life - K.L. Studio</title>
 		<style type="text/css">
+			body
+			{
+				font-family: sans-serif, Arial;
+			}
+
 			.wrapper
 			{
 				text-align: center;
@@ -10,6 +15,16 @@
 			button.active
 			{
 				font-weight: bold;
+			}
+
+			#world-width, #world-height
+			{
+				width: 3em;
+			}
+
+			#start
+			{
+				font-size: large;
 			}
 
 			#viewer
@@ -25,6 +40,7 @@
 				cursor: crosshair;
 				background-color: white;
 				-webkit-transition: all ease 0.3s;
+				-moz-transition: all ease 0.3s;
 			}
 			#canvas.active
 			{
@@ -54,6 +70,13 @@
 			{
 				width: 40em;
 				height: 6em;
+			}
+
+			#footer
+			{
+				margin-top: 60px;
+				font-size: small;
+				color: #666;
 			}
 		</style>
 		<script src="jquery.js" type="text/javascript"></script>
@@ -231,6 +254,10 @@
 			var zoom = 1, canvasZoom = 1;
 
 			$(function() {
+				$("#world-width").bind("textchange", onWorldConfigChange);
+				$("#world-height").bind("textchange", onWorldConfigChange);
+				$("#world-wrap").click(onWorldConfigChange);
+
 				$("#reset").click(onReset);
 				$("#start").click(start);
 				$("#step").click(step);
@@ -250,7 +277,7 @@
 				$("#save-archive").click(saveArchive);
 				$("#load-archive").click(loadArchive);
 
-				if(location.hash)
+				if (location.hash)
 					$("#archive").val(location.hash);
 
 				reset(location.hash ? location.hash : null);
@@ -263,6 +290,8 @@
 
 			var onReset = function() {
 				reset();
+
+				$("#reset").text("Reset");
 			};
 
 			var reset = function(data) {
@@ -282,9 +311,9 @@
 				$("#cursor-x").text(pos.x);
 				$("#cursor-y").text(pos.y);
 
-				if (leftButtonDown) {
+				if (!world.IsRunning && leftButtonDown) {
 					if (!lastMousePosition || lastMousePosition.x != pos.x || lastMousePosition.y != pos.y)
-					writePoint(pos.x, pos.y);
+						writePoint(pos.x, pos.y);
 
 					lastMousePosition = pos;
 				}
@@ -367,7 +396,7 @@
 
 			var stop = function() {
 				$("#world-config input").attr("disabled", false);
-				$("#start").text("Start");
+				$("#start").text("Run");
 				$("#start").removeClass("active");
 				$("#randomize").attr("disabled", false);
 				$("#load-archive").attr("disabled", false);
@@ -422,27 +451,30 @@
 
 				refreshCanvas();
 			};
-		</script>
 
+			var onWorldConfigChange = function() {
+				$("#reset").text("Reset *");
+			};
+		</script>
 	</head>
 	<body>
 		<div class="wrapper">
 			<p>
 				<span id="world-config">
-					W:<input type="text" id="world-width" value="128" size="3" />
-					H:<input type="text" id="world-height" value="128" size="3" />
-					wrap:<input type="checkbox" id="world-wrap" checked="checked" />
-					zoom: <select id="zoom">
-						<option value="0.25">1/4</option>
-						<option value="0.5">1/2</option>
-						<option value="1" selected="selected">1</option>
-						<option value="2">2</option>
-						<option value="4">4</option>
-						<option value="8">8</option>
-					</select>
+					W:<input type="text" id="world-width" value="128" />
+					H:<input type="text" id="world-height" value="128"" />
+					Wrap:<input type="checkbox" id="world-wrap" checked="checked" />
 				</span>
+				Zoom: <select id="zoom">
+					<option value="0.25">1/4</option>
+					<option value="0.5">1/2</option>
+					<option value="1" selected="selected">1</option>
+					<option value="2">2</option>
+					<option value="4">4</option>
+					<option value="8">8</option>
+				</select>
 				<button id="reset">Reset</button>
-				<button id="start">Start</button>
+				<button id="start">Run</button>
 				<button id="step">Step</button>
 				<button id="randomize">Randomize</button>
 			</p>
@@ -458,6 +490,9 @@
 					<button id="save-archive">Save</button>
 					<button id="load-archive">Load</button>
 				</p>
+			</div>
+			<div id="footer">
+				<span>by <a href="https://plus.google.com/107810202308609674959" target="_blank" title="K.L.'s profile on Google">K.L.</a> - 2011</span>
 			</div>
 		</div>
 	</body>

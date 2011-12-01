@@ -15,13 +15,8 @@
 			#viewer
 			{
 				padding: 12px 0;
-				magin: 20px 0;
-				background-color: #f4f4f4;
-			}
-
-			#data
-			{
 				margin: 20px 0;
+				background-color: #f4f4f4;
 			}
 
 			#canvas
@@ -29,6 +24,7 @@
 				border: 1px dashed #ccc;
 				cursor: crosshair;
 				background-color: white;
+				-webkit-transition: all ease 0.3s;
 			}
 			#canvas.active
 			{
@@ -65,9 +61,10 @@
 			var World = function(options){
 				if(options.data)
 					this.loadData(options.data);
-				else
+				else{
 					this.reset(options.width, options.height);
-				this.Wrap = options.wrap;
+					this.Wrap = options.wrap;
+				}
 				this.Callbacks = options.callbacks || {};
 				this.RunInterval = options.interval || 10;
 			};
@@ -435,6 +432,14 @@
 					W:<input type="text" id="world-width" value="128" size="3" />
 					H:<input type="text" id="world-height" value="128" size="3" />
 					wrap:<input type="checkbox" id="world-wrap" checked="checked" />
+					zoom: <select id="zoom">
+						<option value="0.25">1/4</option>
+						<option value="0.5">1/2</option>
+						<option value="1" selected="selected">1</option>
+						<option value="2">2</option>
+						<option value="4">4</option>
+						<option value="8">8</option>
+					</select>
 				</span>
 				<button id="reset">Reset</button>
 				<button id="start">Start</button>
@@ -444,14 +449,6 @@
 			<div id="viewer">
 				<canvas id="canvas"></canvas>
 				<p id="status-bar">
-					zoom: <select id="zoom">
-						<option value="0.25">1/4</option>
-						<option value="0.5">1/2</option>
-						<option value="1" selected="selected">1</option>
-						<option value="2">2</option>
-						<option value="4">4</option>
-						<option value="8">8</option>
-					</select>
 					x: <span id="cursor-x" class="status-value"></span>y: <span id="cursor-y" class="status-value"></span>t: <span id="time" class="status-value"></span>
 				</p>
 			</div>

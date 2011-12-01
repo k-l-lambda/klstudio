@@ -1,8 +1,14 @@
 
 TODO:
+	life game: data seriliazation.
 
 Pending Issues:
 	cube earth sphere tangent space issue
+
+
+2011.12.1	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Source/static/projects/LifeGame/life-game.html: zoom option added.
 
 
 2011.11.28	K.L.	<xxxK.L.xxx@gmail.com>

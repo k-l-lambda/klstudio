@@ -148,12 +148,14 @@
 			var leftButtonDown = false;
 			var cc = null;
 			var lastMousePosition = null;
+			var zoom = 1, canvasZoom = 1;
 
 			$(function() {
 				$("#reset").click(reset);
 				$("#start").click(start);
 				$("#step").click(step);
 				$("#randomize").click(randomize);
+				$("#zoom").change(onZoomChange);
 
 				$("#canvas").mousemove(onMouseMove);
 				$("#canvas").mousedown(onMouseDown);
@@ -170,7 +172,7 @@
 
 			var mousePosition = function(event) {
 				var offset = $("#canvas").offset();
-				return { x: Math.floor(event.pageX - offset.left - 1), y: Math.floor(event.pageY - offset.top - 1) };
+				return { x: Math.floor((event.pageX - offset.left - 1) / zoom), y: Math.floor((event.pageY - offset.top - 1) / zoom) };
 			};
 
 			var reset = function() {
@@ -179,10 +181,10 @@
 
 				world = new World({ width: $("#world-width").val(), height: $("#world-height").val(), wrap: $("#world-wrap").attr("checked"), callbacks: { onCellChange: paintPoint, onStep: onStep} });
 
-				$("#canvas").width(world.Width);
-				$("#canvas").height(world.Height);
-				$("#canvas").attr("width", world.Width);
-				$("#canvas").attr("height", world.Height);
+				$("#canvas").width(world.Width * zoom);
+				$("#canvas").height(world.Height * zoom);
+				$("#canvas").attr("width", world.Width * zoom);
+				$("#canvas").attr("height", world.Height * zoom);
 
 				$("#time").text(world.Time);
 			};
@@ -246,9 +248,9 @@
 
 			var paintPoint = function(x, y, value) {
 				if (value)
-					cc.fillRect(x, y, 1, 1);
+					cc.fillRect(x * canvasZoom, y * canvasZoom, canvasZoom, canvasZoom);
 				else
-					cc.clearRect(x, y, 1, 1);
+					cc.clearRect(x * canvasZoom, y * canvasZoom, canvasZoom, canvasZoom);
 			};
 
 			var randomize = function() {
@@ -281,29 +283,55 @@
 
 				world.stop();
 			};
+
+			var onZoomChange = function(){
+				zoom = Number($("#zoom").val());
+				canvasZoom = zoom < 1 ? 1 : zoom;
+
+				$("#canvas").width(world.Width * zoom);
+				$("#canvas").height(world.Height * zoom);
+
+				$("#canvas").attr("width", world.Width * canvasZoom);
+				$("#canvas").attr("height", world.Height * canvasZoom);
+
+				refreshCanvas();
+			};
+
+			var refreshCanvas = function(){
+				//cc.clearRect(0, 0, world.Width * canvasZoom, world.Height * canvasZoom);
+
+				for (var y = 0; y < world.Height; ++y)
+					for (var x = 0; x < world.Width; ++x) {
+						paintPoint(x, y, world.Cells[y][x]);
+					}
+			};
 		</script>
 
 	</head>
 	<body>
 		<div class="wrapper">
 			<p>
-				<span id="world-config">W:<input type="text" id="world-width" value="128" size="3" />
+				<span id="world-config">
+					W:<input type="text" id="world-width" value="128" size="3" />
 					H:<input type="text" id="world-height" value="128" size="3" />
 					wrap:<input type="checkbox" id="world-wrap" checked="checked" />
 				</span>
-				<button id="reset">
-					Reset</button>
-				<button id="start">
-					Start</button>
-				<button id="step">
-					Step</button>
-				<button id="randomize">
-					Randomize</button>
+				<button id="reset">Reset</button>
+				<button id="start">Start</button>
+				<button id="step">Step</button>
+				<button id="randomize">Randomize</button>
+				<select id="zoom">
+					<option value="0.25">1/4</option>
+					<option value="0.5">1/2</option>
+					<option value="1" selected="selected">1</option>
+					<option value="2">2</option>
+					<option value="4">4</option>
+					<option value="8">8</option>
+				</select>
 			</p>
 			<canvas id="canvas"></canvas>
 			<p id="status-bar">
-				x: <span id="cursor-x" class="status-value"></span>y: <span id="cursor-y" class="status-value">
-				</span>t: <span id="time" class="status-value"></span>
+				x: <span id="cursor-x" class="status-value"></span>y: <span id="cursor-y" class="status-value"></span>t: <span id="time" class="status-value"></span>
 			</p>
 		</div>
 	</body>

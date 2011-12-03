@@ -184,10 +184,7 @@
 			World.prototype.evaluate = function(x, y) {
 				var alives = this.aliveNeighbors(x, y);
 
-				if (this.Cells[y][x])
-					return alives >= 2 && alives <= 3;
-				else
-					return alives == 3;
+				return this.Cells[y][x] ? (alives >= 2 && alives <= 3) : alives == 3;
 			};
 
 			World.prototype.saveCells = function(cells, width, height){
@@ -212,19 +209,20 @@
 				return data;
 			};
 
-			World.prototype.loadCells = function(data, width, height){
+			World.prototype.loadCells = function(data, width, height) {
 				var cells = new Array();
 				for (var y = 0; y < height; ++y)
 					cells.push(new Array());
 
-				for(var i in data){
+				for (var i in data) {
 					var code = data.charCodeAt(i) - 0x30;
 
-					for(var b = 0; b < 6; ++b){
+					for (var b = 0; b < 6; ++b) {
 						var index = i * 6 + b;
 						var x = index % width;
 						var y = Math.floor(index / width);
-						cells[y][x] = (code & (1 << b)) != 0;
+						if (code & (1 << b))
+							cells[y][x] = true;
 					}
 				}
 

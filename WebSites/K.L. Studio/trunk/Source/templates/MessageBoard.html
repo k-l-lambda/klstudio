@@ -115,7 +115,7 @@
 				<h2 title="Non-logged-on guests' message won't be displayed.">Recent Messages</h2>
 				<div style="overflow:auto; max-height:18em;width:800px;background-color:#f4f4f4">
 					{% for note in notes %}
-						<b>{{ note.author.nickname }}</b> wrote in {{note.date|date:"Y-n-d h:i:s"}} (GMT):
+						<b>{{ note.author.nickname }}</b> wrote in {{note.date|date:"Y-n-d h:i:s"}} (UTC):
 						<blockquote>{{ note.content|escape }}</blockquote>
 					{% endfor %}
 				</div>

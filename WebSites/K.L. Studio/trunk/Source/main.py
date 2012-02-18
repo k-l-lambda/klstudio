@@ -5,7 +5,10 @@ import re
 import logging
 
 from google.appengine.dist import use_library
-use_library('django', '1.2')
+try:
+    use_library('django', '1.2')
+except:
+    logging.warn('use_library error: %s', sys.exc_info()[1])
 
 from google.appengine.ext import db
 from google.appengine.api import users

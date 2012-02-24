@@ -5,6 +5,11 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2012.2.24	K.L.	<xxxK.L.xxx@gmail.com>
+
+	+	Source/templates/index.html: Google+ page link added.
+
+
 2012.2.18	K.L.	<xxxK.L.xxx@gmail.com>
 
 	>	Source/main.py: catch exception on 'use_library'.

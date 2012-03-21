@@ -43,5 +43,12 @@ handlers:
   login: required
 
 
+- url: /PageTracer/static/
+  static_dir: PageTracer/static
+
+- url: /PageTracer/.*
+  script: PageTracer/main.py
+
+
 - url: /
   static_dir: static

@@ -14,6 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{6039FA
 		Source\cron.yaml = Source\cron.yaml
 		Source\index.yaml = Source\index.yaml
 		Source\main.py = Source\main.py
+		Source\robots.txt = Source\robots.txt
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{507BFF60-1747-4568-B869-37F7B1AAD9E1}"
@@ -155,6 +156,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LifeGame", "LifeGame", "{46
 		Source\static\projects\LifeGame\life-game.html = Source\static\projects\LifeGame\life-game.html
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PageTracer", "PageTracer", "{52CA7152-950F-4D50-986F-71205CE8234A}"
+	ProjectSection(SolutionItems) = preProject
+		Source\PageTracer\main.py = Source\PageTracer\main.py
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{D83F72EE-56C1-440E-85AA-3447359B3C7B}"
+	ProjectSection(SolutionItems) = preProject
+		Source\PageTracer\static\1.png = Source\PageTracer\static\1.png
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -164,6 +175,7 @@ Global
 		{E1C565A9-4542-4405-8CC0-2E3E8B31FD54} = {6039FAA1-190F-41C5-BB92-22D664E36873}
 		{9225C4DA-E842-4A54-B4AF-6804A7B33BF0} = {6039FAA1-190F-41C5-BB92-22D664E36873}
 		{8F9934FF-F91F-42EF-AF99-59483CB266D5} = {6039FAA1-190F-41C5-BB92-22D664E36873}
+		{52CA7152-950F-4D50-986F-71205CE8234A} = {6039FAA1-190F-41C5-BB92-22D664E36873}
 		{72F8721A-6415-46C5-9AC3-30CE9FCBBDF9} = {507BFF60-1747-4568-B869-37F7B1AAD9E1}
 		{A55A5D1C-ED8B-4922-BE88-8B60F53B8EE4} = {507BFF60-1747-4568-B869-37F7B1AAD9E1}
 		{6F1FA9CD-DB7B-4E57-9023-7BCE1E044B72} = {507BFF60-1747-4568-B869-37F7B1AAD9E1}
@@ -179,5 +191,6 @@ Global
 		{8134952A-5A0F-4385-9740-F20016F182B9} = {9225C4DA-E842-4A54-B4AF-6804A7B33BF0}
 		{7A0416DF-D0B8-46A6-904B-DB25822428B4} = {8F9934FF-F91F-42EF-AF99-59483CB266D5}
 		{02369B77-AC05-452D-9083-1D6E5B411B60} = {8F9934FF-F91F-42EF-AF99-59483CB266D5}
+		{D83F72EE-56C1-440E-85AA-3447359B3C7B} = {52CA7152-950F-4D50-986F-71205CE8234A}
 	EndGlobalSection
 EndGlobal

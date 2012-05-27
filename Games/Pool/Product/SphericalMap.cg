@@ -1,0 +1,16 @@
+
+void spherical_vp(
+	float4 position			: POSITION,
+	float3 normal			: NORMAL,
+	float2 uv				: TEXCOORD0,
+
+	out float4 oPosition	: POSITION,
+	out float2 oUv			: TEXCOORD0,
+	out float4 oNormal		: TEXCOORD1,
+
+	uniform float4x4 worldViewProj)
+{
+	oPosition = mul(worldViewProj, position);
+	oNormal = mul(worldViewProj, float4(normal, 0));
+	oUv = uv;
+}

@@ -31,6 +31,19 @@ vertex_program Pool/pnt1 cg
 	}
 }
 
+vertex_program Pool/pvn cg
+{
+	source			Pool.cg
+	entry_point		pvn_vp
+	profiles		vs_1_1 arbvp1
+
+	default_params
+	{
+		param_named_auto	worldView		worldview_matrix
+		param_named_auto	worldViewProj	worldviewproj_matrix
+	}
+}
+
 
 fragment_program Pool/NoLight cg
 {
@@ -83,4 +96,11 @@ fragment_program Pool/Lambert cg
 		param_named_auto	lightDiffuse		light_diffuse_colour	0
 		param_named_auto	spotLightParams		spotlight_params		0
 	}
+}
+
+fragment_program Pool/SphericalMap cg
+{
+	source			Pool.cg
+	entry_point		sphericalMap_fp
+	profiles		ps_2_x arbfp1
 }

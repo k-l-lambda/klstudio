@@ -21,6 +21,21 @@ void pnt1_vp(
 	oZ = 1;
 }
 
+void pvn_vp(
+	float4 position				: POSITION,
+	float3 normal				: NORMAL,
+	float2 uv					: TEXCOORD0,
+
+	out float4 oPosition		: POSITION,
+	out float4 oNormal			: TEXCOORD0,
+
+	uniform float4x4 worldView,
+	uniform float4x4 worldViewProj)
+{
+	oPosition = mul(worldViewProj, position);
+	oNormal = mul(worldView, float4(normal, 0));
+}
+
 
 sampler DiffuseMap : register(s0);
 
@@ -115,4 +130,20 @@ float4 nolight_fp(
 		discard;
 
 	return tex2D(DiffuseMap, uv);
+}
+
+
+sampler EnvironmentMap : register(s0);
+
+float4 sphericalMap_fp(
+	float4 normal				: TEXCOORD0,
+
+	uniform float4 evnColor)
+	: COLOR
+{
+	float3 N = normalize(normal.xyz);
+	float2 uv = (N.xy + 1) * 0.5f;
+	uv.y *= -1;
+
+	return tex2D(EnvironmentMap, uv) * evnColor;
 }

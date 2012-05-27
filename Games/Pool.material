@@ -1,0 +1,311 @@
+
+vertex_program Pool/Sperical cg
+{
+	source		SphericalMap.cg
+	entry_point	spherical_vp
+	profiles	vs_1_1 arbvp1
+
+	default_params
+	{
+		param_named_auto	worldViewProj	worldviewproj_matrix
+	}
+	
+}
+
+vertex_program Pool/pnt1 cg
+{
+	source			Pool.cg
+	entry_point		pnt1_vp
+	profiles		vs_1_1 arbvp1
+
+	default_params
+	{
+		param_named_auto	world			world_matrix
+		param_named_auto	worldViewProj	worldviewproj_matrix
+	}
+}
+
+fragment_program Pool/Ambient cg
+{
+	source			Pool.cg
+	entry_point		ambient_fp
+	profiles		ps_2_x arbfp1
+
+	default_params
+	{
+		param_named_auto	ambientColor		ambient_light_colour
+	}
+}
+
+fragment_program Pool/Ball cg
+{
+	source			Pool.cg
+	entry_point		ball_fp
+	profiles		ps_2_x arbfp1
+
+	default_params
+	{
+		param_named_auto	cameraPosition		camera_position
+		param_named_auto	lightPosition		light_position			0
+		param_named_auto	lightDirection		light_direction			0
+		param_named_auto	lightDiffuse		light_diffuse_colour	0
+		param_named_auto	lightSpecular		light_specular_colour	0
+		param_named_auto	spotLightParams		spotlight_params		0
+		param_named_auto	specularColor		surface_specular_colour	0
+		param_named_auto	shininess			surface_shininess		0
+	}
+}
+
+
+material Pool/White
+{
+	technique
+	{
+		pass
+		{
+			ambient 0.8 0.8 0.8
+			diffuse 1 1 1
+		}
+	}
+}
+
+material Pool/Black
+{
+	technique
+	{
+		pass
+		{
+			ambient 0 0 0
+			diffuse 0.01 0.01 0.01
+		}
+	}
+}
+
+material Pool/SkyBox
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			depth_write off
+
+			texture_unit
+			{
+				cubic_texture cloudy_noon.jpg separateUV
+				tex_address_mode clamp
+			}
+		}
+	}
+}
+
+abstract pass Pool/BallPass
+{
+	normalise_normals	on
+	specular	0.6 0.6 0.6 64
+
+	texture_unit
+	{
+		//colour_op			add
+		//colour_op_ex		blend_manual src_texture src_current 0.6
+		cubic_texture		cloudy_noon.jpg combinedUVW
+		tex_address_mode	clamp
+		env_map				cubic_reflection
+	}
+
+	texture_unit
+	{
+		colour_op_ex		modulate src_current src_manual 0.4 0.4 0.4
+	}
+
+	texture_unit
+	{
+		colour_op			add
+		texture_alias		DiffuseMap
+		transform			2 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1
+	}
+}
+
+material Pool/Balls/Base
+{
+	technique
+	{
+		pass : Pool/BallPass
+		{
+		}
+	}
+
+	technique
+	{
+		scheme	Spherical
+
+		pass ambient
+		{
+			vertex_program_ref	Pool/pnt1
+			{
+			}
+
+			fragment_program_ref	Pool/Ambient
+			{
+			}
+
+			texture_unit
+			{
+				texture_alias		DiffuseMap
+			}
+		}
+
+		pass
+		{
+			scene_blend	add
+			iteration	once_per_light spot
+
+			specular	0.6 0.6 0.6 64
+
+			vertex_program_ref	Pool/pnt1
+			{
+			}
+
+			fragment_program_ref	Pool/Ball
+			{
+			}
+
+			texture_unit
+			{
+				texture_alias		DiffuseMap
+			}
+		}
+	}
+}
+
+material Pool/Balls/White : Pool/Balls/Base
+{
+	set_texture_alias	DiffuseMap	white.dds
+}
+
+material Pool/Balls/P1 : Pool/Balls/Base
+{
+	set_texture_alias	DiffuseMap	p1.dds
+}
+
+material Pool/Balls/P2 : Pool/Balls/Base
+{
+	set_texture_alias	DiffuseMap	p2.dds
+}
+
+material Pool/Balls/P3 : Pool/Balls/Base
+{
+	set_texture_alias	DiffuseMap	p3.dds
+}
+
+material Pool/Balls/P4 : Pool/Balls/Base
+{
+	set_texture_alias	DiffuseMap	p4.dds
+}
+
+material Pool/Balls/P5 : Pool/Balls/Base
+{
+	set_texture_alias	DiffuseMap	p5.dds
+}
+
+material Pool/Balls/P6 : Pool/Balls/Base
+{
+	set_texture_alias	DiffuseMap	p6.dds
+}
+
+material Pool/Balls/P7 : Pool/Balls/Base
+{
+	set_texture_alias	DiffuseMap	p7.dds
+}
+
+material Pool/Balls/P8 : Pool/Balls/Base
+{
+	set_texture_alias	DiffuseMap	p8.dds
+}
+
+material Pool/Balls/P9 : Pool/Balls/Base
+{
+	set_texture_alias	DiffuseMap	p9.dds
+}
+
+material Pool/Balls/P10 : Pool/Balls/Base
+{
+	set_texture_alias	DiffuseMap	p10.dds
+}
+
+material Pool/Balls/P11 : Pool/Balls/Base
+{
+	set_texture_alias	DiffuseMap	p11.dds
+}
+
+material Pool/Balls/P12 : Pool/Balls/Base
+{
+	set_texture_alias	DiffuseMap	p12.dds
+}
+
+material Pool/Balls/P13 : Pool/Balls/Base
+{
+	set_texture_alias	DiffuseMap	p13.dds
+}
+
+material Pool/Balls/P14 : Pool/Balls/Base
+{
+	set_texture_alias	DiffuseMap	p14.dds
+}
+
+material Pool/Balls/P15 : Pool/Balls/Base
+{
+	set_texture_alias	DiffuseMap	p15.dds
+}
+
+material Pool/Floor
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture F-004.jpg
+			}
+		}
+	}
+}
+
+material Pool/Cue/Material
+{
+	technique
+	{
+		pass
+		{
+			ambient 0.000000 0.000000 0.000000 
+			diffuse 0.749020 0.749020 0.749020 
+			specular 0.000000 0.000000 0.000000 8
+			emissive 0.000000 0.000000 0.000000 
+
+			texture_unit 
+			{
+				texture qiangtou.png
+			}
+		}
+	}
+}
+
+material Pool/Cue/Material1
+{
+	technique
+	{
+		pass
+		{
+			ambient 0.000000 0.000000 0.000000 
+			diffuse 0.749020 0.749020 0.749020 
+			specular 0.000000 0.000000 0.000000 8
+			emissive 0.000000 0.000000 0.000000 
+
+			texture_unit 
+			{
+				texture gan.png
+			}
+		}
+	}
+}

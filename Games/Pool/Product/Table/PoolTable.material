@@ -1,17 +1,40 @@
-material Pool/Table/Material
+
+material Pool/Table/Base
 {
-	technique
+	technique	Default
 	{
 		pass
 		{
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 88
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
+			vertex_program_ref	Pool/pnt1
 			{
-				texture snooker_.png
+			}
+
+			fragment_program_ref	Pool/Ambient
+			{
+			}
+
+			texture_unit
+			{
+				texture		$DiffuseMap
+			}
+		}
+
+		pass
+		{
+			scene_blend	add
+			iteration	once_per_light spot
+
+			vertex_program_ref	Pool/pnt1
+			{
+			}
+
+			fragment_program_ref	Pool/Lambert
+			{
+			}
+
+			texture_unit
+			{
+				texture		$DiffuseMap
 			}
 		}
 	}
@@ -23,90 +46,59 @@ material Pool/Table/Material
 		pass
 		{
 			vertex_program_ref	Pool/Sperical
-
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 88
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
 			{
-				texture snooker_.png
+			}
+
+			fragment_program_ref	Pool/Ambient
+			{
+			}
+
+			texture_unit
+			{
+				texture		$DiffuseMap
+			}
+		}
+
+		pass
+		{
+			scene_blend	add
+			iteration	once_per_light spot
+
+			vertex_program_ref	Pool/Sperical
+			{
+			}
+
+			fragment_program_ref	Pool/Lambert
+			{
+			}
+
+			texture_unit
+			{
+				texture		$DiffuseMap
 			}
 		}
 	}
 }
-material Pool/Table/Material1
-{
-	technique
-	{
-		pass
-		{
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 8
-			emissive 0.000000 0.000000 0.000000 
 
-			texture_unit 
-			{
-				texture red_gras.png
-			}
-		}
-	}
+material Pool/Table/Material : Pool/Table/Base
+{
+	set	$DiffuseMap	"snooker_.png"
 }
-material Pool/Table/Material3
+material Pool/Table/Material1 : Pool/Table/Base
 {
-	technique
-	{
-		pass
-		{
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 8
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
-			{
-				texture snooker1.png
-			}
-		}
-	}
+	set	$DiffuseMap	"red_gras.png"
 }
-material Pool/Table/Material4
+material Pool/Table/Material3 : Pool/Table/Base
 {
-	technique
-	{
-		pass
-		{
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 8
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
-			{
-				texture yuan.png
-			}
-		}
-	}
+	set	$DiffuseMap	"snooker1.png"
 }
-material Pool/Table/Material5
+material Pool/Table/Material4 : Pool/Table/Base
 {
-	technique
-	{
-		pass
-		{
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 8
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
-			{
-				texture jiao.png
-			}
-		}
-	}
+	set	$DiffuseMap	yuan.png
+}
+material Pool/Table/Material5 : Pool/Table/Base
+{
+	set	$DiffuseMap	jiao.png
 }
 material Pool/Table/Material6
 {
@@ -121,195 +113,27 @@ material Pool/Table/Material6
 		}
 	}
 }
-material Pool/Table/Material_#101
+material Pool/Table/Material_#101 : Pool/Table/Base
 {
-	technique
-	{
-		pass
-		{
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 8
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
-			{
-				texture snooker_.png
-			}
-		}
-		pass
-		{
-			scene_blend	modulate
-
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 8
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
-			{
-				texture red_gras.png
-			}
-		}
-	}
+	set	$DiffuseMap	snooker_.png
 }
-material Pool/Table/Material_#112
+material Pool/Table/Material_#112 : Pool/Table/Base
 {
-	technique
-	{
-		pass
-		{
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 8
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
-			{
-				texture snooker_.png
-			}
-		}
-		pass
-		{
-			scene_blend	modulate
-
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 8
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
-			{
-				texture red_gras.png
-			}
-		}
-	}
+	set	$DiffuseMap	snooker_.png
 }
-material Pool/Table/Material_#123
+material Pool/Table/Material_#123 : Pool/Table/Base
 {
-	technique
-	{
-		pass
-		{
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 8
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
-			{
-				texture snooker_.png
-			}
-		}
-		pass
-		{
-			scene_blend	modulate
-
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 8
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
-			{
-				texture red_gras.png
-			}
-		}
-	}
+	set	$DiffuseMap	snooker_.png
 }
-material Pool/Table/Material_#134
+material Pool/Table/Material_#134 : Pool/Table/Base
 {
-	technique
-	{
-		pass
-		{
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 8
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
-			{
-				texture snooker_.png
-			}
-		}
-		pass
-		{
-			scene_blend	modulate
-
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 8
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
-			{
-				texture red_gras.png
-			}
-		}
-	}
+	set	$DiffuseMap	snooker_.png
 }
-material Pool/Table/Material_#145
+material Pool/Table/Material_#145 : Pool/Table/Base
 {
-	technique
-	{
-		pass
-		{
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 8
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
-			{
-				texture snooker_.png
-			}
-		}
-		pass
-		{
-			scene_blend	modulate
-
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 8
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
-			{
-				texture red_gras.png
-			}
-		}
-	}
+	set	$DiffuseMap	snooker_.png
 }
-material Pool/Table/Material_#156
+material Pool/Table/Material_#156 : Pool/Table/Base
 {
-	technique
-	{
-		pass
-		{
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 8
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
-			{
-				texture snooker_.png
-			}
-		}
-		pass
-		{
-			scene_blend	modulate
-
-			ambient 1.000000 1.000000 1.000000
-			diffuse 1.00000 1.00000 1.00000 
-			specular 0.000000 0.000000 0.000000 8
-			emissive 0.000000 0.000000 0.000000 
-
-			texture_unit 
-			{
-				texture red_gras.png
-			}
-		}
-	}
+	set	$DiffuseMap	snooker_.png
 }

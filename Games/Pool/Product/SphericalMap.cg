@@ -1,16 +1,31 @@
 
 void spherical_vp(
-	float4 position			: POSITION,
-	float3 normal			: NORMAL,
-	float2 uv				: TEXCOORD0,
+	float4 position				: POSITION,
+	float3 normal				: NORMAL,
+	float2 uv					: TEXCOORD0,
 
-	out float4 oPosition	: POSITION,
-	out float2 oUv			: TEXCOORD0,
-	out float4 oNormal		: TEXCOORD1,
+	out float4 oPosition		: POSITION,
+	out float2 oUv				: TEXCOORD0,
+	out float oZ				: TEXCOORD1,
+	out float4 oObjectPosition	: TEXCOORD2,
+	out float4 oNormal			: TEXCOORD3,
 
-	uniform float4x4 worldViewProj)
+	uniform float4x4 world,
+	uniform float4x4 worldView,
+	uniform float4x4 worldViewProj,
+	uniform float4x4 texture,
+	uniform float nearClip,
+	uniform float farClip)
 {
-	oPosition = mul(worldViewProj, position);
+	oObjectPosition = mul(world, position);
 	oNormal = mul(worldViewProj, float4(normal, 0));
-	oUv = uv;
+	oUv = mul(texture, float4(uv, 0, 0));
+
+	oPosition = mul(worldView, position);
+	oPosition.xy = normalize(oPosition.xyz).xy;
+	//oPosition.z = -oPosition.z - nearClip;
+	//oPosition.z /= -(farClip - nearClip);
+	oPosition.z /= -1000000;
+
+	oZ = oPosition.z;
 }

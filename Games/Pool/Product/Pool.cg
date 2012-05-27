@@ -6,25 +6,29 @@ void pnt1_vp(
 
 	out float4 oPosition		: POSITION,
 	out float2 oUv				: TEXCOORD0,
-	out float4 oObjectPosition	: TEXCOORD1,
-	out float4 oNormal			: TEXCOORD2,
+	out float oZ				: TEXCOORD1,
+	out float4 oObjectPosition	: TEXCOORD2,
+	out float4 oNormal			: TEXCOORD3,
 
 	uniform float4x4 world,
-	uniform float4x4 worldViewProj)
+	uniform float4x4 worldViewProj,
+	uniform float4x4 texture)
 {
 	oPosition = mul(worldViewProj, position);
 	oObjectPosition = mul(world, position);
 	oNormal = mul(world, float4(normal, 0));
-	oUv = uv;
+	oUv = mul(texture, float4(uv, 0, 0));
+	oZ = 1;
 }
 
 
 sampler DiffuseMap : register(s0);
 
-float4 ball_fp(
+float4 phongSpot_fp(
 	float2 uv				: TEXCOORD0,
-	float4 objectPosition	: TEXCOORD1,
-	float4 normal			: TEXCOORD2,
+	float Z					: TEXCOORD1,
+	float4 objectPosition	: TEXCOORD2,
+	float4 normal			: TEXCOORD3,
 
 	uniform float3 cameraPosition,
 	uniform float3 lightPosition,
@@ -36,7 +40,10 @@ float4 ball_fp(
 	uniform float shininess)
 	: COLOR
 {
-	float4 Kd = tex2D(DiffuseMap, float2(uv.x * 2, uv.y));
+	if(Z < 0)
+		discard;
+
+	float4 Kd = tex2D(DiffuseMap, uv);
 
 	float3 N = normalize(normal.xyz);
 	float3 V = normalize(cameraPosition - objectPosition.xyz);
@@ -57,11 +64,55 @@ float4 ball_fp(
 	return result;
 }
 
+float4 lambertSpot_fp(
+	float2 uv				: TEXCOORD0,
+	float Z					: TEXCOORD1,
+	float4 objectPosition	: TEXCOORD2,
+	float4 normal			: TEXCOORD3,
+
+	uniform float3 lightPosition,
+	uniform float3 lightDirection,
+	uniform float4 lightDiffuse,
+	uniform float4 spotLightParams)
+	: COLOR
+{
+	if(Z < 0)
+		discard;
+
+	float4 Kd = tex2D(DiffuseMap, uv);
+
+	float3 N = normalize(normal.xyz);
+	float3 L = normalize(lightPosition - objectPosition.xyz);
+
+	float cosDirection = dot(L, -lightDirection);
+	float spotEffect = smoothstep(spotLightParams.y, spotLightParams.x, cosDirection);
+
+	float diffuseLight = saturate(dot(N, L));
+	float4 diffuseResult = lightDiffuse * diffuseLight * Kd * spotEffect;
+
+	return diffuseResult;
+}
+
 float4 ambient_fp(
 	float2 uv				: TEXCOORD0,
+	float Z					: TEXCOORD1,
 
 	uniform float4 ambientColor)
 	: COLOR
 {
-	return ambientColor * tex2D(DiffuseMap, float2(uv.x * 2, uv.y));
+	if(Z < 0)
+		discard;
+
+	return ambientColor * tex2D(DiffuseMap, uv);
+}
+
+float4 nolight_fp(
+	float2 uv				: TEXCOORD0,
+	float Z					: TEXCOORD1)
+	: COLOR
+{
+	if(Z < 0)
+		discard;
+
+	return tex2D(DiffuseMap, uv);
 }

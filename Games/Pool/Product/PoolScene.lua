@@ -27,14 +27,14 @@ function initialize(world)
 
 	local spot_light = Tanx.LightAppearanceConfig()
 	spot_light.LightType = Ogre.Light.LightTypes.SPOTLIGHT
-	spot_light.DiffuseColour = Tanx.ColourValue(1.0, 0.9, 0.7, 1)
-	spot_light.SpecularColour = Tanx.ColourValue(1.0, 0.9, 0.7, 1)
+	spot_light.DiffuseColour = Tanx.ColourValue(0.92, 0.8, 0.7, 1)
+	spot_light.SpecularColour = Tanx.ColourValue(0.92, 0.8, 0.7, 1)
 	spot_light.Direction = Tanx.Vector3(0, -1, 0)
 	spot_light.SpotInnerAngle = Tanx.Radian(math.pi * 0.1)
-	spot_light.SpotOuterAngle = Tanx.Radian(math.pi * 0.6)
+	spot_light.SpotOuterAngle = Tanx.Radian(math.pi * 0.9)
 	spot_light.CastShadows = true
-	world:createAppearance("SpotLight1", spot_light):getParentNode():setPosition(Tanx.Vector3(7, 15, 0))
-	world:createAppearance("SpotLight2", spot_light):getParentNode():setPosition(Tanx.Vector3(-7, 15, 0))
+	world:createAppearance("SpotLight1", spot_light):getParentNode():setPosition(Tanx.Vector3(8, 15, 0))
+	world:createAppearance("SpotLight2", spot_light):getParentNode():setPosition(Tanx.Vector3(-8, 15, 0))
 
 	local ground = Tanx.UnitConfig(world:getUnitConfig"Tanx/Core/Plane")
 	ground.RigidBodies:at(0).Shape:get().Scale = Tanx.Vector3(100, 100, 100)

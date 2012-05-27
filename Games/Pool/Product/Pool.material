@@ -65,70 +65,85 @@ material Pool/SkyBox
 	}
 }
 
-abstract pass Pool/BallAmbient
+abstract technique Pool/BallBase
 {
-	vertex_program_ref	Pool/pnt1
+	pass Ambient
 	{
+		vertex_program_ref	Pool/pnt1
+		{
+		}
+
+		fragment_program_ref	Pool/Ambient
+		{
+		}
+
+		texture_unit
+		{
+			texture_alias		DiffuseMap
+			transform			2 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1
+		}
 	}
 
-	fragment_program_ref	Pool/Ambient
+	pass Lighting
 	{
-	}
+		scene_blend	add
+		iteration	once_per_light spot
 
-	texture_unit
-	{
-		texture_alias		DiffuseMap
-		transform			2 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1
-	}
-}
+		specular	0.6 0.6 0.6 64
 
-abstract pass Pool/BallLighting
-{
-	scene_blend	add
-	iteration	once_per_light spot
+		vertex_program_ref	Pool/pnt1
+		{
+		}
 
-	specular	0.6 0.6 0.6 64
+		fragment_program_ref	Pool/Phong
+		{
+		}
 
-	vertex_program_ref	Pool/pnt1
-	{
-	}
-
-	fragment_program_ref	Pool/Phong
-	{
-	}
-
-	texture_unit
-	{
-		texture_alias		DiffuseMap
-		transform			2 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1
+		texture_unit
+		{
+			texture_alias		DiffuseMap
+			transform			2 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1
+		}
 	}
 }
 
 material Pool/Balls/Base
 {
-	technique
+	technique : Pool/BallBase
 	{
-		pass : Pool/BallAmbient
+		pass Env
 		{
-		}
+			scene_blend	add
 
-		pass : Pool/BallLighting
-		{
+			vertex_program_ref	Pool/pvn
+			{
+			}
+
+			fragment_program_ref	Pool/SphericalMap
+			{
+				param_named	evnColor	float4	0.3 0.3 0.3 1
+			}
+
+			texture_unit
+			{
+				texture		spheremap.png
+				env_map		spherical
+			}
 		}
 	}
 
-	technique
+	technique : Pool/BallBase
 	{
 		scheme	Spherical
 
-		pass : Pool/BallAmbient
+		pass Ambient
 		{
 			vertex_program_ref	Pool/Sperical
 			{
 			}
 		}
 
-		pass : Pool/BallLighting
+		pass Lighting
 		{
 			vertex_program_ref	Pool/Sperical
 			{

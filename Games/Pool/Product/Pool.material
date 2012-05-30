@@ -121,7 +121,8 @@ material Pool/Balls/Base
 
 			fragment_program_ref	Pool/SphericalMap
 			{
-				param_named	evnColor	float4	0.3 0.3 0.3 1
+				//param_named	evnColor	float4	0.3 0.3 0.3 1
+				param_named	evnColor	float4	1 1 1 1
 			}
 
 			texture_unit

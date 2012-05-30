@@ -1,5 +1,11 @@
 TODO:
+	hide some table mesh in Spherical scheme.
 
+
+
+2012.5.30	K.L.	<k.l.lambda@gmail.com>
+
+	+	Product/PoolScene.lua: createEnvironmentMap added.
 
 
 2012.5.27	K.L.	<k.l.lambda@gmail.com>

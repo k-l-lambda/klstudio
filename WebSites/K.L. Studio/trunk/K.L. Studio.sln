@@ -166,6 +166,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{D83F72
 		Source\PageTracer\static\1.png = Source\PageTracer\static\1.png
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{20FA584E-ACE5-4C55-9E52-6EC2C514E44D}"
+	ProjectSection(SolutionItems) = preProject
+		Source\PageTracer\templates\generator.html = Source\PageTracer\templates\generator.html
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -192,5 +197,6 @@ Global
 		{7A0416DF-D0B8-46A6-904B-DB25822428B4} = {8F9934FF-F91F-42EF-AF99-59483CB266D5}
 		{02369B77-AC05-452D-9083-1D6E5B411B60} = {8F9934FF-F91F-42EF-AF99-59483CB266D5}
 		{D83F72EE-56C1-440E-85AA-3447359B3C7B} = {52CA7152-950F-4D50-986F-71205CE8234A}
+		{20FA584E-ACE5-4C55-9E52-6EC2C514E44D} = {52CA7152-950F-4D50-986F-71205CE8234A}
 	EndGlobalSection
 EndGlobal

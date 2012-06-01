@@ -3,6 +3,11 @@ TODO:
 
 
 
+2012.6.1	K.L.	<k.l.lambda@gmail.com>
+
+	>	Refined table material.
+
+
 2012.5.30	K.L.	<k.l.lambda@gmail.com>
 
 	+	Product/PoolScene.lua: createEnvironmentMap added.

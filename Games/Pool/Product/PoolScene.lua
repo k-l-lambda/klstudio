@@ -7,6 +7,9 @@ Tanx.log("[Test\\PoolScene.lua]: parsed.", Ogre.LogMessageLevel.TRIVIAL, false)
 Tanx.require"Core:SlottedRenderTargetListener.lua"
 
 
+g_Listeners = {}
+
+
 function makeRigidBodyState(position, orientation, linearVel, angleVel)
 	position = position or Tanx.Vector3.ZERO
 	orientation = orientation or Tanx.Quaternion.IDENTITY
@@ -68,18 +71,21 @@ function initialize(world)
 	camera:lookAt(Tanx.Vector3(0, 6, 0))
 	world:setCurrentCamera"Default"
 
-	g_MainCamera = camera
+	g_MainViewport = camera:getViewport()
 end
 
 
-g_Listeners = {}
+function finalize()
+	g_Listeners = {}
+end
+
 
 function createEnvironmentMap(agent, world)
 	local agentname = agent:get():getName()
 
 	local camera = world:createCamera(agentname .. "_camera")
 	camera:setNearClipDistance(0.1)
-	camera:setFOVy(Ogre.Radian(math.pi * 0.49))
+	camera:setFOVy(Ogre.Radian(math.pi * 0.99))
 	camera:setAspectRatio(1)
 
 	local entity = agent:get():getNode():getChild(0):getChild(0):toDerived():getAttachedObject(0):toDerived()
@@ -93,10 +99,13 @@ function createEnvironmentMap(agent, world)
 			entity:setVisible(false)
 
 			camera:setPosition(agent:get():getMainBody():get():getPosition())
-			camera:lookAt(g_MainCamera:getDerivedPosition())
+			camera:lookAt(g_MainViewport:getCamera():getDerivedPosition())
 		end,
 		postRenderTargetUpdate = function()
 			entity:setVisible(true)
+		end,
+		onDestroy = function(self)
+			target:removeListener(self)
 		end,
 	}
 	target:addListener(l)

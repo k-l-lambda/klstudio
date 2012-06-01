@@ -142,7 +142,7 @@ float4 sphericalMap_fp(
 	: COLOR
 {
 	float3 N = normalize(normal.xyz);
-	float2 uv = (N.xy + 1) * 0.5f;
+	float2 uv = (-N.xy + 1) * 0.5f;
 	uv.y *= -1;
 
 	return tex2D(EnvironmentMap, uv) * evnColor;

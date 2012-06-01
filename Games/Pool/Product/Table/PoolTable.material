@@ -39,7 +39,15 @@ material Pool/Table/Base
 		}
 	}
 
-	technique
+	technique Spherical
+	{
+		scheme	Spherical
+	}
+}
+
+material Pool/Table/InSphericalMap : Pool/Table/Base
+{
+	technique Spherical
 	{
 		scheme	Spherical
 
@@ -80,26 +88,57 @@ material Pool/Table/Base
 	}
 }
 
-material Pool/Table/Material : Pool/Table/Base
+// pockets
+material Pool/Table/Material : Pool/Table/InSphericalMap
 {
 	set	$DiffuseMap	"snooker_.png"
 }
-material Pool/Table/Material1 : Pool/Table/Base
+// board
+material Pool/Table/Material1 : Pool/Table/InSphericalMap
 {
 	set	$DiffuseMap	"red_gras.png"
 }
+// tray
 material Pool/Table/Material3 : Pool/Table/Base
 {
 	set	$DiffuseMap	"snooker1.png"
 }
+// blocks on pillars
 material Pool/Table/Material4 : Pool/Table/Base
 {
 	set	$DiffuseMap	yuan.png
 }
+// pillars
 material Pool/Table/Material5 : Pool/Table/Base
 {
 	set	$DiffuseMap	jiao.png
 }
+// edges
+material Pool/Table/Material_#101 : Pool/Table/InSphericalMap
+{
+	set	$DiffuseMap	snooker_.png
+}
+material Pool/Table/Material_#112 : Pool/Table/InSphericalMap
+{
+	set	$DiffuseMap	snooker_.png
+}
+material Pool/Table/Material_#123 : Pool/Table/InSphericalMap
+{
+	set	$DiffuseMap	snooker_.png
+}
+material Pool/Table/Material_#134 : Pool/Table/InSphericalMap
+{
+	set	$DiffuseMap	snooker_.png
+}
+material Pool/Table/Material_#145 : Pool/Table/InSphericalMap
+{
+	set	$DiffuseMap	snooker_.png
+}
+material Pool/Table/Material_#156 : Pool/Table/InSphericalMap
+{
+	set	$DiffuseMap	snooker_.png
+}
+
 material Pool/Table/Material6
 {
 	technique
@@ -112,28 +151,9 @@ material Pool/Table/Material6
 			emissive 0.000000 0.000000 0.000000 
 		}
 	}
-}
-material Pool/Table/Material_#101 : Pool/Table/Base
-{
-	set	$DiffuseMap	snooker_.png
-}
-material Pool/Table/Material_#112 : Pool/Table/Base
-{
-	set	$DiffuseMap	snooker_.png
-}
-material Pool/Table/Material_#123 : Pool/Table/Base
-{
-	set	$DiffuseMap	snooker_.png
-}
-material Pool/Table/Material_#134 : Pool/Table/Base
-{
-	set	$DiffuseMap	snooker_.png
-}
-material Pool/Table/Material_#145 : Pool/Table/Base
-{
-	set	$DiffuseMap	snooker_.png
-}
-material Pool/Table/Material_#156 : Pool/Table/Base
-{
-	set	$DiffuseMap	snooker_.png
+
+	technique Spherical
+	{
+		scheme	Spherical
+	}
 }

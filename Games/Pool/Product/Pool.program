@@ -44,6 +44,33 @@ vertex_program Pool/pvn cg
 	}
 }
 
+vertex_program Pool/Sky cg
+{
+	source			Pool.cg
+	entry_point		sky_vp
+	profiles		vs_1_1 arbvp1
+
+	default_params
+	{
+		param_named_auto	worldViewProj	worldviewproj_matrix
+		param_named_auto	texture			texture_matrix	0
+	}
+}
+
+vertex_program Pool/SpericalSky cg
+{
+	source		SphericalMap.cg
+	entry_point	sphericalSky_vp
+	profiles	vs_1_1 arbvp1
+
+	default_params
+	{
+		param_named_auto	worldView		worldview_matrix
+		param_named_auto	texture			texture_matrix	0
+	}
+	
+}
+
 
 fragment_program Pool/NoLight cg
 {

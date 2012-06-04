@@ -85,6 +85,7 @@ function createEnvironmentMap(agent, world)
 
 	local camera = world:createCamera(agentname .. "_camera")
 	camera:setNearClipDistance(0.1)
+	camera:setFarClipDistance(1e+6)
 	camera:setFOVy(Ogre.Radian(math.pi * 0.99))
 	camera:setAspectRatio(1)
 
@@ -100,6 +101,7 @@ function createEnvironmentMap(agent, world)
 
 			camera:setPosition(agent:get():getMainBody():get():getPosition())
 			camera:lookAt(g_MainViewport:getCamera():getDerivedPosition())
+			camera:setFixedYawAxis(true, g_MainViewport:getCamera():getRealUp())
 		end,
 		postRenderTargetUpdate = function()
 			entity:setVisible(true)

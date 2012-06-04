@@ -23,43 +23,88 @@ material Pool/Black
 	}
 }
 
-abstract technique Pool/SkyboxTechnique
+abstract technique Pool/SkyTechnique
 {
 	pass
 	{
-		lighting off
-		depth_write off
+		lighting		off
+		depth_write		off
 
-		vertex_program_ref	Pool/pnt1
+		vertex_program_ref	Pool/Sky
 		{
 		}
 
 		fragment_program_ref	Pool/NoLight
 		{
 		}
-
-		texture_unit
-		{
-			cubic_texture cloudy_noon.jpg separateUV
-			tex_address_mode clamp
-		}
 	}
 }
 
 material Pool/SkyBox
 {
-	technique : Pool/SkyboxTechnique
+	technique : Pool/SkyTechnique
 	{
+		pass
+		{
+			texture_unit
+			{
+				cubic_texture cloudy_noon.jpg separateUV
+				tex_address_mode clamp
+			}
+		}
 	}
 
-	technique : Pool/SkyboxTechnique
+	technique : Pool/SkyTechnique
 	{
 		scheme	Spherical
 
 		pass
 		{
-			vertex_program_ref	Pool/Sperical
+			cull_hardware	none
+
+			vertex_program_ref	Pool/SpericalSky
 			{
+			}
+
+			texture_unit
+			{
+				cubic_texture cloudy_noon.jpg separateUV
+				tex_address_mode clamp
+			}
+		}
+	}
+}
+
+material Pool/SkyDome
+{
+	technique : Pool/SkyTechnique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture		clouds.jpg
+				scroll_anim	0.15 0
+			}
+		}
+	}
+
+	technique : Pool/SkyTechnique
+	{
+		scheme	Spherical
+
+		pass
+		{
+			cull_hardware	anticlockwise
+
+			vertex_program_ref	Pool/SpericalSky
+			{
+			}
+
+			texture_unit
+			{
+				texture		clouds.jpg
+				scroll_anim	0.15 0
 			}
 		}
 	}
@@ -121,7 +166,7 @@ material Pool/Balls/Base
 
 			fragment_program_ref	Pool/SphericalMap
 			{
-				param_named	evnColor	float4	0.6 0.6 0.6 1
+				param_named	evnColor	float4	0.3 0.3 0.3 1
 			}
 
 			texture_unit
@@ -138,6 +183,8 @@ material Pool/Balls/Base
 
 		pass Ambient
 		{
+			cull_hardware	anticlockwise
+
 			vertex_program_ref	Pool/Sperical
 			{
 			}
@@ -145,6 +192,8 @@ material Pool/Balls/Base
 
 		pass Lighting
 		{
+			cull_hardware	anticlockwise
+
 			vertex_program_ref	Pool/Sperical
 			{
 			}
@@ -263,6 +312,8 @@ material Pool/Floor
 
 		pass
 		{
+			cull_hardware	anticlockwise
+
 			vertex_program_ref	Pool/Sperical
 			{
 			}

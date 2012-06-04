@@ -53,6 +53,8 @@ material Pool/Table/InSphericalMap : Pool/Table/Base
 
 		pass
 		{
+			cull_hardware	anticlockwise
+
 			vertex_program_ref	Pool/Sperical
 			{
 			}
@@ -71,6 +73,7 @@ material Pool/Table/InSphericalMap : Pool/Table/Base
 		{
 			scene_blend	add
 			iteration	once_per_light spot
+			cull_hardware	anticlockwise
 
 			vertex_program_ref	Pool/Sperical
 			{

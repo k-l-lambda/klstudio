@@ -372,15 +372,15 @@
 	</Units>
 	<HostScriptName>PoolScene.lua</HostScriptName>
 	<SkyBox class_id="43" tracking_level="0" version="0">
-		<Enable>1</Enable>
+		<Enable>0</Enable>
 		<MaterialName>Pool/SkyBox</MaterialName>
 		<Distance>5000</Distance>
 		<DrawFirst>1</DrawFirst>
 		<Orientation>Quaternion(1, 0, 0, 0)</Orientation>
 	</SkyBox>
 	<SkyDome class_id="44" tracking_level="0" version="0">
-		<Enable>0</Enable>
-		<MaterialName></MaterialName>
+		<Enable>1</Enable>
+		<MaterialName>Pool/SkyDome</MaterialName>
 		<Curvature>10</Curvature>
 		<Tiling>8</Tiling>
 		<Distance>4000</Distance>

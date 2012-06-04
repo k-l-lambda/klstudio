@@ -29,3 +29,25 @@ void spherical_vp(
 
 	oZ = oPosition.z;
 }
+
+
+void sphericalSky_vp(
+	float4 position				: POSITION,
+	float3 normal				: NORMAL,
+	float2 uv					: TEXCOORD0,
+
+	out float4 oPosition		: POSITION,
+	out float2 oUv				: TEXCOORD0,
+	out float oZ				: TEXCOORD1,
+
+	uniform float4x4 worldView,
+	uniform float4x4 texture)
+{
+	oUv = mul(texture, float4(uv, 0, 0));
+
+	oPosition = mul(worldView, position);
+	oPosition.xy = normalize(oPosition.xyz).xy;
+
+	oZ = oPosition.z / -1000000;
+	oPosition.z = oPosition.w;
+}

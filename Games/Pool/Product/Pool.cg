@@ -36,6 +36,24 @@ void pvn_vp(
 	oNormal = mul(worldView, float4(normal, 0));
 }
 
+void sky_vp(
+	float4 position				: POSITION,
+	float3 normal				: NORMAL,
+	float2 uv					: TEXCOORD0,
+
+	out float4 oPosition		: POSITION,
+	out float2 oUv				: TEXCOORD0,
+	out float oZ				: TEXCOORD1,
+
+	uniform float4x4 worldViewProj,
+	uniform float4x4 texture)
+{
+	oPosition = mul(worldViewProj, position);
+	oPosition = oPosition.xyww;
+	oUv = mul(texture, float4(uv, 0, 0));
+	oZ = 1;
+}
+
 
 sampler DiffuseMap : register(s0);
 

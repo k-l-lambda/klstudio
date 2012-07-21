@@ -1,0 +1,49 @@
+<html>
+	<head>
+		<title>Upload Images</title>
+		<style type="text/css">
+			img
+			{
+				border: none;
+			}
+		</style>
+		<script type="text/javascript" src="/js/jquery.js"></script>
+		<script type="text/javascript">
+			$(function() {
+				updateResolution();
+			});
+
+			var updateResolution = function() {
+				var resolution = $("#resolution").val();
+				$(".image").each(function(i, image) {
+					var src = $(image).data("src");
+					$(image).find("a").attr("href", src + "?size=" + resolution);
+					$(image).find("input").attr("name", src + "?size=" + resolution);
+				});
+			};
+		</script>
+	</head>
+	<body>
+		<h1>Uploading Your Images</h1>
+		<p>
+			Resolution: <select id="resolution" onchange="updateResolution()">
+				<option value="1600">1600</option>
+				<option value="1200">1200</option>
+				<option value="800" selected="selected">800</option>
+				<option value="600">600</option>
+				<option value="400">400</option>
+			</select>
+		</p>
+		<form action="{{upload_url}}" method="POST" enctype="multipart/form-data">
+			<ul>
+			{% for image in images %}
+				<li class="image" data-src="{{image.src}}">
+					<a href="{{image.src}}" target="_blank"><img src="{{image.thumb}}" /></a>
+					<input type="hidden" name="{{image.src}}" />
+				</li>
+			{% endfor %}
+			</ul>
+			<input type="submit" value="Upload" />
+		</form>
+	</body>
+</html>

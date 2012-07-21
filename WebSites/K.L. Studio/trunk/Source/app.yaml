@@ -50,5 +50,12 @@ handlers:
   script: PageTracer/main.py
 
 
+- url: /projects/PicasaUploader/static/
+  static_dir: PicasaUploader/static
+
+- url: /projects/PicasaUploader/.*
+  script: PicasaUploader/main.py
+
+
 - url: /
   static_dir: static

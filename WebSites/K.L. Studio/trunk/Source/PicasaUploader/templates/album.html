@@ -1,0 +1,62 @@
+<html>
+	<head>
+		<title>K.L.'s Picasa Uploader</title>
+		<style type="text/css">
+			img
+			{
+				border: none;
+			}
+
+			ul
+			{
+				padding-left: 0;
+				list-style: none;
+			}
+
+			li
+			{
+				float: left;
+				width: 270px;
+				height: 480px;
+			}
+
+			.photo
+			{
+				vertical-align: top;
+				width: 240px;
+			}
+
+			.clear
+			{
+				clear: both;
+			}
+		</style>
+		<script type="text/javascript" src="/js/jquery.js"></script>
+		<script type="text/javascript">
+			$(function() {
+			$("#all").click(function() {
+					var checked = $("#all").attr("checked");
+					$(".select").attr("checked", checked);
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<h1>K.L.'s Picasa Uploader</h1>
+		<h2><a href="install">Upload Images</a></h2>
+		<h2>Image List</h2>
+		<input type="checkbox" id="all">All</button>
+		<form action="delete-image" method="post">
+			<ul>
+			{% for image in images%}
+				<li>
+					<input class="select" type="checkbox" name="key" value="{{image.key}}" />
+					<a href="viedw-image?key={{image.key}}" target="_blank"><img class="photo" src="viedw-image?key={{image.key}}" /></a>
+				</li>
+			{% endfor %}
+			</ul>
+			<div class="clear"></div>
+			<input type="submit" value="Delete" />
+		</form>
+	</body>
+</html>

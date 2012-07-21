@@ -1,0 +1,36 @@
+<html>
+	<head>
+		<title>K.L.'s Picasa Uploader</title>
+		<script type="text/javascript" src="/js/jquery.js"></script>
+		<script type="text/javascript">
+			$(function() {
+				var href = $("#pbz-link").attr("href").replace("localhost:8080", location.host);
+				$("#pbz-link").attr("href", href);
+			});
+		</script>
+	</head>
+	<body>
+		<h1>Install K.L.'s Picasa Uploader</h1>
+		<ol>
+			<li>Dowload and install <a href="http://picasa.google.com/" target="_blank">Picasa</a>.</li>
+			<li>
+				<p>Add the <a id="pbz-link" href="picasa://importbutton/?url=http://localhost:8080/projects/PicasaUploader/static/KLPicasaUploader.pbz">K.L. Uploader</a> to Picasa.</p>
+				<img src="static/AddButton.png" />
+				<p>
+					Tips: if the button can't be added, try this:
+					<ol>
+						<li>Close Picasa.</li>
+						<li>
+							Execute the dos command:<br />
+							<strong style="padding-left:2em">move %localappdata%\Google\Picasa2\buttons\KLPicasaUploader.pbz "[Picasa Directory]\buttons\"</strong><br />
+							[Picasa Directory] is your picasa installed program direcotry.
+						</li>
+						<li>Reopen Picasa and retry add the "K.L. Studio" button.</li>
+					</ol>
+				</p>
+			</li>
+		</ol>
+		<p></p>
+		<a href="./">back to album</a>
+	</body>
+</html>

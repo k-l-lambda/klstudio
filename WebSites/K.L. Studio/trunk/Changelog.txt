@@ -5,6 +5,11 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2012.12.28	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/templates/index.html: fixed the .tk link of trigo website.
+
+
 2012.7.21	K.L.	<k.l.lambda@gmail.com>
 
 	+	PicasaUploader: added.

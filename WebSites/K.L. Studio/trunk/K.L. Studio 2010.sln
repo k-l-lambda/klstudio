@@ -1,0 +1,227 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{DC5E78C0-6F4C-4224-A1B7-690C7CF7255E}"
+	ProjectSection(SolutionItems) = preProject
+		Changelog.txt = Changelog.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{6039FAA1-190F-41C5-BB92-22D664E36873}"
+	ProjectSection(SolutionItems) = preProject
+		Source\app.yaml = Source\app.yaml
+		Source\cron.yaml = Source\cron.yaml
+		Source\index.yaml = Source\index.yaml
+		Source\main.py = Source\main.py
+		Source\robots.txt = Source\robots.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{507BFF60-1747-4568-B869-37F7B1AAD9E1}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\about.html = Source\static\about.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{E1C565A9-4542-4405-8CC0-2E3E8B31FD54}"
+	ProjectSection(SolutionItems) = preProject
+		Source\templates\index.html = Source\templates\index.html
+		Source\templates\MessageBoard.html = Source\templates\MessageBoard.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{FD903894-04D2-464C-8D3C-CFE2D8EAEE88}"
+	ProjectSection(SolutionItems) = preProject
+		Tools\deploy non-svn files.bat = Tools\deploy non-svn files.bat
+		Tools\GetLog.bat = Tools\GetLog.bat
+		Tools\LogFormatter.py = Tools\LogFormatter.py
+		Tools\Publish -dropbox.bat = Tools\Publish -dropbox.bat
+		Tools\Publish.bat = Tools\Publish.bat
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "projects", "projects", "{72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\CubeEarth.html = Source\static\projects\CubeEarth.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MagicCube", "MagicCube", "{01EDC4D0-6291-4AED-8298-EAD4D5A7968A}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\MagicCube\MagicCube.html = Source\static\projects\MagicCube\MagicCube.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tanx", "Tanx", "{7ADB6F2C-93D6-48CF-A8A9-9B6E3869B90C}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\Tanx\Tanx.html = Source\static\projects\Tanx\Tanx.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tanxjs", "Tanxjs", "{250A8786-9F3E-40BF-8D6A-D22BFFB9E75E}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\Tanx\Tanxjs\util.js = Source\static\projects\Tanx\Tanxjs\util.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demos", "Demos", "{1FDEE6C1-19FB-4B77-8476-140875D4958A}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\Tanx\Demos\ChatRoom.html = Source\static\projects\Tanx\Demos\ChatRoom.html
+		Source\static\projects\Tanx\Demos\CoulombField.html = Source\static\projects\Tanx\Demos\CoulombField.html
+		Source\static\projects\Tanx\Demos\CubeTetris.html = Source\static\projects\Tanx\Demos\CubeTetris.html
+		Source\static\projects\Tanx\Demos\CubeTetris_ScreenSaver.html = Source\static\projects\Tanx\Demos\CubeTetris_ScreenSaver.html
+		Source\static\projects\Tanx\Demos\Dodgem.html = Source\static\projects\Tanx\Demos\Dodgem.html
+		Source\static\projects\Tanx\Demos\Pool.html = Source\static\projects\Tanx\Demos\Pool.html
+		Source\static\projects\Tanx\Demos\Test.html = Source\static\projects\Tanx\Demos\Test.html
+		Source\static\projects\Tanx\Demos\ThreeBody.html = Source\static\projects\Tanx\Demos\ThreeBody.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{D40EEB9E-F6F2-459E-B858-A81D77F46A2A}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\Tanx\Demos\js\demo_template.js = Source\static\projects\Tanx\Demos\js\demo_template.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tetra", "Tetra", "{F4C21657-4C05-41B2-B15A-D5C026A62F00}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\Tetra\Tetra.html = Source\static\projects\Tetra\Tetra.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Trigo", "Trigo", "{B908F6D6-7B0F-439E-9933-BFACAE5FEADB}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\Trigo\Trigo.html = Source\static\projects\Trigo\Trigo.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "css", "css", "{A55A5D1C-ED8B-4922-BE88-8B60F53B8EE4}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\css\TanxDemo.css = Source\static\css\TanxDemo.css
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TanxWebService", "TanxWebService", "{9225C4DA-E842-4A54-B4AF-6804A7B33BF0}"
+	ProjectSection(SolutionItems) = preProject
+		Source\TanxWebService\__init__.py = Source\TanxWebService\__init__.py
+		Source\TanxWebService\admin.py = Source\TanxWebService\admin.py
+		Source\TanxWebService\Application.py = Source\TanxWebService\Application.py
+		Source\TanxWebService\ApplicationAdminHandlers.py = Source\TanxWebService\ApplicationAdminHandlers.py
+		Source\TanxWebService\ApplicationHandlers.py = Source\TanxWebService\ApplicationHandlers.py
+		Source\TanxWebService\main.py = Source\TanxWebService\main.py
+		Source\TanxWebService\Serializer.py = Source\TanxWebService\Serializer.py
+		Source\TanxWebService\Session.py = Source\TanxWebService\Session.py
+		Source\TanxWebService\SessionAdminHandlers.py = Source\TanxWebService\SessionAdminHandlers.py
+		Source\TanxWebService\SessionHandlers.py = Source\TanxWebService\SessionHandlers.py
+		Source\TanxWebService\SessionMessage.py = Source\TanxWebService\SessionMessage.py
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{A5DC49E7-3DB2-4971-9290-95AB0A35BCF2}"
+	ProjectSection(SolutionItems) = preProject
+		Source\TanxWebService\templates\AdminHome.html = Source\TanxWebService\templates\AdminHome.html
+		Source\TanxWebService\templates\ApplicationViewer.html = Source\TanxWebService\templates\ApplicationViewer.html
+		Source\TanxWebService\templates\SessionViewer.html = Source\TanxWebService\templates\SessionViewer.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{8134952A-5A0F-4385-9740-F20016F182B9}"
+	ProjectSection(SolutionItems) = preProject
+		Source\TanxWebService\static\admin.css = Source\TanxWebService\static\admin.css
+		Source\TanxWebService\static\admin.js = Source\TanxWebService\static\admin.js
+		Source\TanxWebService\static\ajax.js = Source\TanxWebService\static\ajax.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ChatRoom", "ChatRoom", "{8F9934FF-F91F-42EF-AF99-59483CB266D5}"
+	ProjectSection(SolutionItems) = preProject
+		Source\ChatRoom\__init__.py = Source\ChatRoom\__init__.py
+		Source\ChatRoom\GdataQuery.py = Source\ChatRoom\GdataQuery.py
+		Source\ChatRoom\main.py = Source\ChatRoom\main.py
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{6F1FA9CD-DB7B-4E57-9023-7BCE1E044B72}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\js\jquery.js = Source\static\js\jquery.js
+		Source\static\js\jquery.json.js = Source\static\js\jquery.json.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{7A0416DF-D0B8-46A6-904B-DB25822428B4}"
+	ProjectSection(SolutionItems) = preProject
+		Source\ChatRoom\static\ChatRoom.css = Source\ChatRoom\static\ChatRoom.css
+		Source\ChatRoom\static\ChatRoom.js = Source\ChatRoom\static\ChatRoom.js
+		Source\ChatRoom\static\dialog-form = Source\ChatRoom\static\dialog-form
+		Source\ChatRoom\static\Dialog.css = Source\ChatRoom\static\Dialog.css
+		Source\ChatRoom\static\icons.png = Source\ChatRoom\static\icons.png
+		Source\ChatRoom\static\List.css = Source\ChatRoom\static\List.css
+		Source\ChatRoom\static\ui.png = Source\ChatRoom\static\ui.png
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{02369B77-AC05-452D-9083-1D6E5B411B60}"
+	ProjectSection(SolutionItems) = preProject
+		Source\ChatRoom\templates\ContactsList.html = Source\ChatRoom\templates\ContactsList.html
+		Source\ChatRoom\templates\GuestDialog.html = Source\ChatRoom\templates\GuestDialog.html
+		Source\ChatRoom\templates\Home.html = Source\ChatRoom\templates\Home.html
+		Source\ChatRoom\templates\HostDialog.html = Source\ChatRoom\templates\HostDialog.html
+		Source\ChatRoom\templates\RoomList.html = Source\ChatRoom\templates\RoomList.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LifeGame", "LifeGame", "{46FFB51D-CB62-4576-BE2F-2C4A2C3D9C65}"
+	ProjectSection(SolutionItems) = preProject
+		Source\static\projects\LifeGame\life-game.html = Source\static\projects\LifeGame\life-game.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PageTracer", "PageTracer", "{52CA7152-950F-4D50-986F-71205CE8234A}"
+	ProjectSection(SolutionItems) = preProject
+		Source\PageTracer\main.py = Source\PageTracer\main.py
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{D83F72EE-56C1-440E-85AA-3447359B3C7B}"
+	ProjectSection(SolutionItems) = preProject
+		Source\PageTracer\static\1.png = Source\PageTracer\static\1.png
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{20FA584E-ACE5-4C55-9E52-6EC2C514E44D}"
+	ProjectSection(SolutionItems) = preProject
+		Source\PageTracer\templates\generator.html = Source\PageTracer\templates\generator.html
+	EndProjectSection
+EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "K.L. Studio", "..\K.L. Studio", "{73CF9492-5C60-4BB5-9CB5-3C7A1F468602}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
+		Debug.AspNetCompiler.VirtualPath = "/K.L. Studio"
+		Debug.AspNetCompiler.PhysicalPath = "..\K.L. Studio\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\K.L. Studio\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/K.L. Studio"
+		Release.AspNetCompiler.PhysicalPath = "..\K.L. Studio\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\K.L. Studio\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "65247"
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{73CF9492-5C60-4BB5-9CB5-3C7A1F468602}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73CF9492-5C60-4BB5-9CB5-3C7A1F468602}.Debug|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{507BFF60-1747-4568-B869-37F7B1AAD9E1} = {6039FAA1-190F-41C5-BB92-22D664E36873}
+		{E1C565A9-4542-4405-8CC0-2E3E8B31FD54} = {6039FAA1-190F-41C5-BB92-22D664E36873}
+		{9225C4DA-E842-4A54-B4AF-6804A7B33BF0} = {6039FAA1-190F-41C5-BB92-22D664E36873}
+		{8F9934FF-F91F-42EF-AF99-59483CB266D5} = {6039FAA1-190F-41C5-BB92-22D664E36873}
+		{52CA7152-950F-4D50-986F-71205CE8234A} = {6039FAA1-190F-41C5-BB92-22D664E36873}
+		{72F8721A-6415-46C5-9AC3-30CE9FCBBDF9} = {507BFF60-1747-4568-B869-37F7B1AAD9E1}
+		{A55A5D1C-ED8B-4922-BE88-8B60F53B8EE4} = {507BFF60-1747-4568-B869-37F7B1AAD9E1}
+		{6F1FA9CD-DB7B-4E57-9023-7BCE1E044B72} = {507BFF60-1747-4568-B869-37F7B1AAD9E1}
+		{01EDC4D0-6291-4AED-8298-EAD4D5A7968A} = {72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}
+		{7ADB6F2C-93D6-48CF-A8A9-9B6E3869B90C} = {72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}
+		{F4C21657-4C05-41B2-B15A-D5C026A62F00} = {72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}
+		{B908F6D6-7B0F-439E-9933-BFACAE5FEADB} = {72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}
+		{46FFB51D-CB62-4576-BE2F-2C4A2C3D9C65} = {72F8721A-6415-46C5-9AC3-30CE9FCBBDF9}
+		{250A8786-9F3E-40BF-8D6A-D22BFFB9E75E} = {7ADB6F2C-93D6-48CF-A8A9-9B6E3869B90C}
+		{1FDEE6C1-19FB-4B77-8476-140875D4958A} = {7ADB6F2C-93D6-48CF-A8A9-9B6E3869B90C}
+		{D40EEB9E-F6F2-459E-B858-A81D77F46A2A} = {1FDEE6C1-19FB-4B77-8476-140875D4958A}
+		{A5DC49E7-3DB2-4971-9290-95AB0A35BCF2} = {9225C4DA-E842-4A54-B4AF-6804A7B33BF0}
+		{8134952A-5A0F-4385-9740-F20016F182B9} = {9225C4DA-E842-4A54-B4AF-6804A7B33BF0}
+		{7A0416DF-D0B8-46A6-904B-DB25822428B4} = {8F9934FF-F91F-42EF-AF99-59483CB266D5}
+		{02369B77-AC05-452D-9083-1D6E5B411B60} = {8F9934FF-F91F-42EF-AF99-59483CB266D5}
+		{D83F72EE-56C1-440E-85AA-3447359B3C7B} = {52CA7152-950F-4D50-986F-71205CE8234A}
+		{20FA584E-ACE5-4C55-9E52-6EC2C514E44D} = {52CA7152-950F-4D50-986F-71205CE8234A}
+	EndGlobalSection
+EndGlobal

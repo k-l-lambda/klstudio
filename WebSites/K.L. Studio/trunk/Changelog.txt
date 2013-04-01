@@ -5,6 +5,11 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2013.4.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/SpiralPiano.html: created.
+
+
 2012.12.28	K.L.	<k.l.lambda@gmail.com>
 
 	>	Source/templates/index.html: fixed the .tk link of trigo website.

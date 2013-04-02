@@ -29,6 +29,11 @@
 				opacity: 1;
 			}
 
+			.key.active
+			{
+				filter: url(#filter-brilliancy) !important;
+			}
+
 			.pitch-0
 			{
 				fill: #ff0000;
@@ -102,42 +107,42 @@
 
 			.group-1
 			{
-				filter: url(#filter-brightness-n3);
+				filter: url(#filter-brightness-n4);
 			}
 
 			.group-2
 			{
-				filter: url(#filter-brightness-n2);
+				filter: url(#filter-brightness-n3);
 			}
 
 			.group-3
 			{
-				filter: url(#filter-brightness-n1);
+				filter: url(#filter-brightness-n2);
 			}
 
-			.group-5
+			.group-4
 			{
-				filter: url(#filter-brightness-1);
+				filter: url(#filter-brightness-n1);
 			}
 
 			.group-6
 			{
-				filter: url(#filter-brightness-2);
+				filter: url(#filter-brightness-1);
 			}
 
 			.group-7
 			{
-				filter: url(#filter-brightness-3);
+				filter: url(#filter-brightness-2);
 			}
 
 			.group-8
 			{
-				filter: url(#filter-brightness-4);
+				filter: url(#filter-brightness-3);
 			}
 
 			.group-9
 			{
-				filter: url(#filter-brightness-5);
+				filter: url(#filter-brightness-4);
 			}
 
 			.region
@@ -170,14 +175,14 @@
 		<script type="text/javascript">
 			var Config = {
 				GroupLen: 12,
-				InnerRadius: 60,
+				InnerRadius: 30,
 				ScrewPitch: 4,
 				Center: { x: 400, y: 400 },
 				KeyCount: 88,
 				NoteStart: 21,
 				NoteEnd: 108,
 				MiddleC: 60,
-				RegionRadius: 320,
+				RegionRadius: 280,
 				Mode: {
 					Major: {
 						MainPitches: { 0: true, 2: true, 4: true, 5: true, 7: true, 9: true, 11: true },
@@ -224,7 +229,7 @@
 				var unit = (low - high) / 2;
 				for (var k = 0; k < Config.KeyCount + Config.GroupLen + 1; ++k) {
 					var x = (keyToNote(k) - avg) / unit;
-					exts[k] = Math.exp(-x * x * x * x / 2) * 50;
+					exts[k] = Math.exp(-x * x * x * x / 2) * 70;
 				}
 
 				return exts;
@@ -284,13 +289,15 @@
 					key.close();
 
 					var shape = group.path(key, { class: "key pitch-" + (keyToNote(k) % Config.GroupLen), "data-note": keyToNote(k) });
-					$(shape).mousedown(function () {
-						MIDI.noteOn(0, $(this).data("note"), 100);
-					});
-					$(shape).mouseup(function () {
-						MIDI.noteOff(0, $(this).data("note"));
-					});
 				}
+				$(".key").mousedown(function () {
+					MIDI.noteOn(0, $(this).data("note"), 100);
+					$(this).attr("class", $(this).attr("class") + " active");
+				});
+				$(".key").mouseup(function () {
+					MIDI.noteOff(0, $(this).data("note"));
+					$(this).attr("class", $(this).attr("class").replace(/ active/g, ""));
+				});
 
 				var getMiddlePoint = function (note) {
 					var k = noteToKey(note);
@@ -311,7 +318,7 @@
 				for (var i = 0; i < Config.GroupLen; ++i) {
 					if (Status.Mode.SyllableNames[i]) {
 						var angle = Math.PI * (1.5 + i * 2 / Config.GroupLen);
-						var radius = Config.InnerRadius - 12;
+						var radius = Config.InnerRadius - 8;
 						labels.text(Config.Center.x + Math.cos(angle) * radius, Config.Center.y + 3 + Math.sin(angle) * radius, Status.Mode.SyllableNames[i], { class: "syllable-label" });
 					}
 				}
@@ -362,10 +369,17 @@
 					<feColorMatrix type="saturate" values="1.2"/>
 				</filter>
 				<filter id="filter-middle-saturate">
-					<feColorMatrix type="saturate" values="0.9"/>
+					<feColorMatrix type="saturate" values="0.7"/>
 				</filter>
 				<filter id="filter-grey">
 					<feColorMatrix type="saturate" values="0.4"/>
+				</filter>
+				<filter id="filter-brightness-n4">
+					<feComponentTransfer>
+						<feFuncR type="linear" intercept="-0.4" slope="1"/>
+						<feFuncG type="linear" intercept="-0.4" slope="1"/>
+						<feFuncB type="linear" intercept="-0.4" slope="1"/>
+					</feComponentTransfer>
 				</filter>
 				<filter id="filter-brightness-n3">
 					<feComponentTransfer>
@@ -399,21 +413,21 @@
 					<feComponentTransfer>
 						<feFuncR type="linear" intercept="0.2" slope="1"/>
 						<feFuncG type="linear" intercept="0.2" slope="1"/>
-						<feFuncB type="linear" intercept="0.1" slope="1"/>
+						<feFuncB type="linear" intercept="0.2" slope="1"/>
 					</feComponentTransfer>
 				</filter>
 				<filter id="filter-brightness-3">
 					<feComponentTransfer>
-						<feFuncR type="linear" intercept="0.2" slope="1"/>
-						<feFuncG type="linear" intercept="0.2" slope="1"/>
-						<feFuncB type="linear" intercept="0.2" slope="1"/>
+						<feFuncR type="linear" intercept="0.3" slope="1"/>
+						<feFuncG type="linear" intercept="0.3" slope="1"/>
+						<feFuncB type="linear" intercept="0.3" slope="1"/>
 					</feComponentTransfer>
 				</filter>
 				<filter id="filter-brightness-4">
 					<feComponentTransfer>
-						<feFuncR type="linear" intercept="0.3" slope="1"/>
-						<feFuncG type="linear" intercept="0.3" slope="1"/>
-						<feFuncB type="linear" intercept="0.3" slope="1"/>
+						<feFuncR type="linear" intercept="0.4" slope="1"/>
+						<feFuncG type="linear" intercept="0.4" slope="1"/>
+						<feFuncB type="linear" intercept="0.4" slope="1"/>
 					</feComponentTransfer>
 				</filter>
 				<filter id="filter-brightness-5">

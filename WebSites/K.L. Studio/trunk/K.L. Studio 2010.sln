@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Footages", "Footages", "{FD9D18C4-F421-4DB5-95AB-FCC596F87245}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{DC5E78C0-6F4C-4224-A1B7-690C7CF7255E}"
 	ProjectSection(SolutionItems) = preProject
 		Changelog.txt = Changelog.txt
@@ -169,9 +171,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{
 		Source\PageTracer\templates\generator.html = Source\PageTracer\templates\generator.html
 	EndProjectSection
 EndProject
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "K.L. Studio", "..\K.L. Studio", "{73CF9492-5C60-4BB5-9CB5-3C7A1F468602}"
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "K.L. Studio", ".", "{73CF9492-5C60-4BB5-9CB5-3C7A1F468602}"
 	ProjectSection(WebsiteProperties) = preProject
-		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv2.0"
 		Debug.AspNetCompiler.VirtualPath = "/K.L. Studio"
 		Debug.AspNetCompiler.PhysicalPath = "..\K.L. Studio\"
 		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\K.L. Studio\"

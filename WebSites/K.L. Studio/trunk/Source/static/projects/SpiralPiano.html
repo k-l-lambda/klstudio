@@ -97,6 +97,7 @@
 			.syllable-label
 			{
 				text-anchor: middle;
+				font-size: 10px;
 			}
 
 			.group-1
@@ -157,26 +158,44 @@
 		</style>
 		<script src="../js/jquery.js" type="text/javascript"></script>
 		<script src="../js/jquery.svg.js" type="text/javascript"></script>
+		<script src="../js/MIDI/AudioDetect.js" type="text/javascript"></script>
+		<script src="../js/MIDI/LoadPlugin.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Plugin.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Player.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Window/DOMLoader.XMLHttp.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Window/DOMLoader.script.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/WebMIDIAPI.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/Base64.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/base64binary.js" type="text/javascript"></script>
 		<script type="text/javascript">
 			var Config = {
 				GroupLen: 12,
 				InnerRadius: 60,
 				ScrewPitch: 4,
-				Center: {x: 400, y: 400},
+				Center: { x: 400, y: 400 },
 				KeyCount: 88,
 				NoteStart: 21,
 				NoteEnd: 108,
-				MainPitches: { 0: true, 2: true, 4: true, 5: true, 7: true, 9: true, 11: true },
-				MiddleC: 48,
-				SyllableNames: ["do", null, "re", null, "mi", "fa", null, "so", null, "la", null, "si"],
-				RegionRadius: 320
+				MiddleC: 60,
+				RegionRadius: 320,
+				Mode: {
+					Major: {
+						MainPitches: { 0: true, 2: true, 4: true, 5: true, 7: true, 9: true, 11: true },
+						SyllableNames: ["do", null, "re", null, "mi", "fa", null, "so", null, "la", null, "si"]
+					},
+					Minor: {
+						MainPitches: { 0: true, 2: true, 3: true, 5: true, 7: true, 8: true, 11: true },
+						SyllableNames: ["do", null, "re", "mi", null, "fa", null, "so", "la", null, null, "si"]
+					}
+				}
 			};
 
 			var Status = {
 				Extends: [],
 				KeyPoints: [],
 				ModalOffset: 0,
-				KeyWidthRatio: 0.7
+				KeyWidthRatio: 0.7,
+				Mode: Config.Mode.Major
 			};
 
 			var keyToNote = function(key){
@@ -217,7 +236,7 @@
 					//Status.Extends[k] = Math.sin((k - 3) * 3 * Math.PI / Config.GroupLen) * 20;
 					Status.KeyPoints[k] = Config.InnerRadius + k * Config.ScrewPitch / Config.GroupLen;
 				}
-				Status.Extends = getSpanExtends(43, 67);
+				Status.Extends = getSpanExtends(55, 79);
 			};
 
 			var updateKeyPoints = function () {
@@ -235,8 +254,8 @@
 			};
 
 			var getOffsetAngles = function (note) {
-				var mains = [noteToPitch(note + 1) in Config.MainPitches, noteToPitch(note) in Config.MainPitches];
-				var offsetAngle = mains[0] && mains[1] ? 0.5 : (mains[0] ? 1 - Status.KeyWidthRatio : Status.KeyWidthRatio);
+				var mains = [noteToPitch(note + 1) in Status.Mode.MainPitches, noteToPitch(note) in Status.Mode.MainPitches];
+				var offsetAngle = (mains[0] == mains[1]) ? 0.5 : (mains[0] ? 1 - Status.KeyWidthRatio : Status.KeyWidthRatio);
 
 				return offsetAngle;
 			};
@@ -251,7 +270,6 @@
 					points[p] = { x: Config.Center.x + Math.cos(angle) * radius, y: Config.Center.y + Math.sin(angle) * radius };
 				}
 
-				// keys
 				$("#keys g").empty();
 				for (var k = 0; k < Config.KeyCount; ++k) {
 					var group = svg("#keys .group-" + noteToGroup(keyToNote(k)));
@@ -265,7 +283,13 @@
 					key.arc(Status.KeyPoints[k + Config.GroupLen], Status.KeyPoints[k + Config.GroupLen], 0, false, true, points[k + Config.GroupLen].x, points[k + Config.GroupLen].y);
 					key.close();
 
-					group.path(key, { class: "key pitch-" + (keyToNote(k) % Config.GroupLen) });
+					var shape = group.path(key, { class: "key pitch-" + (keyToNote(k) % Config.GroupLen), "data-note": keyToNote(k) });
+					$(shape).mousedown(function () {
+						MIDI.noteOn(0, $(this).data("note"), 100);
+					});
+					$(shape).mouseup(function () {
+						MIDI.noteOff(0, $(this).data("note"));
+					});
 				}
 
 				var getMiddlePoint = function (note) {
@@ -273,18 +297,22 @@
 					return { x: (points[k].x + points[k + 1].x + points[k + Config.GroupLen].x + points[k + Config.GroupLen + 1].x) / 4, y: (points[k].y + points[k + 1].y + points[k + Config.GroupLen].y + points[k + Config.GroupLen + 1].y) / 4 };
 				};
 
+				$("#keys-labels").empty();
+				var keyLabels = svg("#keys-labels");
+				var point = getMiddlePoint(Config.MiddleC);
+				keyLabels.text(point.x, point.y, "C", { class: "key-label" });
+			};
+
+			var paintPanelBackground = function () {
 				// labels
 				$("#labels").empty();
 				var labels = svg("#labels");
 
-				var point = getMiddlePoint(Config.MiddleC);
-				labels.text(point.x, point.y, "C", { class: "key-label" });
-
 				for (var i = 0; i < Config.GroupLen; ++i) {
-					if (Config.SyllableNames[i]) {
+					if (Status.Mode.SyllableNames[i]) {
 						var angle = Math.PI * (1.5 + i * 2 / Config.GroupLen);
-						var radius = Config.InnerRadius - 15;
-						labels.text(Config.Center.x + Math.cos(angle) * radius, Config.Center.y + 5 + Math.sin(angle) * radius, Config.SyllableNames[i], { class: "syllable-label" });
+						var radius = Config.InnerRadius - 12;
+						labels.text(Config.Center.x + Math.cos(angle) * radius, Config.Center.y + 3 + Math.sin(angle) * radius, Status.Mode.SyllableNames[i], { class: "syllable-label" });
 					}
 				}
 
@@ -307,15 +335,23 @@
 					region.arc(Config.RegionRadius, Config.RegionRadius, 0, false, false, regionPoints[nextIndex].x, regionPoints[nextIndex].y);
 					region.close();
 
-					regions.path(region, { class: "region region-" + i + " region-" + (noteToPitch(i + Status.ModalOffset) in Config.MainPitches ? "main" : "deputy") });
+					regions.path(region, { class: "region region-" + i + " region-" + (noteToPitch(i + Status.ModalOffset) in Status.Mode.MainPitches ? "main" : "deputy") });
 				}
 			};
 
 			$(function () {
 				initializeStatus();
 
+				paintPanelBackground();
+
 				updateKeyPoints();
 				paintKeys();
+
+				MIDI.loadPlugin({
+					soundfontUrl: "../soundfont/",
+					instrument: "acoustic_grand_piano",
+					callback: function () { console.log("MIDI loaded."); }
+				});
 			});
 		</script>
 	</head>
@@ -391,6 +427,7 @@
 			<g id="regions"></g>
 			<g id="labels"></g>
 			<g id="keys">
+				<g id="keys-labels"></g>
 				<g class="group-1"></g>
 				<g class="group-2"></g>
 				<g class="group-3"></g>

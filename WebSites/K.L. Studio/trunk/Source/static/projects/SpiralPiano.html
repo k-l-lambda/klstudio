@@ -17,7 +17,7 @@
 			.key
 			{
 				stroke: white;
-				stroke-width: 1px;
+				stroke-width: 0;
 				filter: url(#filter-grey);
 				cursor: pointer;
 				opacity: 0.8;
@@ -32,6 +32,8 @@
 			.key.active
 			{
 				filter: url(#filter-brilliancy) !important;
+				opacity: 1;
+				stroke-width: 2px;
 			}
 
 			.pitch-0
@@ -290,13 +292,34 @@
 
 					var shape = group.path(key, { class: "key pitch-" + (keyToNote(k) % Config.GroupLen), "data-note": keyToNote(k) });
 				}
+
+				var activeKey = function (key) {
+					MIDI.noteOn(0, key.data("note"), 100);
+					key.attr("class", key.attr("class") + " active");
+				};
+				var deactiveKey = function (key) {
+					MIDI.noteOff(0, key.data("note"));
+					key.attr("class", key.attr("class").replace(/ active/g, ""));
+				};
+
 				$(".key").mousedown(function () {
-					MIDI.noteOn(0, $(this).data("note"), 100);
-					$(this).attr("class", $(this).attr("class") + " active");
+					activeKey($(this));
+
+					return false;
 				});
 				$(".key").mouseup(function () {
-					MIDI.noteOff(0, $(this).data("note"));
-					$(this).attr("class", $(this).attr("class").replace(/ active/g, ""));
+					deactiveKey($(this));
+				});
+
+				$(".key").mouseenter(function () {
+					if (event.which == 1) {
+						activeKey($(this));
+					}
+				});
+				$(".key").mouseleave(function () {
+					if (event.which == 1) {
+						deactiveKey($(this));
+					}
 				});
 
 				var getMiddlePoint = function (note) {

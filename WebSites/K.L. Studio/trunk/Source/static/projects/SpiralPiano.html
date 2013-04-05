@@ -8,6 +8,11 @@
 				text-align: center;
 			}
 
+			body > *
+			{
+				vertical-align: middle;
+			}
+
 			#panel
 			{
 				width: 800px;
@@ -162,6 +167,12 @@
 			{
 				fill: #777;
 			}
+
+			#settings
+			{
+				display: inline-block;
+				text-align: justify;
+			}
 		</style>
 		<script src="../js/jquery.js" type="text/javascript"></script>
 		<script src="../js/jquery.svg.js" type="text/javascript"></script>
@@ -312,12 +323,12 @@
 				});
 
 				$(".key").mouseenter(function () {
-					if (event.which == 1) {
+					if (event.which == 1 || $("#settings-touch").attr("checked")) {
 						activeKey($(this));
 					}
 				});
 				$(".key").mouseleave(function () {
-					if (event.which == 1) {
+					if (event.which == 1 || $("#settings-touch").attr("checked")) {
 						deactiveKey($(this));
 					}
 				});
@@ -370,6 +381,12 @@
 			};
 
 			$(function () {
+				MIDI.loadPlugin({
+					soundfontUrl: "../soundfont/",
+					instrument: "acoustic_grand_piano",
+					callback: function () { console.log("MIDI loaded."); }
+				});
+
 				initializeStatus();
 
 				paintPanelBackground();
@@ -377,10 +394,11 @@
 				updateKeyPoints();
 				paintKeys();
 
-				MIDI.loadPlugin({
-					soundfontUrl: "../soundfont/",
-					instrument: "acoustic_grand_piano",
-					callback: function () { console.log("MIDI loaded."); }
+				$("#settings-mode").change(function () {
+					Status.ModalOffset = Number($("#settings-mode").val());
+
+					paintPanelBackground();
+					paintKeys();
 				});
 			});
 		</script>
@@ -476,5 +494,26 @@
 				<g class="group-9"></g>
 			</g>
 		</svg>
+		<div id="settings">
+			<p>
+				<input id="settings-touch" type="checkbox" /> Touch
+			</p
+			<p>
+				Mode: <select id="settings-mode">
+					<option value="-5">G</option>
+					<option value="-4">G# / Ab</option>
+					<option value="-3">A</option>
+					<option value="-2">A# / Bb</option>
+					<option value="-1">B</option>
+					<option value="0" selected="selected">C</option>
+					<option value="1">C# / Db</option>
+					<option value="2">D</option>
+					<option value="3">D# / Eb</option>
+					<option value="4">E</option>
+					<option value="5">F</option>
+					<option value="6">F# / Gb</option>
+				</select>
+			</p>
+		</div>
 	</body>
 </html>

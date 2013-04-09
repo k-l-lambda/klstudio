@@ -11,6 +11,11 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2013.4.9	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/SpiralPiano.html: span keyboard added.
+
+
 2013.4.5	K.L.	<k.l.lambda@gmail.com>
 
 	+	Source/static/projects/SpiralPiano.html: settings panel added.

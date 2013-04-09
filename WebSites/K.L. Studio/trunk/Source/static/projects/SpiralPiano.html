@@ -28,13 +28,13 @@
 				opacity: 0.8;
 			}
 
-			.key:hover
+			#panel .key:hover
 			{
 				filter: url(#filter-middle-saturate);
 				opacity: 1;
 			}
 
-			.key.active
+			#panel .key.active
 			{
 				filter: url(#filter-brilliancy) !important;
 				opacity: 1;
@@ -328,6 +328,18 @@
 				return offsetAngle;
 			};
 
+			var activeKey = function (key, mute) {
+				if (!mute)
+					MIDI.noteOn(0, key.data("note"), 100);
+				key.attr("class", key.attr("class") + " active");
+			};
+
+			var deactiveKey = function (key, mute) {
+				if (!mute)
+					MIDI.noteOff(0, key.data("note"));
+				key.attr("class", key.attr("class").replace(/ active/g, ""));
+			};
+
 			var paintKeys = function () {
 				var points = [];
 				for (var p = 0; p < Config.KeyCount + Config.GroupLen + 1; ++p) {
@@ -353,15 +365,6 @@
 
 					var shape = group.path(key, { class: "key pitch-" + (keyToNote(k) % Config.GroupLen), "data-note": keyToNote(k) });
 				}
-
-				var activeKey = function (key) {
-					MIDI.noteOn(0, key.data("note"), 100);
-					key.attr("class", key.attr("class") + " active");
-				};
-				var deactiveKey = function (key) {
-					MIDI.noteOff(0, key.data("note"));
-					key.attr("class", key.attr("class").replace(/ active/g, ""));
-				};
 
 				$(".key").mousedown(function () {
 					activeKey($(this));
@@ -438,16 +441,27 @@
 					var group = noteToGroup(note);
 					var pos = Config.KeySerials.White.indexOf(pitch);
 					if (pos >= 0) {
-						keyboardWhite.rect((group * Config.KeySerials.White.length + pos - 12) * Config.SpanKeyWidth, 0, Config.SpanKeyWidth, Config.SpanKeyWidth * 4, 0, 0, { class: "key white-key" });
+						keyboardWhite.rect((group * Config.KeySerials.White.length + pos - 12) * Config.SpanKeyWidth, 0, Config.SpanKeyWidth, Config.SpanKeyWidth * 4, 0, 0, { class: "key white-key", "data-note": note });
 					}
 					else {
 						pos = Config.KeySerials.BlackPosition[pitch];
-						keyboardBlack.rect((group * Config.KeySerials.White.length + pos - 12 + 0.1) * Config.SpanKeyWidth, 0, Config.SpanKeyWidth * 0.8, Config.SpanKeyWidth * 2.4, 0, 0, { class: "key black-key" });
+						keyboardBlack.rect((group * Config.KeySerials.White.length + pos - 12 + 0.1) * Config.SpanKeyWidth, 0, Config.SpanKeyWidth * 0.8, Config.SpanKeyWidth * 2.4, 0, 0, { class: "key black-key", "data-note": note });
 					}
 				}
 
 				var keyboardLabels = svg("#span-keyboard-labels");
 				keyboardLabels.text((noteToGroup(Config.MiddleC) * Config.KeySerials.White.length - 12 + 0.5) * Config.SpanKeyWidth, Config.SpanKeyWidth * 3.5, "C");
+
+				$("#span-keyboard .key").mouseenter(function () {
+					activeKey($(this));
+
+					activeKey($("#panel .key[data-note='" + $(this).data("note") + "']"), true);
+				});
+				$("#span-keyboard .key").mouseleave(function () {
+					deactiveKey($(this));
+
+					deactiveKey($("#panel .key[data-note='" + $(this).data("note") + "']"), true);
+				});
 			};
 
 			$(function () {

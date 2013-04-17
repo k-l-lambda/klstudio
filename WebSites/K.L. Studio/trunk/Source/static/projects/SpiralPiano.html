@@ -171,6 +171,7 @@
 			#settings
 			{
 				display: inline-block;
+				margin-left: 20px;
 				text-align: justify;
 			}
 
@@ -197,14 +198,14 @@
 				fill: black;
 			}
 
-			.white-key:hover
+			.white-key:hover, .white-key.active
 			{
-				fill: #ccf;
+				fill: #aaf;
 			}
 
-			.black-key:hover
+			.black-key:hover, .black-key.active
 			{
-				fill: #00c;
+				fill: #22d;
 			}
 
 			#span-keyboard-labels text
@@ -224,6 +225,50 @@
 			{
 				cursor: pointer;
 			}
+
+			#player input, #player span
+			{
+				vertical-align: middle;
+			}
+
+			#player-source
+			{
+				width: 30em;
+			}
+
+			.player-button
+			{
+				opacity: 0.7;
+			}
+
+			.player-button:hover
+			{
+				opacity: 1;
+			}
+
+			.player-button:active
+			{
+				opacity: 0.85;
+			}
+
+			#player-progress
+			{
+				display: inline-block;
+				height: 26px;
+				border-radius: 8px;
+				overflow: hidden;
+			}
+
+			#player-progress-cursor
+			{
+				display: inline-block;
+				position: relative;
+				background: #003b96;
+				background-image: -webkit-gradient(linear, left top, left bottom, color-stop(1, #003b96), color-stop(0, #0088e9));
+				top: -24px;
+				height: 22px;
+				opacity: 0.6;
+			}
 		</style>
 		<script src="../js/jquery.js" type="text/javascript"></script>
 		<script src="../js/jquery.svg.js" type="text/javascript"></script>
@@ -236,6 +281,9 @@
 		<script src="../js/MIDI/inc/WebMIDIAPI.js" type="text/javascript"></script>
 		<script src="../js/MIDI/inc/Base64.js" type="text/javascript"></script>
 		<script src="../js/MIDI/inc/base64binary.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/replayer.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/midifile.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/stream.js" type="text/javascript"></script>
 		<script type="text/javascript">
 			var Config = {
 				GroupLen: 12,
@@ -246,7 +294,7 @@
 				NoteStart: 21,
 				NoteEnd: 108,
 				MiddleC: 60,
-				RegionRadius: 280,
+				RegionRadius: 400,
 				Mode: {
 					Major: {
 						MainPitches: { 0: true, 2: true, 4: true, 5: true, 7: true, 9: true, 11: true },
@@ -390,21 +438,21 @@
 					var shape = group.path(key, { class: "key pitch-" + (keyToNote(k) % Config.GroupLen), "data-note": keyToNote(k) });
 				}
 
-				$(".key").mousedown(function () {
+				$("#panel .key").mousedown(function () {
 					activeKey($(this));
 
 					return false;
 				});
-				$(".key").mouseup(function () {
+				$("#panel .key").mouseup(function () {
 					deactiveKey($(this));
 				});
 
-				$(".key").mouseenter(function () {
+				$("#panel .key").mouseenter(function () {
 					if (event.which == 1 || $("#settings-touch").attr("checked")) {
 						activeKey($(this));
 					}
 				});
-				$(".key").mouseleave(function () {
+				$("#panel .key").mouseleave(function () {
 					if (event.which == 1 || $("#settings-touch").attr("checked")) {
 						deactiveKey($(this));
 					}
@@ -549,7 +597,56 @@
 				MIDI.loadPlugin({
 					soundfontUrl: "../soundfont/",
 					instrument: "acoustic_grand_piano",
-					callback: function () { console.log("MIDI loaded."); }
+					callback: function () {
+						console.log("MIDI loaded.");
+
+						$("#player-play").click(function () {
+							if (MIDI.Player.playing) {
+								MIDI.Player.pause();
+
+								$("#player-play").attr("src", "/res/images/play.png");
+							}
+							else {
+								if ($("#player-source").attr("disabled"))
+									MIDI.Player.resume();
+								else {
+									MIDI.Player.loadFile($("#player-source").val(), MIDI.Player.start);
+									$("#player-source").attr("disabled", true);
+								}
+
+								$("#player-play").attr("src", "/res/images/pause.png");
+							}
+						});
+
+						$("#player-stop").click(function () {
+							if ($("#player-source").attr("disabled")) {
+								MIDI.Player.stop();
+								$("#player-source").attr("disabled", false);
+
+								$("#player-play").attr("src", "/res/images/play.png");
+							}
+						});
+
+						MIDI.Player.addListener(function (data) {
+							//console.log(data);
+
+							var key = $("#panel .key[data-note='" + data.note + "']");
+							var key2 = $("#span-keyboard .key[data-note='" + data.note + "']");
+							if (data.message === 144) {
+								activeKey(key, 0);
+								activeKey(key2, 0);
+							}
+							else {
+								deactiveKey(key, true);
+								deactiveKey(key2, true);
+							}
+						});
+
+						MIDI.Player.setAnimation(function (data, element) {
+							//console.log(data, element, data.now / data.end);
+							$("#player-progress-cursor").css("width", (data.now * 100 / data.end) + "%");
+						});
+					}
 				});
 
 				initializeStatus();
@@ -699,6 +796,9 @@
 					<option value="5">F</option>
 					<option value="6">F# / Gb</option>
 				</select>
+			</p>
+			<p id="player">
+				<span id="player-progress"><input type="text" id="player-source" /><span id="player-progress-cursor"></span></span> <span><input id="player-play" type="image" src="/res/images/play.png" class="player-button" /> <input id="player-stop" type="image" src="/res/images/stop.png" class="player-button" /></span>
 			</p>
 		</div>
 	</body>

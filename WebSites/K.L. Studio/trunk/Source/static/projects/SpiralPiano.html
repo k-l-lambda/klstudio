@@ -713,7 +713,8 @@
 							fr.onloadend = function (e) {
 								$("#player-source").val(e.currentTarget.result);
 
-								if (playing)
+								$("#player-play").click();
+								if(!MIDI.Player.playing)
 									$("#player-play").click();
 							};
 							fr.readAsDataURL(e.dataTransfer.files[0]);

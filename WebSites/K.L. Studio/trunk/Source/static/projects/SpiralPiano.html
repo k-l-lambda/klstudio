@@ -269,6 +269,31 @@
 				height: 22px;
 				opacity: 0.6;
 			}
+
+			#player-source-tips
+			{
+				position: absolute;
+				display: inline-block;
+				line-height: 26px;
+				color: #ccc;
+				padding-left: 0.4em;
+			}
+
+			.drag-hover #player-progress
+			{
+				outline: red solid 2px;
+			}
+
+			.drag-hover #player-source
+			{
+				background: #ffc;
+			}
+
+			.drag-hover #player-source-tips
+			{
+				color: #444;
+				font-weight: bold;
+			}
 		</style>
 		<script src="../js/jquery.js" type="text/javascript"></script>
 		<script src="../js/jquery.svg.js" type="text/javascript"></script>
@@ -643,8 +668,10 @@
 						});
 
 						MIDI.Player.setAnimation(function (data, element) {
-							//console.log(data, element, data.now / data.end);
 							$("#player-progress-cursor").css("width", (data.now * 100 / data.end) + "%");
+
+							if (data.now >= data.end)
+								$("#player-stop").click();
 						});
 					}
 				});
@@ -663,6 +690,51 @@
 
 					paintPanelBackground();
 					paintKeys();
+				});
+
+				$("body, #panel, #settings, #player-source, #player-source-tips, #player-progress-cursor").each(function (i, elem) {
+					elem.ondragover = function (e) {
+						$("#player").addClass("drag-hover");
+						e.preventDefault();
+					};
+					elem.ondragleave = function () {
+						$("#player").removeClass("drag-hover");
+					};
+
+					elem.ondrop = function (e) {
+						$("#player").removeClass("drag-hover");
+
+						if (e.dataTransfer.files[0].type == "audio/mid") {
+							var playing = $("#player-source").attr("disabled");
+							if (playing)
+								$("#player-stop").click();
+
+							var fr = new FileReader();
+							fr.onloadend = function (e) {
+								$("#player-source").val(e.currentTarget.result);
+
+								if (playing)
+									$("#player-play").click();
+							};
+							fr.readAsDataURL(e.dataTransfer.files[0]);
+
+							$("#player-source-tips").hide();
+						}
+
+						e.preventDefault();
+						return false;
+					};
+				});
+
+				$("#player-source-tips").click(function () {
+					$("#player-source").focus();
+				});
+				$("#player-source").focus(function () {
+					$("#player-source-tips").hide();
+				});
+				$("#player-source").blur(function () {
+					if (!$("#player-source").val())
+						$("#player-source-tips").show();
 				});
 			});
 		</script>
@@ -798,7 +870,7 @@
 				</select>
 			</p>
 			<p id="player">
-				<span id="player-progress"><input type="text" id="player-source" /><span id="player-progress-cursor"></span></span> <span><input id="player-play" type="image" src="/res/images/play.png" class="player-button" /> <input id="player-stop" type="image" src="/res/images/stop.png" class="player-button" /></span>
+				<span id="player-progress"><label id="player-source-tips">Drag and drop MIDI file here.</label><input type="text" id="player-source" /><span id="player-progress-cursor"></span></span> <span><input id="player-play" type="image" src="/res/images/play.png" class="player-button" /> <input id="player-stop" type="image" src="/res/images/stop.png" class="player-button" /></span>
 			</p>
 		</div>
 	</body>

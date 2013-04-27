@@ -730,7 +730,7 @@
 			util.SimpleCubeMesh = util.createSimpleCubeMesh(1);
 			util.CubeArrayMeshes = util.createCubeArrayMeshes();
 
-			$(function() {
+			$(function () {
 				var canvas = $("#cube-earth");
 				canvas.attr("width", canvas.width());
 				canvas.attr("height", canvas.height());
@@ -774,7 +774,7 @@
 						vMaterialShiness: 64
 					});
 
-					$.each(util.CubeArrayMeshes, function(i, unit) {
+					$.each(util.CubeArrayMeshes, function (i, unit) {
 						var buffer = new CL3D.MeshBuffer();
 						buffer.setVIMesh(unit);
 						buffer.Mat.Type = cubeMat;
@@ -790,28 +790,28 @@
 						cube.addChild(node);
 					});
 
-					$(window).resize(function() {
+					$(window).resize(function () {
 						canvas.attr("width", canvas.width());
 						canvas.attr("height", canvas.height());
 						Scene.getActiveCamera().setAspectRatio(canvas.width() / canvas.height());
 					});
 
-					$(top).focus(function() {
+					$(top).focus(function () {
 						CL.IsPaused = false;
 					});
 
-					$(top).blur(function() {
+					$(top).blur(function () {
 						CL.IsPaused = true;
 					});
 
 					Cube = new CubeArray(cube.Children);
-					CL.OnBeforeDrawAll = function() { Cube.update(); };
+					CL.OnBeforeDrawAll = function () { Cube.update(); };
 
 					// screw randomly
 					var faces = [[-1, 0, 0], [1, 0, 0], [0, -1, 0], [0, 1, 0], [0, 0, -1], [0, 0, 1]];
 					var phases = [-1, 1, 2];
 					var stopAutoScrew = false;
-					var autoScrew = function() {
+					var autoScrew = function () {
 						if (!stopAutoScrew) {
 							Cube.startTransition({
 								face: faces[Math.floor(Math.random() * 6)],
@@ -853,7 +853,7 @@
 						var currentPhase = 0;
 						var mouseButtons = {};
 
-						$(window).mousedown(function(event) {
+						$(window).mousedown(function (event) {
 							if (event.button == 0 && focusFace != null) {
 								stopAutoScrew = true;
 
@@ -869,7 +869,7 @@
 							mouseButtons[event.button] = true;
 						});
 
-						$(window).mouseup(function(event) {
+						$(window).mouseup(function (event) {
 							if (event.button == 0 && screwing) {
 								screwing = false;
 
@@ -886,7 +886,7 @@
 							mouseButtons[event.button] = false;
 						});
 
-						var updateFocusFace = function() {
+						var updateFocusFace = function () {
 							var cam = Scene.getActiveCamera();
 							var cameraDirection = cam.Pos.substract(cam.getTarget());
 
@@ -907,7 +907,7 @@
 							}
 						};
 
-						$(window).mousemove(function(event) {
+						$(window).mousemove(function (event) {
 							cursorPos = { X: event.pageX, Y: event.pageY };
 
 							if (screwing) {
@@ -920,7 +920,7 @@
 							else {
 								focusFace = null;
 
-								$.each(cube.Children, function(i, node) {
+								$.each(cube.Children, function (i, node) {
 									node.getMesh().GetMeshBuffers()[0].Mat.Type = cubeMat;
 								});
 
@@ -929,7 +929,7 @@
 
 								if (!Cube.Transition) {
 									if (focusFace != null) {
-										Cube.traverseArrayFace(faces[focusFace], function(node) {
+										Cube.traverseArrayFace(faces[focusFace], function (node) {
 											node.getMesh().GetMeshBuffers()[0].Mat.Type = cubeHighlightMat;
 										});
 									}
@@ -939,7 +939,7 @@
 							}
 						});
 
-						document.onmousewheel = function(event) {
+						document.onmousewheel = function (event) {
 							if (!Cube.Transition && !screwing && focusFace != null) {
 								Cube.startTransition({
 									face: faces[focusFace],

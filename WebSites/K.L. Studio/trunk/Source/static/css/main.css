@@ -1,0 +1,23 @@
+
+body
+{
+	margin: 0;
+	font: 100% Verdana, Arial, Helvetica, sans-serif;
+}
+
+#header
+{
+	padding: 8px;
+}
+
+.container
+{
+	width: 800px;
+	margin: 0 auto;
+	text-align: left;
+}
+
+.footer
+{
+	margin-top: 2em;
+}

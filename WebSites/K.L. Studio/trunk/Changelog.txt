@@ -1,5 +1,7 @@
 
 TODO:
+	Home page:
+		project thumb
 	SpiralPiano.html:
 		settings panel
 			mode
@@ -10,6 +12,8 @@ Pending Issues:
 
 
 2013.4.27	K.L.	<k.l.lambda@gmail.com>
+
+	>	Home page: navigator bar added.
 
 	>	Refined home page, message board page.
 

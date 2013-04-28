@@ -1,0 +1,116 @@
+<html>
+	<head>
+		<title>Piano Trainer</title>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<style type="text/css">
+			html
+			{
+				font-family: Verdana, Arial, Helvetica, sans-serif;
+			}
+
+			body
+			{
+				color: #ccc;
+				background: #333;
+				margin: 0;
+			}
+
+			#header
+			{
+				background: -webkit-gradient(linear,left top,left bottom,from(#333),to(#111));
+				height: 70px;
+				box-shadow: 0 3px 3px rgba(0,0,0,.25);
+			}
+
+			.wrapper
+			{
+				width: 1000px;
+				margin: 0 auto;
+			}
+
+			#playback
+			{
+				padding-top: 19px;
+			}
+
+			#playback span
+			{
+				display: inline-block;
+			}
+
+			#playback > span, #playback-time > span
+			{
+				vertical-align: middle;
+			}
+
+			.playback-button
+			{
+				-webkit-transition-property: opacity;
+				-webkit-transition-duration: .2s;
+				opacity: 0.7;
+			}
+
+			.playback-button:hover
+			{
+				opacity: 1;
+			}
+
+			.playback-button:active
+			{
+				opacity: 0.85;
+			}
+
+			#playback-time
+			{
+				margin-left: 20px;
+			}
+
+			#playback-progress
+			{
+				width: 320px;
+				height: 32px;
+				border: 1px solid #000;
+				border-radius: 5px;
+				box-shadow: 0 0 10px #555;
+				overflow: hidden;
+				background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0,#333),color-stop(1,rgba(0,0,0,.7)));
+			}
+
+			#playback-title
+			{
+				margin-left: 40px;
+				font-size: 20px;
+			}
+		</style>
+		<script src="../../js/jquery.js" type="text/javascript"></script>
+		<script src="../../js/jquery.svg.js" type="text/javascript"></script>
+		<script src="../../js/MIDI/AudioDetect.js" type="text/javascript"></script>
+		<script src="../../js/MIDI/LoadPlugin.js" type="text/javascript"></script>
+		<script src="../../js/MIDI/Plugin.js" type="text/javascript"></script>
+		<script src="../../js/MIDI/Player.js" type="text/javascript"></script>
+		<script src="../../js/MIDI/Window/DOMLoader.XMLHttp.js" type="text/javascript"></script>
+		<script src="../../js/MIDI/Window/DOMLoader.script.js" type="text/javascript"></script>
+		<script src="../../js/MIDI/inc/WebMIDIAPI.js" type="text/javascript"></script>
+		<script src="../../js/MIDI/inc/Base64.js" type="text/javascript"></script>
+		<script src="../../js/MIDI/inc/base64binary.js" type="text/javascript"></script>
+		<script src="../../js/MIDI/inc/replayer.js" type="text/javascript"></script>
+		<script src="../../js/MIDI/inc/midifile.js" type="text/javascript"></script>
+		<script src="../../js/MIDI/inc/stream.js" type="text/javascript"></script>
+		<script type="text/javascript">
+		</script>
+	</head>
+	<body>
+		<div id="header">
+			<div class="wrapper">
+				<div id="playback">
+					<span><input id="playback-play" type="image" src="/res/images/play.png" class="playback-button" /></span>
+					<span id="playback-time">
+						<span id="playback-progress"><span id="playback-progress-cursor"></span></span>
+						<span id="playback-time-text"></span>
+					</span>
+					<span id="playback-title"></span>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

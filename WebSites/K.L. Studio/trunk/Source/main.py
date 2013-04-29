@@ -19,18 +19,33 @@ from google.appengine.ext.webapp import template
 from google.appengine.api import mail
 
 
-class HomeHandler(webapp.RequestHandler):
-    def get(self):
-        path = os.path.join(os.path.dirname(__file__), 'templates/index.html')
-        self.response.out.write(template.render(path, {}))
-
-
 class GuestNote(db.Model):
     author = db.UserProperty()
     remote_addr = db.StringProperty()
     user_agent = db.StringProperty()
     content = db.StringProperty(multiline=True)
     date = db.DateTimeProperty(auto_now_add=True)
+
+
+class HomeHandler(webapp.RequestHandler):
+    def get(self):
+        path = os.path.join(os.path.dirname(__file__), 'templates/index.html')
+        self.response.out.write(template.render(path, {}))
+
+
+class AboutHandler(webapp.RequestHandler):
+    def get(self):
+        notes = GuestNote.all().order('-date')
+        user = users.get_current_user()
+
+        template_values = {
+            'author':       user and user.nickname() or 'anonymous guest',
+            'logined':      user != None,
+            'login_url':    users.create_login_url(self.request.uri),
+            'notes':        notes,
+        }
+        path = os.path.join(os.path.dirname(__file__), 'templates/About.html')
+        self.response.out.write(template.render(path, template_values))
 
 
 class MessageSign(webapp.RequestHandler):
@@ -81,10 +96,12 @@ class HtmlHandler(webapp.RequestHandler):
 
 def main():
     application = webapp.WSGIApplication([
-        ('/',                   HomeHandler),
-        ('/html/.*',            HtmlHandler),
-        ('/MessageBoard',       MessageBoard),
-        ('/MessageBoard/sign',  MessageSign),
+        ('/',                       HomeHandler),
+        ('/about/',                 AboutHandler),
+        ('/about/sign-message',     MessageSign),
+        ('/html/.*',                HtmlHandler),
+        ('/MessageBoard',           MessageBoard),
+        ('/MessageBoard/sign',      MessageSign),
         ], debug=True)
     util.run_wsgi_app(application)
 

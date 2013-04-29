@@ -5,6 +5,16 @@ body
 	font: 100% Verdana, Arial, Helvetica, sans-serif;
 }
 
+img
+{
+	border: none;
+}
+
+.clear
+{
+	clear: both;
+}
+
 #header
 {
 	padding: 8px;

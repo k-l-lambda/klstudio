@@ -19,6 +19,9 @@ handlers:
 - url: /MessageBoard/.*
   script: main.py
 
+- url: /about/.*
+  script: main.py
+
 - url: /html/.*
   script: main.py
 

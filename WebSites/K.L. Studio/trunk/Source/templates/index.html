@@ -6,9 +6,9 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 		<link href="/css/main.css" rel="stylesheet" type="text/css" />
 		<style type="text/css">
-			img
+			.comment
 			{
-				border: none;
+				font-size: 70%;
 			}
 
 			#logo
@@ -83,19 +83,42 @@
 
 			#projects h2 a
 			{
-				text-decoration: none;
+				text-decoration: underline;
 				color: #000;
 			}
 
 			#projects h2 a:hover
 			{
 				text-decoration: underline;
+				color: #00c;
+			}
+
+			#projects h2 a:active
+			{
+				color: #c08;
+			}
+
+			#projects .section img
+			{
+				float: left;
+				border-radius: 16px;
+				width: 300px;
+				height: 300px;
+				box-shadow: 0 0 10px rgba(0,0,0,0.3);
 			}
 
 			#projects .section article
 			{
-				font-size: 90%;
+				float: left;
 				color: #333;
+				padding-left: 3em;
+				font-size: 90%;
+				max-width: 446px;
+			}
+
+			#projects .section article h2
+			{
+				margin-bottom: 2em;
 			}
 		</style>
 		<script src="/js/jquery.js" type="text/javascript"></script>
@@ -155,7 +178,7 @@
 		<div class="container">
 			<div id="header">
 				<span><a href="/"><img src="res/images/K.L._Stuidio_Logo_small.png" alt="K.L. Studio" width="256" height="50" /></a></span>
-				<span id="nav"><a href="/" class="current">Projects</a> &middot; <a href="/MessageBoard">About</a></span>
+				<span id="nav"><a href="/" class="current">Projects</a> &middot; <a href="/about/">About</a></span>
 			</div>
 			<div id="logo">
 				<p id="motto">
@@ -169,40 +192,54 @@
 			</div>
 			<div id="projects">
 				<div class="section">
-					<h2><a href="projects/LifeGame/life-game.html">Life Game</a></h2>
+					<img src="/res/images/LifeGame.png" />
 					<article>
+						<h2><a href="projects/LifeGame/life-game.html">Life Game</a></h2>
 						A Simulator of <a href="http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank">Conway's Game of Life</a>.
+						Based on HTML5 Canvas.
 					</article>
+					<div class="clear"></div>
 				</div>
 				<div class="section">
-					<h2><a href="http://klstrigo.appspot.com/" target="_blank" onclick="onTrigoonlineClick()">Trigo Web</a></h2>
+					<img src="/res/images/TrigoWeb.png" />
 					<article>
-						The web game of 3D version of <a href="http://en.wikipedia.org/wiki/Go_(game)" target="_blank">Go (&#22285;&#26827;)</a>.
+						<h2><a href="http://klstrigo.appspot.com/" target="_blank" onclick="onTrigoonlineClick()">Trigo Web</a></h2>
+						The web game of 3D version of <a href="http://en.wikipedia.org/wiki/Go_(game)" target="_blank">Go (&#22260;&#26827;)</a>.
+						Based on <em>WebGL</em>.
 					</article>
+					<div class="clear"></div>
 				</div>
 				<div class="section">
-					<h2><a href="projects/Tanx/Tanx.html">Tanx</a></h2>
+					<img src="/res/images/Tanx.png" />
 					<article>
-						<strong>K.L.'a Tanx</strong> is an open source game engine, which gathered a lot of open source components. Include: <em>OGRE</em>, <em>Havok</em> (not open source), <em>CEGUI</em>, <em>OpenAL++</em>, <em>Lua</em>, <em>Luabind</em>, <em>wxWidgets</em> and so on.
+						<h2><a href="projects/Tanx/Tanx.html">Tanx</a></h2>
+						<strong><a href="http://sourceforge.net/projects/klstanx/" target="_blank">K.L.'a Tanx</a></strong> is an open source game engine, which gathered a lot of open source components. Include: <em>OGRE</em>, <em>Havok</em> <span class="comment">(non-open source)</span>, <em>CEGUI</em>, <em>OpenAL++</em>, <em>Lua</em>, <em>Luabind</em>, <em>wxWidgets</em> and so on.
 					</article>
+					<div class="clear"></div>
 				</div>
 				<div class="section">
-					<h2><a href="projects/Tetra/Tetra.html">Tetra</a></h2>
+					<img src="/res/images/Tetra.png" />
 					<article>
+						<h2><a href="projects/Tetra/Tetra.html">Tetra</a></h2>
 						A game based on OGRE, 3D version of <a href="http://en.wikipedia.org/wiki/Chinese_Checkers" target="_blank">Chinese checkers</a>.
 					</article>
+					<div class="clear"></div>
 				</div>
 				<div class="section">
-					<h2><a href="projects/Trigo/Trigo.html">Trigo</a></h2>
+					<img src="/res/images/Trigo.png" />
 					<article>
-						A game based on OGRE, 3D version of <a href="http://en.wikipedia.org/wiki/Go_(game)" target="_blank">Go (&#22285;&#26827;)</a>.
+						<h2><a href="projects/Trigo/Trigo.html">Trigo</a></h2>
+						A game based on OGRE, 3D version of <a href="http://en.wikipedia.org/wiki/Go_(game)" target="_blank">Go (&#22260;&#26827;)</a>.
 					</article>
+					<div class="clear"></div>
 				</div>
 				<div class="section">
-					<h2><a href="projects/MagicCube/MagicCube.html">Magic Cube</a></h2>
+					<img src="/res/images/MagicCube.png" />
 					<article>
+						<h2><a href="projects/MagicCube/MagicCube.html">Magic Cube</a></h2>
 						A simulator of <a href="http://en.wikipedia.org/wiki/Rubik%27s_Cube" target="_blank">Rubik's Cube</a>.
 					</article>
+					<div class="clear"></div>
 				</div>
 			</div>
 			<div class="footer">
@@ -224,7 +261,7 @@
 						<ul>
 							<li class="header">About Us</li>
 							<li class="hover"><a href="about.html" class="hover_link">Contacts</a></li>
-							<li class="hover"><a href="/MessageBoard" class="hover_link">Leave a message</a></li>
+							<li class="hover"><a href="/about/" class="hover_link">Leave a message</a></li>
 						</ul>
 					</div-->
 					<script type="text/javascript">

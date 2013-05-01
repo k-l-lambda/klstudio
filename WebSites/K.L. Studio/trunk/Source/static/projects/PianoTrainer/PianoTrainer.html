@@ -15,11 +15,25 @@
 				margin: 0;
 			}
 
+			body.drag-hover
+			{
+				background: #3d5b3d;
+			}
+
 			#header
 			{
-				background: -webkit-gradient(linear,left top,left bottom,from(#333),to(#111));
+				background: -webkit-gradient(linear,left top,left bottom,from(#444),to(#111));
 				height: 70px;
-				box-shadow: 0 3px 3px rgba(0,0,0,.25);
+				box-shadow: 0 2px 4px rgba(0,0,0,.4);
+			}
+
+			#loading
+			{
+				position: absolute;
+				top: 0;
+				width: 100%;
+				height: 100%;
+				background: no-repeat no-repeat url(/res/images/loading-5d.gif) center;
 			}
 
 			.wrapper
@@ -45,8 +59,8 @@
 
 			.playback-button
 			{
-				-webkit-transition-property: opacity;
-				-webkit-transition-duration: .2s;
+				transition-property: opacity;
+				transition-duration: .2s;
 				opacity: 0.7;
 			}
 
@@ -71,15 +85,52 @@
 				height: 32px;
 				border: 1px solid #000;
 				border-radius: 5px;
-				box-shadow: 0 0 10px #555;
+				box-shadow: 0 0 16px rgba(255, 255, 255, 0.4);
 				overflow: hidden;
-				background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0,#333),color-stop(1,rgba(0,0,0,.7)));
+				background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0,#222),color-stop(1,rgba(0,0,0,.7)));
+				cursor: pointer;
 			}
 
-			#playback-title
+			#playback-progress-cursor
+			{
+				display: inline-block;
+				position: relative;
+				background: #888;
+				background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0,rgba(0,0,0,0)),color-stop(1,rgba(0,0,0,.5)));
+				transition-property: background;
+				transition-duration: .3s;
+				transition-timing-function: linear;
+				height: 100%;
+			}
+
+			#playback-progress:hover #playback-progress-cursor
+			{
+				background-color: #0088e9;
+			}
+
+			#playback-time-text
+			{
+				margin-left: 1em;
+			}
+
+			#playback-source
 			{
 				margin-left: 40px;
 				font-size: 20px;
+				line-height: 24px;
+				width: 24em;
+				height: 24px;
+				border-radius: 5px;
+				white-space: nowrap;
+				overflow: hidden;
+				cursor: pointer;
+				text-align: center;
+				border: solid 1px transparent;
+			}
+
+			.drag-hover #playback-source
+			{
+				border-color: #fc0;
 			}
 		</style>
 		<script src="../../js/jquery.js" type="text/javascript"></script>
@@ -97,6 +148,118 @@
 		<script src="../../js/MIDI/inc/midifile.js" type="text/javascript"></script>
 		<script src="../../js/MIDI/inc/stream.js" type="text/javascript"></script>
 		<script type="text/javascript">
+			var playMidi = function (data) {
+				MIDI.Player.loadFile(data, MIDI.Player.start);
+				$("#playback-play").attr("src", "/res/images/pause.png");
+			};
+
+			var toMinutesSeconds = function (millisec) {
+				var minutes = parseInt(millisec / 60000);
+				var seconds = parseInt((millisec - minutes * 60000) / 1000);
+
+				return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+			};
+
+			$(function () {
+				$("body, body *").each(function (i, elem) {
+					elem.ondrop = function (e) {
+						e.preventDefault();
+						return false;
+					};
+				});
+
+				MIDI.loadPlugin({
+					soundfontUrl: "../../soundfont/",
+					instrument: "acoustic_grand_piano",
+					callback: function () {
+						console.log("MIDI loaded.");
+						$("#loading").fadeOut();
+
+						if (localStorage.SourceData) {
+							$("#playback-source").text(localStorage.SourceName);
+							MIDI.Player.loadFile(localStorage.SourceData, function () {
+								MIDI.Player.currentTime = MIDI.Player.endTime * localStorage.PlaybackProgress;
+							});
+						}
+
+						$("#playback-play").click(function () {
+							if (MIDI.Player.playing) {
+								MIDI.Player.pause();
+
+								$("#playback-play").attr("src", "/res/images/play.png");
+							}
+							else {
+								if (MIDI.Player.currentData) {
+									MIDI.Player.resume();
+
+									$("#playback-play").attr("src", "/res/images/pause.png");
+								}
+							}
+						});
+
+						$("body, body *").each(function (i, elem) {
+							elem.ondragover = function (e) {
+								$("body").addClass("drag-hover");
+								e.preventDefault();
+							};
+							elem.ondragleave = function () {
+								$("body").removeClass("drag-hover");
+							};
+							elem.ondrop = function (e) {
+								$("body").removeClass("drag-hover");
+
+								if (e.dataTransfer.files[0].type == "audio/mid") {
+									var fr = new FileReader();
+									fr.onloadend = function (e) {
+										playMidi(e.currentTarget.result);
+
+										localStorage.SourceData = e.currentTarget.result;
+									};
+									fr.readAsDataURL(e.dataTransfer.files[0]);
+									$("#playback-source").text(e.dataTransfer.files[0].name);
+
+									localStorage.SourceName = e.dataTransfer.files[0].name;
+								}
+
+								e.preventDefault();
+								return false;
+							};
+						});
+
+						MIDI.Player.setAnimation(function (data, element) {
+							$("#playback-progress-cursor").css("width", (data.now * 100 / data.end) + "%");
+							$("#playback-time-text").text(toMinutesSeconds(data.now * 1000));
+
+							localStorage.PlaybackProgress = data.now / data.end;
+
+							if (data.now >= data.end) {
+								MIDI.Player.stop();
+								$("#playback-play").attr("src", "/res/images/play.png");
+							}
+						});
+
+						$("#playback-progress").click(function () {
+							if (MIDI.Player.data) {
+								var progress = (event.x - $("#playback-progress").offset().left) / $("#playback-progress").width();
+
+								var playing = MIDI.Player.playing;
+
+								MIDI.Player.pause();
+								MIDI.Player.currentTime = MIDI.Player.endTime * progress;
+								if (playing)
+									MIDI.Player.resume();
+							}
+						});
+
+						$("#playback-progress").mousemove(function () {
+							if (MIDI.Player.data) {
+								var progress = (event.x - $("#playback-progress").offset().left) / $("#playback-progress").width();
+								$("#playback-progress").attr("title", toMinutesSeconds(progress * MIDI.Player.endTime));
+							}
+						});
+					}
+				});
+			});
 		</script>
 	</head>
 	<body>
@@ -108,9 +271,10 @@
 						<span id="playback-progress"><span id="playback-progress-cursor"></span></span>
 						<span id="playback-time-text"></span>
 					</span>
-					<span id="playback-title"></span>
+					<span id="playback-source">...</span>
 				</div>
 			</div>
 		</div>
+		<div id="loading"></div>
 	</body>
 </html>

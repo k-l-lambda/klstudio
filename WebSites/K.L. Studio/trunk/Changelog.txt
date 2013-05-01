@@ -1,7 +1,6 @@
 
 TODO:
 	PianoTrainer.html:
-		play midi file
 		music graph
 		midi input
 	SpiralPiano.html:
@@ -11,6 +10,11 @@ TODO:
 
 Pending Issues:
 	cube earth sphere tangent space issue
+
+
+2013.5.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: playback implement.
 
 
 2013.4.29	K.L.	<k.l.lambda@gmail.com>

@@ -13,6 +13,9 @@
 				color: #ccc;
 				background: #333;
 				margin: 0;
+				overflow: hidden;
+				position: relative;
+				height: 100%;
 			}
 
 			body.drag-hover
@@ -179,17 +182,100 @@
 				height: auto;
 			}
 
-			#range-bar
+			#range-controls
 			{
 				margin: 22px 0 8px !important;
+			}
+
+			#range-bar
+			{
 				opacity: 0.6;
-				transition-property: opacity;
+				transition-property: opacity, background;
 				transition-duration: .2s;
+				position: relative;
+				display: inline-block;
+				width: 900px;
 			}
 
 			#range-bar:hover
 			{
 				opacity: 1;
+			}
+
+			#range-bar .mask
+			{
+				position: absolute;
+				display: inline-block;
+				top: 0;
+				height: 100%;
+				cursor: pointer;
+			}
+
+			#range-bar .mask:hover
+			{
+				border-color: #af4;
+			}
+
+			#range-bar .mask.hold
+			{
+				border-color: #f00;
+			}
+
+			#range-mask-left, #range-mask-right
+			{
+				background-color: rgba(0, 0, 0, 0.7);
+				background: -webkit-gradient(linear,right top,right bottom,color-stop(0,rgba(0,0,0,0.8)),color-stop(0.5,rgba(0,0,0,0.3)),color-stop(1,rgba(0,0,0,0.8)));
+			}
+
+			#range-mask-left
+			{
+				border-right: 2px solid transparent;
+				border-top-left-radius: 12px;
+				border-bottom-left-radius: 12px;
+			}
+
+			#range-mask-right
+			{
+				border-left: 2px solid transparent;
+				border-top-right-radius: 12px;
+				border-bottom-right-radius: 12px;
+			}
+
+			#range-mask-middle
+			{
+				border-left: 2px solid transparent;
+				border-right: 2px solid transparent;
+			}
+
+			#range-mask-left:hover
+			{
+				background: -webkit-gradient(linear,left top,right top,color-stop(0,rgba(80,80,80,1)),color-stop(0.8,rgba(80,120,80,0.9)),color-stop(1,rgba(0,120,0,0.4)));
+			}
+
+			#range-mask-right:hover
+			{
+				background: -webkit-gradient(linear,right top,left top,color-stop(0,rgba(80,80,80,1)),color-stop(0.8,rgba(80,120,80,0.9)),color-stop(1,rgba(0,120,0,0.4)));
+			}
+
+			#range-mask-left
+			{
+				left: 0;
+			}
+
+			#range-mask-right
+			{
+				right: 0;
+			}
+
+			#range-mask-middle
+			{
+				background-color: transparent;
+				background: -webkit-gradient(linear,right top,right bottom,color-stop(0,rgba(0,0,0,0.3)),color-stop(0.5,rgba(0,0,0,0)),color-stop(1,rgba(0,0,0,0.3)));
+			}
+
+			#range-mask-middle:hover
+			{
+				background: -webkit-gradient(linear,left top,right top,color-stop(0,rgba(0,128,0,0.3)),color-stop(0.5,rgba(0,128,0,0)),color-stop(1,rgba(0,128,0,0.3)));
 			}
 
 			#range-canvas
@@ -209,12 +295,12 @@
 				fill: black;
 			}
 
-			#range-keyboard .white-key:hover, .white-key.active
+			#range-keyboard .white-key:hover, #range-keyboard .white-key.active
 			{
 				fill: #aaf;
 			}
 
-			#range-keyboard .black-key:hover, .black-key.active
+			#range-keyboard .black-key:hover, #range-keyboard .black-key.active
 			{
 				fill: #22d;
 			}
@@ -223,6 +309,74 @@
 			{
 				text-anchor: middle;
 				font-size: 7px;
+			}
+
+			#keyboard-canvas, #score-canvas
+			{
+				position: relative;
+			}
+
+			#keyboard .key
+			{
+				cursor: pointer;
+			}
+
+			/* key of Middle C */
+			#keyboard .key[data-note="60"]
+			{
+				fill: #fff0f0;
+				stroke: black;
+				stroke-width: 2;
+			}
+			#range-keyboard .key[data-note="60"]
+			{
+				fill: #fff0f0;
+				stroke: black;
+			}
+
+			#keyboard .white-key
+			{
+				fill: white;
+				stroke: #333;
+				stroke-width: 1px;
+			}
+
+			#keyboard .black-key
+			{
+				fill: black;
+			}
+
+			#keyboard .white-key:hover
+			{
+				fill: #eef;
+			}
+
+			#keyboard .white-key.active
+			{
+				fill: #aaf;
+			}
+
+			#keyboard .black-key:hover
+			{
+				fill: #335;
+			}
+
+			#keyboard .black-key.active
+			{
+				fill: #22d !important;
+			}
+
+			#keyboard-labels text
+			{
+				text-anchor: middle;
+				font-size: 12px;
+				fill: #bbb;
+			}
+
+			#score-canvas
+			{
+				height: 100000px;
+				background-color: black;
 			}
 		</style>
 		<script src="../../js/jquery.js" type="text/javascript"></script>
@@ -250,13 +404,15 @@
 				KeySerials: {
 					White: [0, 2, 4, 5, 7, 9, 11],
 					BlackPosition: {
-						1: 0.92,
-						3: 2.08,
-						6: 3.91,
+						1: 0.94,
+						3: 2.06,
+						6: 3.92,
 						8: 5,
-						10: 6.09
+						10: 6.08
 					}
 				},
+				KeyWidth: 40,
+				KeyHeight: 60,
 				RangeKeyWidth: 11
 			};
 
@@ -324,11 +480,13 @@
 			};
 
 			var addClass = function (elem, cls) {
-				elem.attr("class", elem.attr("class") + " " + cls);
+				if(elem.length)
+					elem.attr("class", elem.attr("class") + " " + cls);
 			};
 
 			var removeClass = function (elem, cls) {
-				elem.attr("class", elem.attr("class").replace(RegExp("\\s" + cls, "g"), ""));
+				if (elem.length)
+					elem.attr("class", elem.attr("class").replace(RegExp("\\s" + cls, "g"), ""));
 			};
 
 			var activeKey = function (key, volume) {
@@ -346,25 +504,53 @@
 				removeClass(key, "active");
 			};
 
+			var noteToX = function (note) {
+				var group = Musical.noteGroup(note);
+				var pitch = Musical.notePitch(note);
+				var pos = PinaoConfig.KeySerials.White.indexOf(pitch);
+				if (pos < 0)
+					pos = PinaoConfig.KeySerials.BlackPosition[pitch];
+
+				return group * PinaoConfig.KeySerials.White.length + pos - 12;
+			};
+
+			var xToNote = function (x) {
+				var pos = x + 12;
+				var group = Math.floor(pos / 7);
+				var pitch = PinaoConfig.KeySerials.White[pos % PinaoConfig.KeySerials.White.length];
+
+				return group * 12 + pitch;
+			};
+
+			localStorage.KeyboardRangeLow = localStorage.KeyboardRangeLow || noteToX(PinaoConfig.NoteStart);
+			localStorage.KeyboardRangeHigh = localStorage.KeyboardRangeHigh || (noteToX(PinaoConfig.NoteEnd) + 1);
+
+
+			var resetlocalStorage = function () {
+				localStorage.removeItem("KeyboardRangeLow");
+				localStorage.removeItem("KeyboardRangeHigh");
+			};
+
+			var updateRangeMask = function () {
+				var low = Number(localStorage.KeyboardRangeLow);
+				var high = Number(localStorage.KeyboardRangeHigh);
+
+				var keyboardLeft = $("#range-keyboard").offset().left - $("#range-bar").offset().left;
+				var left = keyboardLeft + low * PinaoConfig.RangeKeyWidth;
+				var right = keyboardLeft + high * PinaoConfig.RangeKeyWidth;
+
+				$("#range-mask-left").css("width", left - 2);
+				$("#range-mask-right").css("left", right);
+				$("#range-mask-middle").css("left", left);
+				$("#range-mask-middle").css("width", right - left - 4);
+
+				$("#keyboard-canvas, #score-canvas").css({
+					left: 100 * (-low / (high - low)) + "%",
+					width: 100 * ((noteToX(PinaoConfig.NoteEnd) + 1 - noteToX(PinaoConfig.NoteStart)) / (high - low)) + "%"
+				});
+			};
+
 			var initializeRangeKeyboard = function () {
-				var noteToX = function (note) {
-					var group = Musical.noteGroup(note);
-					var pitch = Musical.notePitch(note);
-					var pos = PinaoConfig.KeySerials.White.indexOf(pitch);
-					if (pos < 0)
-						pos = PinaoConfig.KeySerials.BlackPosition[pitch];
-
-					return group * PinaoConfig.KeySerials.White.length + pos - 12;
-				};
-
-				var xToNote = function (x) {
-					var pos = Math.floor(x / PinaoConfig.RangeKeyWidth) + 12;
-					var group = Math.floor(pos / 7);
-					var pitch = PinaoConfig.KeySerials.White[pos % 7];
-
-					return group * 12 + pitch;
-				};
-
 				var keyboardWhite = svg("#range-keyboard-white");
 				var keyboardBlack = svg("#range-keyboard-black");
 				for (var note = PinaoConfig.NoteStart; note <= PinaoConfig.NoteEnd; ++note) {
@@ -392,6 +578,103 @@
 					width: $("#range-keyboard-white .key").length * PinaoConfig.RangeKeyWidth + 2,
 					height: PinaoConfig.RangeKeyWidth * 3 + 2
 				});
+
+				$("#range-bar .mask").mousedown(function () {
+					$(this).addClass("hold");
+
+					return false;
+				});
+
+				$(window).mouseup(function () {
+					$("#range-bar .mask").removeClass("hold");
+				});
+
+				$("#range-bar").mousemove(function () {
+					var delta = event.webkitMovementX / PinaoConfig.RangeKeyWidth;
+
+					var changed = false;
+
+					var low = Number(localStorage.KeyboardRangeLow);
+					var high = Number(localStorage.KeyboardRangeHigh);
+
+					if ($("#range-mask-left").is(".hold")) {
+						low += delta;
+						low = Math.min(low, high - 7);
+
+						changed = true;
+					}
+
+					if ($("#range-mask-right").is(".hold")) {
+						high += delta;
+						high = Math.max(high, low + 7);
+
+						changed = true;
+					}
+
+					if ($("#range-mask-middle").is(".hold")) {
+						low += delta;
+						low = Math.min(low, high - 7);
+						high += delta;
+						high = Math.max(high, low + 7);
+
+						changed = true;
+					}
+
+					low = Math.max(low, noteToX(PinaoConfig.NoteStart) - 10);
+					high = Math.min(high, noteToX(PinaoConfig.NoteEnd) + 10);
+
+					if (changed) {
+						localStorage.KeyboardRangeLow = low;
+						localStorage.KeyboardRangeHigh = high;
+
+						updateRangeMask();
+					}
+				});
+			};
+
+			var initializeKeyboard = function () {
+				$("#keyboard-canvas").attr("viewBox", "0 0 " + PinaoConfig.KeyWidth * (noteToX(PinaoConfig.NoteEnd) + 1) + " 60");
+				$("#keyboard-canvas").attr("height", PinaoConfig.KeyHeight + 2);
+
+				$("#score-canvas").attr("viewBox", "0 0 " + PinaoConfig.KeyWidth * (noteToX(PinaoConfig.NoteEnd) + 1) + " " + ($("#score-canvas").height() - 2));
+
+				var keyboardWhite = svg("#keyboard-white");
+				var keyboardBlack = svg("#keyboard-black");
+				for (var note = PinaoConfig.NoteStart; note <= PinaoConfig.NoteEnd; ++note) {
+					var pitch = Musical.notePitch(note);
+					var x = noteToX(note);
+					if (PinaoConfig.KeySerials.White.indexOf(pitch) >= 0) {
+						keyboardWhite.rect(x * PinaoConfig.KeyWidth, 0, PinaoConfig.KeyWidth, PinaoConfig.KeyHeight, 4, 4, { class: "key white-key", "data-note": note });
+					}
+					else {
+						keyboardBlack.rect((x - 0.25) * PinaoConfig.KeyWidth, 0, PinaoConfig.KeyWidth * 0.5, PinaoConfig.KeyHeight * 0.63, 4, 4, { class: "key black-key", "data-note": note });
+					}
+				}
+
+				var keyboardLabels = svg("#keyboard-labels");
+				//keyboardLabels.text((noteToX(PinaoConfig.MiddleC) + 0.5) * PinaoConfig.KeyWidth, PinaoConfig.KeyHeight * 0.9, "C");
+
+				$("#keyboard .key").mousedown(function () {
+					activeKey($(this), 100);
+
+					return false;
+				});
+				$("#keyboard .key").mouseup(function () {
+					deactiveKey($(this));
+				});
+				$("#keyboard .key").mouseenter(function () {
+					if (event.which == 1)
+						activeKey($(this), 100);
+				});
+				$("#keyboard .key").mouseleave(function () {
+					if (event.which == 1)
+						deactiveKey($(this));
+				});
+			};
+
+			var updateLayout = function () {
+				//$("#score-canvas").attr("height", $("body").innerHeight() - $("#header").outerHeight() - $("#keyboard-canvas").outerHeight());
+				//$("#score-canvas").css("top", $("keyboard-canvas").outerHeight());
 			};
 
 			$(function () {
@@ -460,6 +743,25 @@
 							};
 						});
 
+						MIDI.Player.addListener(function (data) {
+							//console.log(data);
+							var key = $("#keyboard .key[data-note='" + data.note + "']");
+							var key2 = $("#range-keyboard .key[data-note='" + data.note + "']");
+
+							switch (data.message) {
+								case 144:
+									activeKey(key, 0);
+									activeKey(key2, 0);
+
+									break;
+								case 128:
+									deactiveKey(key, true);
+									deactiveKey(key2, true);
+
+									break;
+							}
+						});
+
 						MIDI.Player.setAnimation(function (data, element) {
 							$("#playback-progress-cursor").css("width", (data.now * 100 / data.end) + "%");
 							$("#playback-time-text").text(toMinutesSeconds(data.now * 1000));
@@ -496,6 +798,10 @@
 
 				initializeRangeKeyboard();
 
+				initializeKeyboard();
+
+				updateRangeMask();
+
 				if (!checkPlugin("application/x-klstudio-midi"))
 					console.warn("No MIDI NPAPI plugin installed.");
 				else {
@@ -507,14 +813,20 @@
 
 					MidiIO.registerCallbackObject({
 						printmessage: function (message) {
-							console.log("MIDI message:", message.getTimeStamp(), message.getRawData().toString(16));
+							console.log("MIDI in:", message.getTimeStamp(), message.getRawData().toString(16));
 
 							if (message.isNoteOnOrOff()) {
 								if (message.isNoteOn()) {
-									MIDI.noteOn(message.getChannel(), message.getNoteNumber(), message.getVelocity());
+									var note = message.getNoteNumber();
+
+									MIDI.noteOn(message.getChannel(), note, message.getVelocity());
+									activeKey($("#keyboard .key[data-note='" + note + "']"));
 								}
 								else {
-									MIDI.noteOff(message.getChannel(), message.getNoteNumber());
+									var note = message.getNoteNumber();
+
+									MIDI.noteOff(message.getChannel(), note);
+									deactiveKey($("#keyboard .key[data-note='" + note + "']"));
 								}
 							}
 						}
@@ -529,6 +841,10 @@
 						console.log("MIDI plugin cleanup.");
 					});
 				}
+
+				updateLayout();
+
+				$(window).resize(updateLayout);
 			});
 		</script>
 	</head>
@@ -549,16 +865,29 @@
 					<input id="input-device-refresh" class="image-button" type="image" src="/res/images/refresh.png" />
 				</span>
 			</p>
-			<p id="range-bar">
-				<svg id="range-canvas">
-					<g id="range-keyboard">
-						<g id="range-keyboard-white"></g>
-						<g id="range-keyboard-black"></g>
-						<g id="range-keyboard-labels"></g>
-					</g>
-				</svg>
+			<p id="range-controls">
+				<span id="range-bar">
+					<span id="range-mask-left" class="mask"></span>
+					<span id="range-mask-middle" class="mask"></span>
+					<span id="range-mask-right" class="mask"></span>
+					<svg id="range-canvas">
+						<g id="range-keyboard">
+							<g id="range-keyboard-white"></g>
+							<g id="range-keyboard-black"></g>
+							<g id="range-keyboard-labels"></g>
+						</g>
+					</svg>
+				</span>
 			</p>
 		</div>
+		<svg id="keyboard-canvas" preserveAspectRatio="none">
+			<g id="keyboard">
+				<g id="keyboard-white"></g>
+				<g id="keyboard-black"></g>
+				<g id="keyboard-labels"></g>
+			</g>
+		</svg>
+		<svg id="score-canvas" preserveAspectRatio="none"></svg>
 		<div id="loading"></div>
 		<embed id="midi-pugin" type="application/x-klstudio-midi" />
 	</body>

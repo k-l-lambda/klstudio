@@ -13,6 +13,8 @@ Pending Issues:
 
 2013.5.3	K.L.	<k.l.lambda@gmail.com>
 
+	+	Source/static/projects/PianoTrainer.html: main keyboard added.
+
 	+	Source/static/projects/PianoTrainer.html: range bar added.
 
 

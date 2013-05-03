@@ -48,7 +48,7 @@
 				width: 100%;
 				height: 100%;
 				background: no-repeat no-repeat url(/res/images/loading-5d.gif) center;
-				background-color: rgba(255, 255, 255, 0.2);
+				background-color: rgba(255, 255, 255, 0.4);
 			}
 
 			.wrapper
@@ -375,8 +375,133 @@
 
 			#score-canvas
 			{
+				z-index: -100;
 				height: 100000px;
 				background-color: black;
+			}
+
+			.note-separator
+			{
+				stroke: white;
+				stroke-width: 1px;
+				opacity: 0.2;
+			}
+
+			.group-separator
+			{
+				opacity: 0.4;
+			}
+
+			.note-bar
+			{
+				fill: white;
+				opacity: 0;
+			}
+
+			.note-bar.active
+			{
+				opacity: 1;
+			}
+
+			.pitch-0
+			{
+				fill: #ff0000;
+			}
+
+			.pitch-1
+			{
+				fill: #ff8600;
+			}
+
+			.pitch-2
+			{
+				fill: #ffb400;
+			}
+
+			.pitch-3
+			{
+				fill: #ffe400;
+			}
+
+			.pitch-4
+			{
+				fill: #eaff00;
+			}
+
+			.pitch-5
+			{
+				fill: #6cff00;
+			}
+
+			.pitch-6
+			{
+				fill: #00ff96;
+			}
+
+			.pitch-7
+			{
+				fill: #00fff6;
+			}
+
+			.pitch-8
+			{
+				fill: #008cff;
+			}
+
+			.pitch-9
+			{
+				fill: #0003ff;
+			}
+
+			.pitch-10
+			{
+				fill: #6e00ff;
+			}
+
+			.pitch-11
+			{
+				fill: #f000ff;
+			}
+
+			.channel .note
+			{
+				stroke: #aaa;
+				stroke-width: 2;
+			}
+
+			.channel[data-channel="0"] .note
+			{
+				stroke-width: 0;
+			}
+
+			.channel[data-channel="1"] .note
+			{
+				stroke: #f00;
+			}
+
+			.channel[data-channel="2"] .note
+			{
+				stroke: #0f0;
+			}
+
+			.channel[data-channel="3"] .note
+			{
+				stroke: #00f;
+			}
+
+			.channel[data-channel="4"] .note
+			{
+				stroke: #ff0;
+			}
+
+			.channel[data-channel="5"] .note
+			{
+				stroke: #0ff;
+			}
+
+			.channel[data-channel="6"] .note
+			{
+				stroke: #f0f;
 			}
 		</style>
 		<script src="../../js/jquery.js" type="text/javascript"></script>
@@ -416,9 +541,15 @@
 				RangeKeyWidth: 11
 			};
 
+			var ScoreTimeScale = 0.08;
+
 
 			var playMidi = function (data) {
-				MIDI.Player.loadFile(data, MIDI.Player.start);
+				MIDI.Player.loadFile(data, function () {
+					paintScore();
+
+					MIDI.Player.start();
+				});
 				$("#playback-play").attr("src", "/res/images/pause.png");
 			};
 
@@ -484,24 +615,41 @@
 					elem.attr("class", elem.attr("class") + " " + cls);
 			};
 
+			var velocityToOpacity = function (velocity) {
+				return Math.min(Math.max(Math.pow(velocity, 2) / 12100, 0.3), 1);
+			};
+
 			var removeClass = function (elem, cls) {
 				if (elem.length)
 					elem.attr("class", elem.attr("class").replace(RegExp("\\s" + cls, "g"), ""));
 			};
 
-			var activeKey = function (key, volume) {
-				if (volume === undefined)
-					volume = 100;
-
-				if (volume > 0)
-					MIDI.noteOn(0, key.data("note"), volume);
+			var activeKey = function (key) {
 				addClass(key, "active");
 			};
 
-			var deactiveKey = function (key, mute) {
-				if (!mute)
-					MIDI.noteOff(0, key.data("note"));
+			var deactiveKey = function (key) {
 				removeClass(key, "active");
+			};
+
+			var noteOn = function (channel, note, velocity) {
+				MIDI.noteOn(channel, note, velocity);
+
+				activeKey($("#keyboard .key[data-note='" + note + "']"));
+
+				var bar = $(".note-bar[data-note='" + note + "']");
+				addClass(bar, "active");
+				bar.css("opacity", velocityToOpacity(velocity));
+			};
+
+			var noteOff = function (channel, note) {
+				MIDI.noteOff(channel, note);
+
+				deactiveKey($("#keyboard .key[data-note='" + note + "']"));
+
+				var bar = $(".note-bar[data-note='" + note + "']");
+				removeClass(bar, "active");
+				bar.css("opacity", "");
 			};
 
 			var noteToX = function (note) {
@@ -620,8 +768,8 @@
 						changed = true;
 					}
 
-					low = Math.max(low, noteToX(PinaoConfig.NoteStart) - 10);
-					high = Math.min(high, noteToX(PinaoConfig.NoteEnd) + 10);
+					low = Math.max(low, noteToX(PinaoConfig.NoteStart) - 12);
+					high = Math.min(high, noteToX(PinaoConfig.NoteEnd) + 13);
 
 					if (changed) {
 						localStorage.KeyboardRangeLow = low;
@@ -655,26 +803,123 @@
 				//keyboardLabels.text((noteToX(PinaoConfig.MiddleC) + 0.5) * PinaoConfig.KeyWidth, PinaoConfig.KeyHeight * 0.9, "C");
 
 				$("#keyboard .key").mousedown(function () {
-					activeKey($(this), 100);
+					//activeKey($(this), 100);
+					noteOn(0, $(this).data("note"), 100);
 
 					return false;
 				});
 				$("#keyboard .key").mouseup(function () {
-					deactiveKey($(this));
+					//deactiveKey($(this));
+					noteOff(0, $(this).data("note"));
 				});
 				$("#keyboard .key").mouseenter(function () {
 					if (event.which == 1)
-						activeKey($(this), 100);
+						//activeKey($(this), 100);
+						noteOn(0, $(this).data("note"), 100);
 				});
 				$("#keyboard .key").mouseleave(function () {
 					if (event.which == 1)
-						deactiveKey($(this));
+						//deactiveKey($(this));
+						noteOff(0, $(this).data("note"));
 				});
+			};
+
+			var initializeScoreBackground = function () {
+				var background = svg("#score-background");
+				var whiteBars = svg("#score-note-bars-white");
+				var blackBars = svg("#score-note-bars-black");
+
+				for (var x = noteToX(PinaoConfig.NoteStart) + 1; x <= noteToX(PinaoConfig.NoteEnd); ++x) {
+					var group = (xToNote(x) % Musical.GroupLen) == 0;
+					background.line(x * PinaoConfig.KeyWidth, 0, x * PinaoConfig.KeyWidth, $("#score-canvas").height(), { "class": "note-separator" + (group ? " group-separator" : "") });
+				}
+
+				for (var note = PinaoConfig.NoteStart; note <= PinaoConfig.NoteEnd; ++note) {
+					var pitch = Musical.notePitch(note);
+					var x = noteToX(note);
+					if (PinaoConfig.KeySerials.White.indexOf(pitch) >= 0)
+						whiteBars.rect(x * PinaoConfig.KeyWidth, 0, PinaoConfig.KeyWidth, $("#score-canvas").height(), { "class": "note-bar", "data-note": note });
+					else
+						blackBars.rect((x - 0.25) * PinaoConfig.KeyWidth, 0, PinaoConfig.KeyWidth * 0.5, $("#score-canvas").height(), { "class": "note-bar", "data-note": note });
+				}
+			};
+
+			var parseMidiData = function (data) {
+				var channelStatus = [];
+				var channels = [];
+				var time = 0;
+				for (var n = 0; n < data.length; ++n) {
+					time += data[n][1];
+
+					var event = data[n][0].event;
+					if (event.type !== "channel")
+						continue;
+
+					channelStatus[event.channel] = channelStatus[event.channel] || [];
+
+					switch (event.subtype) {
+						case 'noteOn':
+							if (MIDI.channels[event.channel].mute)
+								break;
+							note = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
+							channelStatus[event.channel][note] = { start: time, velocity: event.velocity };
+
+							break;
+						case 'noteOff':
+							if (MIDI.channels[event.channel].mute)
+								break;
+							note = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
+
+							channels[event.channel] = channels[event.channel] || [];
+
+							var status = channelStatus[event.channel][note];
+							if (!status)
+								console.warn("invalid MIDI data: ", n, time, event);
+							else {
+								channels[event.channel].push({ note: note, start: status.start, duration: time - status.start, velocity: status.velocity });
+								channelStatus[event.channel][note] = null;
+							}
+
+							break;
+					}
+				}
+
+				return channels;
+			};
+
+			var paintScore = function () {
+				var channels = parseMidiData(MIDI.Player.data);
+				//console.log("channels:", channels);
+
+				$("#score-music").empty();
+
+				var score = svg("#score-music");
+				for (var c in channels) {
+					var g = svg(score.group({ class: "channel", "data-channel": c }));
+					for (var i = 0; i < channels[c].length; ++i) {
+						var note = channels[c][i];
+						var pitch = Musical.notePitch(note.note);
+						var x = noteToX(note.note);
+						var white = PinaoConfig.KeySerials.White.indexOf(pitch) >= 0;
+						var opacity = velocityToOpacity(note.velocity);
+						var options = { class: "note pitch-" + pitch, "data-note": note.note/*, "data-pitch": pitch*/, style: "opacity:" + opacity };
+						var height = Math.max(note.duration * ScoreTimeScale - 1, 1);
+						if (white)
+							g.rect(x * PinaoConfig.KeyWidth + 2, note.start * ScoreTimeScale, PinaoConfig.KeyWidth - 4, height, 3, 3, options);
+						else
+							g.rect((x - 0.25) * PinaoConfig.KeyWidth, note.start * ScoreTimeScale, PinaoConfig.KeyWidth * 0.5, height, options);
+					}
+				}
+			};
+
+			var updateScorePosition = function (time) {
+				var top = -time * ScoreTimeScale;
+				if(top != $("#score-canvas").css("top"))
+					$("#score-canvas").css("top", top);
 			};
 
 			var updateLayout = function () {
 				//$("#score-canvas").attr("height", $("body").innerHeight() - $("#header").outerHeight() - $("#keyboard-canvas").outerHeight());
-				//$("#score-canvas").css("top", $("keyboard-canvas").outerHeight());
 			};
 
 			$(function () {
@@ -690,12 +935,15 @@
 					instrument: "acoustic_grand_piano",
 					callback: function () {
 						console.log("Web MIDI loaded.");
-						$("#loading").fadeOut(800);
+						$("#loading").fadeOut(900);
 
 						if (localStorage.SourceData) {
 							$("#playback-source").text(localStorage.SourceName);
 							MIDI.Player.loadFile(localStorage.SourceData, function () {
 								MIDI.Player.currentTime = MIDI.Player.endTime * localStorage.PlaybackProgress;
+
+								paintScore();
+								updateScorePosition(MIDI.Player.currentTime);
 							});
 						}
 
@@ -750,13 +998,13 @@
 
 							switch (data.message) {
 								case 144:
-									activeKey(key, 0);
-									activeKey(key2, 0);
+									activeKey(key);
+									activeKey(key2);
 
 									break;
 								case 128:
-									deactiveKey(key, true);
-									deactiveKey(key2, true);
+									deactiveKey(key);
+									deactiveKey(key2);
 
 									break;
 							}
@@ -767,6 +1015,10 @@
 							$("#playback-time-text").text(toMinutesSeconds(data.now * 1000));
 
 							localStorage.PlaybackProgress = data.now / data.end;
+
+							if (MIDI.Player.playing) {
+								updateScorePosition(data.now * 1000);
+							}
 
 							if (data.now >= data.end) {
 								MIDI.Player.stop();
@@ -784,6 +1036,8 @@
 								MIDI.Player.currentTime = MIDI.Player.endTime * progress;
 								if (playing)
 									MIDI.Player.resume();
+
+								updateScorePosition(MIDI.Player.currentTime);
 							}
 						});
 
@@ -799,6 +1053,7 @@
 				initializeRangeKeyboard();
 
 				initializeKeyboard();
+				initializeScoreBackground();
 
 				updateRangeMask();
 
@@ -817,16 +1072,10 @@
 
 							if (message.isNoteOnOrOff()) {
 								if (message.isNoteOn()) {
-									var note = message.getNoteNumber();
-
-									MIDI.noteOn(message.getChannel(), note, message.getVelocity());
-									activeKey($("#keyboard .key[data-note='" + note + "']"));
+									noteOn(message.getChannel(), message.getNoteNumber(), message.getVelocity());
 								}
 								else {
-									var note = message.getNoteNumber();
-
-									MIDI.noteOff(message.getChannel(), note);
-									deactiveKey($("#keyboard .key[data-note='" + note + "']"));
+									noteOff(message.getChannel(), message.getNoteNumber());
 								}
 							}
 						}
@@ -887,7 +1136,14 @@
 				<g id="keyboard-labels"></g>
 			</g>
 		</svg>
-		<svg id="score-canvas" preserveAspectRatio="none"></svg>
+		<svg id="score-canvas" preserveAspectRatio="none">
+			<g id="score-background"></g>
+			<g id="score-note-bars">
+				<g id="score-note-bars-white"></g>
+				<g id="score-note-bars-black"></g>
+			</g>
+			<g id="score-music"></g>
+		</svg>
 		<div id="loading"></div>
 		<embed id="midi-pugin" type="application/x-klstudio-midi" />
 	</body>

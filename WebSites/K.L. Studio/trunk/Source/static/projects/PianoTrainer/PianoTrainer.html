@@ -23,14 +23,14 @@
 			#header
 			{
 				background: -webkit-gradient(linear,left top,left bottom,from(#444),to(#111));
-				height: 70px;
+				padding: 1px 0;
 				box-shadow: 0 2px 4px rgba(0,0,0,.4);
 			}
 
-			#header .wrapper
+			#header p
 			{
-				overflow: visible;
-				white-space: nowrap;
+				text-align: center;
+				margin: 1em 0;
 			}
 
 			#header .wrapper > *
@@ -52,7 +52,6 @@
 			{
 				width: 1000px;
 				margin: 0 auto;
-				padding-top: 19px;
 			}
 
 			#playback
@@ -102,6 +101,7 @@
 				overflow: hidden;
 				background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0,#444),color-stop(1,rgba(0,0,0,.7)));
 				cursor: pointer;
+				text-align: left;
 			}
 
 			#playback-progress-cursor
@@ -128,7 +128,7 @@
 
 			#playback-source
 			{
-				margin-left: 40px;
+				margin-left: 20px;
 				font-size: 20px;
 				line-height: 24px;
 				width: 16em;
@@ -178,6 +178,52 @@
 				width: 20px;
 				height: auto;
 			}
+
+			#range-bar
+			{
+				margin: 22px 0 8px !important;
+				opacity: 0.6;
+				transition-property: opacity;
+				transition-duration: .2s;
+			}
+
+			#range-bar:hover
+			{
+				opacity: 1;
+			}
+
+			#range-canvas
+			{
+				height: 38px;
+			}
+
+			#range-keyboard .white-key
+			{
+				fill: white;
+				stroke: #333;
+				stroke-width: 1px;
+			}
+
+			#range-keyboard .black-key
+			{
+				fill: black;
+			}
+
+			#range-keyboard .white-key:hover, .white-key.active
+			{
+				fill: #aaf;
+			}
+
+			#range-keyboard .black-key:hover, .black-key.active
+			{
+				fill: #22d;
+			}
+
+			#range-keyboard-labels text
+			{
+				text-anchor: middle;
+				font-size: 7px;
+			}
 		</style>
 		<script src="../../js/jquery.js" type="text/javascript"></script>
 		<script src="../../js/jquery.svg.js" type="text/javascript"></script>
@@ -193,8 +239,27 @@
 		<script src="../../js/MIDI/inc/replayer.js" type="text/javascript"></script>
 		<script src="../../js/MIDI/inc/midifile.js" type="text/javascript"></script>
 		<script src="../../js/MIDI/inc/stream.js" type="text/javascript"></script>
+		<script src="../../js/MusicalUtils.js" type="text/javascript"></script>
 		<script type="text/javascript">
 			var MidiIO = null;
+
+			var PinaoConfig = {
+				NoteStart: 21,
+				NoteEnd: 108,
+				MiddleC: 60,
+				KeySerials: {
+					White: [0, 2, 4, 5, 7, 9, 11],
+					BlackPosition: {
+						1: 0.92,
+						3: 2.08,
+						6: 3.91,
+						8: 5,
+						10: 6.09
+					}
+				},
+				RangeKeyWidth: 11
+			};
+
 
 			var playMidi = function (data) {
 				MIDI.Player.loadFile(data, MIDI.Player.start);
@@ -252,6 +317,81 @@
 
 					console.log("No MIDI input device detected.");
 				}
+			};
+
+			var svg = function (selector) {
+				return new $.svg._wrapperClass($(selector)[0]);
+			};
+
+			var addClass = function (elem, cls) {
+				elem.attr("class", elem.attr("class") + " " + cls);
+			};
+
+			var removeClass = function (elem, cls) {
+				elem.attr("class", elem.attr("class").replace(RegExp("\\s" + cls, "g"), ""));
+			};
+
+			var activeKey = function (key, volume) {
+				if (volume === undefined)
+					volume = 100;
+
+				if (volume > 0)
+					MIDI.noteOn(0, key.data("note"), volume);
+				addClass(key, "active");
+			};
+
+			var deactiveKey = function (key, mute) {
+				if (!mute)
+					MIDI.noteOff(0, key.data("note"));
+				removeClass(key, "active");
+			};
+
+			var initializeRangeKeyboard = function () {
+				var noteToX = function (note) {
+					var group = Musical.noteGroup(note);
+					var pitch = Musical.notePitch(note);
+					var pos = PinaoConfig.KeySerials.White.indexOf(pitch);
+					if (pos < 0)
+						pos = PinaoConfig.KeySerials.BlackPosition[pitch];
+
+					return group * PinaoConfig.KeySerials.White.length + pos - 12;
+				};
+
+				var xToNote = function (x) {
+					var pos = Math.floor(x / PinaoConfig.RangeKeyWidth) + 12;
+					var group = Math.floor(pos / 7);
+					var pitch = PinaoConfig.KeySerials.White[pos % 7];
+
+					return group * 12 + pitch;
+				};
+
+				var keyboardWhite = svg("#range-keyboard-white");
+				var keyboardBlack = svg("#range-keyboard-black");
+				for (var note = PinaoConfig.NoteStart; note <= PinaoConfig.NoteEnd; ++note) {
+					var pitch = Musical.notePitch(note);
+					var x = noteToX(note);
+					if (PinaoConfig.KeySerials.White.indexOf(pitch) >= 0) {
+						keyboardWhite.rect(x * PinaoConfig.RangeKeyWidth, 0, PinaoConfig.RangeKeyWidth, PinaoConfig.RangeKeyWidth * 3, 0, 0, { class: "key white-key", "data-note": note });
+					}
+					else {
+						keyboardBlack.rect((x - 0.3) * PinaoConfig.RangeKeyWidth, 0, PinaoConfig.RangeKeyWidth * 0.6, PinaoConfig.RangeKeyWidth * 1.9, 0, 0, { class: "key black-key", "data-note": note });
+					}
+				}
+
+				var keyboardLabels = svg("#range-keyboard-labels");
+				keyboardLabels.text((noteToX(PinaoConfig.MiddleC) + 0.5) * PinaoConfig.RangeKeyWidth, PinaoConfig.RangeKeyWidth * 2.8, "C");
+
+				$("#range-keyboard .key").mouseenter(function () {
+					activeKey($(this), 60);
+				});
+				$("#range-keyboard .key").mouseleave(function () {
+					deactiveKey($(this));
+				});
+
+				$("#range-canvas").css({
+					width: $("#range-keyboard-white .key").length * PinaoConfig.RangeKeyWidth + 2,
+					height: PinaoConfig.RangeKeyWidth * 3 + 2
+				});
 			};
 
 			$(function () {
@@ -354,6 +494,8 @@
 					}
 				});
 
+				initializeRangeKeyboard();
+
 				if (!checkPlugin("application/x-klstudio-midi"))
 					console.warn("No MIDI NPAPI plugin installed.");
 				else {
@@ -392,7 +534,7 @@
 	</head>
 	<body>
 		<div id="header">
-			<div class="wrapper">
+			<p>
 				<span id="playback">
 					<span><input id="playback-play" type="image" src="/res/images/play.png" class="image-button" /></span>
 					<span id="playback-time">
@@ -406,7 +548,16 @@
 					</select>
 					<input id="input-device-refresh" class="image-button" type="image" src="/res/images/refresh.png" />
 				</span>
-			</div>
+			</p>
+			<p id="range-bar">
+				<svg id="range-canvas">
+					<g id="range-keyboard">
+						<g id="range-keyboard-white"></g>
+						<g id="range-keyboard-black"></g>
+						<g id="range-keyboard-labels"></g>
+					</g>
+				</svg>
+			</p>
 		</div>
 		<div id="loading"></div>
 		<embed id="midi-pugin" type="application/x-klstudio-midi" />

@@ -1,7 +1,8 @@
 
 TODO:
 	PianoTrainer.html:
-		music graph
+		practice mode
+		MIDI input recorder
 	SpiralPiano.html:
 		settings panel
 			mode
@@ -12,6 +13,8 @@ Pending Issues:
 
 
 2013.5.3	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: music score implemented.
 
 	+	Source/static/projects/PianoTrainer.html: main keyboard added.
 

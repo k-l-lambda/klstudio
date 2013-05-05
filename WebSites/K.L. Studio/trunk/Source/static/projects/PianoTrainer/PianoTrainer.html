@@ -189,7 +189,7 @@
 
 			#range-bar
 			{
-				opacity: 0.6;
+				opacity: 0.8;
 				transition-property: opacity, background;
 				transition-duration: .2s;
 				position: relative;
@@ -361,10 +361,10 @@
 				fill: #335;
 			}
 
-			#keyboard .black-key.active
+			/*#keyboard .black-key.active
 			{
 				fill: #22d !important;
-			}
+			}*/
 
 			#keyboard-labels text
 			{
@@ -395,6 +395,7 @@
 			.note-bar
 			{
 				fill: white;
+				/*fill: url(#svgdef-gradient-white);*/
 				opacity: 0;
 			}
 
@@ -403,62 +404,62 @@
 				opacity: 1;
 			}
 
-			.pitch-0
+			#score-music .pitch-0, #keyboard .key.active.pitch-0
 			{
 				fill: #ff0000;
 			}
 
-			.pitch-1
+			#score-music .pitch-1, #keyboard .key.active.pitch-1
 			{
-				fill: #ff8600;
+				fill: #ff6500;
 			}
 
-			.pitch-2
+			#score-music .pitch-2, #keyboard .key.active.pitch-2
 			{
 				fill: #ffb400;
 			}
 
-			.pitch-3
+			#score-music .pitch-3, #keyboard .key.active.pitch-3
 			{
 				fill: #ffe400;
 			}
 
-			.pitch-4
+			#score-music .pitch-4, #keyboard .key.active.pitch-4
 			{
 				fill: #eaff00;
 			}
 
-			.pitch-5
+			#score-music .pitch-5, #keyboard .key.active.pitch-5
 			{
 				fill: #6cff00;
 			}
 
-			.pitch-6
+			#score-music .pitch-6, #keyboard .key.active.pitch-6
 			{
 				fill: #00ff96;
 			}
 
-			.pitch-7
+			#score-music .pitch-7, #keyboard .key.active.pitch-7
 			{
 				fill: #00fff6;
 			}
 
-			.pitch-8
+			#score-music .pitch-8, #keyboard .key.active.pitch-8
 			{
 				fill: #008cff;
 			}
 
-			.pitch-9
+			#score-music .pitch-9, #keyboard .key.active.pitch-9
 			{
 				fill: #0003ff;
 			}
 
-			.pitch-10
+			#score-music .pitch-10, #keyboard .key.active.pitch-10
 			{
 				fill: #6e00ff;
 			}
 
-			.pitch-11
+			#score-music .pitch-11, #keyboard .key.active.pitch-11
 			{
 				fill: #f000ff;
 			}
@@ -792,10 +793,10 @@
 					var pitch = Musical.notePitch(note);
 					var x = noteToX(note);
 					if (PinaoConfig.KeySerials.White.indexOf(pitch) >= 0) {
-						keyboardWhite.rect(x * PinaoConfig.KeyWidth, 0, PinaoConfig.KeyWidth, PinaoConfig.KeyHeight, 4, 4, { class: "key white-key", "data-note": note });
+						keyboardWhite.rect(x * PinaoConfig.KeyWidth, 0, PinaoConfig.KeyWidth, PinaoConfig.KeyHeight, 4, 4, { class: "key white-key pitch-" + pitch, "data-note": note });
 					}
 					else {
-						keyboardBlack.rect((x - 0.25) * PinaoConfig.KeyWidth, 0, PinaoConfig.KeyWidth * 0.5, PinaoConfig.KeyHeight * 0.63, 4, 4, { class: "key black-key", "data-note": note });
+						keyboardBlack.rect((x - 0.25) * PinaoConfig.KeyWidth, 0, PinaoConfig.KeyWidth * 0.5, PinaoConfig.KeyHeight * 0.63, 4, 4, { class: "key black-key pitch-" + pitch, "data-note": note });
 					}
 				}
 
@@ -913,6 +914,9 @@
 			};
 
 			var updateScorePosition = function (time) {
+				if (time === undefined)
+					time = MIDI.Player.currentTime;
+
 				var top = -time * ScoreTimeScale;
 				if(top != $("#score-canvas").css("top"))
 					$("#score-canvas").css("top", top);
@@ -943,7 +947,7 @@
 								MIDI.Player.currentTime = MIDI.Player.endTime * localStorage.PlaybackProgress;
 
 								paintScore();
-								updateScorePosition(MIDI.Player.currentTime);
+								updateScorePosition();
 							});
 						}
 
@@ -1026,6 +1030,14 @@
 							}
 						});
 
+						document.onmousewheel = function () {
+							//console.log(event.wheelDelta);
+							MIDI.Player.currentTime = Math.min(Math.max(MIDI.Player.currentTime + event.wheelDelta * -4, 0), MIDI.Player.endTime - 1e-3);
+							updateScorePosition();
+
+							event.preventDefault();
+						};
+
 						$("#playback-progress").click(function () {
 							if (MIDI.Player.data) {
 								var progress = (event.x - $("#playback-progress").offset().left) / $("#playback-progress").width();
@@ -1037,7 +1049,7 @@
 								if (playing)
 									MIDI.Player.resume();
 
-								updateScorePosition(MIDI.Player.currentTime);
+								updateScorePosition();
 							}
 						});
 
@@ -1137,6 +1149,12 @@
 			</g>
 		</svg>
 		<svg id="score-canvas" preserveAspectRatio="none">
+			<defs>
+				<linearGradient id="svgdef-gradient-white" x1="0%" y1="0%" x2="0%" y2="100%">
+					<stop offset="0%" style="stop-color:white;stop-opacity:1"/>
+					<stop offset="4%" style="stop-color:white;stop-opacity:0"/>
+				</linearGradient>
+			</defs>
 			<g id="score-background"></g>
 			<g id="score-note-bars">
 				<g id="score-note-bars-white"></g>

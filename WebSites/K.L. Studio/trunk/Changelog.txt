@@ -2,6 +2,8 @@
 TODO:
 	PianoTrainer.html:
 		bar line
+		auto range
+		shortcut: Home, Space
 		practice mode
 		MIDI input recorder
 	SpiralPiano.html:

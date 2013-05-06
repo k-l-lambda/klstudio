@@ -1142,6 +1142,17 @@
 
 											break;
 										case "endOfTrack":
+										case "trackName":
+										case "instrumentName":
+										case "marker":
+										case "text":
+										case "lyrics":
+										case "copyrightNotice":
+										case "cuePoint":
+										case "unknown":
+											if(data.text)
+												console.log(data.subtype + ":", data.text);
+
 											break;
 										default:
 											console.log(data.subtype, data);

@@ -157,6 +157,23 @@
 				display: none;
 			}
 
+			#playback-mode
+			{
+				margin-left: 8px;
+				width: 1.6em;
+			}
+
+			#playback-tempo
+			{
+				font-size: 60%;
+			}
+
+			#playback-speed
+			{
+				font-size: 80%;
+				width: 4em;
+			}
+
 			.drag-hover #playback-source
 			{
 				border-color: #fc0;
@@ -582,6 +599,8 @@
 
 			var ScoreTimeScale = 0.08;
 
+			var MetaData = $.parseJSON(localStorage.MetaData) || {};
+
 
 			var playMidi = function (data) {
 				MIDI.Player.loadFile(data, function () {
@@ -590,6 +609,11 @@
 					MIDI.Player.start();
 				});
 				$("#playback-play").attr("src", "/res/images/pause.png");
+
+				localStorage.SourceData = data;
+
+				MetaData = {};
+				updateMetaData();
 			};
 
 			var toMinutesSeconds = function (millisec) {
@@ -716,6 +740,7 @@
 			var resetlocalStorage = function () {
 				localStorage.removeItem("KeyboardRangeLow");
 				localStorage.removeItem("KeyboardRangeHigh");
+				localStorage.removeItem("MetaData");
 			};
 
 			var updateRangeMask = function () {
@@ -956,13 +981,50 @@
 					$("#score-canvas").css("top", top);
 			};
 
+			var updateTempo = function () {
+				if (MetaData.Tempo) {
+					$("#playback-tempo-numerator").text(MetaData.Tempo.numerator);
+					$("#playback-tempo-denominator").text(MetaData.Tempo.denominator);
+				}
+				else {
+					$("#playback-tempo-numerator").empty();
+					$("#playback-tempo-denominator").empty();
+				}
+
+				localStorage.MetaData = JSON.stringify(MetaData);
+			};
+
+			var updateMode = function () {
+				if (MetaData.Mode)
+					$("#playback-mode").text(Musical.KeySignatureNames[MetaData.Mode.key][MetaData.Mode.scale]);
+				else
+					$("#playback-mode").empty();
+
+				localStorage.MetaData = JSON.stringify(MetaData);
+			};
+
+			var updateSpeed = function () {
+				if (MetaData.BeatsPerMinute)
+					$("#playback-speed").text("\u2669=" + Math.round(MetaData.BeatsPerMinute));
+				else
+					$("#playback-speed").empty();
+
+				localStorage.MetaData = JSON.stringify(MetaData);
+			};
+
+			var updateMetaData = function () {
+				updateTempo();
+				updateMode();
+				updateSpeed();
+			};
+
 			var pickFile = function (file) {
 				if (file.type == "audio/mid") {
 					var fr = new FileReader();
 					fr.onloadend = function (e) {
-						playMidi(e.currentTarget.result);
+						console.log("MIDI file loaded:", file.name);
 
-						localStorage.SourceData = e.currentTarget.result;
+						playMidi(e.currentTarget.result);
 					};
 					fr.readAsDataURL(file);
 					$("#playback-source").text(file.name);
@@ -998,6 +1060,10 @@
 								paintScore();
 								updateScorePosition();
 							});
+
+							if (localStorage.MetaData) {
+								updateMetaData();
+							}
 						}
 
 						$("#playback-play").click(function () {
@@ -1058,6 +1124,32 @@
 									deactiveKey(key2);
 
 									break;
+								case "meta":
+									switch (data.subtype) {
+										case "timeSignature":
+											MetaData.Tempo = { denominator: data.denominator, numerator: data.numerator };
+											updateTempo();
+
+											break;
+										case "keySignature":
+											MetaData.Mode = { key: data.key, scale: data.scale };
+											updateMode();
+
+											break;
+										case "setTempo":
+											MetaData.BeatsPerMinute = 60000000 / data.microsecondsPerBeat;
+											updateSpeed();
+
+											break;
+										case "endOfTrack":
+											break;
+										default:
+											console.log(data.subtype, data);
+									}
+
+									break;
+								default:
+									console.log(data.message, data.subtype, data);
 							}
 						});
 
@@ -1074,12 +1166,17 @@
 							if (data.now >= data.end) {
 								MIDI.Player.stop();
 								$("#playback-play").attr("src", "/res/images/play.png");
+
+								MetaData = {};
+								updateMetaData();
 							}
 						});
 
 						document.onmousewheel = function () {
-							MIDI.Player.currentTime = Math.min(Math.max(MIDI.Player.currentTime + event.wheelDelta * -4, 0), MIDI.Player.endTime - 1e-3);
-							updateScorePosition();
+							if (!MIDI.Player.playing) {
+								MIDI.Player.currentTime = Math.min(Math.max(MIDI.Player.currentTime + event.wheelDelta * -4, 0), MIDI.Player.endTime - 1e-3);
+								updateScorePosition();
+							}
 
 							event.preventDefault();
 						};
@@ -1166,6 +1263,11 @@
 					</span>
 					<span id="playback-source">...</span>
 					<input id="playback-source-file" type="file" />
+					<span id="playback-mode"></span>
+					<span id="playback-tempo">
+						<span id="playback-tempo-numerator"></span><br /><span id="playback-tempo-denominator"></span>
+					</span>
+					<span id="playback-speed"></span>
 				</span>
 				<span id="input-device-bar">
 					<select id="input-device" disabled="disabled">

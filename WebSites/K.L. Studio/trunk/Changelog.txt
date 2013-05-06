@@ -1,6 +1,7 @@
 
 TODO:
 	PianoTrainer.html:
+		bar line
 		practice mode
 		MIDI input recorder
 	SpiralPiano.html:
@@ -13,6 +14,8 @@ Pending Issues:
 
 
 2013.5.6	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: meta data added.
 
 	+	Source/static/projects/PianoTrainer.html: file picker added.
 

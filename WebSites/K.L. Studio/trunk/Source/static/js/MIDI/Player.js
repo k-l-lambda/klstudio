@@ -167,6 +167,18 @@ var scheduleTracking = function (channel, note, currentTime, offset, message, ve
 	return interval;
 };
 
+var scheduleTrackingMeta = function (currentTime, offset, event) {
+	var interval = window.setTimeout(function () {
+		if (onMidiEvent) {
+			var data = {message: event.type};
+			for(var k in event)
+				data[k] = event[k];
+			onMidiEvent(data);
+		}
+	}, currentTime - offset);
+	return interval;
+};
+
 var getContext = function() {
 	if (MIDI.lang === 'WebAudioAPI') {
 		return MIDI.Player.ctx;
@@ -213,30 +225,37 @@ var startAudio = function (currentTime, fromCache) {
 		}
 		currentTime = queuedTime - offset;
 		var event = data[n][0].event;
-		if (event.type !== "channel") continue;
-		var channel = event.channel;
-		switch (event.subtype) {
-			case 'noteOn':
-				if (MIDI.channels[channel].mute) break;
-				note = event.noteNumber - (root.MIDIOffset || 0);
-				eventQueue.push({
-					event: event,
-					source: MIDI.noteOn(channel, event.noteNumber, event.velocity, currentTime / 1000 + ctx.currentTime),
-					interval: scheduleTracking(channel, note, queuedTime, offset, 144, event.velocity)
-				});
-				messages ++;
-				break;
-			case 'noteOff':
-				if (MIDI.channels[channel].mute) break;
-				note = event.noteNumber - (root.MIDIOffset || 0);
-				eventQueue.push({
-					event: event,
-					source: MIDI.noteOff(channel, event.noteNumber, currentTime / 1000 + ctx.currentTime),
-					interval: scheduleTracking(channel, note, queuedTime, offset, 128)
-				});
-				break;
-			default:
-				break;
+		if (event.type === "channel") {
+			var channel = event.channel;
+			switch (event.subtype) {
+				case 'noteOn':
+					if (MIDI.channels[channel].mute) break;
+					note = event.noteNumber - (root.MIDIOffset || 0);
+					eventQueue.push({
+						event: event,
+						source: MIDI.noteOn(channel, event.noteNumber, event.velocity, currentTime / 1000 + ctx.currentTime),
+						interval: scheduleTracking(channel, note, queuedTime, offset, 144, event.velocity)
+					});
+					messages ++;
+					break;
+				case 'noteOff':
+					if (MIDI.channels[channel].mute) break;
+					note = event.noteNumber - (root.MIDIOffset || 0);
+					eventQueue.push({
+						event: event,
+						source: MIDI.noteOff(channel, event.noteNumber, currentTime / 1000 + ctx.currentTime),
+						interval: scheduleTracking(channel, note, queuedTime, offset, 128)
+					});
+					break;
+				default:
+					break;
+			}
+		}
+		else {
+			eventQueue.push({
+				event: event,
+				interval: scheduleTrackingMeta(queuedTime, offset, event)
+			});
 		}
 	}
 };

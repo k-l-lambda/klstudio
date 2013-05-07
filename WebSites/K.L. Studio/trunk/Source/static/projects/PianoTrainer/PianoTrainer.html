@@ -111,7 +111,7 @@
 			{
 				display: inline-block;
 				position: relative;
-				background: #888;
+				background: #999;
 				background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0,rgba(0,0,0,0)),color-stop(1,rgba(0,0,0,.5)));
 				transition-property: background;
 				transition-duration: .3s;
@@ -768,6 +768,7 @@
 			var resetlocalStorage = function () {
 				localStorage.removeItem("KeyboardRangeLow");
 				localStorage.removeItem("KeyboardRangeHigh");
+				localStorage.removeItem("KeyboardRangeAuto");
 				localStorage.removeItem("MetaData");
 			};
 
@@ -941,6 +942,7 @@
 				var beats = 0;
 				var tempos = 4;
 				var tempoIndex = 0;
+				var keyRange = {};
 				for (var n = 0; n < data.length; ++n) {
 					if (data[n][1] > 0) {
 						var deltaBeats = data[n][1] / millisecondsPerBeat;
@@ -963,15 +965,13 @@
 
 							switch (event.subtype) {
 								case "noteOn":
-									if (MIDI.channels[event.channel].mute)
-										break;
 									note = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
 									channelStatus[event.channel][note] = { start: time, velocity: event.velocity };
 
+									keyRange.low = Math.min(keyRange.low || note, note);
+
 									break;
 								case "noteOff":
-									if (MIDI.channels[event.channel].mute)
-										break;
 									note = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
 
 									channels[event.channel] = channels[event.channel] || [];
@@ -983,6 +983,8 @@
 										channels[event.channel].push({ note: note, start: status.start, duration: time - status.start, velocity: status.velocity });
 										channelStatus[event.channel][note] = null;
 									}
+
+									keyRange.high = Math.max(keyRange.high || note, note);
 
 									break;
 							}
@@ -1007,7 +1009,7 @@
 					}
 				}
 
-				return { channels: channels, bars: bars, endTime: time };
+				return { channels: channels, bars: bars, endTime: time, keyRange: keyRange };
 			};
 
 			var paintScore = function () {
@@ -1043,6 +1045,12 @@
 						else
 							g.rect((x - 0.25) * PinaoConfig.KeyWidth, note.start * ScoreTimeScale, PinaoConfig.KeyWidth * 0.5, height, options);
 					}
+				}
+
+				if (localStorage.KeyboardRangeAuto) {
+					localStorage.KeyboardRangeLow = noteToX(notations.keyRange.low);
+					localStorage.KeyboardRangeHigh = noteToX(notations.keyRange.high) + 1;
+					updateRangeMask();
 				}
 			};
 
@@ -1137,7 +1145,7 @@
 
 							if (localStorage.MetaData) {
 								updateMetaData();
-						}
+							}
 						}
 
 						$("#playback-play").click(function () {
@@ -1183,7 +1191,6 @@
 						});
 
 						MIDI.Player.addListener(function (data) {
-							//console.log(data);
 							var key = $("#keyboard .key[data-note='" + data.note + "']");
 							var key2 = $("#range-keyboard .key[data-note='" + data.note + "']");
 
@@ -1224,17 +1231,17 @@
 										case "copyrightNotice":
 										case "cuePoint":
 										case "unknown":
-											if(data.text)
+											if (data.text)
 												console.log(data.subtype + ":", data.text);
 
 											break;
 										default:
 											console.log(data.subtype, data);
-							}
+									}
 
 									break;
 								default:
-									console.log(data.message, data.subtype, data);
+									//console.log(data.message, data.subtype, data);
 							}
 						});
 
@@ -1259,12 +1266,28 @@
 
 						document.onmousewheel = function () {
 							if (!MIDI.Player.playing) {
-							MIDI.Player.currentTime = Math.min(Math.max(MIDI.Player.currentTime + event.wheelDelta * -4, 0), MIDI.Player.endTime - 1e-3);
-							updateScorePosition();
+								MIDI.Player.currentTime = Math.min(Math.max(MIDI.Player.currentTime + event.wheelDelta * -4, 0), MIDI.Player.endTime - 1e-3);
+								updateScorePosition();
 							}
 
 							event.preventDefault();
 						};
+
+						$(document).keydown(function () {
+							//console.log(event.keyCode);
+							switch (event.keyCode) {
+								case 32: // space
+									$("#playback-play").click();
+
+									break;
+								case 36:
+									MIDI.Player.stop();
+									$("#playback-play").attr("src", "/res/images/play.png");
+									updateScorePosition();
+
+									break;
+							}
+						});
 
 						$("#playback-progress").click(function () {
 							if (MIDI.Player.data) {

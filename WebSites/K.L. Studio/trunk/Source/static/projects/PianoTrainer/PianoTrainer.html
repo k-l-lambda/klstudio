@@ -559,6 +559,34 @@
 			{
 				stroke: #fff79f;
 			}
+
+			.beat-bar
+			{
+				stroke: white;
+				stroke-width: 1px;
+				opacity: 0.1;
+				stroke-dasharray: 3;
+			}
+
+			.beat-bar.bar-bar
+			{
+				opacity: 0.3;
+				stroke-dasharray: 6, 2;
+			}
+
+			.end-bar
+			{
+				stroke: white;
+				opacity: 0.8;
+				stroke-width: 1px;
+			}
+
+			.end-bar2
+			{
+				stroke: white;
+				opacity: 0.8;
+				stroke-width: 1.6px;
+			}
 		</style>
 		<script src="../../js/jquery.js" type="text/javascript"></script>
 		<script src="../../js/jquery.svg.js" type="text/javascript"></script>
@@ -907,57 +935,103 @@
 			var parseMidiData = function (data) {
 				var channelStatus = [];
 				var channels = [];
+				var bars = [];
 				var time = 0;
+				var millisecondsPerBeat = 60000 / 120;
+				var beats = 0;
+				var tempos = 4;
+				var tempoIndex = 0;
 				for (var n = 0; n < data.length; ++n) {
+					if (data[n][1] > 0) {
+						var deltaBeats = data[n][1] / millisecondsPerBeat;
+						for (var b = Math.ceil(beats); b < beats + deltaBeats; ++b) {
+							var t = time + (b - beats) * millisecondsPerBeat;
+							bars.push({ time: t, index: tempoIndex % tempos });
+
+							++tempoIndex;
+						}
+
+						beats += deltaBeats;
+					}
+
 					time += data[n][1];
 
 					var event = data[n][0].event;
-					if (event.type !== "channel")
-						continue;
+					switch (event.type) {
+						case "channel":
+							channelStatus[event.channel] = channelStatus[event.channel] || [];
 
-					channelStatus[event.channel] = channelStatus[event.channel] || [];
+							switch (event.subtype) {
+								case "noteOn":
+									if (MIDI.channels[event.channel].mute)
+										break;
+									note = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
+									channelStatus[event.channel][note] = { start: time, velocity: event.velocity };
 
-					switch (event.subtype) {
-						case 'noteOn':
-							if (MIDI.channels[event.channel].mute)
-								break;
-							note = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
-							channelStatus[event.channel][note] = { start: time, velocity: event.velocity };
+									break;
+								case "noteOff":
+									if (MIDI.channels[event.channel].mute)
+										break;
+									note = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
+
+									channels[event.channel] = channels[event.channel] || [];
+
+									var status = channelStatus[event.channel][note];
+									if (!status)
+										console.warn("invalid MIDI data: ", n, time, event);
+									else {
+										channels[event.channel].push({ note: note, start: status.start, duration: time - status.start, velocity: status.velocity });
+										channelStatus[event.channel][note] = null;
+									}
+
+									break;
+							}
 
 							break;
-						case 'noteOff':
-							if (MIDI.channels[event.channel].mute)
-								break;
-							note = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
+						case "meta":
+							switch (event.subtype) {
+								case "setTempo":
+									millisecondsPerBeat = event.microsecondsPerBeat / 1000;
+									//console.log(beats, 60000 / millisecondsPerBeat);
+									//beats = Math.round(beats);
 
-							channels[event.channel] = channels[event.channel] || [];
+									break;
+								case "timeSignature":
+									tempos = event.numerator;
+									tempoIndex = 0;
 
-							var status = channelStatus[event.channel][note];
-							if (!status)
-								console.warn("invalid MIDI data: ", n, time, event);
-							else {
-								channels[event.channel].push({ note: note, start: status.start, duration: time - status.start, velocity: status.velocity });
-								channelStatus[event.channel][note] = null;
+									break;
 							}
 
 							break;
 					}
 				}
 
-				return channels;
+				return { channels: channels, bars: bars, endTime: time };
 			};
 
 			var paintScore = function () {
-				var channels = parseMidiData(MIDI.Player.data);
-				//console.log("channels:", channels);
+				var notations = parseMidiData(MIDI.Player.data);
 
 				$("#score-music").empty();
 
 				var score = svg("#score-music");
-				for (var c in channels) {
+
+				var scoreWidth = PinaoConfig.KeyWidth * (noteToX(PinaoConfig.NoteEnd) + 1);
+
+				// bars
+				var bars = svg(score.group({ id: "score-music-bars" }));
+				for (var i in notations.bars) {
+					bars.line(0, notations.bars[i].time * ScoreTimeScale, scoreWidth, notations.bars[i].time * ScoreTimeScale, { class: "beat-bar" + (notations.bars[i].index == 0 ? " bar-bar" : "") });
+				}
+				bars.line(0, notations.endTime * ScoreTimeScale, scoreWidth, notations.endTime * ScoreTimeScale, { class: "end-bar" });
+				bars.line(0, notations.endTime * ScoreTimeScale + 4, scoreWidth, notations.endTime * ScoreTimeScale + 3, { class: "end-bar2" });
+
+				// notes
+				for (var c in notations.channels) {
 					var g = svg(score.group({ class: "channel", "data-channel": c }));
-					for (var i = 0; i < channels[c].length; ++i) {
-						var note = channels[c][i];
+					for (var i = 0; i < notations.channels[c].length; ++i) {
+						var note = notations.channels[c][i];
 						var pitch = Musical.notePitch(note.note);
 						var x = noteToX(note.note);
 						var white = PinaoConfig.KeySerials.White.indexOf(pitch) >= 0;
@@ -965,7 +1039,7 @@
 						var options = { class: "note pitch-" + pitch, "data-note": note.note/*, "data-pitch": pitch*/, style: "opacity:" + opacity };
 						var height = Math.max(note.duration * ScoreTimeScale - 1, 1);
 						if (white)
-							g.rect(x * PinaoConfig.KeyWidth + 2, note.start * ScoreTimeScale, PinaoConfig.KeyWidth - 4, height, 3, 3, options);
+							g.rect(x * PinaoConfig.KeyWidth + 2, note.start * ScoreTimeScale, PinaoConfig.KeyWidth - 4, height, 5, 5, options);
 						else
 							g.rect((x - 0.25) * PinaoConfig.KeyWidth, note.start * ScoreTimeScale, PinaoConfig.KeyWidth * 0.5, height, options);
 					}
@@ -1063,7 +1137,7 @@
 
 							if (localStorage.MetaData) {
 								updateMetaData();
-							}
+						}
 						}
 
 						$("#playback-play").click(function () {
@@ -1156,7 +1230,7 @@
 											break;
 										default:
 											console.log(data.subtype, data);
-									}
+							}
 
 									break;
 								default:
@@ -1185,8 +1259,8 @@
 
 						document.onmousewheel = function () {
 							if (!MIDI.Player.playing) {
-								MIDI.Player.currentTime = Math.min(Math.max(MIDI.Player.currentTime + event.wheelDelta * -4, 0), MIDI.Player.endTime - 1e-3);
-								updateScorePosition();
+							MIDI.Player.currentTime = Math.min(Math.max(MIDI.Player.currentTime + event.wheelDelta * -4, 0), MIDI.Player.endTime - 1e-3);
+							updateScorePosition();
 							}
 
 							event.preventDefault();
@@ -1273,7 +1347,7 @@
 						<span id="playback-time-text"></span>
 					</span>
 					<span id="playback-source">...</span>
-					<input id="playback-source-file" type="file" />
+					<input id="playback-source-file" type="file" accept="audio/mid" />
 					<span id="playback-mode"></span>
 					<span id="playback-tempo">
 						<span id="playback-tempo-numerator"></span><br /><span id="playback-tempo-denominator"></span>

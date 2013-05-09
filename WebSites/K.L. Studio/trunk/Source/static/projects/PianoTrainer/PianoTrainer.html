@@ -1287,6 +1287,7 @@
 										case "lyrics":
 										case "copyrightNotice":
 										case "cuePoint":
+										case "midiChannelPrefix":
 										case "unknown":
 											if (data.text)
 												console.log(data.subtype + ":", data.text);
@@ -1400,7 +1401,7 @@
 
 					MidiIO.registerCallbackObject({
 						printmessage: function (message) {
-							console.log("MIDI in:", message.getTimeStamp(), message.getRawData().toString(16));
+							//console.log("MIDI in:", message.getTimeStamp(), message.getRawData().toString(16));
 
 							if (message.isNoteOnOrOff()) {
 								if (message.isNoteOn()) {

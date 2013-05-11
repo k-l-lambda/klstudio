@@ -308,6 +308,24 @@
 				height: 38px;
 			}
 
+			#keyboard-canvas, #score-canvas
+			{
+				position: relative;
+			}
+
+			#keyboard .key
+			{
+				cursor: pointer;
+			}
+
+			#score-canvas
+			{
+				z-index: -100;
+				height: 100000px;
+				background-color: black;
+			}
+		</style>
+		<style type="text/css">
 			#range-keyboard .white-key
 			{
 				fill: white;
@@ -334,16 +352,6 @@
 			{
 				text-anchor: middle;
 				font-size: 7px;
-			}
-
-			#keyboard-canvas, #score-canvas
-			{
-				position: relative;
-			}
-
-			#keyboard .key
-			{
-				cursor: pointer;
 			}
 
 			/* key of Middle C */
@@ -396,13 +404,6 @@
 				text-anchor: middle;
 				font-size: 12px;
 				fill: #bbb;
-			}
-
-			#score-canvas
-			{
-				z-index: -100;
-				height: 100000px;
-				background-color: black;
 			}
 
 			.note-separator
@@ -481,12 +482,12 @@
 
 			#score-music .pitch-10, #keyboard .key.active.pitch-10
 			{
-				fill: #6e00ff;
+				fill: #ae00ff;
 			}
 
 			#score-music .pitch-11, #keyboard .key.active.pitch-11
 			{
-				fill: #f000ff;
+				fill: #f600ff;
 			}
 
 			.channel .note
@@ -587,6 +588,12 @@
 				opacity: 0.8;
 				stroke-width: 1.6px;
 			}
+
+			#svgdef-score-cursor
+			{
+				stroke: #ccc;
+				stroke-width: 2;
+			}
 		</style>
 		<script src="../../js/jquery.js" type="text/javascript"></script>
 		<script src="../../js/jquery.svg.js" type="text/javascript"></script>
@@ -659,31 +666,45 @@
 				221: 95,
 
 				// middle letters
-				65: 62,
-				83: 64,
-				68: 65,
-				70: 67,
-				71: 69,
-				72: 71,
-				74: 72,
-				75: 74,
-				76: 76,
-				186: 77,
-				222: 79,
-				220: 81,
+				65: 60,
+				83: 62,
+				68: 64,
+				70: 65,
+				71: 67,
+				72: 69,
+				74: 71,
+				75: 72,
+				76: 74,
+				186: 76,
+				222: 77,
+				220: 79,
 
 				// bottom letters
-				90: 36,
-				88: 38,
-				67: 40,
-				86: 41,
-				66: 43,
-				78: 45,
-				77: 47,
-				188: 48,
-				190: 50,
-				191: 52
+				90: 48,
+				88: 50,
+				67: 52,
+				86: 53,
+				66: 55,
+				78: 57,
+				77: 59,
+				188: 60,
+				190: 62,
+				191: 64
 			};
+
+			var FollowerConfig = {
+				UpdateInterval: 50,
+				CurosrStableHeight: 220
+			};
+
+			var States = {
+				Idle: 0,
+				Playing: 1,
+				Following: 2,
+				Interrupt: 3
+			};
+			var FollowerState = States.Idle;
+			var FollowerHandler = null;
 
 
 			var playMidi = function (data) {
@@ -698,6 +719,9 @@
 
 				MetaData = {};
 				updateMetaData();
+
+				stopFollower();
+				FollowerState = States.Playing;
 			};
 
 			var toMinutesSeconds = function (millisec) {
@@ -820,6 +844,8 @@
 			localStorage.KeyboardRangeLow = localStorage.KeyboardRangeLow || noteToX(PinaoConfig.NoteStart);
 			localStorage.KeyboardRangeHigh = localStorage.KeyboardRangeHigh || (noteToX(PinaoConfig.NoteEnd) + 1);
 
+			var ScoreWidth = PinaoConfig.KeyWidth * (noteToX(PinaoConfig.NoteEnd) + 1);
+
 
 			var resetlocalStorage = function () {
 				localStorage.removeItem("KeyboardRangeLow");
@@ -931,10 +957,10 @@
 			};
 
 			var initializeKeyboard = function () {
-				$("#keyboard-canvas").attr("viewBox", "0 0 " + PinaoConfig.KeyWidth * (noteToX(PinaoConfig.NoteEnd) + 1) + " 60");
+				$("#keyboard-canvas").attr("viewBox", "0 0 " + ScoreWidth + " 60");
 				$("#keyboard-canvas").attr("height", PinaoConfig.KeyHeight + 2);
 
-				$("#score-canvas").attr("viewBox", "0 0 " + PinaoConfig.KeyWidth * (noteToX(PinaoConfig.NoteEnd) + 1) + " " + ($("#score-canvas").height() - 2));
+				$("#score-canvas").attr("viewBox", "0 0 " + ScoreWidth + " " + ($("#score-canvas").height() - 2));
 
 				var keyboardWhite = svg("#keyboard-white");
 				var keyboardBlack = svg("#keyboard-black");
@@ -970,23 +996,25 @@
 				});
 			};
 
-			var initializeScoreBackground = function () {
+			var initializeScore = function () {
 				var background = svg("#score-background");
 				var whiteBars = svg("#score-note-bars-white");
 				var blackBars = svg("#score-note-bars-black");
 
+				// separators
 				for (var x = noteToX(PinaoConfig.NoteStart) + 1; x <= noteToX(PinaoConfig.NoteEnd); ++x) {
 					var group = (xToNote(x) % Musical.GroupLen) == 0;
-					background.line(x * PinaoConfig.KeyWidth, 0, x * PinaoConfig.KeyWidth, $("#score-canvas").height(), { "class": "note-separator" + (group ? " group-separator" : "") });
+					background.line(x * PinaoConfig.KeyWidth, 0, x * PinaoConfig.KeyWidth, $("#score-canvas").height(), { class: "note-separator" + (group ? " group-separator" : "") });
 				}
 
+				// note bars
 				for (var note = PinaoConfig.NoteStart; note <= PinaoConfig.NoteEnd; ++note) {
 					var pitch = Musical.notePitch(note);
 					var x = noteToX(note);
 					if (PinaoConfig.KeySerials.White.indexOf(pitch) >= 0)
-						whiteBars.rect(x * PinaoConfig.KeyWidth, 0, PinaoConfig.KeyWidth, $("#score-canvas").height(), { "class": "note-bar", "data-note": note });
+						whiteBars.rect(x * PinaoConfig.KeyWidth, 0, PinaoConfig.KeyWidth, $("#score-canvas").height(), { class: "note-bar", "data-note": note });
 					else
-						blackBars.rect((x - 0.25) * PinaoConfig.KeyWidth, 0, PinaoConfig.KeyWidth * 0.5, $("#score-canvas").height(), { "class": "note-bar", "data-note": note });
+						blackBars.rect((x - 0.25) * PinaoConfig.KeyWidth, 0, PinaoConfig.KeyWidth * 0.5, $("#score-canvas").height(), { class: "note-bar", "data-note": note });
 				}
 			};
 
@@ -1076,15 +1104,13 @@
 
 				var score = svg("#score-music");
 
-				var scoreWidth = PinaoConfig.KeyWidth * (noteToX(PinaoConfig.NoteEnd) + 1);
-
 				// bars
 				var bars = svg(score.group({ id: "score-music-bars" }));
 				for (var i in notations.bars) {
-					bars.line(0, notations.bars[i].time * ScoreTimeScale, scoreWidth, notations.bars[i].time * ScoreTimeScale, { class: "beat-bar" + (notations.bars[i].index == 0 ? " bar-bar" : "") });
+					bars.line(0, notations.bars[i].time * ScoreTimeScale, ScoreWidth, notations.bars[i].time * ScoreTimeScale, { class: "beat-bar" + (notations.bars[i].index == 0 ? " bar-bar" : "") });
 				}
-				bars.line(0, notations.endTime * ScoreTimeScale, scoreWidth, notations.endTime * ScoreTimeScale, { class: "end-bar" });
-				bars.line(0, notations.endTime * ScoreTimeScale + 4, scoreWidth, notations.endTime * ScoreTimeScale + 3, { class: "end-bar2" });
+				bars.line(0, notations.endTime * ScoreTimeScale, ScoreWidth, notations.endTime * ScoreTimeScale, { class: "end-bar" });
+				bars.line(0, notations.endTime * ScoreTimeScale + 4, ScoreWidth, notations.endTime * ScoreTimeScale + 3, { class: "end-bar2" });
 
 				// notes
 				for (var c in notations.channels) {
@@ -1115,9 +1141,13 @@
 				if (time === undefined)
 					time = MIDI.Player.currentTime;
 
-				var top = -time * ScoreTimeScale;
-				if(top != $("#score-canvas").css("top"))
-					$("#score-canvas").css("top", top);
+				$("#score-cursor").attr("y", time * ScoreTimeScale);
+
+				if (FollowerState == States.Playing) {
+					var top = -time * ScoreTimeScale;
+					if (top != $("#score-canvas").css("top"))
+						$("#score-canvas").css("top", top);
+				}
 			};
 
 			var updateTempo = function () {
@@ -1172,6 +1202,41 @@
 				}
 			};
 
+			var startFollower = function () {
+				$("#score-cursor").show();
+
+				FollowerState = States.Idle;
+
+				FollowerHandler = setInterval(updateFollower, FollowerConfig.UpdateInterval);
+
+				//console.log("Follower started.");
+			};
+
+			var stopFollower = function () {
+				clearInterval(FollowerHandler);
+
+				$("#score-cursor").hide();
+
+				//console.log("Follower stopped.");
+			};
+
+			var scoreScrollPosition = function () {
+				return $("#keyboard-canvas").offset().top + $("#keyboard-canvas").height() - $("#score-canvas").offset().top;
+			};
+
+			var updateFollower = function () {
+				// update canvas scroll
+				var scrollPosition = scoreScrollPosition();
+				var cursorHeight = MIDI.Player.currentTime * ScoreTimeScale - scrollPosition;
+				var deltaHeight = (cursorHeight - FollowerConfig.CurosrStableHeight) * 0.08;
+				if (Math.abs(deltaHeight) < 0.1)
+					deltaHeight = cursorHeight - FollowerConfig.CurosrStableHeight;
+				var canvasTop = -Math.max(scrollPosition + deltaHeight, 0);
+
+				if (canvasTop != $("#score-canvas").css("top"))
+					$("#score-canvas").css("top", canvasTop);
+			};
+
 			var updateLayout = function () {
 				//$("#score-canvas").attr("height", $("body").innerHeight() - $("#header").outerHeight() - $("#keyboard-canvas").outerHeight());
 			};
@@ -1210,9 +1275,14 @@
 								MIDI.Player.pause();
 
 								$("#playback-play").attr("src", "/res/images/play.png");
+
+								startFollower();
 							}
 							else {
 								if (MIDI.Player.currentData) {
+									stopFollower();
+									FollowerState = States.Playing;
+
 									MIDI.Player.resume();
 
 									$("#playback-play").attr("src", "/res/images/pause.png");
@@ -1319,13 +1389,18 @@
 
 								MetaData = {};
 								updateMetaData();
+
+								startFollower();
 							}
 						});
 
 						document.onmousewheel = function () {
 							if (!MIDI.Player.playing) {
-								MIDI.Player.currentTime = Math.min(Math.max(MIDI.Player.currentTime + event.wheelDelta * -4, 0), MIDI.Player.endTime - 1e-3);
+								var beatLength = 60000 / MetaData.BeatsPerMinute;
+								MIDI.Player.currentTime = Math.min(Math.max(MIDI.Player.currentTime - (event.wheelDelta / 120) * beatLength, 0), MIDI.Player.endTime - 1e-3);
 								updateScorePosition();
+
+								FollowerState = States.Idle;
 							}
 
 							event.preventDefault();
@@ -1380,13 +1455,15 @@
 								$("#playback-progress").attr("title", toMinutesSeconds(progress * MIDI.Player.endTime));
 							}
 						});
+
+						startFollower();
 					}
 				});
 
 				initializeRangeKeyboard();
 
 				initializeKeyboard();
-				initializeScoreBackground();
+				initializeScore();
 
 				updateRangeMask();
 
@@ -1481,6 +1558,7 @@
 					<stop offset="0%" style="stop-color:white;stop-opacity:1"/>
 					<stop offset="4%" style="stop-color:white;stop-opacity:0"/>
 				</linearGradient>
+				<line id="svgdef-score-cursor" x1="0" y1="0" x2="2080" y2="0"></line>
 			</defs>
 			<g id="score-background"></g>
 			<g id="score-note-bars">
@@ -1488,6 +1566,9 @@
 				<g id="score-note-bars-black"></g>
 			</g>
 			<g id="score-music"></g>
+			<g id="score-marks">
+				<use id="score-cursor" xlink:href="#svgdef-score-cursor"></use>
+			</g>
 		</svg>
 		<div id="loading"></div>
 		<embed id="midi-pugin" type="application/x-klstudio-midi" />

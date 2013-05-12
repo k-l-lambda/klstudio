@@ -4,6 +4,7 @@ TODO:
 		auto range UI
 		play piano by keyboard settings
 		practice mode
+			bend wheel to scroll score
 		MIDI input recorder
 	SpiralPiano.html:
 		settings panel
@@ -15,6 +16,8 @@ Pending Issues:
 
 
 2013.5.12	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: following state process added.
 
 	+	Source/static/projects/PianoTrainer.html: class of Follower added, follower work rect added.
 

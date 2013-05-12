@@ -496,6 +496,13 @@
 				stroke-width: 2;
 			}
 
+			.channel .note.active
+			{
+				stroke: #fff !important;
+				stroke-width: 5 !important;
+				opacity: 1 !important;
+			}
+
 			.channel[data-channel="0"] .note
 			{
 				stroke-width: 0;
@@ -711,6 +718,7 @@
 				this.Handler = null;
 				this.LastMatchTime = 0;
 				this.MatchedNotes = {};
+				this.LastNoteIndex = 0;
 				this.WorkRegion = { upper: 0, lower: 0 };
 				this.EstimatedSpeed = 1;
 			};
@@ -725,14 +733,9 @@
 			Follower.Config = {
 				UpdateInterval: 50,
 				CurosrStableHeight: 220,
-				SuspendTime: 1200,
+				SuspendTime: 2400,
 				TimeTolerant: 500
 			};
-
-			/*var FollowerConfig = {
-				UpdateInterval: 50,
-				CurosrStableHeight: 220
-			};*/
 
 			Follower.prototype.start = function () {
 				$("#score-cursor").show();
@@ -785,28 +788,7 @@
 							$("#score-work-rect").hide();
 						}
 
-						// compute work region
-						this.WorkRegion.upper = MIDI.Player.currentTime - Follower.Config.TimeTolerant;
-						if (Object.keys(this.MatchedNotes).length) {
-							var lower = MIDI.Player.currentTime;
-							for (var n in this.MatchedNotes) {
-								var note = ScoreNotations.notes[this.MatchedNotes[n]];
-								var end = note.start + note.duration;
-								if (end > lower)
-									lower = end;
-							}
-
-							this.WorkRegion.lower = lower + Follower.Config.TimeTolerant;
-						}
-						else {
-							this.WorkRegion.lower = MIDI.Player.currentTime + (now - this.LastMatchTime) + Follower.Config.TimeTolerant;
-						}
-
-						$("#score-work-rect").attr({
-							y: this.WorkRegion.upper * ScoreTimeScale,
-							height: (this.WorkRegion.lower - this.WorkRegion.upper) * ScoreTimeScale
-						});
-						$("#score-work-rect").show();
+						this.updateWorkRegion();
 
 						break;
 				}
@@ -814,24 +796,79 @@
 				updateScorePosition();
 			};
 
+			Follower.prototype.updateWorkRegion = function () {
+				this.WorkRegion.upper = MIDI.Player.currentTime - Follower.Config.TimeTolerant;
+				if (Object.keys(this.MatchedNotes).length) {
+					var lower = MIDI.Player.currentTime;
+					for (var n in this.MatchedNotes) {
+						var note = ScoreNotations.notes[this.MatchedNotes[n]];
+						var end = note.start + note.duration;
+						if (end > lower)
+							lower = end;
+					}
+
+					this.WorkRegion.lower = lower + Follower.Config.TimeTolerant;
+				}
+				else {
+					this.WorkRegion.lower = MIDI.Player.currentTime + (Date.now() - this.LastMatchTime) + Follower.Config.TimeTolerant;
+				}
+
+				$("#score-work-rect").attr({
+					y: this.WorkRegion.upper * ScoreTimeScale,
+					height: (this.WorkRegion.lower - this.WorkRegion.upper) * ScoreTimeScale
+				});
+				$("#score-work-rect").show();
+			};
+
+			Follower.prototype.pushMatchedNote = function (note, index) {
+				this.MatchedNotes[note] = index;
+				this.LastNoteIndex = index;
+				this.LastMatchTime = Date.now();
+
+				addClass($(".note[data-index='" + index + "']"), "active");
+			};
+
+			Follower.prototype.popMatchedNote = function (note) {
+				var index = this.MatchedNotes[note];
+				delete this.MatchedNotes[note];
+
+				removeClass($(".note[data-index='" + index + "']"), "active");
+			};
+
 			Follower.prototype.onNoteOn = function (note) {
 				switch (this.State) {
 					case Follower.States.Idle:
-						var i = searchNotation(note, { end: MIDI.Player.currentTime, backwards: true });
-						if (i === null)
-							i = searchNotation(note, { begin: MIDI.Player.currentTime, end: MIDI.Player.currentTime + Follower.Config.TimeTolerant });
+						var index = searchNotation(note, { end: MIDI.Player.currentTime, backwards: true });
+						if (index === null)
+							index = searchNotation(note, { begin: MIDI.Player.currentTime, end: MIDI.Player.currentTime + Follower.Config.TimeTolerant });
 
-						//console.log(i, ScoreNotations.notes[i]);
-						if (i !== null) {
+						//console.log(index, ScoreNotations.notes[index]);
+						if (index !== null) {
 							this.MatchedNotes = {};
-							this.MatchedNotes[note] = i;
-							this.LastMatchTime = Date.now();
+							this.pushMatchedNote(note, index);
 
-							MIDI.Player.currentTime = ScoreNotations.notes[i].start;
+							MIDI.Player.currentTime = ScoreNotations.notes[index].start;
 							updateScorePosition();
 							this.State = Follower.States.Following;
 
 							addClass($("#svgdef-score-cursor"), "active");
+
+							this.updateWorkRegion();
+						}
+
+						break;
+					case Follower.States.Following:
+						var index = searchNotation(note, { begin: MIDI.Player.currentTime, end: this.WorkRegion.lower, referenceIndex: this.LastNoteIndex });
+						if (index === null)
+							index = searchNotation(note, { begin: this.WorkRegion.upper, end: MIDI.Player.currentTime, referenceIndex: this.LastNoteIndex, backwards: true });
+
+						if (index === null) {
+							// TODO: process error note
+						}
+						else {
+							this.pushMatchedNote(note, index);
+
+							this.updateWorkRegion();
 						}
 
 						break;
@@ -839,23 +876,24 @@
 			};
 
 			Follower.prototype.onNoteOff = function (note) {
-				if (!this.MatchedNotes[note] && this.MatchedNotes[note] !== 0)
-					delete this.MatchedNotes[note];
+				if (this.MatchedNotes[note] || this.MatchedNotes[note] === 0) {
+					var data = ScoreNotations.notes[this.MatchedNotes[note]];
+					this.popMatchedNote(note);
+
+					switch (this.State) {
+						case Follower.States.Following:
+							MIDI.Player.currentTime = data.start + data.duration;
+
+							this.LastMatchTime = Date.now();
+
+							break;
+					}
+
+					this.updateWorkRegion();
+				}
 			};
 
 			var Fll = new Follower();
-
-			/*var States = {
-				Idle: 0,
-				Playing: 1,
-				Following: 2,
-				Interrupt: 3
-			};
-			var FollowerState = States.Idle;
-			var FollowerHandler = null;
-
-			var MatchedNotes = {};
-			var LastMatchTime = 0;*/
 
 			var ScoreNotations = null;
 
@@ -1271,12 +1309,16 @@
 
 				var notes = [];
 				for (var c in channels) {
-					for (var n in channels[c])
+					for (var n in channels[c]) {
 						notes.push(channels[c][n]);
+					}
 				}
 				notes.sort(function (n1, n2) {
 					return n1.start - n2.start;
 				});
+
+				for (var i in notes)
+					notes[i].index = i;
 
 				return { channels: channels, notes: notes, bars: bars, endTime: time, keyRange: keyRange };
 			};
@@ -1351,7 +1393,7 @@
 						var x = noteToX(note.note);
 						var white = PinaoConfig.KeySerials.White.indexOf(pitch) >= 0;
 						var opacity = velocityToOpacity(note.velocity);
-						var options = { class: "note pitch-" + pitch, "data-note": note.note/*, "data-pitch": pitch*/, style: "opacity:" + opacity };
+						var options = { class: "note pitch-" + pitch, "data-note": note.note/*, "data-pitch": pitch*/, "data-index": note.index, style: "opacity:" + opacity };
 						var height = Math.max(note.duration * ScoreTimeScale - 1, 1);
 						if (white)
 							g.rect(x * PinaoConfig.KeyWidth + 2, note.start * ScoreTimeScale, PinaoConfig.KeyWidth - 4, height, 5, 5, options);
@@ -1432,51 +1474,9 @@
 				}
 			};
 
-			/*var startFollower = function () {
-				$("#score-cursor").show();
-
-				FollowerState = States.Idle;
-
-				FollowerHandler = setInterval(updateFollower, FollowerConfig.UpdateInterval);
-
-				//console.log("Follower started.");
-			};
-
-			var stopFollower = function () {
-				clearInterval(FollowerHandler);
-
-				$("#score-cursor").hide();
-
-				//console.log("Follower stopped.");
-			};*/
-
 			var scoreScrollPosition = function () {
 				return $("#keyboard-canvas").offset().top + $("#keyboard-canvas").height() - $("#score-canvas").offset().top;
 			};
-
-			/*var updateFollower = function () {
-				// update canvas scroll
-				var scrollPosition = scoreScrollPosition();
-				var cursorHeight = MIDI.Player.currentTime * ScoreTimeScale - scrollPosition;
-				var deltaHeight = (cursorHeight - FollowerConfig.CurosrStableHeight) * 0.16;
-				if (Math.abs(deltaHeight) < 0.1)
-					deltaHeight = cursorHeight - FollowerConfig.CurosrStableHeight;
-				var canvasTop = -Math.max(scrollPosition + deltaHeight, 0);
-
-				if (canvasTop != $("#score-canvas").css("top"))
-					$("#score-canvas").css("top", canvasTop);
-
-
-				switch (FollowerState) {
-					case States.Following:
-						if (Date.now() - LastMatchTime > 1000) {
-							FollowerState = States.Idle;
-							removeClass($("#svgdef-score-cursor"), "active");
-						}
-
-						break;
-				}
-			};*/
 
 			var updateLayout = function () {
 				//$("#score-canvas").attr("height", $("body").innerHeight() - $("#header").outerHeight() - $("#keyboard-canvas").outerHeight());

@@ -723,6 +723,8 @@
 
 			var KeyStatus = {};
 
+			var PitchWheelValue = 0;
+
 			var Follower = function () {
 				this.State = Follower.States.Idle;
 				this.Handler = null;
@@ -802,6 +804,12 @@
 
 						break;
 				}
+
+				if (this.State != Follower.States.Playing)
+					if (PitchWheelValue != 0) {
+						this.State = Follower.States.Idle;
+						scrollScore(-PitchWheelValue * 1000);
+					}
 
 				updateScorePosition();
 			};
@@ -954,6 +962,8 @@
 
 			var refreshMidiInputDevices = function () {
 				$("#input-device").empty();
+
+				PitchWheelValue = 0;
 
 				var inputs = MidiIO.getMIDIInputs();
 				if (inputs) {
@@ -1498,6 +1508,11 @@
 				return $("#keyboard-canvas").offset().top + $("#keyboard-canvas").height() - $("#score-canvas").offset().top;
 			};
 
+			var scrollScore = function (delta) {
+				MIDI.Player.currentTime = Math.min(Math.max(MIDI.Player.currentTime + delta, 0), MIDI.Player.endTime - 1e-3);
+				updateScorePosition();
+			};
+
 			var updateLayout = function () {
 				//$("#score-canvas").attr("height", $("body").innerHeight() - $("#header").outerHeight() - $("#keyboard-canvas").outerHeight());
 			};
@@ -1658,11 +1673,8 @@
 
 						document.onmousewheel = function () {
 							if (!MIDI.Player.playing) {
-								var currentTime = MIDI.Player.currentTime;
-
 								var beatLength = 60000 / (MetaData.BeatsPerMinute || 120);
-								MIDI.Player.currentTime = Math.min(Math.max(currentTime - (event.wheelDelta / 120) * beatLength, 0), MIDI.Player.endTime - 1e-3);
-								updateScorePosition();
+								scrollScore(-(event.wheelDelta / 120) * beatLength);
 
 								Fll.State = Follower.States.Idle;
 							}
@@ -1756,6 +1768,12 @@
 								}
 								else {
 									noteOff(message.getChannel(), message.getNoteNumber());
+								}
+							}
+							else if (message.isPitchWheel()) {
+								//console.log("PitchWheel:", message.getPitchWheelValue());
+								if (!MIDI.Player.playing) {
+									PitchWheelValue = (message.getPitchWheelValue() - 0x2000) / 0x2000
 								}
 							}
 						}

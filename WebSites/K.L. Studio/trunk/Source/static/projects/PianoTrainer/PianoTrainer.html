@@ -430,6 +430,16 @@
 				opacity: 1;
 			}
 
+			.note-bar.active.matched
+			{
+				fill: #2a3;
+			}
+
+			.note-bar.active.error
+			{
+				fill: #c22;
+			}
+
 			#score-music .pitch-0, #keyboard .key.active.pitch-0
 			{
 				fill: #ff0000;
@@ -611,7 +621,7 @@
 			{
 				display: none;
 				fill: #8f8;
-				opacity: 0.2;
+				opacity: 0.1;
 			}
 		</style>
 		<script src="../../js/jquery.js" type="text/javascript"></script>
@@ -826,6 +836,9 @@
 				this.LastMatchTime = Date.now();
 
 				addClass($(".note[data-index='" + index + "']"), "active");
+
+				var bar = $(".note-bar[data-note='" + note + "']");
+				addClass(bar, "matched");
 			};
 
 			Follower.prototype.popMatchedNote = function (note) {
@@ -833,14 +846,17 @@
 				delete this.MatchedNotes[note];
 
 				removeClass($(".note[data-index='" + index + "']"), "active");
+
+				var bar = $(".note-bar[data-note='" + note + "']");
+				removeClass(bar, "matched");
 			};
 
 			Follower.prototype.onNoteOn = function (note) {
 				switch (this.State) {
 					case Follower.States.Idle:
-						var index = searchNotation(note, { end: MIDI.Player.currentTime, backwards: true });
+						var index = searchNotation(note, { begin: MIDI.Player.currentTime, end: MIDI.Player.currentTime + Follower.Config.TimeTolerant });
 						if (index === null)
-							index = searchNotation(note, { begin: MIDI.Player.currentTime, end: MIDI.Player.currentTime + Follower.Config.TimeTolerant });
+							index = searchNotation(note, { end: MIDI.Player.currentTime, backwards: true });
 
 						//console.log(index, ScoreNotations.notes[index]);
 						if (index !== null) {
@@ -863,7 +879,8 @@
 							index = searchNotation(note, { begin: this.WorkRegion.upper, end: MIDI.Player.currentTime, referenceIndex: this.LastNoteIndex, backwards: true });
 
 						if (index === null) {
-							// TODO: process error note
+							// error note pressed
+							addClass($(".note-bar[data-note='" + note + "']"), "error");
 						}
 						else {
 							this.pushMatchedNote(note, index);
@@ -890,6 +907,9 @@
 					}
 
 					this.updateWorkRegion();
+				}
+				else {
+					removeClass($(".note-bar[data-note='" + note + "']"), "error");
 				}
 			};
 

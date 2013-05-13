@@ -4,7 +4,6 @@ TODO:
 		auto range UI
 		play piano by keyboard settings
 		practice mode
-			bend wheel to scroll score
 		MIDI input recorder
 	SpiralPiano.html:
 		settings panel
@@ -16,6 +15,8 @@ Pending Issues:
 
 
 2013.5.13	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html:  scroll score by pitch wheel implemented.
 
 	+	Source/static/projects/PianoTrainer.html: note bar status color added.
 

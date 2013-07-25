@@ -14,6 +14,11 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2013.7.25	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/SpiralPiano.html: file picker added.
+
+
 2013.5.13	K.L.	<k.l.lambda@gmail.com>
 
 	+	Source/static/projects/PianoTrainer.html:  scroll score by pitch wheel implemented.

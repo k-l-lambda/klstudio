@@ -356,8 +356,9 @@
 				elem.attr("class", elem.attr("class") + " " + cls);
 			};
 
-			var removeClass = function(elem, cls){
-				elem.attr("class", elem.attr("class").replace(RegExp("\\s" + cls, "g"), ""));
+			var removeClass = function (elem, cls) {
+				if (elem.attr("class"))
+					elem.attr("class", elem.attr("class").replace(RegExp("\\s" + cls, "g"), ""));
 			};
 
 			var keyToNote = function(key){
@@ -618,6 +619,26 @@
 				$("#span-keyboard-canvas, #span-verniers").mousemove(onVernierMove);
 			};
 
+			var pickFile = function (file) {
+				if (file.type == "audio/mid") {
+					var playing = $("#player-source").attr("disabled");
+					if (playing)
+						$("#player-stop").click();
+
+					var fr = new FileReader();
+					fr.onloadend = function (e) {
+						$("#player-source").val(e.currentTarget.result);
+
+						$("#player-play").click();
+						if (!MIDI.Player.playing)
+							$("#player-play").click();
+					};
+					fr.readAsDataURL(file);
+
+					$("#player-source-tips").hide();
+				}
+			};
+
 			$(function () {
 				MIDI.loadPlugin({
 					soundfontUrl: "../soundfont/",
@@ -650,6 +671,11 @@
 
 								$("#player-play").attr("src", "/res/images/play.png");
 							}
+						});
+
+						$("#player-source-file").change(function () {
+							if (event.target.files[0])
+								pickFile(event.target.files[0]);
 						});
 
 						MIDI.Player.addListener(function (data) {
@@ -704,23 +730,7 @@
 					elem.ondrop = function (e) {
 						$("#player").removeClass("drag-hover");
 
-						if (e.dataTransfer.files[0].type == "audio/mid") {
-							var playing = $("#player-source").attr("disabled");
-							if (playing)
-								$("#player-stop").click();
-
-							var fr = new FileReader();
-							fr.onloadend = function (e) {
-								$("#player-source").val(e.currentTarget.result);
-
-								$("#player-play").click();
-								if(!MIDI.Player.playing)
-									$("#player-play").click();
-							};
-							fr.readAsDataURL(e.dataTransfer.files[0]);
-
-							$("#player-source-tips").hide();
-						}
+						pickFile(e.dataTransfer.files[0]);
 
 						e.preventDefault();
 						return false;
@@ -871,7 +881,7 @@
 				</select>
 			</p>
 			<p id="player">
-				<span id="player-progress"><label id="player-source-tips">Drag and drop MIDI file here.</label><input type="text" id="player-source" /><span id="player-progress-cursor"></span></span> <span><input id="player-play" type="image" src="/res/images/play.png" class="player-button" /> <input id="player-stop" type="image" src="/res/images/stop.png" class="player-button" /></span>
+				<span id="player-progress"><label id="player-source-tips">Drag and drop MIDI file here.</label><input type="text" id="player-source" /><span id="player-progress-cursor"></span></span> <span><input id="player-play" type="image" src="/res/images/play.png" class="player-button" /> <input id="player-stop" type="image" src="/res/images/stop.png" class="player-button" /><input id="player-source-file" type="file" accept="audio/mid" /></span>
 			</p>
 		</div>
 	</body>

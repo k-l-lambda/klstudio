@@ -123,9 +123,10 @@
 		</style>
 		<script src="/js/jquery.js" type="text/javascript"></script>
 		<script type="text/javascript">
-			var onTrigoonlineClick = function() {
-				if (/\.tk/.test(location.hostname)) {
-					open("http://go3d.www.kl-studio.tk/");
+			var onTrigoonlineClick = function () {
+				if (/\.tk$/.test(location.hostname)) {
+					var mainDomain = location.hostname.match(/([^\.]+\.tk)$/)[0];
+					open("http://go3d.www." + mainDomain);
 					event.preventDefault();
 				}
 			};

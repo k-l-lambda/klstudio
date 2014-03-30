@@ -325,7 +325,30 @@
 				height: 100000px;
 				background-color: black;
 			}
+
+			#klstudio
+			{
+				display: block;
+				position: fixed;
+				left: 0;
+				top: 0;
+				width: 140px;
+				height: 34px;
+				border-bottom-right-radius: 9px;
+				background-image: url(/res/images/K.L._Stuidio_Logo_small.png);
+				background-size: 128px 25px;
+				background-repeat: no-repeat no-repeat;
+				background-position: 4px 4px;
+				background-color: #666;
+			}
+
+			#klstudio:hover
+			{
+				background-color: #fff;
+				box-shadow: 0px 0px 60px #fff;
+			}
 		</style>
+		<!-- SVG styles -->
 		<style type="text/css">
 			#range-keyboard .white-key
 			{
@@ -1862,5 +1885,6 @@
 		</svg>
 		<div id="loading"></div>
 		<embed id="midi-pugin" type="application/x-klstudio-midi" />
+		<a id="klstudio" href="/" target="_blank" />
 	</body>
 </html>

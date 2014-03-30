@@ -60,5 +60,15 @@ handlers:
   script: PicasaUploader/main.py
 
 
+- url: /(.*\.png)
+  static_files: static/\1
+  upload: static/.*
+  mime_type: image/png
+
+- url: /(.*\.tanxzip)
+  static_files: static/\1
+  upload: static/.*
+  mime_type: application/x-klstudio.tanx
+
 - url: /
   static_dir: static

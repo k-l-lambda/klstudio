@@ -16,6 +16,8 @@ Pending Issues:
 
 2014.3.30	K.L.	<k.l.lambda@gmail.com>
 
+	>	Upgraded app runtime to python2.7.
+
 	+	Cube Earth: added drop shadow filter.
 
 	>	Home page: trigger cube earth by click.

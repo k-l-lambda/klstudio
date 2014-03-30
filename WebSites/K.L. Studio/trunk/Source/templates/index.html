@@ -18,15 +18,18 @@
 				border: none;
 				text-align: justify;
 			}
+
 			#motto
 			{
 				text-align: center;
 			}
+
 			#cube-earth-image-wrapper
 			{
 				height: 480px;
 				text-align: center;
 			}
+
 			#cube-earth-image
 			{
 				display: inline-block;
@@ -34,7 +37,16 @@
 				height: 480px;
 				background: url(res/images/CubeEarth2.png) center center no-repeat;
 				cursor: pointer;
+				-webkit-filter: drop-shadow(4px 9px 10px rgba(0,0,0,0.6));
+				filter: drop-shadow(4px 9px 10px rgba(0,0,0,0.6));
 			}
+
+			#cube-earth-image:hover
+			{
+				-webkit-filter: drop-shadow(10px 20px 40px rgba(0,0,0,1));
+				filter: drop-shadow(10px 20px 40px rgba(0,0,0,1));
+			}
+
 			#cube-earth-3d
 			{
 				background: url(res/images/loading.gif) center center no-repeat;
@@ -49,6 +61,7 @@
 				opacity: 0;
 				z-index: -1;
 			}
+
 			#cube-earth-image, #cube-earth-3d
 			{
 				-webkit-transition: all 2s ease;

@@ -33,6 +33,7 @@
 				width: 640px;
 				height: 480px;
 				background: url(res/images/CubeEarth2.png) center center no-repeat;
+				cursor: pointer;
 			}
 			#cube-earth-3d
 			{
@@ -144,7 +145,7 @@
 
 			$(function(){
 				if(isWegGlSupported()) {
-					$("#cube-earth-image").mouseover(function(){
+					$("#cube-earth-image").click(function(){
 						var earth3d = $("#cube-earth-3d");
 						if(earth3d.css("display") == "none") {
 							earth3d.attr("src", "/projects/CubeEarth.html#screw_random");
@@ -186,12 +187,20 @@
 					<img src="res/images/ToCreateaPlayfulWorld.png" alt="To Create a Funny World" width="640" height="48" />
 				</p>
 				<p id="cube-earth-image-wrapper">
-					<span id="cube-earth-image"></span>
+					<span id="cube-earth-image" title="click me~"></span>
 				</p>
 				<iframe id="cube-earth-3d" style=""></iframe>
 				<canvas id="gl-tester" style="display:none"></canvas>
 			</div>
 			<div id="projects">
+				<div class="section">
+					<img src="/res/images/PianoTrainer.png" />
+					<article>
+						<h2><a href="projects/PianoTrainer/PianoTrainer.html">Piano Trainer</a></h2>
+						An auxiliary tool for piano pratice. Also a visualized MIDI player.
+					</article>
+					<div class="clear"></div>
+				</div>
 				<div class="section">
 					<img src="/res/images/LifeGame.png" />
 					<article>

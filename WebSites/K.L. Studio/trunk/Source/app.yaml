@@ -1,9 +1,14 @@
 application: klstudioindieg
-version: 2
-runtime: python
+version: 3
+runtime: python27
 api_version: 1
+threadsafe: false
 
 default_expiration: 7d
+
+libraries:
+- name: django
+  version: "1.2"
 
 handlers:
 - url: /robots.txt

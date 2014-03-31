@@ -1,4 +1,4 @@
-application: klstudioindieg
+application: klstudioindieg-hrd
 version: 3
 runtime: python27
 api_version: 1
@@ -67,12 +67,12 @@ handlers:
 
 - url: /(.*\.png)$
   static_files: static/\1
-  upload: static/.*\.png
+  upload: static/.*\.png$
   mime_type: image/png
 
 - url: /(.*\.tanxzip)$
   static_files: static/\1
-  upload: static/.*\.tanxzip
+  upload: static/.*\.tanxzip$
   mime_type: application/x-klstudio.tanx
 
 - url: /

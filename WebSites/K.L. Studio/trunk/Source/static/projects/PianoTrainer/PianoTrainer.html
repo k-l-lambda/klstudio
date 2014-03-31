@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 	<head>
 		<title>Piano Trainer</title>
@@ -330,22 +331,27 @@
 			{
 				display: block;
 				position: fixed;
-				left: 0;
-				top: 0;
+				right: 0;
+				bottom: 0;
 				width: 140px;
 				height: 34px;
-				border-bottom-right-radius: 9px;
+				border-top-left-radius: 9px;
 				background-image: url(/res/images/K.L._Stuidio_Logo_small.png);
 				background-size: 128px 25px;
 				background-repeat: no-repeat no-repeat;
-				background-position: 4px 4px;
-				background-color: #666;
+				background-position: 6px 5px;
+				background-color: rgba(255, 255, 255, 0.4);
 			}
 
 			#klstudio:hover
 			{
-				background-color: #fff;
+				background-color: rgba(255, 255, 255, 0.9);
 				box-shadow: 0px 0px 60px #fff;
+			}
+
+			.full-screen #klstudio
+			{
+				display: none !important;
 			}
 		</style>
 		<!-- SVG styles -->
@@ -1539,6 +1545,11 @@
 
 			var updateLayout = function () {
 				//$("#score-canvas").attr("height", $("body").innerHeight() - $("#header").outerHeight() - $("#keyboard-canvas").outerHeight());
+				var fullscreen = $(window).width() == window.screen.width && $(window).height() == window.screen.height;
+				if (fullscreen)
+					$("html").addClass("full-screen");
+				else
+					$("html").removeClass("full-screen");
 			};
 
 			$(function () {

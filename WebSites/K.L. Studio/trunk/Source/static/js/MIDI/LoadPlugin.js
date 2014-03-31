@@ -1,10 +1,11 @@
 /*
 	-----------------------------------------------------------
-	MIDI.loadPlugin : 0.1.2 : 01/18/2012
+	MIDI.loadPlugin : 0.1.2 : 01/22/2014
 	-----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	-----------------------------------------------------------
 	MIDI.loadPlugin({
+		targetFormat: "mp3", // optionally can force to use MP3 (for instance on mobile networks)
 		instrument: "acoustic_grand_piano", // or 1 (default)
 		instruments: [ "acoustic_grand_piano", "acoustic_guitar_nylon" ], // or multiple instruments
 		callback: function() { }
@@ -16,9 +17,7 @@ if (typeof (MIDI.Soundfont) === "undefined") MIDI.Soundfont = {};
 
 (function() { "use strict";
 
-// Turn on to get "onprogress" event. XHR will not work from file://
-var USE_XHR = false; 
-var USE_JAZZMIDI = false;
+var USE_JAZZMIDI = false; // Turn on to support JazzMIDI Plugin
 
 MIDI.loadPlugin = function(conf) {
 	if (typeof(conf) === "function") conf = {
@@ -27,10 +26,13 @@ MIDI.loadPlugin = function(conf) {
 	/// Get the instrument name.
 	var instruments = conf.instruments || conf.instrument || "acoustic_grand_piano";
 	if (typeof(instruments) !== "object") instruments = [ instruments ];
-	instruments.map(function(data) {
-		if (typeof(data) === "number") data = MIDI.GeneralMIDI.byId[data];
-		return data;
-	});
+	///
+	for (var n = 0; n < instruments.length; n ++) {
+		var instrument = instruments[n];
+		if (typeof(instrument) === "number") {
+			instruments[n] = MIDI.GeneralMIDI.byId[instrument];
+		}
+	};
 	///
 	MIDI.soundfontUrl = conf.soundfontUrl || MIDI.soundfontUrl || "./soundfont/";
 	/// Detect the best type of audio to use.
@@ -43,7 +45,7 @@ MIDI.loadPlugin = function(conf) {
 			api = window.location.hash.substr(1);
 		} else if (USE_JAZZMIDI && navigator.requestMIDIAccess) {
 			api = "webmidi";
-		} else if (window.webkitAudioContext) { // Chrome
+		} else if (window.webkitAudioContext || window.AudioContext) { // Chrome
 			api = "webaudio";
 		} else if (window.Audio) { // Firefox
 			api = "audiotag";
@@ -53,8 +55,14 @@ MIDI.loadPlugin = function(conf) {
 		///
 		if (!connect[api]) return;
 		// use audio/ogg when supported
-		var filetype = types["audio/ogg"] ? "ogg" : "mp3";
+		if (conf.targetFormat) {
+			var filetype = conf.targetFormat;
+		} else { // use best quality
+			var filetype = types["audio/ogg"] ? "ogg" : "mp3";
+		}
 		// load the specified plugin
+		MIDI.lang = api;
+		MIDI.supports = types;
 		connect[api](filetype, instruments, conf);
 	});
 };
@@ -86,26 +94,15 @@ connect.audiotag = function(filetype, instruments, conf) {
 	var queue = createQueue({
 		items: instruments,
 		getNext: function(instrumentId) {
-			if (USE_XHR) {
-				DOMLoader.sendRequest({
-					url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
-					onprogress: getPercent,
-					onload: function (response) {
-						MIDI.Soundfont[instrumentId] = JSON.parse(response.responseText);
-						if (MIDI.loader) MIDI.loader.update(null, "Downloading", 100);
-						queue.getNext();
-					}
-				});
-			} else {
-				DOMLoader.script.add({
-					src: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
-					verify: "MIDI.Soundfont." + instrumentId,
-					callback: function() {
-						if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
-						queue.getNext();
-					}
-				});
-			}
+			DOMLoader.sendRequest({
+				url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
+				onprogress: getPercent,
+				onload: function (response) {
+					addSoundfont(response.responseText);
+					if (MIDI.loader) MIDI.loader.update(null, "Downloading", 100);
+					queue.getNext();
+				}
+			});
 		},
 		onComplete: function() {
 			MIDI.AudioTag.connect(conf);
@@ -115,30 +112,19 @@ connect.audiotag = function(filetype, instruments, conf) {
 
 connect.webaudio = function(filetype, instruments, conf) {
 	if (MIDI.loader) MIDI.loader.message("Web Audio API...");
-	// works awesome! safari and chrome support
+	// works awesome! safari, chrome and firefox support.
 	var queue = createQueue({
 		items: instruments,
 		getNext: function(instrumentId) {
-			if (USE_XHR) {
-				DOMLoader.sendRequest({
-					url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
-					onprogress: getPercent,
-					onload: function(response) {
-						MIDI.Soundfont[instrumentId] = JSON.parse(response.responseText);
-						if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
-						queue.getNext();
-					}
-				});
-			} else {
-				DOMLoader.script.add({
-					src: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
-					verify: "MIDI.Soundfont." + instrumentId,
-					callback: function() {
-						if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
-						queue.getNext();
-					}
-				});
-			}
+			DOMLoader.sendRequest({
+				url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
+				onprogress: getPercent,
+				onload: function(response) {
+					addSoundfont(response.responseText);
+					if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
+					queue.getNext();
+				}
+			});
 		},
 		onComplete: function() {
 			MIDI.WebAudio.connect(conf);
@@ -149,10 +135,18 @@ connect.webaudio = function(filetype, instruments, conf) {
 /// Helpers
 
 var apis = {
-	"webmidi": true, 
-	"webaudio": true, 
-	"audiotag": true, 
-	"flash": true 
+	"webmidi": true,
+	"webaudio": true,
+	"audiotag": true,
+	"flash": true
+};
+
+var addSoundfont = function(text) {
+	var script = document.createElement("script");
+	script.language = "javascript";
+	script.type = "text/javascript";
+	script.text = text;
+	document.body.appendChild(script);
 };
 
 var getPercent = function(event) {
@@ -163,6 +157,7 @@ var getPercent = function(event) {
 			this.totalSize = event.total;
 		}
 	}
+	///
 	var percent = this.totalSize ? Math.round(event.loaded / this.totalSize * 100) : "";
 	if (MIDI.loader) MIDI.loader.update(null, "Downloading...", percent);
 };
@@ -171,7 +166,9 @@ var createQueue = function(conf) {
 	var self = {};
 	self.queue = [];
 	for (var key in conf.items) {
-		self.queue.push(conf.items[key]);
+		if (conf.items.hasOwnProperty(key)) {
+			self.queue.push(conf.items[key]);
+		}
 	}
 	self.getNext = function() {
 		if (!self.queue.length) return conf.onComplete();

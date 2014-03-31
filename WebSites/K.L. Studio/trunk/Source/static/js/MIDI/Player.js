@@ -272,14 +272,7 @@ var stopAudio = function () {
 		if (typeof(o.source) === "number") {
 			window.clearTimeout(o.source);
 		} else { // webaudio
-			var source = o.source;
-			source.disconnect(0);
-			try{
-				source.noteOff(0);
-			}
-			catch(e){
-				console.log("error:", e);
-			}
+			o.source.disconnect(0);
 		}
 	}
 	// run callback to cancel any notes still playing

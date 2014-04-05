@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 	<head>
 		<link rel="me" type="text/html" href="http://www.google.com/profiles/107810202308609674959" />
@@ -137,14 +138,6 @@
 		</style>
 		<script src="/js/jquery.js" type="text/javascript"></script>
 		<script type="text/javascript">
-			var onTrigoonlineClick = function () {
-				if (/\.tk$/.test(location.hostname)) {
-					var mainDomain = location.hostname.match(/([^\.]+\.tk)$/)[0];
-					open("http://go3d.www." + mainDomain);
-					event.preventDefault();
-				}
-			};
-
 			var isWegGlSupported = function() {
 				var tester = $("#gl-tester").get(0);
 				if(!tester || !tester.getContext)
@@ -156,14 +149,14 @@
 						return names[i];
 			};
 
-			$(function(){
-				if(isWegGlSupported()) {
-					$("#cube-earth-image").click(function(){
+			$(function () {
+				if (isWegGlSupported()) {
+					$("#cube-earth-image").click(function () {
 						var earth3d = $("#cube-earth-3d");
-						if(earth3d.css("display") == "none") {
+						if (earth3d.css("display") == "none") {
 							earth3d.attr("src", "/projects/CubeEarth.html#screw_random");
 							earth3d.css("opacity", 0.4);
-							earth3d.load(function(){
+							earth3d.load(function () {
 								earth3d.css("background", "none");
 								earth3d.css("z-index", 0);
 								$("#cube-earth-image").css("opacity", 0);
@@ -173,7 +166,23 @@
 							earth3d.fadeIn("normal");
 						}
 					});
+
+					$("#cube-earth-image").attr("title", "click me~");
 				}
+
+				$(".appspot-link").click(function () {
+					var link = $(this).attr("href");
+					var linkParse = link.match(/^\w+:\/*([^\/]+)(.*)$/);
+
+					if (true || /\.tk$/.test(location.hostname)) {
+						var mainDomain = location.hostname.match(/([^\.]+\.tk)$/)[0];
+
+						if (linkParse[1] == "klstrigo.appspot.com") {
+							open("http://go3d.www." + mainDomain + linkParse[2]);
+							event.preventDefault();
+						}
+					}
+				});
 			});
 		</script>
 		<link href="https://plus.google.com/111891513380364792258" rel="publisher" />
@@ -200,7 +209,7 @@
 					<img src="res/images/ToCreateaPlayfulWorld.png" alt="To Create a Funny World" width="640" height="48" />
 				</p>
 				<p id="cube-earth-image-wrapper">
-					<span id="cube-earth-image" title="click me~"></span>
+					<span id="cube-earth-image"></span>
 				</p>
 				<iframe id="cube-earth-3d" style=""></iframe>
 				<canvas id="gl-tester" style="display:none"></canvas>
@@ -211,6 +220,15 @@
 					<article>
 						<h2><a href="projects/PianoTrainer/PianoTrainer.html">Piano Trainer</a></h2>
 						An auxiliary tool for piano pratice. Also a visualized MIDI player.
+					</article>
+					<div class="clear"></div>
+				</div>
+				<div class="section">
+					<img src="/res/images/Othello3D.png" />
+					<article>
+						<h2><a href="http://klstrigo.appspot.com/othello/robots/" target="_blank" class="appspot-link">Othello 3D</a></h2>
+						The web game of 3D version of <a href="http://en.wikipedia.org/wiki/Reversi" target="_blank">Othello (Reversi,</a> <a href="http://zh.wikipedia.org/wiki/%E9%BB%91%E7%99%BD%E6%A3%8B" target="_blank">&#40657;&#30333;&#26827;)</a>.
+						Based on <em>WebGL</em>.
 					</article>
 					<div class="clear"></div>
 				</div>
@@ -226,7 +244,7 @@
 				<div class="section">
 					<img src="/res/images/TrigoWeb.png" />
 					<article>
-						<h2><a href="http://klstrigo.appspot.com/" target="_blank" onclick="onTrigoonlineClick()">Trigo Web</a></h2>
+						<h2><a href="http://klstrigo.appspot.com/" target="_blank" class="appspot-link">Trigo Web</a></h2>
 						The web game of 3D version of <a href="http://en.wikipedia.org/wiki/Go_(game)" target="_blank">Go (&#22260;&#26827;)</a>.
 						Based on <em>WebGL</em>.
 					</article>

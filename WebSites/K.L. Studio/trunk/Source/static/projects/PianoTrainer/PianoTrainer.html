@@ -78,6 +78,7 @@
 				transition-property: opacity;
 				transition-duration: .2s;
 				opacity: 0.7;
+				cursor: pointer;
 			}
 
 			.image-button:hover
@@ -88,6 +89,35 @@
 			.image-button:active
 			{
 				opacity: 0.85;
+			}
+
+			#playback-record
+			{
+				background: url(/res/images/record.png);
+				border: none;
+				width: 32px;
+				height: 32px;
+			}
+
+			.recording #playback-record
+			{
+				background: url(/res/images/recording.png);
+				opacity: 0.9;
+			}
+
+			.recording #playback-record.fade
+			{
+				background: url(/res/images/record.png);
+			}
+
+			.recording #playback-record:hover
+			{
+				opacity: 1;
+			}
+
+			.recording #playback-play, .recording #playback-progress, .recording #playback-source, .recording #playback-metainfo
+			{
+				opacity: 0.3;
 			}
 
 			#playback-time
@@ -951,7 +981,97 @@
 				}
 			};
 
+
+			var Recorder = function () {
+				this.Recording = false;
+				this.Waiting = false;
+				this.ButtonFlickerHandle = null;
+				this.AnimationHandle = null;
+				this.BeginTime = Date.now();
+			};
+
+			Recorder.prototype.toggleRecord = function () {
+				this.Recording = !this.Recording;
+
+				if (this.Recording)
+					this.prepareRecord();
+				else
+					this.endRecord();
+			};
+
+			Recorder.prototype.isRecording = function () {
+				return this.Recording;
+			};
+
+			Recorder.prototype.prepareRecord = function (note) {
+				MIDI.Player.stop();
+				MIDI.Player.clearAnimation();
+
+				$("#playback-play").attr("src", "/res/images/play.png");
+
+				$("#playback").addClass("recording");
+				$("#score-music").empty();
+				$("#playback-source").empty();
+
+				this.Waiting = this.Recording;
+				this.ButtonFlickerHandle = setInterval(function () {
+					if ($("#playback-record").hasClass("fade"))
+						$("#playback-record").removeClass("fade");
+					else
+						$("#playback-record").addClass("fade");
+				}, 400);
+
+				$("#playback-time-text").text(toMinutesSeconds(0));
+			};
+
+			Recorder.prototype.beginRecord = function (note) {
+				this.Waiting = false;
+
+				clearInterval(this.ButtonFlickerHandle);
+				this.ButtonFlickerHandle = null;
+
+				$("#playback-record").removeClass("fade");
+
+				this.BeginTime = Date.now();
+
+				var self = this;
+				this.AnimationHandle = setInterval(function () { self.onAnimation(); }, 30);
+			};
+
+			Recorder.prototype.endRecord = function (note) {
+				$("#playback").removeClass("recording");
+
+				if (this.ButtonFlickerHandle)
+					clearInterval(this.ButtonFlickerHandle);
+
+				if (this.AnimationHandle)
+					clearInterval(this.AnimationHandle);
+			};
+
+			Recorder.prototype.elapsedTime = function () {
+				return Date.now() - this.BeginTime;
+			};
+
+			Recorder.prototype.onNoteOn = function (note) {
+				if (this.Recording) {
+					if (this.Waiting)
+						this.beginRecord();
+				}
+			};
+
+			Recorder.prototype.onNoteOff = function (note) {
+				if (this.Recording)
+					console.log("Recorder.prototype.onNoteOff", note);
+			};
+
+			Recorder.prototype.onAnimation = function () {
+				$("#playback-time-text").text(toMinutesSeconds(this.elapsedTime()));
+			};
+
+
 			var Fll = new Follower();
+
+			var Rec = new Recorder();
 
 			var ScoreNotations = null;
 
@@ -1080,6 +1200,7 @@
 				bar.css("opacity", velocityToOpacity(velocity));
 
 				Fll.onNoteOn(note);
+				Rec.onNoteOn(note);
 			};
 
 			var noteOff = function (channel, note) {
@@ -1092,6 +1213,7 @@
 				bar.css("opacity", "");
 
 				Fll.onNoteOff(note);
+				Rec.onNoteOff(note);
 			};
 
 			var noteToX = function (note) {
@@ -1552,6 +1674,28 @@
 					$("html").removeClass("full-screen");
 			};
 
+			var onMIDIPlayerAnimation = function (data, element) {
+				var time = data.now || 0;
+				$("#playback-progress-cursor").css("width", (time * 100 / data.end) + "%");
+				$("#playback-time-text").text(toMinutesSeconds(time * 1000));
+
+				localStorage.PlaybackProgress = time / data.end;
+
+				if (MIDI.Player.playing) {
+					updateScorePosition(time * 1000);
+				}
+
+				if (time >= data.end) {
+					MIDI.Player.stop();
+					$("#playback-play").attr("src", "/res/images/play.png");
+
+					MetaData = {};
+					updateMetaData();
+
+					Fll.start();
+				}
+			};
+
 			$(function () {
 				$("body, body *").each(function (i, elem) {
 					elem.ondrop = function (e) {
@@ -1588,6 +1732,8 @@
 								$("#playback-play").attr("src", "/res/images/play.png");
 
 								Fll.start();
+
+								MIDI.Player.clearAnimation();
 							}
 							else {
 								if (MIDI.Player.currentData) {
@@ -1596,8 +1742,14 @@
 									MIDI.Player.resume();
 
 									$("#playback-play").attr("src", "/res/images/pause.png");
+
+									MIDI.Player.setAnimation(onMIDIPlayerAnimation);
 								}
 							}
+						});
+
+						$("#playback-record").click(function () {
+							Rec.toggleRecord();
 						});
 
 						$("body, body *").each(function (i, elem) {
@@ -1681,28 +1833,6 @@
 									break;
 								default:
 									//console.log(data.message, data.subtype, data);
-							}
-						});
-
-						MIDI.Player.setAnimation(function (data, element) {
-							var time = data.now || 0;
-							$("#playback-progress-cursor").css("width", (time * 100 / data.end) + "%");
-							$("#playback-time-text").text(toMinutesSeconds(time * 1000));
-
-							localStorage.PlaybackProgress = time / data.end;
-
-							if (MIDI.Player.playing) {
-								updateScorePosition(time * 1000);
-							}
-
-							if (time >= data.end) {
-								MIDI.Player.stop();
-								$("#playback-play").attr("src", "/res/images/play.png");
-
-								MetaData = {};
-								updateMetaData();
-
-								Fll.start();
 							}
 						});
 
@@ -1845,18 +1975,23 @@
 		<div id="header">
 			<p>
 				<span id="playback">
-					<span><input id="playback-play" type="image" src="/res/images/play.png" class="image-button" /></span>
+					<span>
+						<input id="playback-play" type="image" src="/res/images/play.png" class="image-button" />
+						<input id="playback-record" type="button" class="image-button" />
+					</span>
 					<span id="playback-time">
 						<span id="playback-progress"><span id="playback-progress-cursor"></span></span>
 						<span id="playback-time-text"></span>
 					</span>
 					<span id="playback-source">...</span>
 					<input id="playback-source-file" type="file" accept="audio/mid" />
-					<span id="playback-mode"></span>
-					<span id="playback-tempo">
-						<span id="playback-tempo-numerator"></span><br /><span id="playback-tempo-denominator"></span>
+					<span id="playback-metainfo">
+						<span id="playback-mode"></span>
+						<span id="playback-tempo">
+							<span id="playback-tempo-numerator"></span><br /><span id="playback-tempo-denominator"></span>
+						</span>
+						<span id="playback-speed"></span>
 					</span>
-					<span id="playback-speed"></span>
 				</span>
 				<span id="input-device-bar">
 					<select id="input-device" disabled="disabled">

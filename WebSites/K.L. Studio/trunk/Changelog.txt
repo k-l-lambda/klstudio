@@ -16,6 +16,8 @@ Pending Issues:
 
 2014.8.30	K.L.	<k.l.lambda@gmail.com>
 
+	+	Source/static/projects/PianoTrainer.html: score painting from recorder added.
+
 	+	Source/static/projects/PianoTrainer.html: recorder class added.
 
 

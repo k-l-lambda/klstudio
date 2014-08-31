@@ -1046,6 +1046,8 @@
 				this.AnimationHandle = setInterval(function () { self.onAnimation(); }, 30);
 
 				this.Data = [];
+
+				this.TimeStampOffset = null;
 			};
 
 			Recorder.prototype.endRecord = function (note) {
@@ -1073,24 +1075,34 @@
 				return this.SvgChannels[channel];
 			};
 
-			Recorder.prototype.onNoteOn = function (channel, note, velocity) {
+			Recorder.prototype.onNoteOn = function (data) {
+				//console.log("TimeStampOffset", data.timeStamp * 1000 - Date.now());
+				if (!this.TimeStampOffset)
+					this.TimeStampOffset = Date.now() - data.timeStamp * 1000;
+
 				if (this.Recording) {
 					if (this.Waiting)
 						this.beginRecord();
 					else {
-						this.ChannelStatus[channel] = this.ChannelStatus[channel] || [];
-						this.ChannelStatus[channel][note] = { start: this.elapsedTime(), velocity: velocity };
+						var time = this.TimeStampOffset ? (data.timeStamp * 1000 + this.TimeStampOffset - this.BeginTime) : this.elapsedTime();
+
+						this.ChannelStatus[data.channel] = this.ChannelStatus[data.channel] || [];
+						this.ChannelStatus[data.channel][data.note] = { start: time, velocity: data.velocity };
 					}
 				}
 			};
 
-			Recorder.prototype.onNoteOff = function (channel, note) {
-				if (this.Recording) {
-					if (this.ChannelStatus[channel] && this.ChannelStatus[channel][note]) {
-						var status = this.ChannelStatus[channel][note];
-						var note = { note: note, start: status.start, duration: this.elapsedTime() - status.start, velocity: status.velocity };
+			Recorder.prototype.onNoteOff = function (data) {
+				//console.log("TimeStampOffset", data.timeStamp * 1000 - Date.now());
 
-						var channel = this.getChannel(channel);
+				if (this.Recording) {
+					if (this.ChannelStatus[data.channel] && this.ChannelStatus[data.channel][data.note]) {
+						var time = this.TimeStampOffset ? (data.timeStamp * 1000 + this.TimeStampOffset - this.BeginTime) : this.elapsedTime();
+
+						var status = this.ChannelStatus[data.channel][data.note];
+						var note = { note: data.note, start: status.start, duration: time - status.start, velocity: status.velocity };
+
+						var channel = this.getChannel(data.channel);
 						paintNote(note, channel);
 					}
 				}
@@ -1226,32 +1238,32 @@
 				removeClass(key, "active");
 			};
 
-			var noteOn = function (channel, note, velocity) {
-				MIDI.noteOn(channel, note, velocity);
+			var noteOn = function (data) {
+				MIDI.noteOn(data.channel, data.note, data.velocity);
 
-				activeKey($("#keyboard .key[data-note='" + note + "']"));
+				activeKey($("#keyboard .key[data-note='" + data.note + "']"));
 
-				var bar = $(".note-bar[data-note='" + note + "']");
+				var bar = $(".note-bar[data-note='" + data.note + "']");
 				addClass(bar, "active");
-				bar.css("opacity", velocityToOpacity(velocity));
+				bar.css("opacity", velocityToOpacity(data.velocity));
 
-				Rec.onNoteOn(channel, note, velocity);
+				Rec.onNoteOn(data);
 				if (!Rec.isRecording())
-					Fll.onNoteOn(note);
+					Fll.onNoteOn(data.note);
 			};
 
-			var noteOff = function (channel, note) {
-				MIDI.noteOff(channel, note);
+			var noteOff = function (data) {
+				MIDI.noteOff(data.channel, data.note);
 
-				deactiveKey($("#keyboard .key[data-note='" + note + "']"));
+				deactiveKey($("#keyboard .key[data-note='" + data.note + "']"));
 
-				var bar = $(".note-bar[data-note='" + note + "']");
+				var bar = $(".note-bar[data-note='" + data.note + "']");
 				removeClass(bar, "active");
 				bar.css("opacity", "");
 
-				Rec.onNoteOff(channel, note);
+				Rec.onNoteOff(data);
 				if (!Rec.isRecording())
-					Fll.onNoteOff(note);
+					Fll.onNoteOff(data.note);
 			};
 
 			var noteToX = function (note) {
@@ -1410,20 +1422,20 @@
 				//keyboardLabels.text((noteToX(PinaoConfig.MiddleC) + 0.5) * PinaoConfig.KeyWidth, PinaoConfig.KeyHeight * 0.9, "C");
 
 				$("#keyboard .key").mousedown(function () {
-					noteOn(0, $(this).data("note"), 100);
+					noteOn({channel: 0, note: $(this).data("note"), velocity: 100});
 
 					return false;
 				});
 				$("#keyboard .key").mouseup(function () {
-					noteOff(0, $(this).data("note"));
+					noteOff({ channel: 0, note: $(this).data("note") });
 				});
 				$("#keyboard .key").mouseenter(function () {
 					if (event.which == 1)
-						noteOn(0, $(this).data("note"), 100);
+						noteOn({ channel: 0, note: $(this).data("note"), velocity: 100 });
 				});
 				$("#keyboard .key").mouseleave(function () {
 					if (event.which == 1)
-						noteOff(0, $(this).data("note"));
+						noteOff({ channel: 0, note: $(this).data("note") });
 				});
 			};
 
@@ -1915,7 +1927,7 @@
 						$(document).keydown(function () {
 							if (KeyMap[event.keyCode]) {
 								if (!KeyStatus[event.keyCode]) {	// to avoid auto-repeat
-									noteOn(0, KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0), 100);
+									noteOn({channel: 0, note: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0), velocity: 100});
 
 									KeyStatus[event.keyCode] = true;
 								}
@@ -1924,7 +1936,7 @@
 
 						$(document).keyup(function () {
 							if (KeyMap[event.keyCode]) {
-								noteOff(0, KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0));
+								noteOff({ channel: 0, note: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0) });
 
 								KeyStatus[event.keyCode] = false;
 							}
@@ -1974,22 +1986,62 @@
 
 					MidiIO.registerCallbackObject({
 						printmessage: function (message) {
-							//console.log("MIDI in:", message.getTimeStamp(), message.getRawData().toString(16));
+							/*//console.log("MIDI in:", message.getTimeStamp(), message.getRawData().toString(16));
 
 							if (message.isNoteOnOrOff()) {
+							if (message.isNoteOn()) {
+							noteOn(message.getChannel(), message.getNoteNumber(), message.getVelocity());
+							}
+							else {
+							noteOff(message.getChannel(), message.getNoteNumber());
+							}
+							}
+							else if (message.isPitchWheel()) {
+							//console.log("PitchWheel:", message.getPitchWheelValue());
+							if (!MIDI.Player.playing) {
+							PitchWheelValue = (message.getPitchWheelValue() - 0x2000) / 0x2000
+							}
+							}*/
+							var data = { timeStamp: message.getTimeStamp() };
+							if (message.isNoteOnOrOff()) {
 								if (message.isNoteOn()) {
-									noteOn(message.getChannel(), message.getNoteNumber(), message.getVelocity());
+									data.type = "NoteOn";
+									data.channel = message.getChannel();
+									data.note = message.getNoteNumber();
+									data.velocity = message.getVelocity();
 								}
 								else {
-									noteOff(message.getChannel(), message.getNoteNumber());
+									data.type = "NoteOff";
+									data.channel = message.getChannel();
+									data.note = message.getNoteNumber();
 								}
 							}
 							else if (message.isPitchWheel()) {
-								//console.log("PitchWheel:", message.getPitchWheelValue());
 								if (!MIDI.Player.playing) {
-									PitchWheelValue = (message.getPitchWheelValue() - 0x2000) / 0x2000
+									data.type = "PitchWheel";
+									data.value = message.getPitchWheelValue();
 								}
 							}
+
+							setTimeout(function () {
+								//console.log("timeStamp", data.timeStamp);
+								switch (data.type) {
+									case "NoteOn":
+										noteOn(data);
+
+										break;
+									case "NoteOff":
+										noteOff(data);
+
+										break;
+									case "PitchWheel":
+										if (!MIDI.Player.playing) {
+											PitchWheelValue = (data.value - 0x2000) / 0x2000;
+										}
+
+										break;
+								}
+							}, 0);
 						}
 					});
 

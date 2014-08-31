@@ -988,6 +988,7 @@
 				this.ButtonFlickerHandle = null;
 				this.AnimationHandle = null;
 				this.BeginTime = Date.now();
+				this.Data = null;
 			};
 
 			Recorder.prototype.toggleRecord = function () {
@@ -1022,6 +1023,13 @@
 				}, 400);
 
 				$("#playback-time-text").text(toMinutesSeconds(0));
+
+				this.SvgScore = svg("#score-music");
+				this.SvgChannels = {};
+
+				this.ChannelStatus = [];
+
+				Fll.stop();
 			};
 
 			Recorder.prototype.beginRecord = function (note) {
@@ -1036,6 +1044,8 @@
 
 				var self = this;
 				this.AnimationHandle = setInterval(function () { self.onAnimation(); }, 30);
+
+				this.Data = [];
 			};
 
 			Recorder.prototype.endRecord = function (note) {
@@ -1046,26 +1056,50 @@
 
 				if (this.AnimationHandle)
 					clearInterval(this.AnimationHandle);
+
+				Fll.start();
 			};
 
 			Recorder.prototype.elapsedTime = function () {
 				return Date.now() - this.BeginTime;
 			};
 
-			Recorder.prototype.onNoteOn = function (note) {
+			Recorder.prototype.getChannel = function (channel) {
+				if (this.SvgChannels[channel])
+					return this.SvgChannels[channel];
+
+				this.SvgChannels[channel] = svg(this.SvgScore.group({ class: "channel", "data-channel": channel }));
+
+				return this.SvgChannels[channel];
+			};
+
+			Recorder.prototype.onNoteOn = function (channel, note, velocity) {
 				if (this.Recording) {
 					if (this.Waiting)
 						this.beginRecord();
+					else {
+						this.ChannelStatus[channel] = this.ChannelStatus[channel] || [];
+						this.ChannelStatus[channel][note] = { start: this.elapsedTime(), velocity: velocity };
+					}
 				}
 			};
 
-			Recorder.prototype.onNoteOff = function (note) {
-				if (this.Recording)
-					console.log("Recorder.prototype.onNoteOff", note);
+			Recorder.prototype.onNoteOff = function (channel, note) {
+				if (this.Recording) {
+					if (this.ChannelStatus[channel] && this.ChannelStatus[channel][note]) {
+						var status = this.ChannelStatus[channel][note];
+						var note = { note: note, start: status.start, duration: this.elapsedTime() - status.start, velocity: status.velocity };
+
+						var channel = this.getChannel(channel);
+						paintNote(note, channel);
+					}
+				}
 			};
 
 			Recorder.prototype.onAnimation = function () {
 				$("#playback-time-text").text(toMinutesSeconds(this.elapsedTime()));
+
+				updateScorePosition(this.elapsedTime());
 			};
 
 
@@ -1090,6 +1124,8 @@
 				updateMetaData();
 
 				Fll.stop();
+
+				MIDI.Player.setAnimation(onMIDIPlayerAnimation);
 			};
 
 			var toMinutesSeconds = function (millisec) {
@@ -1199,8 +1235,9 @@
 				addClass(bar, "active");
 				bar.css("opacity", velocityToOpacity(velocity));
 
-				Fll.onNoteOn(note);
-				Rec.onNoteOn(note);
+				Rec.onNoteOn(channel, note, velocity);
+				if (!Rec.isRecording())
+					Fll.onNoteOn(note);
 			};
 
 			var noteOff = function (channel, note) {
@@ -1212,8 +1249,9 @@
 				removeClass(bar, "active");
 				bar.css("opacity", "");
 
-				Fll.onNoteOff(note);
-				Rec.onNoteOff(note);
+				Rec.onNoteOff(channel, note);
+				if (!Rec.isRecording())
+					Fll.onNoteOff(note);
 			};
 
 			var noteToX = function (note) {
@@ -1551,6 +1589,19 @@
 				return resultIndex;
 			};
 
+			var paintNote = function (note, group) {
+				var pitch = Musical.notePitch(note.note);
+				var x = noteToX(note.note);
+				var white = PinaoConfig.KeySerials.White.indexOf(pitch) >= 0;
+				var opacity = velocityToOpacity(note.velocity);
+				var options = { class: "note pitch-" + pitch, "data-note": note.note/*, "data-pitch": pitch*/, "data-index": note.index, style: "opacity:" + opacity };
+				var height = Math.max(note.duration * ScoreTimeScale - 1, 1);
+				if (white)
+					group.rect(x * PinaoConfig.KeyWidth + 2, note.start * ScoreTimeScale, PinaoConfig.KeyWidth - 4, height, 5, 5, options);
+				else
+					group.rect((x - 0.25) * PinaoConfig.KeyWidth, note.start * ScoreTimeScale, PinaoConfig.KeyWidth * 0.5, height, options);
+			};
+
 			var paintScore = function () {
 				ScoreNotations = parseMidiData(MIDI.Player.data);
 
@@ -1570,17 +1621,7 @@
 				for (var c in ScoreNotations.channels) {
 					var g = svg(score.group({ class: "channel", "data-channel": c }));
 					for (var i = 0; i < ScoreNotations.channels[c].length; ++i) {
-						var note = ScoreNotations.channels[c][i];
-						var pitch = Musical.notePitch(note.note);
-						var x = noteToX(note.note);
-						var white = PinaoConfig.KeySerials.White.indexOf(pitch) >= 0;
-						var opacity = velocityToOpacity(note.velocity);
-						var options = { class: "note pitch-" + pitch, "data-note": note.note/*, "data-pitch": pitch*/, "data-index": note.index, style: "opacity:" + opacity };
-						var height = Math.max(note.duration * ScoreTimeScale - 1, 1);
-						if (white)
-							g.rect(x * PinaoConfig.KeyWidth + 2, note.start * ScoreTimeScale, PinaoConfig.KeyWidth - 4, height, 5, 5, options);
-						else
-							g.rect((x - 0.25) * PinaoConfig.KeyWidth, note.start * ScoreTimeScale, PinaoConfig.KeyWidth * 0.5, height, options);
+						paintNote(ScoreNotations.channels[c][i], g);
 					}
 				}
 
@@ -1599,6 +1640,10 @@
 
 				if (Fll.State == Follower.States.Shut) {
 					var top = -time * ScoreTimeScale;
+
+					if (Rec.isRecording())
+						top += scoreViewportHeight();
+
 					if (top != $("#score-canvas").css("top"))
 						$("#score-canvas").css("top", top);
 				}
@@ -1658,6 +1703,10 @@
 
 			var scoreScrollPosition = function () {
 				return $("#keyboard-canvas").offset().top + $("#keyboard-canvas").height() - $("#score-canvas").offset().top;
+			};
+
+			var scoreViewportHeight = function () {
+				return $(window).height() - ($("#keyboard-canvas").offset().top + $("#keyboard-canvas").height());
 			};
 
 			var scrollScore = function (delta) {

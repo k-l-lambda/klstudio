@@ -638,6 +638,26 @@
 				stroke: #fff79f;
 			}
 
+			.pedal
+			{
+				opacity: 0.4;
+			}
+
+			.pedal-Sustain
+			{
+				fill: #00baff;
+			}
+
+			.pedal-Sostenuto
+			{
+				fill: #ff7800;
+			}
+
+			.pedal-Soft
+			{
+				fill: #ff00cc;
+			}
+
 			.beat-bar
 			{
 				stroke: white;
@@ -784,6 +804,8 @@
 			var KeyStatus = {};
 
 			var PitchWheelValue = 0;
+
+			var MidiTimeStampOffset = null;
 
 			var Follower = function () {
 				this.State = Follower.States.Idle;
@@ -1025,9 +1047,12 @@
 				$("#playback-time-text").text(toMinutesSeconds(0));
 
 				this.SvgScore = svg("#score-music");
+				//this.SvgChannel = svg(this.SvgScore.group({ class: "channel-container" }));
 				this.SvgChannels = {};
+				this.SvgPedals = svg(this.SvgScore.group({ class: "pedal" }));
 
 				this.ChannelStatus = [];
+				this.PedalStatus = {};
 
 				Fll.stop();
 			};
@@ -1046,8 +1071,6 @@
 				this.AnimationHandle = setInterval(function () { self.onAnimation(); }, 30);
 
 				this.Data = [];
-
-				this.TimeStampOffset = null;
 			};
 
 			Recorder.prototype.endRecord = function (note) {
@@ -1066,6 +1089,10 @@
 				return Date.now() - this.BeginTime;
 			};
 
+			Recorder.prototype.getTimeStamp = function (time) {
+				return MidiTimeStampOffset ? (time * 1000 + MidiTimeStampOffset - this.BeginTime) : this.elapsedTime();
+			}
+
 			Recorder.prototype.getChannel = function (channel) {
 				if (this.SvgChannels[channel])
 					return this.SvgChannels[channel];
@@ -1077,33 +1104,52 @@
 
 			Recorder.prototype.onNoteOn = function (data) {
 				//console.log("TimeStampOffset", data.timeStamp * 1000 - Date.now());
-				if (!this.TimeStampOffset)
-					this.TimeStampOffset = Date.now() - data.timeStamp * 1000;
-
 				if (this.Recording) {
 					if (this.Waiting)
 						this.beginRecord();
-					else {
-						var time = this.TimeStampOffset ? (data.timeStamp * 1000 + this.TimeStampOffset - this.BeginTime) : this.elapsedTime();
 
-						this.ChannelStatus[data.channel] = this.ChannelStatus[data.channel] || [];
-						this.ChannelStatus[data.channel][data.note] = { start: time, velocity: data.velocity };
-					}
+					this.ChannelStatus[data.channel] = this.ChannelStatus[data.channel] || [];
+					this.ChannelStatus[data.channel][data.note] = { start: this.getTimeStamp(data.timeStamp), velocity: data.velocity };
 				}
 			};
 
 			Recorder.prototype.onNoteOff = function (data) {
-				//console.log("TimeStampOffset", data.timeStamp * 1000 - Date.now());
-
 				if (this.Recording) {
 					if (this.ChannelStatus[data.channel] && this.ChannelStatus[data.channel][data.note]) {
-						var time = this.TimeStampOffset ? (data.timeStamp * 1000 + this.TimeStampOffset - this.BeginTime) : this.elapsedTime();
-
 						var status = this.ChannelStatus[data.channel][data.note];
-						var note = { note: data.note, start: status.start, duration: time - status.start, velocity: status.velocity };
+						var note = { note: data.note, start: status.start, duration: this.getTimeStamp(data.timeStamp) - status.start, velocity: status.velocity };
 
 						var channel = this.getChannel(data.channel);
 						paintNote(note, channel);
+					}
+				}
+			};
+
+			Recorder.prototype.onPedalOn = function (data) {
+				if (this.Recording) {
+					if (data.channel == 1) {
+						if (this.Waiting)
+							this.beginRecord();
+
+						if (!this.PedalStatus[data.pedalType])
+							this.PedalStatus[data.pedalType] = { start: this.getTimeStamp(data.timeStamp) };
+					}
+				}
+			};
+
+			Recorder.prototype.onPedalOff = function (data) {
+				if (this.Recording) {
+					if (data.channel == 1) {
+						var status = this.PedalStatus[data.pedalType];
+						if (status) {
+							var pedal = { start: status.start, duration: this.getTimeStamp(data.timeStamp) - status.start, type: data.pedalType };
+							if (pedal.duration < 0)
+								console.warn("minus pedal data:", pedal);
+							else
+								paintPedal(pedal, this.SvgPedals);
+
+							this.PedalStatus[data.pedalType] = null;
+						}
 					}
 				}
 			};
@@ -1614,6 +1660,11 @@
 					group.rect((x - 0.25) * PinaoConfig.KeyWidth, note.start * ScoreTimeScale, PinaoConfig.KeyWidth * 0.5, height, options);
 			};
 
+			var paintPedal = function (data, group) {
+				var options = { class: "pedal pedal-" + data.type, "data-type": data.type };
+				group.rect(0, data.start * ScoreTimeScale, 2080, Math.max(data.duration * ScoreTimeScale, 1), 0, 0, options);
+			};
+
 			var paintScore = function () {
 				ScoreNotations = parseMidiData(MIDI.Player.data);
 
@@ -1927,7 +1978,7 @@
 						$(document).keydown(function () {
 							if (KeyMap[event.keyCode]) {
 								if (!KeyStatus[event.keyCode]) {	// to avoid auto-repeat
-									noteOn({channel: 0, note: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0), velocity: 100});
+									noteOn({ channel: 0, note: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0), velocity: 100 });
 
 									KeyStatus[event.keyCode] = true;
 								}
@@ -1986,23 +2037,9 @@
 
 					MidiIO.registerCallbackObject({
 						printmessage: function (message) {
-							/*//console.log("MIDI in:", message.getTimeStamp(), message.getRawData().toString(16));
+							//console.log("MIDI in:", message.getTimeStamp(), message.getRawData().toString(16));
 
-							if (message.isNoteOnOrOff()) {
-							if (message.isNoteOn()) {
-							noteOn(message.getChannel(), message.getNoteNumber(), message.getVelocity());
-							}
-							else {
-							noteOff(message.getChannel(), message.getNoteNumber());
-							}
-							}
-							else if (message.isPitchWheel()) {
-							//console.log("PitchWheel:", message.getPitchWheelValue());
-							if (!MIDI.Player.playing) {
-							PitchWheelValue = (message.getPitchWheelValue() - 0x2000) / 0x2000
-							}
-							}*/
-							var data = { timeStamp: message.getTimeStamp() };
+							var data = { timeStamp: message.getTimeStamp(), rawData: message.getRawData() };
 							if (message.isNoteOnOrOff()) {
 								if (message.isNoteOn()) {
 									data.type = "NoteOn";
@@ -2016,6 +2053,36 @@
 									data.note = message.getNoteNumber();
 								}
 							}
+							else if (message.isSustainPedalOn()) {
+								data.type = "PedalOn";
+								data.pedalType = "Sustain";
+								data.channel = message.getChannel();
+							}
+							else if (message.isSustainPedalOff()) {
+								data.type = "PedalOff";
+								data.pedalType = "Sustain";
+								data.channel = message.getChannel();
+							}
+							else if (message.isSostenutoPedalOn()) {
+								data.type = "PedalOn";
+								data.pedalType = "Sostenuto";
+								data.channel = message.getChannel();
+							}
+							else if (message.isSostenutoPedalOff()) {
+								data.type = "PedalOff";
+								data.pedalType = "Sostenuto";
+								data.channel = message.getChannel();
+							}
+							else if (message.isSoftPedalOn()) {
+								data.type = "PedalOn";
+								data.pedalType = "Soft";
+								data.channel = message.getChannel();
+							}
+							else if (message.isSoftPedalOff()) {
+								data.type = "PedalOff";
+								data.pedalType = "Soft";
+								data.channel = message.getChannel();
+							}
 							else if (message.isPitchWheel()) {
 								if (!MIDI.Player.playing) {
 									data.type = "PitchWheel";
@@ -2024,6 +2091,9 @@
 							}
 
 							setTimeout(function () {
+								if (!MidiTimeStampOffset)
+									MidiTimeStampOffset = Date.now() - data.timeStamp * 1000;
+
 								//console.log("timeStamp", data.timeStamp);
 								switch (data.type) {
 									case "NoteOn":
@@ -2034,12 +2104,22 @@
 										noteOff(data);
 
 										break;
+									case "PedalOn":
+										Rec.onPedalOn(data);
+
+										break;
+									case "PedalOff":
+										Rec.onPedalOff(data);
+
+										break;
 									case "PitchWheel":
 										if (!MIDI.Player.playing) {
 											PitchWheelValue = (data.value - 0x2000) / 0x2000;
 										}
 
 										break;
+									default:
+										console.log("MIDI message:", data.type);
 								}
 							}, 0);
 						}

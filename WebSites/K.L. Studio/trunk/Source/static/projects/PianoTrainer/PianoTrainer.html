@@ -115,7 +115,7 @@
 				opacity: 1;
 			}
 
-			.recording #playback-play, .recording #playback-progress, .recording #playback-source, .recording #playback-metainfo
+			.recording #playback-play, .recording #playback-progress, .recording #playback-source, .recording #playback-metainfo, .recording #playback-save
 			{
 				opacity: 0.3;
 			}
@@ -193,9 +193,9 @@
 			{
 				display: inline-block;
 				vertical-align: middle;
-				width: 20px;
-				height: 20px;
-				background: url(/res/images/save.png);
+				width: 32px;
+				height: 32px;
+				background: url(/res/images/save.png) center no-repeat;
 			}
 
 			#playback-mode
@@ -649,7 +649,7 @@
 
 			.pedal
 			{
-				opacity: 0.4;
+				opacity: 0.3;
 			}
 
 			.pedal-Sustain
@@ -726,7 +726,9 @@
 		<script src="../../js/MIDI/inc/base64binary.js" type="text/javascript"></script>
 		<script src="../../js/MIDI/inc/replayer.js" type="text/javascript"></script>
 		<script src="../../js/MIDI/inc/midifile.js" type="text/javascript"></script>
+		<script src="../../js/MIDI/inc/midifileEx.js" type="text/javascript"></script>
 		<script src="../../js/MIDI/inc/stream.js" type="text/javascript"></script>
+		<script src="../../js/MIDI/inc/streamEx.js" type="text/javascript"></script>
 		<script src="../../js/MusicalUtils.js" type="text/javascript"></script>
 		<script type="text/javascript">
 			var MidiIO = null;
@@ -2231,7 +2233,7 @@
 					</span>
 					<span id="playback-source">...</span>
 					<input id="playback-source-file" type="file" accept="audio/mid" />
-					<a id="playback-save" class="image-button"></a>
+					<a id="playback-save" class="image-button" title="save as MIDI file"></a>
 					<span id="playback-metainfo">
 						<span id="playback-mode"></span>
 						<span id="playback-tempo">

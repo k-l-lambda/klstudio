@@ -18,6 +18,9 @@ Pending Issues:
 
 2014.9.1	K.L.	<k.l.lambda@gmail.com>
 
+	+	Source/static/js/MIDI/inc/midifileEx.js: created.
+	+	Source/static/js/MIDI/inc/streamEx.js: created.
+
 	+	Source/static/projects/PianoTrainer.html: paint pedals for MIDI file.
 
 	+	Source/static/projects/PianoTrainer.html: added file save button.

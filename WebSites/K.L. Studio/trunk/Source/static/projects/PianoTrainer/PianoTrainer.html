@@ -189,6 +189,15 @@
 				display: none;
 			}
 
+			#playback-save
+			{
+				display: inline-block;
+				vertical-align: middle;
+				width: 20px;
+				height: 20px;
+				background: url(/res/images/save.png);
+			}
+
 			#playback-mode
 			{
 				margin-left: 8px;
@@ -1178,6 +1187,9 @@
 
 				localStorage.SourceData = data;
 
+				$("#playback-save").attr("href", data);
+				$("#playback-save").attr("download", localStorage.SourceName);
+
 				MetaData = {};
 				updateMetaData();
 
@@ -1835,6 +1847,9 @@
 							if (localStorage.MetaData) {
 								updateMetaData();
 							}
+
+							$("#playback-save").attr("href", localStorage.SourceData);
+							$("#playback-save").attr("download", localStorage.SourceName);
 						}
 
 						$("#playback-play").click(function () {
@@ -2166,6 +2181,7 @@
 					</span>
 					<span id="playback-source">...</span>
 					<input id="playback-source-file" type="file" accept="audio/mid" />
+					<a id="playback-save" class="image-button"></a>
 					<span id="playback-metainfo">
 						<span id="playback-mode"></span>
 						<span id="playback-tempo">

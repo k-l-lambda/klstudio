@@ -750,6 +750,13 @@
 				RangeKeyWidth: 11
 			};
 
+			var PedalControllerTypes = {
+				64: "Sustain",
+				65: "Portamento",
+				66: "Sostenuto",
+				67: "Soft"
+			};
+
 			var ScoreTimeScale = 0.08;
 
 			var MetaData = $.parseJSON(localStorage.MetaData) || {};
@@ -1058,7 +1065,7 @@
 				this.SvgScore = svg("#score-music");
 				//this.SvgChannel = svg(this.SvgScore.group({ class: "channel-container" }));
 				this.SvgChannels = {};
-				this.SvgPedals = svg(this.SvgScore.group({ class: "pedal" }));
+				this.SvgPedals = svg(this.SvgScore.group({ class: "pedals" }));
 
 				this.ChannelStatus = [];
 				this.PedalStatus = {};
@@ -1521,6 +1528,8 @@
 
 			var parseMidiData = function (data) {
 				var channelStatus = [];
+				var pedalStatus = {};
+				var pedals = {};
 				var channels = [];
 				var bars = [];
 				var time = 0;
@@ -1575,6 +1584,36 @@
 									keyRange.high = Math.max(keyRange.high || note, note);
 
 									break;
+								case "controller":
+									switch (event.controllerType) {
+										// pedal controllers  
+										case 64:
+										case 65:
+										case 66:
+										case 67:
+											var pedalType = PedalControllerTypes[event.controllerType];
+
+											pedalStatus[event.channel] = pedalStatus[event.channel] || {};
+											pedals[event.channel] = pedals[event.channel] || [];
+
+											var status = pedalStatus[event.channel][pedalType];
+
+											if (event.value > 0) {
+												if (!status)
+													pedalStatus[event.channel][pedalType] = { start: time, value: event.value };
+											}
+											else {
+												if (status) {
+													pedals[event.channel].push({ type: pedalType, start: status.start, duration: time - status.start, value: status.value });
+
+													pedalStatus[event.channel][pedalType] = null;
+												}
+											}
+
+											break;
+									}
+
+									break;
 							}
 
 							break;
@@ -1610,7 +1649,7 @@
 				for (var i in notes)
 					notes[i].index = i;
 
-				return { channels: channels, notes: notes, bars: bars, endTime: time, keyRange: keyRange };
+				return { channels: channels, notes: notes, pedals: pedals, bars: bars, endTime: time, keyRange: keyRange };
 			};
 
 			var searchNotation = function (note, options) {
@@ -1698,6 +1737,17 @@
 					for (var i = 0; i < ScoreNotations.channels[c].length; ++i) {
 						paintNote(ScoreNotations.channels[c][i], g);
 					}
+				}
+
+				// pedals
+				var pedals = svg(score.group({ class: "pedals" }));
+				for (var c in ScoreNotations.pedals) {
+					for (var i = 0; i < ScoreNotations.pedals[c].length; ++i) {
+						paintPedal(ScoreNotations.pedals[c][i], pedals);
+					}
+
+					// only paint the first pedal channel
+					break;
 				}
 
 				if (localStorage.KeyboardRangeAuto) {

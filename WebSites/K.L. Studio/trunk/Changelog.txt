@@ -3,7 +3,8 @@ TODO:
 	PianoTrainer.html:
 		auto range UI
 		MIDI input recorder
-			encode data to MIDI file.
+			record pedal events
+			add copyright info into MIDI file
 		pedal graph when playing
 		practice mode
 		play piano by keyboard settings
@@ -17,6 +18,8 @@ Pending Issues:
 
 
 2014.9.2	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html/Recorder: save MIDI file implemented.
 
 	+	Source/static/js/MIDI/inc/midifileEx.js: implemented.
 

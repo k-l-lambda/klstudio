@@ -759,6 +759,10 @@
 				67: "Soft"
 			};
 
+			var PedalControllerNumber = {};
+			for (var i in PedalControllerTypes)
+				PedalControllerNumber[PedalControllerTypes[i]] = i;
+
 			Date.prototype.format = function (format) {
 				/*
 				* eg:format="yyyy-MM-dd hh:mm:ss";
@@ -1234,8 +1238,20 @@
 						if (this.Waiting)
 							this.beginRecord();
 
-						if (!this.PedalStatus[data.pedalType])
-							this.PedalStatus[data.pedalType] = { start: this.getTimeStamp(data.timeStamp) };
+						if (!this.PedalStatus[data.pedalType]) {
+							var now = this.getTimeStamp(data.timeStamp);
+							this.PedalStatus[data.pedalType] = { start: now };
+
+							this.Tracks[0].push({
+								deltaTime: (now - this.LastEventTime) * Recorder.MidiMetaData.secondToTicks,
+								type: "channel",
+								subtype: "controller",
+								channel: data.channel,
+								controllerType: PedalControllerNumber[data.pedalType],
+								value: 127
+							});
+							this.LastEventTime = now;
+						}
 					}
 				}
 			};
@@ -1245,13 +1261,25 @@
 					if (data.channel == 1) {
 						var status = this.PedalStatus[data.pedalType];
 						if (status) {
-							var pedal = { start: status.start, duration: this.getTimeStamp(data.timeStamp) - status.start, type: data.pedalType };
+							var now = this.getTimeStamp(data.timeStamp);
+
+							var pedal = { start: status.start, duration: now - status.start, type: data.pedalType };
 							if (pedal.duration < 0)
 								console.warn("minus pedal data:", pedal);
 							else
 								paintPedal(pedal, this.SvgPedals);
 
 							this.PedalStatus[data.pedalType] = null;
+
+							this.Tracks[0].push({
+								deltaTime: (now - this.LastEventTime) * Recorder.MidiMetaData.secondToTicks,
+								type: "channel",
+								subtype: "controller",
+								channel: data.channel,
+								controllerType: PedalControllerNumber[data.pedalType],
+								value: 0
+							});
+							this.LastEventTime = now;
 						}
 					}
 				}

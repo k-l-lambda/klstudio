@@ -3,9 +3,7 @@ TODO:
 	PianoTrainer.html:
 		auto range UI
 		MIDI input recorder
-			record pedal events
 			add copyright info into MIDI file
-		pedal graph when playing
 		practice mode
 		play piano by keyboard settings
 	SpiralPiano.html:
@@ -18,6 +16,8 @@ Pending Issues:
 
 
 2014.9.2	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html/Recorder: save pedal events into MIDI file.
 
 	+	Source/static/projects/PianoTrainer.html/Recorder: save MIDI file implemented.
 

@@ -759,6 +759,32 @@
 				67: "Soft"
 			};
 
+			Date.prototype.format = function (format) {
+				/*
+				* eg:format="yyyy-MM-dd hh:mm:ss";
+				*/
+				var o = {
+					"M+": this.getMonth() + 1,  //month
+					"d+": this.getDate(),     //day
+					"h+": this.getHours(),    //hour
+					"m+": this.getMinutes(),  //minute
+					"s+": this.getSeconds(), //second
+					"q+": Math.floor((this.getMonth() + 3) / 3),  //quarter
+					"S": this.getMilliseconds() //millisecond
+				};
+
+				if (/(y+)/.test(format)) {
+					format = format.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+				}
+
+				for (var k in o) {
+					if (new RegExp("(" + k + ")").test(format)) {
+						format = format.replace(RegExp.$1, RegExp.$1.length == 1 ? o[k] : ("00" + o[k]).substr(("" + o[k]).length));
+					}
+				}
+				return format;
+			};
+
 			var ScoreTimeScale = 0.08;
 
 			var MetaData = $.parseJSON(localStorage.MetaData) || {};
@@ -1031,6 +1057,12 @@
 				this.Data = null;
 			};
 
+			Recorder.MidiMetaData = {
+				ticksPerBeat: 96,
+				microsecondsPerBeat: 500000
+			};
+			Recorder.MidiMetaData.secondToTicks = Recorder.MidiMetaData.ticksPerBeat * 1000 / Recorder.MidiMetaData.microsecondsPerBeat;
+
 			Recorder.prototype.toggleRecord = function () {
 				this.Recording = !this.Recording;
 
@@ -1072,6 +1104,10 @@
 				this.ChannelStatus = [];
 				this.PedalStatus = {};
 
+				this.Tracks = [[]];
+				this.Tracks[0].push({ deltaTime: 0, type: "meta", subtype: "timeSignature", numerator: 4, denominator: 4, thirtyseconds: 8 });
+				this.Tracks[0].push({ deltaTime: 0, type: "meta", subtype: "setTempo", microsecondsPerBeat: Recorder.MidiMetaData.microsecondsPerBeat });
+
 				Fll.stop();
 			};
 
@@ -1089,6 +1125,8 @@
 				this.AnimationHandle = setInterval(function () { self.onAnimation(); }, 30);
 
 				this.Data = [];
+
+				this.LastEventTime = 0;
 			};
 
 			Recorder.prototype.endRecord = function (note) {
@@ -1100,7 +1138,30 @@
 				if (this.AnimationHandle)
 					clearInterval(this.AnimationHandle);
 
+				this.saveData();
+
 				Fll.start();
+			};
+
+			Recorder.prototype.saveData = function () {
+				var header = { formatType: 0, ticksPerBeat: Recorder.MidiMetaData.ticksPerBeat };
+
+				this.Tracks[0].push({ deltaTime: (this.elapsedTime() - this.LastEventTime) * Recorder.MidiMetaData.secondToTicks, type: "meta", subtype: "endOfTrack" });
+
+				var midiData = OMidiFile(header, this.Tracks);
+
+				localStorage.SourceData = "data:audio/mid;base64," + btoa(midiData);
+				localStorage.SourceName = "Recording " + new Date().format("yyyy-MM-dd hh.mm.ss.mid");
+				MIDI.Player.loadFile(localStorage.SourceData, function () {
+					MIDI.Player.currentTime = 0;
+
+					//paintScore();
+					updateScorePosition();
+				});
+
+				$("#playback-source").text(localStorage.SourceName);
+				$("#playback-save").attr("href", localStorage.SourceData);
+				$("#playback-save").attr("download", localStorage.SourceName);
 			};
 
 			Recorder.prototype.elapsedTime = function () {
@@ -1126,8 +1187,20 @@
 					if (this.Waiting)
 						this.beginRecord();
 
+					var now = this.getTimeStamp(data.timeStamp);
+
 					this.ChannelStatus[data.channel] = this.ChannelStatus[data.channel] || [];
-					this.ChannelStatus[data.channel][data.note] = { start: this.getTimeStamp(data.timeStamp), velocity: data.velocity };
+					this.ChannelStatus[data.channel][data.note] = { start: now, velocity: data.velocity };
+
+					this.Tracks[0].push({
+						deltaTime: (now - this.LastEventTime) * Recorder.MidiMetaData.secondToTicks,
+						type: "channel",
+						subtype: "noteOn",
+						channel: data.channel,
+						noteNumber: data.note,
+						velocity: data.velocity
+					});
+					this.LastEventTime = now;
 				}
 			};
 
@@ -1135,10 +1208,22 @@
 				if (this.Recording) {
 					if (this.ChannelStatus[data.channel] && this.ChannelStatus[data.channel][data.note]) {
 						var status = this.ChannelStatus[data.channel][data.note];
-						var note = { note: data.note, start: status.start, duration: this.getTimeStamp(data.timeStamp) - status.start, velocity: status.velocity };
+						var now = this.getTimeStamp(data.timeStamp);
+
+						var note = { note: data.note, start: status.start, duration: now - status.start, velocity: status.velocity };
 
 						var channel = this.getChannel(data.channel);
 						paintNote(note, channel);
+
+						this.Tracks[0].push({
+							deltaTime: (now - this.LastEventTime) * Recorder.MidiMetaData.secondToTicks,
+							type: "channel",
+							subtype: "noteOff",
+							channel: data.channel,
+							noteNumber: data.note,
+							velocity: 0
+						});
+						this.LastEventTime = now;
 					}
 				}
 			};

@@ -1109,8 +1109,8 @@
 				this.PedalStatus = {};
 
 				this.Tracks = [[]];
-				this.Tracks[0].push({ deltaTime: 0, type: "meta", subtype: "timeSignature", numerator: 4, denominator: 4, thirtyseconds: 8 });
-				this.Tracks[0].push({ deltaTime: 0, type: "meta", subtype: "setTempo", microsecondsPerBeat: Recorder.MidiMetaData.microsecondsPerBeat });
+				this.Tracks[0].push({ time: 0, type: "meta", subtype: "timeSignature", numerator: 4, denominator: 4, thirtyseconds: 8 });
+				this.Tracks[0].push({ time: 0, type: "meta", subtype: "setTempo", microsecondsPerBeat: Recorder.MidiMetaData.microsecondsPerBeat });
 
 				Fll.stop();
 			};
@@ -1130,7 +1130,7 @@
 
 				this.Data = [];
 
-				this.LastEventTime = 0;
+				//this.LastEventTime = 0;
 			};
 
 			Recorder.prototype.endRecord = function (note) {
@@ -1150,7 +1150,13 @@
 			Recorder.prototype.saveData = function () {
 				var header = { formatType: 0, ticksPerBeat: Recorder.MidiMetaData.ticksPerBeat };
 
-				this.Tracks[0].push({ deltaTime: (this.elapsedTime() - this.LastEventTime) * Recorder.MidiMetaData.secondToTicks, type: "meta", subtype: "endOfTrack" });
+				this.Tracks[0].push({ time: this.elapsedTime(), type: "meta", subtype: "endOfTrack" });
+
+				// compute deltaTime for events
+				this.Tracks[0].sort(function (e1, e2) { return e1.time - e2.time; });
+				for (var i in this.Tracks[0]) {
+					this.Tracks[0][i].deltaTime = (this.Tracks[0][i].time - (i > 0 ? this.Tracks[0][i - 1].time : 0)) * Recorder.MidiMetaData.secondToTicks;
+				}
 
 				var midiData = OMidiFile(header, this.Tracks);
 
@@ -1159,7 +1165,7 @@
 				MIDI.Player.loadFile(localStorage.SourceData, function () {
 					MIDI.Player.currentTime = 0;
 
-					//paintScore();
+					paintScore();
 					updateScorePosition();
 				});
 
@@ -1197,14 +1203,15 @@
 					this.ChannelStatus[data.channel][data.note] = { start: now, velocity: data.velocity };
 
 					this.Tracks[0].push({
-						deltaTime: (now - this.LastEventTime) * Recorder.MidiMetaData.secondToTicks,
+						//deltaTime: (now - this.LastEventTime) * Recorder.MidiMetaData.secondToTicks,
+						time: now,
 						type: "channel",
 						subtype: "noteOn",
 						channel: data.channel,
 						noteNumber: data.note,
 						velocity: data.velocity
 					});
-					this.LastEventTime = now;
+					//this.LastEventTime = now;
 				}
 			};
 
@@ -1220,14 +1227,14 @@
 						paintNote(note, channel);
 
 						this.Tracks[0].push({
-							deltaTime: (now - this.LastEventTime) * Recorder.MidiMetaData.secondToTicks,
+							time: now,
 							type: "channel",
 							subtype: "noteOff",
 							channel: data.channel,
 							noteNumber: data.note,
 							velocity: 0
 						});
-						this.LastEventTime = now;
+						//this.LastEventTime = now;
 					}
 				}
 			};
@@ -1243,14 +1250,14 @@
 							this.PedalStatus[data.pedalType] = { start: now };
 
 							this.Tracks[0].push({
-								deltaTime: (now - this.LastEventTime) * Recorder.MidiMetaData.secondToTicks,
+								time: now,
 								type: "channel",
 								subtype: "controller",
 								channel: data.channel,
 								controllerType: PedalControllerNumber[data.pedalType],
 								value: 127
 							});
-							this.LastEventTime = now;
+							//this.LastEventTime = now;
 						}
 					}
 				}
@@ -1272,14 +1279,14 @@
 							this.PedalStatus[data.pedalType] = null;
 
 							this.Tracks[0].push({
-								deltaTime: (now - this.LastEventTime) * Recorder.MidiMetaData.secondToTicks,
+								time: now,
 								type: "channel",
 								subtype: "controller",
 								channel: data.channel,
 								controllerType: PedalControllerNumber[data.pedalType],
 								value: 0
 							});
-							this.LastEventTime = now;
+							//this.LastEventTime = now;
 						}
 					}
 				}

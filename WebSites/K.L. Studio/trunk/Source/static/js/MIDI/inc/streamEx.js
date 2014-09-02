@@ -27,11 +27,12 @@ function OStream() {
 		with top bit set to signify that another byte follows)
 	*/
 	function writeVarInt(i) {
-		var str = "";
+		if (i < 0)
+			throw "OStream.writeVarInt minus number: " + i;
 
 		var b = i & 0x7f;
 		i >>= 7;
-		str = String.fromCharCode(b) + str;
+		var str = String.fromCharCode(b);
 
 		while (i) {
 			var b = i & 0x7f;

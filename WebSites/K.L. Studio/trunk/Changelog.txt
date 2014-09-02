@@ -17,6 +17,10 @@ Pending Issues:
 
 2014.9.2	K.L.	<k.l.lambda@gmail.com>
 
+	>	Source/static/projects/PianoTrainer.html/Recorder: sort events to solve minus delta time issue.
+
+	*!	OStream.writeVarInt with minus number will result in infinit loop, then browser tab crash.
+
 	+	Source/static/projects/PianoTrainer.html/Recorder: save pedal events into MIDI file.
 
 	+	Source/static/projects/PianoTrainer.html/Recorder: save MIDI file implemented.

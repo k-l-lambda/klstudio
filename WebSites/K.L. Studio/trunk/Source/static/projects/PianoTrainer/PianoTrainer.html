@@ -1176,6 +1176,7 @@
 
 					paintScore();
 					updateScorePosition();
+					updatePlaybackProgress();
 				});
 
 				$("#playback-source").text(localStorage.SourceName);
@@ -2202,6 +2203,7 @@
 									MIDI.Player.stop();
 									$("#playback-play").attr("src", "/res/images/play.png");
 									updateScorePosition();
+									updatePlaybackProgress();
 
 									break;
 								case 27: // Esc
@@ -2242,6 +2244,7 @@
 									MIDI.Player.resume();
 
 								updateScorePosition();
+								updatePlaybackProgress();
 							}
 						});
 

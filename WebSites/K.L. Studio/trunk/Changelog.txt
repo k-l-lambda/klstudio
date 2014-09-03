@@ -17,6 +17,8 @@ Pending Issues:
 
 2014.9.3	K.L.	<k.l.lambda@gmail.com>
 
+	>	Source/static/projects/PianoTrainer.html: range adjust controls added.
+
 	>	Source/static/projects/PianoTrainer.html/Recorder: refined begin time from time stamp.
 
 

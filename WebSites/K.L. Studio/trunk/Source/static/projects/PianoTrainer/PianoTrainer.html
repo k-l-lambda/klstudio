@@ -165,7 +165,7 @@
 				margin-left: 20px;
 				font-size: 20px;
 				line-height: 24px;
-				width: 16em;
+				width: 19em;
 				height: 24px;
 				border-radius: 5px;
 				white-space: nowrap;
@@ -253,6 +253,13 @@
 				margin: 22px 0 8px !important;
 			}
 
+			#range-controls .image-button
+			{
+				margin: 0 8px;
+				zoom: 80%;
+				vertical-align: middle;
+			}
+
 			#range-bar
 			{
 				opacity: 0.8;
@@ -261,6 +268,7 @@
 				position: relative;
 				display: inline-block;
 				width: 900px;
+				vertical-align: middle;
 			}
 
 			#range-bar:hover
@@ -1100,6 +1108,8 @@
 
 				$("#playback-time-text").text(toMinutesSeconds(0));
 
+				resetRangeMask();
+
 				this.SvgScore = svg("#score-music");
 				//this.SvgChannel = svg(this.SvgScore.group({ class: "channel-container" }));
 				this.SvgChannels = {};
@@ -1171,6 +1181,8 @@
 				$("#playback-source").text(localStorage.SourceName);
 				$("#playback-save").attr("href", localStorage.SourceData);
 				$("#playback-save").attr("download", localStorage.SourceName);
+
+				$("#playback-source-file").val("");
 			};
 
 			Recorder.prototype.elapsedTime = function () {
@@ -1498,13 +1510,13 @@
 				localStorage.removeItem("KeyMap");
 			};
 
-			var updateRangeMask = function () {
-				var low = Number(localStorage.KeyboardRangeLow);
-				var high = Number(localStorage.KeyboardRangeHigh);
+			var updateRangeMask = function (range) {
+				if (!range)
+					range = { low: localStorage.KeyboardRangeLow, high: localStorage.KeyboardRangeHigh };
 
 				var keyboardLeft = $("#range-keyboard").offset().left - $("#range-bar").offset().left;
-				var left = keyboardLeft + low * PinaoConfig.RangeKeyWidth;
-				var right = keyboardLeft + high * PinaoConfig.RangeKeyWidth;
+				var left = keyboardLeft + range.low * PinaoConfig.RangeKeyWidth;
+				var right = keyboardLeft + range.high * PinaoConfig.RangeKeyWidth;
 
 				$("#range-mask-left").css("width", left - 2);
 				$("#range-mask-right").css("left", right);
@@ -1512,9 +1524,13 @@
 				$("#range-mask-middle").css("width", right - left - 4);
 
 				$("#keyboard-canvas, #score-canvas").css({
-					left: 100 * (-low / (high - low)) + "%",
-					width: 100 * ((noteToX(PinaoConfig.NoteEnd) + 1 - noteToX(PinaoConfig.NoteStart)) / (high - low)) + "%"
+					left: 100 * (-range.low / (range.high - range.low)) + "%",
+					width: 100 * ((noteToX(PinaoConfig.NoteEnd) + 1 - noteToX(PinaoConfig.NoteStart)) / (range.high - range.low)) + "%"
 				});
+			};
+
+			var resetRangeMask = function () {
+				updateRangeMask({ low: noteToX(PinaoConfig.NoteStart), high: noteToX(PinaoConfig.NoteEnd + 1) });
 			};
 
 			var initializeRangeKeyboard = function () {
@@ -1597,6 +1613,9 @@
 						updateRangeMask();
 					}
 				});
+
+				$("#range-button-full").click(function () { resetRangeMask(); });
+				$("#range-button-intensive").click(function () { updateRangeMask(); });
 			};
 
 			var initializeKeyboard = function () {
@@ -1801,7 +1820,7 @@
 				var resultTime = null;
 
 				for (var i = options.referenceIndex; i >= 0; --i) {
-					if (ScoreNotations.notes[i].start < options.begin)
+					if (!ScoreNotations.notes[i] || ScoreNotations.notes[i].start < options.begin)
 						break;
 
 					if (ScoreNotations.notes[i].start > options.end)
@@ -1888,6 +1907,10 @@
 				if (localStorage.KeyboardRangeAuto) {
 					localStorage.KeyboardRangeLow = noteToX(ScoreNotations.keyRange.low);
 					localStorage.KeyboardRangeHigh = noteToX(ScoreNotations.keyRange.high) + 1;
+
+					localStorage.KeyboardRangeLow = Math.min(Number(localStorage.KeyboardRangeHigh) - 7, localStorage.KeyboardRangeLow);
+					localStorage.KeyboardRangeHigh = Math.max(Number(localStorage.KeyboardRangeLow) + 14, localStorage.KeyboardRangeHigh);
+
 					updateRangeMask();
 				}
 			};
@@ -1983,10 +2006,17 @@
 					$("html").removeClass("full-screen");
 			};
 
+			var updatePlaybackProgress = function (time, length) {
+				time = time || MIDI.Player.currentTime;
+				length = length || MIDI.Player.endTime;
+
+				$("#playback-progress-cursor").css("width", (time * 100 / length) + "%");
+				$("#playback-time-text").text(toMinutesSeconds(time));
+			};
+
 			var onMIDIPlayerAnimation = function (data, element) {
 				var time = data.now || 0;
-				$("#playback-progress-cursor").css("width", (time * 100 / data.end) + "%");
-				$("#playback-time-text").text(toMinutesSeconds(time * 1000));
+				updatePlaybackProgress(time * 1000, data.end * 1000);
 
 				localStorage.PlaybackProgress = time / data.end;
 
@@ -2154,6 +2184,8 @@
 								scrollScore(-(event.wheelDelta / 120) * beatLength);
 
 								Fll.State = Follower.States.Idle;
+
+								updatePlaybackProgress();
 							}
 
 							event.preventDefault();
@@ -2170,6 +2202,11 @@
 									MIDI.Player.stop();
 									$("#playback-play").attr("src", "/res/images/play.png");
 									updateScorePosition();
+
+									break;
+								case 27: // Esc
+									if (Rec.isRecording())
+										Rec.toggleRecord();
 
 									break;
 							}
@@ -2216,6 +2253,8 @@
 						});
 
 						Fll.start();
+
+						updatePlaybackProgress();
 					}
 				});
 
@@ -2394,6 +2433,8 @@
 						</g>
 					</svg>
 				</span>
+				<input id="range-button-full" type="image" src="/res/images/expand.png" class="image-button" />
+				<input id="range-button-intensive" type="image" src="/res/images/shrink.png" class="image-button" />
 			</p>
 		</div>
 		<svg id="keyboard-canvas" preserveAspectRatio="none">

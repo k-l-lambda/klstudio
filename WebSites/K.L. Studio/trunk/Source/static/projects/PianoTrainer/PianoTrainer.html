@@ -1115,7 +1115,7 @@
 				Fll.stop();
 			};
 
-			Recorder.prototype.beginRecord = function (note) {
+			Recorder.prototype.beginRecord = function (timeStamp) {
 				this.Waiting = false;
 
 				clearInterval(this.ButtonFlickerHandle);
@@ -1123,7 +1123,7 @@
 
 				$("#playback-record").removeClass("fade");
 
-				this.BeginTime = Date.now();
+				this.BeginTime = timeStamp ? (timeStamp * 1000 + MidiTimeStampOffset) : Date.now();
 
 				var self = this;
 				this.AnimationHandle = setInterval(function () { self.onAnimation(); }, 30);
@@ -1131,7 +1131,7 @@
 				this.Data = [];
 			};
 
-			Recorder.prototype.endRecord = function (note) {
+			Recorder.prototype.endRecord = function () {
 				$("#playback").removeClass("recording");
 
 				if (this.ButtonFlickerHandle)
@@ -1191,28 +1191,28 @@
 			};
 
 			Recorder.prototype.onNoteOn = function (data) {
-				//console.log("TimeStampOffset", data.timeStamp * 1000 - Date.now());
 				if (this.Recording) {
 					if (this.Waiting)
-						this.beginRecord();
+						this.beginRecord(data.timeStamp);
 
 					var now = this.getTimeStamp(data.timeStamp);
 
 					this.ChannelStatus[data.channel] = this.ChannelStatus[data.channel] || [];
 					this.ChannelStatus[data.channel][data.note] = { start: now, velocity: data.velocity };
 
-					if (now < 0)
+					if (now < 0) {
 						console.warn("minus time stamp:", now, this.elapsedTime());
-					else
-						this.Tracks[0].push({
-							//deltaTime: (now - this.LastEventTime) * Recorder.MidiMetaData.secondToTicks,
-							time: now,
-							type: "channel",
-							subtype: "noteOn",
-							channel: data.channel,
-							noteNumber: data.note,
-							velocity: data.velocity
-						});
+						now = 0;
+					}
+
+					this.Tracks[0].push({
+						time: now,
+						type: "channel",
+						subtype: "noteOn",
+						channel: data.channel,
+						noteNumber: data.note,
+						velocity: data.velocity
+					});
 				}
 			};
 
@@ -1227,17 +1227,19 @@
 						var channel = this.getChannel(data.channel);
 						paintNote(note, channel);
 
-						if (now < 0)
+						if (now < 0) {
 							console.warn("minus time stamp:", now, this.elapsedTime());
-						else
-							this.Tracks[0].push({
-								time: now,
-								type: "channel",
-								subtype: "noteOff",
-								channel: data.channel,
-								noteNumber: data.note,
-								velocity: 0
-							});
+							now = 0;
+						}
+
+						this.Tracks[0].push({
+							time: now,
+							type: "channel",
+							subtype: "noteOff",
+							channel: data.channel,
+							noteNumber: data.note,
+							velocity: 0
+						});
 					}
 				}
 			};
@@ -1246,23 +1248,25 @@
 				if (this.Recording) {
 					if (data.channel == 1) {
 						if (this.Waiting)
-							this.beginRecord();
+							this.beginRecord(data.timeStamp);
 
 						if (!this.PedalStatus[data.pedalType]) {
 							var now = this.getTimeStamp(data.timeStamp);
 							this.PedalStatus[data.pedalType] = { start: now };
 
-							if (now < 0)
+							if (now < 0) {
 								console.warn("minus time stamp:", now, this.elapsedTime());
-							else
-								this.Tracks[0].push({
-									time: now,
-									type: "channel",
-									subtype: "controller",
-									channel: data.channel,
-									controllerType: PedalControllerNumber[data.pedalType],
-									value: 127
-								});
+								now = 0;
+							}
+
+							this.Tracks[0].push({
+								time: now,
+								type: "channel",
+								subtype: "controller",
+								channel: data.channel,
+								controllerType: PedalControllerNumber[data.pedalType],
+								value: 127
+							});
 						}
 					}
 				}
@@ -1283,17 +1287,19 @@
 
 							this.PedalStatus[data.pedalType] = null;
 
-							if (now < 0)
+							if (now < 0) {
 								console.warn("minus time stamp:", now, this.elapsedTime());
-							else
-								this.Tracks[0].push({
-									time: now,
-									type: "channel",
-									subtype: "controller",
-									channel: data.channel,
-									controllerType: PedalControllerNumber[data.pedalType],
-									value: 0
-								});
+								now = 0;
+							}
+
+							this.Tracks[0].push({
+								time: now,
+								type: "channel",
+								subtype: "controller",
+								channel: data.channel,
+								controllerType: PedalControllerNumber[data.pedalType],
+								value: 0
+							});
 						}
 					}
 				}

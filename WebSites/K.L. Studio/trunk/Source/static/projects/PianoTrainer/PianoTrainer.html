@@ -235,7 +235,7 @@
 			#input-device
 			{
 				margin-left: 2em;
-				width: 12em;
+				width: 13em;
 				color: inherit;
 				background: inherit;
 				font-family: inherit;
@@ -1092,7 +1092,7 @@
 				MIDI.Player.stop();
 				MIDI.Player.clearAnimation();
 
-				$("#playback-play").attr("src", "/res/images/play.png");
+				updatePlayButton();
 
 				$("#playback").addClass("recording");
 				$("#score-music").empty();
@@ -1108,6 +1108,8 @@
 
 				$("#playback-time-text").text(toMinutesSeconds(0));
 
+				$("#playback-record").attr("title", "Stop Record (Esc)");
+
 				resetRangeMask();
 
 				this.SvgScore = svg("#score-music");
@@ -1119,6 +1121,8 @@
 				this.PedalStatus = {};
 
 				this.Tracks = [[]];
+				this.Tracks[0].push({ time: 0, type: "meta", subtype: "marker", text: "K.L. Studio, url:" + location.href });
+				this.Tracks[0].push({ time: 0, type: "meta", subtype: "copyrightNotice", text: "K.L. Piano Trainer record at " + new Date().format("yyyy-MM-dd hh:mm") });
 				this.Tracks[0].push({ time: 0, type: "meta", subtype: "timeSignature", numerator: 4, denominator: 4, thirtyseconds: 8 });
 				this.Tracks[0].push({ time: 0, type: "meta", subtype: "setTempo", microsecondsPerBeat: Recorder.MidiMetaData.microsecondsPerBeat });
 
@@ -1144,11 +1148,17 @@
 			Recorder.prototype.endRecord = function () {
 				$("#playback").removeClass("recording");
 
-				if (this.ButtonFlickerHandle)
-					clearInterval(this.ButtonFlickerHandle);
+				$("#playback-record").attr("title", "Record (F9)");
 
-				if (this.AnimationHandle)
+				if (this.ButtonFlickerHandle) {
+					clearInterval(this.ButtonFlickerHandle);
+					this.ButtonFlickerHandle = null;
+				}
+
+				if (this.AnimationHandle) {
 					clearInterval(this.AnimationHandle);
+					this.AnimationHandle = null;
+				}
 
 				this.saveData();
 
@@ -1168,6 +1178,9 @@
 				}
 
 				var midiData = OMidiFile(header, this.Tracks);
+
+				MetaData = {};
+				updateMetaData();
 
 				localStorage.SourceData = "data:audio/mid;base64," + btoa(midiData);
 				localStorage.SourceName = "Recording " + new Date().format("yyyy-MM-dd hh.mm.ss.mid");
@@ -1337,8 +1350,8 @@
 					paintScore();
 
 					MIDI.Player.start();
+					updatePlayButton();
 				});
-				$("#playback-play").attr("src", "/res/images/pause.png");
 
 				localStorage.SourceData = data;
 
@@ -1515,6 +1528,9 @@
 				if (!range)
 					range = { low: localStorage.KeyboardRangeLow, high: localStorage.KeyboardRangeHigh };
 
+				localStorage.KeyboardRangeLow = range.low;
+				localStorage.KeyboardRangeHigh = range.high;
+
 				var keyboardLeft = $("#range-keyboard").offset().left - $("#range-bar").offset().left;
 				var left = keyboardLeft + range.low * PinaoConfig.RangeKeyWidth;
 				var right = keyboardLeft + range.high * PinaoConfig.RangeKeyWidth;
@@ -1532,6 +1548,16 @@
 
 			var resetRangeMask = function () {
 				updateRangeMask({ low: noteToX(PinaoConfig.NoteStart), high: noteToX(PinaoConfig.NoteEnd + 1) });
+			};
+
+			var setIntensiveRangeMask = function () {
+				var low = noteToX(ScoreNotations.keyRange.low);
+				var high = noteToX(ScoreNotations.keyRange.high) + 1;
+
+				low = Math.min(Number(high) - 7, low);
+				high = Math.max(Number(low) + 14, high);
+
+				updateRangeMask({ low: low, high: high });
 			};
 
 			var initializeRangeKeyboard = function () {
@@ -1616,7 +1642,7 @@
 				});
 
 				$("#range-button-full").click(function () { resetRangeMask(); });
-				$("#range-button-intensive").click(function () { updateRangeMask(); });
+				$("#range-button-intensive").click(function () { setIntensiveRangeMask(); });
 			};
 
 			var initializeKeyboard = function () {
@@ -1906,13 +1932,7 @@
 				}
 
 				if (localStorage.KeyboardRangeAuto) {
-					localStorage.KeyboardRangeLow = noteToX(ScoreNotations.keyRange.low);
-					localStorage.KeyboardRangeHigh = noteToX(ScoreNotations.keyRange.high) + 1;
-
-					localStorage.KeyboardRangeLow = Math.min(Number(localStorage.KeyboardRangeHigh) - 7, localStorage.KeyboardRangeLow);
-					localStorage.KeyboardRangeHigh = Math.max(Number(localStorage.KeyboardRangeLow) + 14, localStorage.KeyboardRangeHigh);
-
-					updateRangeMask();
+					setIntensiveRangeMask();
 				}
 			};
 
@@ -2013,6 +2033,18 @@
 
 				$("#playback-progress-cursor").css("width", (time * 100 / length) + "%");
 				$("#playback-time-text").text(toMinutesSeconds(time));
+				$("#playback-time-text").attr("title", toMinutesSeconds(time) + " / " + toMinutesSeconds(length));
+			};
+
+			var updatePlayButton = function () {
+				if (MIDI.Player.playing) {
+					$("#playback-play").attr("src", "/res/images/pause.png");
+					$("#playback-play").attr("title", "Pause (Space)");
+				}
+				else {
+					$("#playback-play").attr("src", "/res/images/play.png");
+					$("#playback-play").attr("title", "Play (Space)");
+				}
 			};
 
 			var onMIDIPlayerAnimation = function (data, element) {
@@ -2027,7 +2059,7 @@
 
 				if (time >= data.end) {
 					MIDI.Player.stop();
-					$("#playback-play").attr("src", "/res/images/play.png");
+					updatePlayButton();
 
 					MetaData = {};
 					updateMetaData();
@@ -2072,7 +2104,7 @@
 							if (MIDI.Player.playing) {
 								MIDI.Player.pause();
 
-								$("#playback-play").attr("src", "/res/images/play.png");
+								updatePlayButton();
 
 								Fll.start();
 
@@ -2084,7 +2116,7 @@
 
 									MIDI.Player.resume();
 
-									$("#playback-play").attr("src", "/res/images/pause.png");
+									updatePlayButton();
 
 									MIDI.Player.setAnimation(onMIDIPlayerAnimation);
 								}
@@ -2194,28 +2226,44 @@
 
 						$(document).keydown(function () {
 							//console.log(event.keyCode);
-							switch (event.keyCode) {
-								case 32: // Space
-									$("#playback-play").click();
+							if (event.ctrlKey) {
+								switch (event.keyCode) {
+									case 83: // Ctrl+S
+										$("#playback-save")[0].click();
+										event.preventDefault();
 
-									break;
-								case 36: // Home
-									MIDI.Player.stop();
-									$("#playback-play").attr("src", "/res/images/play.png");
-									updateScorePosition();
-									updatePlaybackProgress();
+										break;
+								}
+							}
+							else {
+								switch (event.keyCode) {
+									case 32: // Space
+										$("#playback-play").click();
 
-									break;
-								case 27: // Esc
-									if (Rec.isRecording())
-										Rec.toggleRecord();
+										break;
+									case 36: // Home
+										MIDI.Player.stop();
+										updatePlayButton();
+										updateScorePosition();
+										updatePlaybackProgress();
 
-									break;
+										break;
+									case 27: // Esc
+										if (Rec.isRecording())
+											Rec.toggleRecord();
+
+										break;
+									case 120: // F9
+										if (!Rec.isRecording())
+											Rec.toggleRecord();
+
+										break;
+								}
 							}
 						});
 
 						$(document).keydown(function () {
-							if (KeyMap[event.keyCode]) {
+							if (!event.ctrlKey && KeyMap[event.keyCode]) {
 								if (!KeyStatus[event.keyCode]) {	// to avoid auto-repeat
 									noteOn({ channel: 0, note: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0), velocity: 100 });
 
@@ -2225,7 +2273,7 @@
 						});
 
 						$(document).keyup(function () {
-							if (KeyMap[event.keyCode]) {
+							if (!event.ctrlKey && KeyMap[event.keyCode]) {
 								noteOff({ channel: 0, note: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0) });
 
 								KeyStatus[event.keyCode] = false;
@@ -2399,8 +2447,8 @@
 			<p>
 				<span id="playback">
 					<span>
-						<input id="playback-play" type="image" src="/res/images/play.png" class="image-button" />
-						<input id="playback-record" type="button" class="image-button" />
+						<input id="playback-play" type="image" src="/res/images/play.png" class="image-button" title="Play (Space)" />
+						<input id="playback-record" type="button" class="image-button" title="Record (F9)" />
 					</span>
 					<span id="playback-time">
 						<span id="playback-progress"><span id="playback-progress-cursor"></span></span>
@@ -2408,7 +2456,7 @@
 					</span>
 					<span id="playback-source">...</span>
 					<input id="playback-source-file" type="file" accept="audio/mid" />
-					<a id="playback-save" class="image-button" title="save as MIDI file"></a>
+					<a id="playback-save" class="image-button" title="Save as MIDI File (Ctrl+S)"></a>
 					<span id="playback-metainfo">
 						<span id="playback-mode"></span>
 						<span id="playback-tempo">
@@ -2418,7 +2466,7 @@
 					</span>
 				</span>
 				<span id="input-device-bar">
-					<select id="input-device" disabled="disabled">
+					<select id="input-device" disabled="disabled" title="Choose a MIDI Input Device">
 					</select>
 					<input id="input-device-refresh" class="image-button" type="image" src="/res/images/refresh.png" />
 				</span>

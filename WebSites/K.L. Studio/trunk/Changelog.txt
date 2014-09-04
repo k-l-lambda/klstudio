@@ -1,9 +1,6 @@
 
 TODO:
 	PianoTrainer.html:
-		auto range UI
-		MIDI input recorder
-			add copyright info into MIDI file
 		practice mode
 		play piano by keyboard settings
 	SpiralPiano.html:
@@ -13,6 +10,15 @@ TODO:
 
 Pending Issues:
 	cube earth sphere tangent space issue
+
+
+2014.9.3	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: added shotcut for record button and save button.
+
+	+	Source/static/projects/PianoTrainer.html: added maker information in record MIDI file.
+
+	>	Source/static/projects/PianoTrainer.html: refined elements' title.
 
 
 2014.9.3	K.L.	<k.l.lambda@gmail.com>

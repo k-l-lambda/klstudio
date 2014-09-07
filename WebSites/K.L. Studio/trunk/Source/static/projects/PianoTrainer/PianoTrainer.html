@@ -1108,7 +1108,7 @@
 
 				$("#playback-time-text").text(toMinutesSeconds(0));
 
-				$("#playback-record").attr("title", "Stop Record (Esc)");
+				$("#playback-record").attr("title", "Finish Record (Esc)");
 
 				resetRangeMask();
 
@@ -2226,13 +2226,15 @@
 
 						$(document).keydown(function () {
 							//console.log(event.keyCode);
+							var unhandled = false;
 							if (event.ctrlKey) {
 								switch (event.keyCode) {
 									case 83: // Ctrl+S
 										$("#playback-save")[0].click();
-										event.preventDefault();
 
 										break;
+									default:
+										unhandled = true;
 								}
 							}
 							else {
@@ -2258,8 +2260,13 @@
 											Rec.toggleRecord();
 
 										break;
+									default:
+										unhandled = true;
 								}
 							}
+
+							if(!unhandled)
+								event.preventDefault();
 						});
 
 						$(document).keydown(function () {
@@ -2268,6 +2275,8 @@
 									noteOn({ channel: 0, note: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0), velocity: 100 });
 
 									KeyStatus[event.keyCode] = true;
+
+									event.preventDefault();
 								}
 							}
 						});

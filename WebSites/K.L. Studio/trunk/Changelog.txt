@@ -12,6 +12,11 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2014.10.5	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: added input device mute button.
+
+
 2014.9.7	K.L.	<k.l.lambda@gmail.com>
 
 	>	Source/static/projects/PianoTrainer.html: prevent default behavior when keyboard event handled.

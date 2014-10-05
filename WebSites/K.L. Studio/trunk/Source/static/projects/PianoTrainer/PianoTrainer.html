@@ -79,6 +79,7 @@
 				transition-duration: .2s;
 				opacity: 0.7;
 				cursor: pointer;
+				border: none;
 			}
 
 			.image-button:hover
@@ -246,6 +247,18 @@
 			{
 				width: 20px;
 				height: auto;
+			}
+
+			#input-device-mute
+			{
+				width: 24px;
+				height: 24px;
+				background: url(/res/images/audible.png);
+			}
+
+			#input-device-mute.checked
+			{
+				background: url(/res/images/mute.png);
 			}
 
 			#range-controls
@@ -1204,7 +1217,7 @@
 			};
 
 			Recorder.prototype.getTimeStamp = function (time) {
-				return MidiTimeStampOffset ? (time * 1000 + MidiTimeStampOffset - this.BeginTime) : this.elapsedTime();
+				return (time && MidiTimeStampOffset) ? (time * 1000 + MidiTimeStampOffset - this.BeginTime) : this.elapsedTime();
 			}
 
 			Recorder.prototype.getChannel = function (channel) {
@@ -1465,7 +1478,8 @@
 			};
 
 			var noteOn = function (data) {
-				MIDI.noteOn(data.channel, data.note, data.velocity);
+				if (!(data.pluginDevice && $("#input-device-mute").hasClass("checked")))
+					MIDI.noteOn(data.channel, data.note, data.velocity);
 
 				activeKey($("#keyboard .key[data-note='" + data.note + "']"));
 
@@ -1479,7 +1493,8 @@
 			};
 
 			var noteOff = function (data) {
-				MIDI.noteOff(data.channel, data.note);
+				if (!(data.pluginDevice && $("#input-device-mute").hasClass("checked")))
+					MIDI.noteOff(data.channel, data.note);
 
 				deactiveKey($("#keyboard .key[data-note='" + data.note + "']"));
 
@@ -1834,6 +1849,9 @@
 			};
 
 			var searchNotation = function (note, options) {
+				if (!ScoreNotations)
+					return null;
+
 				options = options || {};
 				options.begin = options.begin || 0;
 				if (options.end === undefined)
@@ -2265,7 +2283,7 @@
 								}
 							}
 
-							if(!unhandled)
+							if (!unhandled)
 								event.preventDefault();
 						});
 
@@ -2338,7 +2356,7 @@
 						printmessage: function (message) {
 							//console.log("MIDI in:", message.getTimeStamp(), message.getRawData().toString(16));
 
-							var data = { timeStamp: message.getTimeStamp(), rawData: message.getRawData() };
+							var data = { timeStamp: message.getTimeStamp(), rawData: message.getRawData(), pluginDevice: true };
 							if (message.isNoteOnOrOff()) {
 								if (message.isNoteOn()) {
 									data.type = "NoteOn";
@@ -2428,6 +2446,21 @@
 
 					$("#input-device-refresh").click(refreshMidiInputDevices);
 
+					if (localStorage.InputDeviceMute === false || localStorage.InputDeviceMute === "false")
+						$("#input-device-mute").removeClass("checked");
+
+					$("#input-device-mute").click(function () {
+						var checked = $("#input-device-mute").hasClass("checked");
+						if (checked) {
+							$("#input-device-mute").removeClass("checked");
+						}
+						else {
+							$("#input-device-mute").addClass("checked");
+						}
+
+						localStorage.InputDeviceMute = !checked;
+					});
+
 					$(window).bind("beforeunload", function () {
 						MidiIO.cleanup();
 						console.log("MIDI plugin cleanup.");
@@ -2478,6 +2511,7 @@
 					<select id="input-device" disabled="disabled" title="Choose a MIDI Input Device">
 					</select>
 					<input id="input-device-refresh" class="image-button" type="image" src="/res/images/refresh.png" />
+					<input id="input-device-mute" class="image-button checked" type="button" title="toggle input device mute/audible" />
 				</span>
 			</p>
 			<p id="range-controls">

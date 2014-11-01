@@ -352,6 +352,8 @@
 				WideRange: {Start: 55, End: 79}
 			};
 
+			var OnMobileDevice = (/ipad|android/i).test(navigator.userAgent);
+
 			var addClass = function(elem, cls){
 				elem.attr("class", elem.attr("class") + " " + cls);
 			};
@@ -464,25 +466,39 @@
 					var shape = group.path(key, { class: "key pitch-" + (keyToNote(k) % Config.GroupLen), "data-note": keyToNote(k) });
 				}
 
-				$("#panel .key").mousedown(function () {
-					activeKey($(this));
-
-					return false;
-				});
-				$("#panel .key").mouseup(function () {
-					deactiveKey($(this));
-				});
-
-				$("#panel .key").mouseenter(function () {
-					if (event.which == 1 || $("#settings-touch").attr("checked")) {
+				if (OnMobileDevice) {
+					$("#panel .key").bind("touchstart", function () {
 						activeKey($(this));
-					}
-				});
-				$("#panel .key").mouseleave(function () {
-					if (event.which == 1 || $("#settings-touch").attr("checked")) {
+					});
+					$("#panel .key").bind("touchend", function () {
 						deactiveKey($(this));
-					}
-				});
+					});
+
+					/*$("#panel .key").bind("touchmove", function () {
+						console.log("touchmove:", event);
+					});*/
+				}
+				else {
+					$("#panel .key").mousedown(function () {
+						activeKey($(this));
+
+						return false;
+					});
+					$("#panel .key").mouseup(function () {
+						deactiveKey($(this));
+					});
+
+					$("#panel .key").mouseenter(function () {
+						if (event.which == 1 || $("#settings-touch").attr("checked")) {
+							activeKey($(this));
+						}
+					});
+					$("#panel .key").mouseleave(function () {
+						if (event.which == 1 || $("#settings-touch").attr("checked")) {
+							deactiveKey($(this));
+						}
+					});
+				}
 
 				var getMiddlePoint = function (note) {
 					var k = noteToKey(note);

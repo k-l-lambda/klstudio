@@ -12,6 +12,11 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2014.11.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/SpiralPiano.html: added touch events for keys.
+
+
 2014.10.5	K.L.	<k.l.lambda@gmail.com>
 
 	+	Source/static/projects/PianoTrainer.html: added input device mute button.

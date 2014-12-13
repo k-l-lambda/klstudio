@@ -12,6 +12,11 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2014.12.13	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/static/projects/PianoTrainer.html: adjust pedal opacity.
+
+
 2014.11.2	K.L.	<k.l.lambda@gmail.com>
 
 	>	Source/static/projects/SpiralPiano.html: refined for mobile browser.

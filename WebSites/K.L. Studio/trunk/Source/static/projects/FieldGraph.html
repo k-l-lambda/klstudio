@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Field Graph</title>
+		<style>
+			#viewport
+			{
+				width: 800px;
+				height: 800px;
+				
+				border: 1px solid #ccc;
+			}
+
+			.particle
+			{
+				stroke: #000;
+				fill: transparent;
+			}
+
+			.line
+			{
+				stroke: #aaa;
+				fill: transparent;
+			}
+		</style>
+		<script src="../js/jquery.js" type="text/javascript"></script>
+		<script src="../js/jquery.svg.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			var svg = function (selector) {
+				return new $.svg._wrapperClass($(selector)[0]);
+			};
+
+			var LINE_DIRECTIONS = 60;
+			var STEP_LEGTH = 2;
+
+			var paticles = [];
+
+			var advancePoint = function (point, line, x, y) {
+				var length = Math.sqrt(x * x + y * y);
+
+				var dx = x * STEP_LEGTH / length;
+				var dy = y * STEP_LEGTH / length;
+
+				point.x += dx;
+				point.y += dy;
+
+				line.line(point.x, point.y);
+			};
+
+			var paintField = function () {
+				var canvas = svg("#canvas");
+				$("#canvas").empty();
+
+				for (var i in paticles) {
+					canvas.circle(paticles[i].x, paticles[i].y, 3, { class: "particle" });
+
+					for (var d = 0; d < LINE_DIRECTIONS; ++d) {
+						var line = canvas.createPath();
+						line.move(paticles[i].x, paticles[i].y);
+
+						var angle = Math.PI * 2 * d / LINE_DIRECTIONS;
+						var point = { x: paticles[i].x, y: paticles[i].y };
+						advancePoint(point, line, Math.cos(angle), Math.sin(angle));
+
+						for (var step = 0; step < 1000; ++step) {
+							if (point.x < 0 || point.x > 800 || point.y < 0 || point.y > 800)
+								break;
+
+							var force = { x: 0, y: 0 };
+							for (var ii in paticles) {
+								var dx = point.x - paticles[ii].x;
+								var dy = point.y - paticles[ii].y;
+								var d2 = dx * dx + dy * dy;
+								var dis = Math.sqrt(d2);
+
+								force.x += 10000 * (dx / dis) / d2;
+								force.y += 10000 * (dy / dis) / d2;
+							}
+
+							advancePoint(point, line, force.x, force.y);
+						}
+
+						var shape = canvas.path(line, { class: "line" });
+					}
+				}
+			}
+
+			$(function () {
+				$("#viewport").click(function () {
+					paticles.push({ x: event.offsetX, y: event.offsetY });
+					paintField();
+				});
+
+				$("#clear").click(function () {
+					paticles = [];
+					paintField();
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<p id="controls"><button id="clear">Clear Patricles</button></p>
+		<svg id="viewport" viewBox="0 0 800 800">
+			<g id="canvas"></g>
+		</svg>
+	</body>
+</html>

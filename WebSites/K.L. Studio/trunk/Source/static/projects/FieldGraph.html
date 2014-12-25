@@ -3,6 +3,24 @@
 	<head>
 		<title>Field Graph</title>
 		<style>
+			body
+			{
+				text-align: center;
+			}
+
+			#clear
+			{
+				margin-right: 3em;
+			}
+
+			#density
+			{
+				display: inline-block;
+				width: 20em;
+				text-align: left;
+				font-weight: bold;
+			}
+
 			#viewport
 			{
 				width: 800px;
@@ -19,7 +37,7 @@
 
 			.line
 			{
-				stroke: #aaa;
+				stroke: #666;
 				fill: transparent;
 			}
 		</style>
@@ -47,6 +65,21 @@
 				line.line(point.x, point.y);
 			};
 
+			var computeFoce = function (point) {
+				var force = { x: 0, y: 0 };
+				for (var i in paticles) {
+					var dx = point.x - paticles[i].x;
+					var dy = point.y - paticles[i].y;
+					var d2 = dx * dx + dy * dy;
+					var dis = Math.sqrt(d2);
+
+					force.x += 10000 * (dx / dis) / d2;
+					force.y += 10000 * (dy / dis) / d2;
+				}
+
+				return force;
+			}
+
 			var paintField = function () {
 				var canvas = svg("#canvas");
 				$("#canvas").empty();
@@ -66,16 +99,7 @@
 							if (point.x < 0 || point.x > 800 || point.y < 0 || point.y > 800)
 								break;
 
-							var force = { x: 0, y: 0 };
-							for (var ii in paticles) {
-								var dx = point.x - paticles[ii].x;
-								var dy = point.y - paticles[ii].y;
-								var d2 = dx * dx + dy * dy;
-								var dis = Math.sqrt(d2);
-
-								force.x += 10000 * (dx / dis) / d2;
-								force.y += 10000 * (dy / dis) / d2;
-							}
+							var force = computeFoce(point);
 
 							advancePoint(point, line, force.x, force.y);
 						}
@@ -95,11 +119,21 @@
 					paticles = [];
 					paintField();
 				});
+
+				$("#viewport").mousemove(function () {
+					var force = computeFoce({ x: event.offsetX, y: event.offsetY });
+					var magnitude = Math.sqrt(force.x * force.x + force.y * force.y);
+
+					$("#density").text(magnitude);
+				});
 			});
 		</script>
 	</head>
 	<body>
-		<p id="controls"><button id="clear">Clear Patricles</button></p>
+		<p id="controls">
+			<button id="clear">Clear Paticles</button>
+			Density: <span id="density"></span>
+		</p>
 		<svg id="viewport" viewBox="0 0 800 800">
 			<g id="canvas"></g>
 		</svg>

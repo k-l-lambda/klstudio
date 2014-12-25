@@ -16,9 +16,14 @@
 			#density
 			{
 				display: inline-block;
-				width: 20em;
+				width: 12em;
 				text-align: left;
 				font-weight: bold;
+			}
+
+			#cx, #cy
+			{
+				width: 3em;
 			}
 
 			#viewport
@@ -125,6 +130,14 @@
 					var magnitude = Math.sqrt(force.x * force.x + force.y * force.y);
 
 					$("#density").text(magnitude);
+
+					$("#cx").val(event.offsetX);
+					$("#cy").val(event.offsetY);
+				});
+
+				$("#add-point").click(function () {
+					paticles.push({ x: Number($("#cx").val()), y: Number($("#cy").val()) });
+					paintField();
 				});
 			});
 		</script>
@@ -133,6 +146,7 @@
 		<p id="controls">
 			<button id="clear">Clear Paticles</button>
 			Density: <span id="density"></span>
+			<span id="coordinate">X: <input id="cx" type="text" /> Y: <input id="cy" type="text" /> <button id="add-point">Add Point</button></span>
 		</p>
 		<svg id="viewport" viewBox="0 0 800 800">
 			<g id="canvas"></g>

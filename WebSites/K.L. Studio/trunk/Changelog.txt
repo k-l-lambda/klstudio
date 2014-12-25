@@ -14,6 +14,8 @@ Pending Issues:
 
 2014.12.25	K.L.	<k.l.lambda@gmail.com>
 
+	+	Source/static/projects/FieldGraph.html: added coordinate controls.
+
 	+	Source/static/projects/FieldGraph.html: added density viewer.
 
 

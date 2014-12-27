@@ -14,6 +14,8 @@ Pending Issues:
 
 2014.12.27	K.L.	<k.l.lambda@gmail.com>
 
+	+	Source/static/projects/FieldGraph.html: refined density precision.
+
 	+	Source/static/projects/FieldGraph.html: added mass config.
 
 

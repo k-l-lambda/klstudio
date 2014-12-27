@@ -16,7 +16,7 @@
 			#density
 			{
 				display: inline-block;
-				width: 12em;
+				width: 6em;
 				text-align: left;
 				font-weight: bold;
 			}
@@ -146,7 +146,7 @@
 					var force = computeFoce({ x: event.offsetX, y: event.offsetY });
 					var magnitude = Math.sqrt(force.x * force.x + force.y * force.y);
 
-					$("#density").text(magnitude);
+					$("#density").text(magnitude.toPrecision(5));
 
 					$("#cx").val(event.offsetX);
 					$("#cy").val(event.offsetY);

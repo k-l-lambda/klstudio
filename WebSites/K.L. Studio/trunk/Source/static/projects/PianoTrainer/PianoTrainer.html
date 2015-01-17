@@ -2086,6 +2086,16 @@
 				}
 			};
 
+			var filterMidiFile = function (filter) {
+				var currentData = atob(localStorage.SourceData.split(",")[1]);
+				var file = MidiFile(currentData);
+
+				filter(file);
+
+				var midiData = OMidiFile(file.header, file.tracks);
+				return "data:audio/mid;base64," + btoa(midiData);
+			}
+
 			$(function () {
 				$("body, body *").each(function (i, elem) {
 					elem.ondrop = function (e) {

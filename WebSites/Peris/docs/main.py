@@ -1,10 +1,11 @@
-
+﻿
 import sys
 import os
 import web
 import logging
 import datetime
 import md5
+import re
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -17,12 +18,27 @@ db = web.database(host='127.0.0.1', dbn='mysql', user=config.db_user, pw=config.
 class HomeHandle:
 	def GET(self):
 		yield	'<h1>Peris</h1>'
-		yield	'<form action="update-file-register" method="post" target="_blank"><input type="submit" value="Update FileRegister" /></form>'
+
+
+class AdminHomeHandle:
+	def GET(self):
+		yield	open(os.path.dirname(__file__) + '/templates/AdminHome.html', 'r').read()
+
+
+class FileRegister:
+	@staticmethod
+	def lookupByPath(path):
+		record = db.select('file_register', where = 'path=$path', vars = dict(path = path))
+		record = len(record) > 0 and record[0] or None
+
+		return record
 
 
 class UpdateFileRegisterHandle:
 	def POST(self):
 		yield '<link href="/static/console.css" rel="stylesheet" type="text/css">'
+		yield '<p>Scan directory <em>%s</em> ...</p>' % config.data_root
+
 		for root, dirs, files in os.walk(config.data_root):
 			for file in files:
 				try:
@@ -37,8 +53,11 @@ class UpdateFileRegisterHandle:
 							try:
 								file = file.decode('big5')
 							except:
-								yield '<p class="error">Failed to decode <em>%s / %s</em>: <strong>%s</strong></p>' % (root, file, sys.exc_info())
-								continue
+								try:
+									file = file.decode('utf-8')
+								except:
+									yield '<p class="error">Failed to decode <em>%s / %s</em>: <strong>%s</strong></p>' % (root, file, sys.exc_info())
+									continue
 
 				path = os.path.join(root, file)
 				try:
@@ -68,9 +87,80 @@ class UpdateFileRegisterHandle:
 				except:
 					yield '<p class="error">Error when proess <em>%s</em>: <strong>%s</strong></p>' % (path, sys.exc_info())
 
-		yield 'End.'
+		yield '<p>End.</p>'
+
+
+class ImportAlbumDataHandle:
+	def POST(self):
+		input = web.input(id = None)
+
+		yield '<head>'
+		yield '<link href="/static/console.css" rel="stylesheet" type="text/css">'
+		yield '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">'
+		yield '</head>'
+
+		labels = {}
+
+		yield '<p>Read label file <em>%s</em> ...<p>' % input.LabelFile
+		labelFile = open(input.LabelFile, 'r')
+		labelFile.read(3)	# skip unicode head
+		for line in labelFile:
+			fields = line.split("|")
+			labels[fields[0]] = fields[1]
+			#yield '<p>%s, %s</p>' % (fields[0], fields[1])
+
+		yield '<p>Read data file <em>%s</em> ...<p>' % input.File
+		dataFile = open(input.File, 'r')
+		dataFile.read(3)	# skip unicode head
+		for line in dataFile:
+			try:
+				fields = line.replace('\n', '').split("|")
+				path = input.PathPrefix + fields[0].decode('utf-8')
+
+				registery = FileRegister.lookupByPath(path)
+				if registery is None:
+					yield '<p class="error">Cannot find file in register: <em>%s</em></p>' % path
+				else:
+					hash = registery.hash
+
+					score = float(fields[1])
+
+					label = ''
+					if input.Label:
+						label += input.Label + '|'
+					if fields[2] == '1':
+						label += 'SM|'
+					if fields[3] == '1':
+						label += 'SE|'
+					if fields[4]:
+						if not labels.has_key(fields[4]):
+							yield '<p class="error">No label of %s</p>' % fields[4]
+						else:
+							label += labels[fields[4]] + '|'
+
+					label = re.sub('(\|)$', '', label)
+
+					record = db.select('album', where = 'hash=$hash', vars = dict(hash = hash))
+					record = record and record[0]
+
+					if record:
+						db.update('album', where = 'hash=$hash', vars = dict(hash = hash), score = score, labels = label)
+
+						yield '<p class="update"><strong>%s</strong>: <em>%s</em>, %f, %s</p>' % (path, hash, score, label.decode('utf-8'))
+					else:
+						db.insert('album', hash = hash, score = score, labels = label)
+
+						yield '<p class="new"><strong>%s</strong>: <em>%s</em>, %f, %s</p>' % (path, hash, score, label.decode('utf-8'))
+			except:
+				yield '<p class="error">Error when proess <em>%s</em>: <strong>%s</strong></p>' % (line, sys.exc_info())
+
+		yield '<p>End.</p>'
+
+
 
 application = web.application((
-	'/',							'HomeHandle',
-	'/update-file-register',		'UpdateFileRegisterHandle',
+	'/',								'HomeHandle',
+	'/admin/',							'AdminHomeHandle',
+	'/admin/update-file-register',		'UpdateFileRegisterHandle',
+	'/admin/import-album-data',			'ImportAlbumDataHandle',
 	), globals()).wsgifunc()

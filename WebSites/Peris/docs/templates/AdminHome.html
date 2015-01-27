@@ -1,0 +1,29 @@
+<html>
+	<head>
+		<title>Peris Admin</title>
+		<style>
+			.section
+			{
+				border-top: 1px dashed #ccc;
+				padding: 1em 0;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Peris Admin</h1>
+		<div class="section">
+			<form action="update-file-register" method="post" target="_blank">
+				<input type="submit" value="Update FileRegister" />
+			</form>
+		</div>
+		<div class="section">
+			<form action="import-album-data" method="post" target="_blank">
+				<p>File: <input type="text" name="File" size="40" /></p>
+				<p>LabelFile: <input type="text" name="LabelFile" size="40" /></p>
+				<p>PathPrefix: <input type="text" name="PathPrefix" size="20" /></p>
+				<p>Label: <input type="text" name="Label" size="10" /></p>
+				<p><input type="submit" value="Import Album Data" /></p>
+			</form>
+		</div>
+	</body>
+</html>

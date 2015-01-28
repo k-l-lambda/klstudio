@@ -52,7 +52,7 @@ Viewer.prototype.newSlot = function (path) {
 		margin: (this.SlotGap * 0.5 / this.SlotColumn * 100).toFixed(2) + "%"
 	});
 
-	var img = $("<img class='figure' src='/images/" + path + "' alt='" + path + "' />");
+	var img = $("<img class='figure' src='/images/" + escape(path) + "' alt='" + path + "' />");
 	img.appendTo(slot);
 
 	var viewer = this;

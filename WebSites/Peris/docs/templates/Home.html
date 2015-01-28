@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Peris</title>
+		<style>
+			html
+			{
+				background: #000;
+				color: #eee;
+				height: 100%;
+				font: 13px/20px "Lucida Grande", Arial, sans-serif;
+			}
+
+			body
+			{
+				margin: 0;
+				height: 100%;
+			}
+
+			#sider
+			{
+				background: #062238;
+				width: 10%;
+				height: 100%;
+				float: left;
+			}
+
+			#main
+			{
+				width: 90%;
+				height: 100%;
+				float: left;
+			}
+
+			#query-bar
+			{
+				background: #063609;
+				height: 10em;
+				width: 100%;
+				position: relative;
+				border-bottom: 2px solid #063609;
+			}
+
+			#query
+			{
+				display: inline-block;
+				height: 100%;
+				float: right;
+				width: 8%;
+				background: #222;
+				font-size: 8em;
+				border-color: #444;
+			}
+
+			#query:active
+			{
+				background: #422;
+				border-color: #f00;
+			}
+
+			#log
+			{
+				display: inline-block;
+				height: 100%;
+				float: right;
+				width: 50%;
+			}
+
+			#sql
+			{
+				display: inline-block;
+				box-sizing: border-box;
+				height: 100%;
+				position: absolute;
+				width: 39%;
+				background: #000;
+				color: #ccc;
+				border: none;
+			}
+
+			#log
+			{
+				margin: 0;
+				overflow-y: auto;
+			}
+
+			#log .quote
+			{
+				display: inline-block;
+				float: right;
+				margin-left: 2em;
+				padding-right: 0.4em;
+				color: #888;
+				font-style: italic;
+			}
+
+			#log .error .quote
+			{
+				color: #d77;
+			}
+
+			#log em
+			{
+				font-weight: bold;
+			}
+
+			#log li
+			{
+				color: #aaa;
+			}
+
+			#log li.error
+			{
+				color: #f66;
+			}
+
+			#log li.error:first-child
+			{
+				color: #f00;
+			}
+
+			#log li:first-child
+			{
+				color: #fff;
+			}
+
+			#log li:nth-child(odd)
+			{
+				background: rgba(255, 255, 255, 0.1);
+			}
+
+			#log li:nth-child(even)
+			{
+				background: rgba(0, 0, 0, 0.1);
+			}
+		</style>
+		<script src="/static/jquery.min.js" type="text/javascript"></script>
+		<script>
+			var parseQueries = function (source) {
+				var m = source.match(/^.*\?(.*)$|^([^\?]*)$/);
+				var q = m[1] || m[2];
+
+				var queries = q.match(/[^#\&\?]+/g);
+
+				var dict = {};
+				for (var i in queries) {
+					var pair = queries[i].split("=");
+					dict[pair[0]] = pair[1];
+				}
+
+				return dict;
+			};
+
+			var log = function (msg, cls, quote) {
+				console.log("[query " + cls + "]", $("<span>" + msg + "</span>").text());
+
+				var quoteSummary = quote.length <= 80 ? quote : (quote.substring(0, 80) + "...");
+				var quoteSpan = $("<span><a class='quote'>" + quoteSummary + "</a></span>");
+				quoteSpan.find("a").attr({ "title": quote, "href": "#xsql=" + encodeURIComponent(quote) });
+
+				$("#log").prepend("<li class='" + cls + "'>" + quoteSpan.html() + msg + "</li>");
+			};
+
+			var runSql = function (sql) {
+				$("#viewer").addClass("loading");
+
+				$.post("query", { sql: sql }, function (json, s, ajax) {
+					if (json.result == "success") {
+						var cost = Date.now() - ajax.userData.begin;
+
+						log("<em>" + json.data.length + "</em> reocrds get, <em>" + (cost / 1000) + "</em> seconds cost.", "info", sql);
+					}
+					else if (json.result == "fail") {
+						log($("<span/>").text(json.error).html(), "error", sql);
+					}
+					else
+						console.error("unexpect json result:", json);
+
+					$("#viewer").removeClass("loading");
+				}, "json")
+				.fail(function () {
+					console.error("SQL query request failed.");
+
+					$("#viewer").removeClass("loading");
+				})
+				.userData = { begin: Date.now() };
+			};
+
+			$(function () {
+				var updateParams = function () {
+					var params = parseQueries(location.hash);
+
+					if (params.sql) {
+						runSql(decodeURIComponent(params.sql));
+					}
+
+					if (params.xsql) {
+						$("#sql").val(decodeURIComponent(params.xsql));
+					}
+				};
+
+				window.onhashchange = updateParams;
+
+				if (location.hash.length > 1)
+					updateParams();
+
+				$("#query").click(function () {
+					location.hash = "sql=" + encodeURIComponent($("#sql").val());
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<div id="sider"></div>
+		<div id="main">
+			<div id="query-bar">
+				<ul id="log"></ul>
+				<button id="query">&gt;</button>
+				<textarea id="sql"></textarea>
+			</div>
+			<div id="viewer"></div>
+		</div>
+	</body>
+</html>

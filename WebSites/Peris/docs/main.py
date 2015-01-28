@@ -10,19 +10,24 @@ import re
 sys.path.append(os.path.dirname(__file__))
 
 import config
+import Serializer
 
 
 db = web.database(host='127.0.0.1', dbn='mysql', user=config.db_user, pw=config.db_password, db='peris')
 
 
+def renderTemplate(template):
+	return open(os.path.dirname(__file__) + '/templates/' + template, 'r').read()
+
+
 class HomeHandle:
 	def GET(self):
-		yield	'<h1>Peris</h1>'
+		yield	renderTemplate('Home.html')
 
 
 class AdminHomeHandle:
 	def GET(self):
-		yield	open(os.path.dirname(__file__) + '/templates/AdminHome.html', 'r').read()
+		yield	renderTemplate('AdminHome.html')
 
 
 class FileRegister:
@@ -32,6 +37,24 @@ class FileRegister:
 		record = len(record) > 0 and record[0] or None
 
 		return record
+
+
+class DbQueryHandle:
+	def GET(self):
+		return DbQueryHandle.POST(self)
+
+	def POST(self):
+		input = web.input()
+		sql = input.sql
+
+		web.header('Content-Type', 'application/json')
+
+		try:
+			data = db.query(sql)
+			return Serializer.save({'result': 'success', 'data': data})
+		except:
+			logging.warn('sql query error: %s', sys.exc_info())
+			return Serializer.save({'result': 'fail', 'error': str(sys.exc_info()[1])})
 
 
 class UpdateFileRegisterHandle:
@@ -160,6 +183,7 @@ class ImportAlbumDataHandle:
 
 application = web.application((
 	'/',								'HomeHandle',
+	'/query',							'DbQueryHandle',
 	'/admin/',							'AdminHomeHandle',
 	'/admin/update-file-register',		'UpdateFileRegisterHandle',
 	'/admin/import-album-data',			'ImportAlbumDataHandle',

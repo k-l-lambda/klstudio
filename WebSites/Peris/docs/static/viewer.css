@@ -1,16 +1,23 @@
 
 .viewer
 {
-	-webkit-column-count: 5;
+	position: relative;
 }
 
 .slot
 {
 	display: inline-block;
+	position: absolute;
 }
 
 .slot .figure
 {
 	width: 100%;
 	height: auto;
+	cursor: pointer;
+}
+
+.slot-placeholder
+{
+	width: 100%;
 }

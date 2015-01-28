@@ -1,8 +1,11 @@
 
 TODO:
+	remove image in old slot.
 
 
 2015.1.28	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/viewer.js: waterfall stream implemented.
 
 	+	static/viewer.js: created.
 

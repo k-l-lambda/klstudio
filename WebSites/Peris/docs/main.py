@@ -100,7 +100,7 @@ class UpdateFileRegisterHandle:
 					except:
 						modify_time = datetime.datetime.now()
 
-					relpath = os.path.relpath(path, config.data_root)
+					relpath = os.path.relpath(path, config.data_root).replace('\\', '/')
 
 					record = db.select('file_register', where = 'path=$path', vars = dict(path = relpath))
 					record = record and record[0]

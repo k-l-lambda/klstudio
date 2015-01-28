@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<title>Peris</title>
+		<link href="/static/viewer.css" rel="stylesheet" type="text/css">
 		<style>
 			html
 			{
@@ -35,10 +36,17 @@
 			#query-bar
 			{
 				background: #063609;
-				height: 10em;
+				height: 15%;
 				width: 100%;
 				position: relative;
 				border-bottom: 2px solid #063609;
+				box-sizing: border-box;
+			}
+
+			#viewer-area
+			{
+				height: 85%;
+				overflow-y: auto;
 			}
 
 			#query
@@ -76,6 +84,7 @@
 				background: #000;
 				color: #ccc;
 				border: none;
+				padding: 0.2em;
 			}
 
 			#log
@@ -135,7 +144,10 @@
 			}
 		</style>
 		<script src="/static/jquery.min.js" type="text/javascript"></script>
+		<script src="/static/viewer.js" type="text/javascript"></script>
 		<script>
+			var viewer;
+
 			var parseQueries = function (source) {
 				var m = source.match(/^.*\?(.*)$|^([^\?]*)$/);
 				var q = m[1] || m[2];
@@ -169,9 +181,13 @@
 						var cost = Date.now() - ajax.userData.begin;
 
 						log("<em>" + json.data.length + "</em> reocrds get, <em>" + (cost / 1000) + "</em> seconds cost.", "info", sql);
+
+						viewer.update(json.data);
 					}
 					else if (json.result == "fail") {
 						log($("<span/>").text(json.error).html(), "error", sql);
+
+						viewer.clear();
 					}
 					else
 						console.error("unexpect json result:", json);
@@ -187,6 +203,8 @@
 			};
 
 			$(function () {
+				viewer = new Viewer($("#viewer"));
+
 				var updateParams = function () {
 					var params = parseQueries(location.hash);
 
@@ -218,7 +236,9 @@
 				<button id="query">&gt;</button>
 				<textarea id="sql"></textarea>
 			</div>
-			<div id="viewer"></div>
+			<div id="viewer-area">
+				<div id="viewer" class="viewer"></div>
+			</div>
 		</div>
 	</body>
 </html>

@@ -1,0 +1,16 @@
+
+.viewer
+{
+	-webkit-column-count: 5;
+}
+
+.slot
+{
+	display: inline-block;
+}
+
+.slot .figure
+{
+	width: 100%;
+	height: auto;
+}

@@ -57,6 +57,16 @@ class DbQueryHandle:
 			return Serializer.save({'result': 'fail', 'error': str(sys.exc_info()[1])})
 
 
+class ConstantsHandle:
+	def GET(self):
+
+		web.header('Content-Type', 'text/javascript')
+
+		yield '''
+			constants = constants || {}
+		'''
+
+
 class UpdateFileRegisterHandle:
 	def POST(self):
 		yield '<link href="/static/console.css" rel="stylesheet" type="text/css">'
@@ -184,6 +194,7 @@ class ImportAlbumDataHandle:
 application = web.application((
 	'/',								'HomeHandle',
 	'/query',							'DbQueryHandle',
+	'/constants.js',					'ConstantsHandle',
 	'/admin/',							'AdminHomeHandle',
 	'/admin/update-file-register',		'UpdateFileRegisterHandle',
 	'/admin/import-album-data',			'ImportAlbumDataHandle',

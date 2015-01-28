@@ -56,7 +56,9 @@
 				float: right;
 				width: 8%;
 				background: #222;
+				color: #666;
 				font-size: 8em;
+				line-height: 100%;
 				border-color: #444;
 			}
 
@@ -229,7 +231,12 @@
 		</script>
 	</head>
 	<body>
-		<div id="sider"></div>
+		<div id="sider">
+			<ul>
+				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20score%20is%20null%0Alimit%20100">Raw</a></li>
+				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20score%20%3E%2010%0Aorder%20by%20score%20desc%0Alimit%20100">Best 100</a></li>
+			</ul>
+		</div>
 		<div id="main">
 			<div id="query-bar">
 				<ul id="log"></ul>
@@ -237,7 +244,7 @@
 				<textarea id="sql"></textarea>
 			</div>
 			<div id="viewer-area">
-				<div id="viewer" class="viewer"></div>
+				<div id="viewer"></div>
 			</div>
 		</div>
 	</body>

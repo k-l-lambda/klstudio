@@ -10,8 +10,14 @@
 	position: absolute;
 }
 
+.slot.new
+{
+	display: none;
+}
+
 .slot .figure
 {
+	display: block;
 	width: 100%;
 	height: auto;
 	cursor: pointer;

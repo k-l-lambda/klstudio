@@ -52,7 +52,7 @@ Viewer.prototype.newSlot = function (path) {
 		margin: (this.SlotGap * 0.5 / this.SlotColumn * 100).toFixed(2) + "%"
 	});
 
-	var img = $("<img class='figure' src='/images/" + escape(path) + "' alt='" + path + "' />");
+	var img = $("<img class='figure' src='/images/" + encodeURI(path) + "' alt='" + path + "' />");
 	img.appendTo(slot);
 
 	var viewer = this;
@@ -78,8 +78,8 @@ Viewer.prototype.newSlot = function (path) {
 
 Viewer.prototype.laySlots = function (count) {
 	var start = this.Container.find(".slot").length;
-	var until = start + count;
-	for (var i = start; i < Math.min(until, this.PathList.length); ++i) {
+	var until = Math.min(start + count, this.PathList.length);
+	for (var i = start; i < until; ++i) {
 		var slot = this.newSlot(this.PathList[i]);
 		slot.appendTo(this.Container);
 	}
@@ -113,9 +113,9 @@ Viewer.prototype.mountSlot = function (slot) {
 };
 
 Viewer.prototype.getReadyBottom = function () {
-	var bottom = 0;
+	var bottom = this.ColumnBottom[0];
 	for (var i = 0; i < this.SlotColumn; ++i) {
-		bottom = Math.max(bottom, this.ColumnBottom[i]);
+		bottom = Math.min(bottom, this.ColumnBottom[i]);
 	}
 
 	return bottom;

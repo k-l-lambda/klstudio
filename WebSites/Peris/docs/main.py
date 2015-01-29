@@ -6,6 +6,7 @@ import logging
 import datetime
 import md5
 import re
+import cgi
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -67,58 +68,70 @@ class ConstantsHandle:
 		'''
 
 
+def decodeUnicode(str):
+	try:
+		str = str.decode('gbk')
+	except:
+		try:
+			str = str.decode('euc_jp')
+		except:
+			try:
+				str = str.decode('iso2022_jp')
+			except:
+				try:
+					str = str.decode('big5')
+				except:
+					str = str.decode('utf-8')
+
+	return str
+
+
 class UpdateFileRegisterHandle:
 	def POST(self):
+		yield '<head>'
 		yield '<link href="/static/console.css" rel="stylesheet" type="text/css">'
+		yield '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">'
+		yield '</head>'
+
 		yield '<p>Scan directory <em>%s</em> ...</p>' % config.data_root
 
 		for root, dirs, files in os.walk(config.data_root):
 			for file in files:
 				try:
-					file = file.decode('gb2312')
+					root = decodeUnicode(root)
+					file = decodeUnicode(file)
 				except:
+					yield '<p class="error">Failed to decode <em>%s / %s</em>: <strong>%s</strong></p>' % (root, file, sys.exc_info())
+					#continue
+
+				if re.match('.*\.(jpg|jpeg|jpe|png|bmp|gif)$', file, re.I):
 					try:
-						file = file.decode('euc_jp')
-					except:
+						path = os.path.join(root, file)
+						modify_time = None
 						try:
-							file = file.decode('iso2022_jp')
+							modify_time = datetime.datetime.fromtimestamp(os.path.getmtime(path)).replace(microsecond=0)
 						except:
-							try:
-								file = file.decode('big5')
-							except:
-								try:
-									file = file.decode('utf-8')
-								except:
-									yield '<p class="error">Failed to decode <em>%s / %s</em>: <strong>%s</strong></p>' % (root, file, sys.exc_info())
-									continue
+							modify_time = datetime.datetime.now()
 
-				path = os.path.join(root, file)
-				try:
-					modify_time = None
-					try:
-						modify_time = datetime.datetime.fromtimestamp(os.path.getmtime(path)).replace(microsecond=0)
+						relpath = os.path.relpath(path, config.data_root).replace('\\', '/')
+
+						record = db.select('file_register', where = 'path=$path', vars = dict(path = relpath))
+						record = record and record[0]
+						if record and record.date == modify_time:
+							continue
+
+						hash = md5.md5(open(path, 'rb').read()).hexdigest()
+
+						if record:
+							db.update('file_register', where = 'path=$path', vars = dict(path = relpath), hash = hash, date = modify_time)
+
+							yield '<p class="update"><em>%s</em> [%s -> %s]</p>' % (relpath, record and record.date or 'null', modify_time)
+						else:
+							db.insert('file_register', path = relpath, hash = hash, date = modify_time)
+
+							yield u'<p class="new"><em>%s</em></p>' % relpath
 					except:
-						modify_time = datetime.datetime.now()
-
-					relpath = os.path.relpath(path, config.data_root).replace('\\', '/')
-
-					record = db.select('file_register', where = 'path=$path', vars = dict(path = relpath))
-					record = record and record[0]
-					if record and record.date == modify_time:
-						continue
-
-					hash = md5.md5(open(path, 'rb').read()).hexdigest()
-
-					if record:
-						db.update('file_register', where = 'path=$path', vars = dict(path = relpath), hash = hash, date = modify_time)
-
-						yield '<p class="update"><em>%s</em> [%s -> %s]</p>' % (relpath, record and record.date or 'null', modify_time)
-					else:
-						db.insert('file_register', path = relpath, hash = hash, date = modify_time)
-
-						yield '<p class="new"><em>%s</em></p>' % relpath
-				except:
-					yield '<p class="error">Error when proess <em>%s</em>: <strong>%s</strong></p>' % (path, sys.exc_info())
+						yield u'<p class="error">Error when proess <em>%s / %s</em>: <strong>%s</strong></p>' % (root, file, sys.exc_info())
 
 		yield '<p>End.</p>'
 

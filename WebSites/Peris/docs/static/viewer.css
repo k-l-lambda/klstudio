@@ -1,13 +1,57 @@
 
-.viewer
+.slot-stream
 {
 	position: relative;
+}
+
+.viewer-statius
+{
+	position: fixed;
+	bottom: 0;
+	right: 0;
+	z-index: 1000;
+	width: 90%;
+	height: 1.2em;
+	padding: 0.2em;
+	background: #ccc;
+	color: #222;
+}
+
+.viewer-statius span
+{
+	display: inline-block;
+}
+
+.status-path
+{
+	padding-left: 0.4em;
+	font-weight: bold;
+	
+}
+
+.status-lay-count
+{
+	position: absolute;
+	right: 1em;
 }
 
 .slot
 {
 	display: inline-block;
 	position: absolute;
+	transition: 0.1s;
+}
+
+.slot.filled:hover
+{
+	z-index: 100;
+	transform: scale(1.06, 1.06);
+	box-shadow: #000 0 0 40px;
+}
+
+.slot.filled:hover .figure
+{
+	border-radius: 0;
 }
 
 .slot.new
@@ -21,6 +65,7 @@
 	width: 100%;
 	height: auto;
 	cursor: pointer;
+	border-radius: 8px;
 }
 
 .slot-placeholder

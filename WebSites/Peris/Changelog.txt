@@ -4,6 +4,8 @@ TODO:
 
 2015.1.29	K.L.	<k.l.lambda@gmail.com>
 
+	+	static/viewer.js: status bar added.
+
 	+	static/viewer.js: added slot load/unload.
 
 

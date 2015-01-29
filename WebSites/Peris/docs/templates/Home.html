@@ -43,9 +43,10 @@
 				box-sizing: border-box;
 			}
 
-			#viewer-area
+			#viewer
 			{
 				height: 85%;
+				overflow-x: hidden;
 				overflow-y: auto;
 			}
 
@@ -57,7 +58,7 @@
 				width: 8%;
 				background: #222;
 				color: #666;
-				font-size: 8em;
+				font-size: 6em;
 				line-height: 100%;
 				border-color: #444;
 			}
@@ -243,9 +244,7 @@
 				<button id="query">&gt;</button>
 				<textarea id="sql"></textarea>
 			</div>
-			<div id="viewer-area">
-				<div id="viewer"></div>
-			</div>
+			<div id="viewer"></div>
 		</div>
 	</body>
 </html>

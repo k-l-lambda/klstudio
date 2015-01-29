@@ -14,18 +14,26 @@ Viewer.prototype.SlotGap = 0.04;
 
 Viewer.prototype.CacheHeight = 1600;
 
+Viewer.prototype.FocusSlot = null;
+
 
 Viewer.prototype.initialize = function () {
 	this.Container.addClass("viewer");
 
+	this.SlotStream = $("<div class='slot-stream'></div>");
+	this.SlotStream.appendTo(this.Container);
+
+	this.StatusBar = $("<div class='viewer-statius'><span class='status-path'></span><span class='status-lay-count'></span></div>");
+	this.StatusBar.appendTo(this.Container);
+
 	var viewer = this;
 
-	this.OldScrollTop = this.Container.parent().scrollTop();
+	this.OldScrollTop = this.Container.scrollTop();
 
-	this.Container.parent().scroll(function () {
+	this.Container.scroll(function () {
 		viewer.updateLayout();
 
-		viewer.OldScrollTop = viewer.Container.parent().scrollTop();
+		viewer.OldScrollTop = viewer.Container.scrollTop();
 	});
 
 	this.StyleTag = $("<style class='viewer-onfly-style'></style>");
@@ -33,7 +41,7 @@ Viewer.prototype.initialize = function () {
 
 	this.updateStyle();
 
-	this.Container.on("appear", ".slot.blank", function (e, slot) {
+	this.SlotStream.on("appear", ".slot.blank", function (e, slot) {
 		viewer.loadSlot(slot);
 	});
 };
@@ -45,7 +53,6 @@ Viewer.prototype.update = function (data) {
 		this.PathList.push(data[i].path);
 	}
 
-	//this.laySlots(data.length);
 	this.updateLayout();
 };
 
@@ -60,7 +67,7 @@ Viewer.prototype.clear = function (data) {
 	for (var i = 0; i < this.SlotColumn; ++i)
 		this.ColumnBottom[i] = 0;
 
-	this.Container.find(".slot").remove();
+	this.SlotStream.find(".slot").remove();
 };
 
 Viewer.prototype.newSlot = function (path) {
@@ -89,23 +96,40 @@ Viewer.prototype.newSlot = function (path) {
 
 	this.loadSlot(slot, onload, onerror);
 
+	slot.mouseenter(function (e) {
+		viewer.FocusSlot = e.currentTarget;
+
+		viewer.onFocusSlotChanged();
+	});
+	slot.mouseleave(function (e) {
+		if (viewer.FocusSlot == e.currentTarget) {
+			viewer.FocusSlot = null;
+
+			viewer.onFocusSlotChanged();
+		}
+	});
+
 	return slot;
 };
 
+Viewer.prototype.onFocusSlotChanged = function () {
+	this.StatusBar.find(".status-path").text(this.FocusSlot ? $(this.FocusSlot).data("path") : "");
+};
+
 Viewer.prototype.laySlots = function (count) {
-	var start = this.Container.find(".slot").length;
+	var start = this.SlotStream.find(".slot").length;
 	var until = Math.min(start + count, this.PathList.length);
 	for (var i = start; i < until; ++i) {
 		var slot = this.newSlot(this.PathList[i]);
-		slot.appendTo(this.Container);
+		slot.appendTo(this.SlotStream);
 	}
 
 	if (until > start)
-		console.log("laySlots until:", until);
+		this.StatusBar.find(".status-lay-count").text(until);
 };
 
 Viewer.prototype.getSlot = function (index) {
-	return $(this.Container.find(".slot")[index]);
+	return $(this.SlotStream.find(".slot")[index]);
 };
 
 Viewer.prototype.loadSlot = function (slot, onload, onerror) {
@@ -145,7 +169,7 @@ Viewer.prototype.mountSlot = function (slot) {
 
 	slot.css({
 		top: (this.ColumnBottom[shortest] + 10).toFixed(0) + "px",
-		left: ((shortest + this.SlotGap) * 100 / this.SlotColumn).toFixed(2) + "%",
+		left: ((shortest + this.SlotGap * 0.5) * 100 / this.SlotColumn).toFixed(2) + "%",
 		height: "auto"
 	});
 
@@ -165,16 +189,16 @@ Viewer.prototype.getReadyBottom = function () {
 };
 
 Viewer.prototype.slotCompleted = function () {
-	return this.Container.find(".slot").length >= this.PathList.length;
+	return this.SlotStream.find(".slot").length >= this.PathList.length;
 };
 
 Viewer.prototype.updateLayout = function () {
 	var readyBottom = this.getReadyBottom();
-	var scrollTop = this.Container.parent().scrollTop();
+	var scrollTop = this.Container.scrollTop();
 
 	if (!this.slotCompleted()) {
-		var newSlotCount = this.Container.find(".slot.new").length;
-		if (scrollTop + this.Container.parent().height() > readyBottom) {
+		var newSlotCount = this.SlotStream.find(".slot.new").length;
+		if (scrollTop + this.Container.height() > readyBottom) {
 			while (newSlotCount < this.SlotColumn * 5) {
 				this.laySlots(this.SlotColumn);
 				newSlotCount += this.SlotColumn;
@@ -183,12 +207,12 @@ Viewer.prototype.updateLayout = function () {
 	}
 
 	var upBound = scrollTop - this.CacheHeight;
-	var bottomBound = scrollTop + this.Container.parent().height() + this.CacheHeight;
+	var bottomBound = scrollTop + this.Container.height() + this.CacheHeight;
 
 	var viewer = this;
 
-	// unload outer slot
-	this.Container.find(".slot.ready.filled").each(function (i, slot) {
+	// unload outer slots
+	this.SlotStream.find(".slot.ready.filled").each(function (i, slot) {
 		var $slot = $(slot);
 
 		var top = $slot.position().top;
@@ -198,16 +222,7 @@ Viewer.prototype.updateLayout = function () {
 			viewer.unloadSlot($slot);
 	});
 
-	/*// load inner slot
-	this.Container.find(".slot.ready.blank").each(function (i, slot) {
-	var $slot = $(slot);
-
-	var top = $slot.position().top;
-	var bottom = top + $slot.height();
-
-	if (bottom >= upBound || top <= bottomBound)
-	viewer.loadSlot($slot);
-	});*/
+	// load appeared slots
 	if (scrollTop < this.OldScrollTop || bottomBound < readyBottom)
 		$.force_appear();
 };

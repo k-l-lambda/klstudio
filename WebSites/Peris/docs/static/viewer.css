@@ -29,7 +29,19 @@
 	
 }
 
-.status-lay-count
+.status-score
+{
+	position: absolute;
+	left: 40%;
+}
+
+.status-labels
+{
+	position: absolute;
+	left: 50%;
+}
+
+.status-counter
 {
 	position: absolute;
 	right: 1em;

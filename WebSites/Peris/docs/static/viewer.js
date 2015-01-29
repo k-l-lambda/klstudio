@@ -23,7 +23,11 @@ Viewer.prototype.initialize = function () {
 	this.SlotStream = $("<div class='slot-stream'></div>");
 	this.SlotStream.appendTo(this.Container);
 
-	this.StatusBar = $("<div class='viewer-statius'><span class='status-path'></span><span class='status-lay-count'></span></div>");
+	this.StatusBar = $("<div class='viewer-statius'>"
+		+ "<span class='status-path'></span>"
+		+ "<span class='status-score'></span>"
+		+ "<span class='status-labels'></span>"
+		+ "<span class='status-counter'><span class='status-lay-count'></span> / <span class='status-total'></span></span></div>");
 	this.StatusBar.appendTo(this.Container);
 
 	var viewer = this;
@@ -52,6 +56,8 @@ Viewer.prototype.update = function (data) {
 	for (var i in data) {
 		this.PathList.push(data[i].path);
 	}
+
+	this.StatusBar.find(".status-total").text(data.length);
 
 	this.updateLayout();
 };
@@ -114,6 +120,23 @@ Viewer.prototype.newSlot = function (path) {
 
 Viewer.prototype.onFocusSlotChanged = function () {
 	this.StatusBar.find(".status-path").text(this.FocusSlot ? $(this.FocusSlot).data("path") : "");
+
+	var viewer = this;
+
+	if (this.FocusSlot) {
+		var path = $(this.FocusSlot).data("path");
+		$.post("query", { query: 'file-info', path: path }, function (json, s, ajax) {
+			if (json.result == "success") {
+				viewer.StatusBar.find(".status-score").text(json.data.score ? json.data.score : ".");
+				viewer.StatusBar.find(".status-labels").text(json.data.labels ? json.data.labels : "");
+			}
+			else if (json.result == "fail") {
+				console.warn("query file info " + path + " failed:", json.error);
+			}
+			else
+				console.error("unexpect json result:", json);
+		}, "json");
+	}
 };
 
 Viewer.prototype.laySlots = function (count) {

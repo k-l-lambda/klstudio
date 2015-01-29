@@ -25,6 +25,8 @@ Viewer.prototype.initialize = function () {
 
 	this.StatusBar = $("<div class='viewer-statius'>"
 		+ "<span class='status-path'></span>"
+		+ "<span class='status-dimensions'></span>"
+		+ "<span class='status-date'></span>"
 		+ "<span class='status-score'></span>"
 		+ "<span class='status-labels'></span>"
 		+ "<span class='status-counter'><span class='status-lay-count'></span> / <span class='status-total'></span></span></div>");
@@ -77,7 +79,8 @@ Viewer.prototype.clear = function (data) {
 };
 
 Viewer.prototype.newSlot = function (path) {
-	var slot = $("<div class='slot new' data-path='" + path + "'><div>");
+	var slot = $("<div class='slot new'><div>");
+	slot.data("path", path);
 	slot.css({
 		height: "200px"
 	});
@@ -119,15 +122,20 @@ Viewer.prototype.newSlot = function (path) {
 };
 
 Viewer.prototype.onFocusSlotChanged = function () {
-	this.StatusBar.find(".status-path").text(this.FocusSlot ? $(this.FocusSlot).data("path") : "");
+	var $slot = this.FocusSlot ? $(this.FocusSlot) : null;
+
+	var figure = $slot ? $slot.find(".figure")[0] : null;
+	this.StatusBar.find(".status-path").html($slot ? "<strong>" + $slot.data("path") + "</strong>" : "");
+	this.StatusBar.find(".status-dimensions").html(figure ? "(" + figure.naturalWidth + "&times;" + figure.naturalHeight + ")" : "");
 
 	var viewer = this;
 
-	if (this.FocusSlot) {
-		var path = $(this.FocusSlot).data("path");
+	if ($slot) {
+		var path = $slot.data("path");
 		$.post("query", { query: 'file-info', path: path }, function (json, s, ajax) {
 			if (json.result == "success") {
-				viewer.StatusBar.find(".status-score").text(json.data.score ? json.data.score : ".");
+				viewer.StatusBar.find(".status-date").text(json.data.date ? json.data.date : "?");
+				viewer.StatusBar.find(".status-score").text(json.data.score ? json.data.score : "--");
 				viewer.StatusBar.find(".status-labels").text(json.data.labels ? json.data.labels : "");
 			}
 			else if (json.result == "fail") {
@@ -136,6 +144,11 @@ Viewer.prototype.onFocusSlotChanged = function () {
 			else
 				console.error("unexpect json result:", json);
 		}, "json");
+	}
+	else {
+		this.StatusBar.find(".status-date").text("");
+		this.StatusBar.find(".status-score").text("");
+		this.StatusBar.find(".status-labels").text("");
 	}
 };
 

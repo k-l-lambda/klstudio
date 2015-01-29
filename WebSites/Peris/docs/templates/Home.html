@@ -36,7 +36,7 @@
 			#query-bar
 			{
 				background: #063609;
-				height: 15%;
+				height: 10%;
 				width: 100%;
 				position: relative;
 				border-bottom: 2px solid #063609;
@@ -45,7 +45,7 @@
 
 			#viewer
 			{
-				height: 85%;
+				height: 90%;
 				overflow-x: hidden;
 				overflow-y: auto;
 			}
@@ -85,9 +85,14 @@
 				position: absolute;
 				width: 39%;
 				background: #000;
-				color: #ccc;
+				color: #888;
 				border: none;
 				padding: 0.2em;
+			}
+
+			#sql:focus
+			{
+				color: #ccc;
 			}
 
 			#log
@@ -144,6 +149,24 @@
 			#log li:nth-child(even)
 			{
 				background: rgba(0, 0, 0, 0.1);
+			}
+
+			#note-list
+			{
+				font-size: 20px;
+				font-weight: bold;
+				color: #aae;
+			}
+
+			#note-list li
+			{
+				height: 30px;
+			}
+
+			#note-list a
+			{
+				color: #aae;
+				text-decoration: none;
 			}
 		</style>
 		<script src="/static/jquery.min.js" type="text/javascript"></script>
@@ -233,9 +256,9 @@
 	</head>
 	<body>
 		<div id="sider">
-			<ul>
-				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20score%20is%20null%0Alimit%20100">Raw</a></li>
-				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20score%20%3E%2010%0Aorder%20by%20score%20desc%0Alimit%20100">Best 100</a></li>
+			<ul id="note-list">
+				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20score%20is%20null">Raw</a></li>
+				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20score%20%3E%206%0Aorder%20by%20score%20desc">High Score</a></li>
 			</ul>
 		</div>
 		<div id="main">

@@ -45,17 +45,44 @@ class DbQueryHandle:
 		return DbQueryHandle.POST(self)
 
 	def POST(self):
-		input = web.input()
-		sql = input.sql
-
 		web.header('Content-Type', 'application/json')
 
+		input = web.input(sql = None, query = None)
+
 		try:
-			data = db.query(sql)
+			data = None
+
+			if input.sql:
+				data = DbQueryHandle.generalQuery(input.sql)
+			elif input.query == 'file-info':
+				data = DbQueryHandle.fileInfo(input)
+
 			return Serializer.save({'result': 'success', 'data': data})
 		except:
 			logging.warn('sql query error: %s', sys.exc_info())
-			return Serializer.save({'result': 'fail', 'error': str(sys.exc_info()[1])})
+			return Serializer.save({'result': 'fail', 'error': str(sys.exc_info())})
+
+	@staticmethod
+	def generalQuery(sql):
+		return db.query(sql)
+
+	@staticmethod
+	def fileInfo(input):
+		if input.path:
+			register = db.select('file_register', where = 'path=$path', vars = dict(path = input.path))
+			register = register and register[0]
+			if not register:
+				return None
+
+			info = {'path': input.path, 'hash': register.hash, 'date': register.date}
+
+			figure = db.select('album', where = 'hash=$hash', vars = dict(hash = register.hash))
+			figure = figure and figure[0]
+
+			if figure:
+				info = dict(info.items() + {'score': figure.score, 'labels': figure.labels}.items())
+
+			return info
 
 
 class ConstantsHandle:

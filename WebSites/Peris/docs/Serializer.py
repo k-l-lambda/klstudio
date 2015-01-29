@@ -3,6 +3,7 @@ import types
 import string
 import datetime
 import web
+import decimal
 
 from django.utils import simplejson
 
@@ -27,6 +28,8 @@ def normalizeData(data):
 		or t is types.NoneType \
 		or t in [types.IntType, types.LongType, types.FloatType]:
 		return data
+	elif t is decimal.Decimal:
+		return float(data)
 	elif isinstance(data, PlainText):
 		return unicode(data)
 	elif isinstance(data, datetime.datetime):

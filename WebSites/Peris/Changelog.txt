@@ -1,8 +1,14 @@
 
 TODO:
+	viewer loading style
+	image finger print by 16*16 gray matrix.
 
 
 2015.1.29	K.L.	<k.l.lambda@gmail.com>
+
+	+	Serializer.py: added support of decimal.Decimal.
+
+	+	main.py: added file info query.
 
 	+	static/viewer.js: status bar added.
 

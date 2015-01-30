@@ -267,11 +267,12 @@ Peris.Viewer.prototype.isSlotCompleted = function () {
 Peris.Viewer.prototype.updateLayout = function () {
 	var readyBottom = this.getReadyBottom();
 	var scrollTop = this.Container.scrollTop();
+	var delta = scrollTop - this.OldScrollTop;
 
 	if (!this.isSlotCompleted()) {
 		var newSlotCount = this.SlotStream.find(".slot.new").length;
 		if (scrollTop + this.Container.height() > readyBottom) {
-			while (newSlotCount < this.SlotColumn * this.SlotColumn) {
+			while (newSlotCount < this.SlotColumn * Math.max(this.SlotColumn * 0.3, 1)) {
 				this.laySlots(this.SlotColumn);
 				newSlotCount += this.SlotColumn;
 			}
@@ -295,6 +296,6 @@ Peris.Viewer.prototype.updateLayout = function () {
 	});
 
 	// load appeared slots
-	if (scrollTop < this.OldScrollTop || bottomBound < readyBottom)
+	if (delta < 0 || (bottomBound - delta < readyBottom))
 		$.force_appear();
 };

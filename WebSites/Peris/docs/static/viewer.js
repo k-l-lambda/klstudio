@@ -56,6 +56,10 @@ Peris.Viewer.prototype.initialize = function () {
 	});
 
 	this.Peer = new Peris.Peer(this);
+
+	this.Container.click(function () {
+		viewer.updateLayout();
+	});
 };
 
 Peris.Viewer.prototype.update = function (data) {

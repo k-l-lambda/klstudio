@@ -1,10 +1,11 @@
 
 TODO:
-	viewer loading style
 	image finger print by 16*16 gray matrix.
 
 
 2015.1.30	K.L.	<k.l.lambda@gmail.com>
+
+	+	templates/Home.html: add loading icon on viewer.
 
 	+	static/viewer.js: setColumn added.
 

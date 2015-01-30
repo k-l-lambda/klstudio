@@ -56,8 +56,10 @@ Viewer.prototype.initialize = function () {
 Viewer.prototype.update = function (data) {
 	this.clear();
 
+	this.PathList = [];
 	for (var i in data) {
-		this.PathList.push(data[i].path);
+		if (data[i].path)
+			this.PathList.push(data[i].path);
 	}
 
 	this.StatusBar.find(".status-total").text(data.length);

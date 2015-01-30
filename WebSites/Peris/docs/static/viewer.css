@@ -33,10 +33,16 @@
 	left: 24%;
 }
 
+.status-size
+{
+	position: absolute;
+	left: 32%;
+}
+
 .status-date
 {
 	position: absolute;
-	left: 36%;
+	left: 40%;
 }
 
 .status-score
@@ -45,7 +51,7 @@
 	left: 70%;
 }
 
-.status-labels
+.status-tags
 {
 	position: absolute;
 	left: 78%;

@@ -29,7 +29,7 @@ SET time_zone = "+00:00";
 CREATE TABLE IF NOT EXISTS `album` (
   `hash` varchar(32) CHARACTER SET ascii NOT NULL,
   `score` decimal(8,0) NOT NULL,
-  `labels` text NOT NULL,
+  `tags` text NOT NULL,
   PRIMARY KEY (`hash`),
   KEY `score` (`score`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

@@ -80,7 +80,7 @@ class DbQueryHandle:
 			figure = figure and figure[0]
 
 			if figure:
-				info = dict(info.items() + {'score': figure.score, 'labels': figure.labels}.items())
+				info = dict(info.items() + {'score': figure.score, 'tags': figure.tags}.items())
 
 			return info
 
@@ -198,32 +198,32 @@ class ImportAlbumDataHandle:
 
 					score = float(fields[1])
 
-					label = ''
+					tag = ''
 					if input.Label:
-						label += input.Label + '|'
+						tag += input.Label + '|'
 					if fields[2] == '1':
-						label += 'SM|'
+						tag += 'SM|'
 					if fields[3] == '1':
-						label += 'SE|'
+						tag += 'SE|'
 					if fields[4]:
 						if not labels.has_key(fields[4]):
-							yield '<p class="error">No label of %s</p>' % fields[4]
+							yield '<p class="error">No tag of %s</p>' % fields[4]
 						else:
-							label += labels[fields[4]] + '|'
+							tag += labels[fields[4]] + '|'
 
-					label = re.sub('(\|)$', '', label)
+					tag = re.sub('(\|)$', '', tag)
 
 					record = db.select('album', where = 'hash=$hash', vars = dict(hash = hash))
 					record = record and record[0]
 
 					if record:
-						db.update('album', where = 'hash=$hash', vars = dict(hash = hash), score = score, labels = label)
+						db.update('album', where = 'hash=$hash', vars = dict(hash = hash), score = score, tags = tag)
 
-						yield '<p class="update"><strong>%s</strong>: <em>%s</em>, %f, %s</p>' % (path, hash, score, label.decode('utf-8'))
+						yield '<p class="update"><strong>%s</strong>: <em>%s</em>, %f, %s</p>' % (path, hash, score, tag.decode('utf-8'))
 					else:
-						db.insert('album', hash = hash, score = score, labels = label)
+						db.insert('album', hash = hash, score = score, tags = tag)
 
-						yield '<p class="new"><strong>%s</strong>: <em>%s</em>, %f, %s</p>' % (path, hash, score, label.decode('utf-8'))
+						yield '<p class="new"><strong>%s</strong>: <em>%s</em>, %f, %s</p>' % (path, hash, score, tag.decode('utf-8'))
 			except:
 				yield '<p class="error">Error when proess <em>%s</em>: <strong>%s</strong></p>' % (line, sys.exc_info())
 

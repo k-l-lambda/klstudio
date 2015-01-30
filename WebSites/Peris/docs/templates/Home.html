@@ -31,24 +31,24 @@
 				width: 90%;
 				height: 100%;
 				float: left;
+				overflow-y: hidden;
 			}
 
 			#query-bar
 			{
 				background: #063609;
 				height: 10%;
+				min-height: 6em;
 				width: 100%;
 				position: relative;
 				border-bottom: 2px solid #063609;
 				box-sizing: border-box;
 			}
 
-			#viewer
+			#viewer-area
 			{
 				position: relative;
 				height: 90%;
-				overflow-x: hidden;
-				overflow-y: auto;
 			}
 
 			#query
@@ -59,7 +59,7 @@
 				width: 8%;
 				background: #222;
 				color: #666;
-				font-size: 8vh;
+				font-size: 5em;
 				line-height: 100%;
 				border-color: #444;
 			}
@@ -93,6 +93,7 @@
 			#sql:focus
 			{
 				color: #ccc;
+				z-index: 100;
 			}
 
 			#log
@@ -177,8 +178,8 @@
 				width: 100%;
 				height: 100%;
 				background: no-repeat no-repeat url(/static/loading-5d.gif) center;
-				background-color: rgba(255, 255, 255, 0.4);
-				z-index: 10000;
+				background-color: rgba(0, 0, 0, 0.4);
+				z-index: 80;
 			}
 
 			.loading #loading
@@ -217,7 +218,7 @@
 			};
 
 			var runSql = function (sql) {
-				$("#viewer").addClass("loading");
+				$("#viewer-area").addClass("loading");
 
 				$.post("query", { sql: sql }, function (json, s, ajax) {
 					if (json.result == "success") {
@@ -235,12 +236,12 @@
 					else
 						console.error("unexpect json result:", json);
 
-					$("#viewer").removeClass("loading");
+					$("#viewer-area").removeClass("loading");
 				}, "json")
 				.fail(function () {
 					console.error("SQL query request failed.");
 
-					$("#viewer").removeClass("loading");
+					$("#viewer-area").removeClass("loading");
 				})
 				.userData = { begin: Date.now() };
 			};
@@ -277,6 +278,15 @@
 				$("#query").click(function () {
 					location.hash = "sql=" + encodeURIComponent($("#sql").val());
 				});
+
+				$("#note-list a").click(function () {
+					if (event.ctrlKey) {
+						var link = $(this).attr("href").replace("#sql=", "#xsql=");
+						location.hash = link;
+
+						event.preventDefault();
+					}
+				});
 			});
 		</script>
 	</head>
@@ -285,7 +295,7 @@
 			<ul id="note-list">
 				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20score%20is%20null">Raw</a></li>
 				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20score%20%3E%206%0Aorder%20by%20score%20desc">High Score</a></li>
-				<li><a href="#sql=select%20*%0Afrom%20file_register%0Awhere%20hash%20in%20(select%20hash%0A%09from%20(select%20count(*)%20as%20c%2C%20path%2C%20hash%0A%09%09from%20file_register%0A%09%09group%20by%20hash)%20as%20same_hash%0Awhere%20c%20%3E%201)%0Aorder%20by%20hash">Dumplicated</a></li>
+				<li><a href="#sql=select%20*%0Afrom%20file_register%0Awhere%20FIND_IN_SET(hash%2C%20(select%20GROUP_CONCAT(hash)%0A%09%09%09from%20(select%20count(*)%20as%20c%2C%20path%2C%20hash%2C%201%20as%20cc%0A%09%09%09%09from%20file_register%0A%09%09%09%09group%20by%20hash)%20as%20same_hash%0A%09%09%09where%20c%20%3E%201%0A%09%09%09group%20by%20cc))%20%3E%200%0A%0Aorder%20by%20hash">Duplicated</a></li>
 			</ul>
 		</div>
 		<div id="main">
@@ -294,8 +304,9 @@
 				<button id="query">&gt;</button>
 				<textarea id="sql"></textarea>
 			</div>
-			<div id="viewer">
+			<div id="viewer-area">
 				<div id="loading"></div>
+				<div id="viewer"></div>
 			</div>
 		</div>
 	</body>

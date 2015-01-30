@@ -4,62 +4,69 @@
 	position: relative;
 }
 
-.viewer-statius
+.viewer-status
 {
 	position: fixed;
 	bottom: 0;
 	right: 0;
 	z-index: 1000;
 	width: 90%;
-	padding: 0.2em;
+	padding: 0.2em 0;
 	background: #ccc;
 	color: #222;
 }
 
-.viewer-statius span
+.viewer-status > span
 {
 	display: inline-block;
+	position: absolute;
+}
+
+.viewer-status.higher
+{
+	padding-top: 1em;
+}
+
+.viewer-status.higher .status-path
+{
+	bottom: 1em;
 }
 
 .status-path
 {
+	position: relative !important;
+	left: 0;
 	padding-left: 0.4em;
 	
 }
 
 .status-dimensions
 {
-	position: absolute;
 	left: 24%;
 }
 
 .status-size
 {
-	position: absolute;
 	left: 32%;
 }
 
 .status-date
 {
-	position: absolute;
 	left: 40%;
 }
 
 .status-score
 {
-	position: absolute;
 	left: 70%;
 }
 
 .status-tags
 {
-	position: absolute;
 	left: 78%;
 }
 
 .status-counter
 {
-	position: absolute;
 	right: 1em;
 }
 

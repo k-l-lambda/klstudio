@@ -23,7 +23,7 @@ Viewer.prototype.initialize = function () {
 	this.SlotStream = $("<div class='slot-stream'></div>");
 	this.SlotStream.appendTo(this.Container);
 
-	this.StatusBar = $("<div class='viewer-statius'>"
+	this.StatusBar = $("<div class='viewer-status'>"
 		+ "<span class='status-path'></span>"
 		+ "<span class='status-dimensions'></span>"
 		+ "<span class='status-size'></span>"
@@ -128,6 +128,12 @@ Viewer.prototype.onFocusSlotChanged = function () {
 	var figure = $slot ? $slot.find(".figure")[0] : null;
 	this.StatusBar.find(".status-path").html($slot ? "<strong>" + $slot.data("path") + "</strong>" : "");
 	this.StatusBar.find(".status-dimensions").html(figure ? "(" + figure.naturalWidth + "&times;" + figure.naturalHeight + ")" : "");
+
+	console.log(this.StatusBar.find(".status-path").width(), this.StatusBar.find(".status-dimensions").position().left - 20);
+	if (this.StatusBar.find(".status-path").width() > this.StatusBar.find(".status-dimensions").position().left - 20)
+		this.StatusBar.addClass("higher");
+	else
+		this.StatusBar.removeClass("higher");
 
 	var viewer = this;
 

@@ -65,13 +65,19 @@ Viewer.prototype.update = function (data) {
 	this.updateLayout();
 };
 
+Viewer.prototype.setColumn = function (column) {
+	this.SlotColumn = column;
+
+	this.clear();
+	this.updateStyle();
+	this.updateLayout();
+};
+
 Viewer.prototype.updateStyle = function () {
 	this.StyleTag.text(".slot { width: " + (((1 - this.SlotGap) / this.SlotColumn) * 100).toFixed(2) + "%; }");
 };
 
 Viewer.prototype.clear = function (data) {
-	this.PathList = [];
-
 	this.ColumnBottom = [];
 	for (var i = 0; i < this.SlotColumn; ++i)
 		this.ColumnBottom[i] = 0;
@@ -129,7 +135,6 @@ Viewer.prototype.onFocusSlotChanged = function () {
 	this.StatusBar.find(".status-path").html($slot ? "<strong>" + $slot.data("path") + "</strong>" : "");
 	this.StatusBar.find(".status-dimensions").html(figure ? "(" + figure.naturalWidth + "&times;" + figure.naturalHeight + ")" : "");
 
-	console.log(this.StatusBar.find(".status-path").width(), this.StatusBar.find(".status-dimensions").position().left - 20);
 	if (this.StatusBar.find(".status-path").width() > this.StatusBar.find(".status-dimensions").position().left - 20)
 		this.StatusBar.addClass("higher");
 	else
@@ -247,7 +252,7 @@ Viewer.prototype.updateLayout = function () {
 	if (!this.slotCompleted()) {
 		var newSlotCount = this.SlotStream.find(".slot.new").length;
 		if (scrollTop + this.Container.height() > readyBottom) {
-			while (newSlotCount < this.SlotColumn * 5) {
+			while (newSlotCount < this.SlotColumn * this.SlotColumn) {
 				this.laySlots(this.SlotColumn);
 				newSlotCount += this.SlotColumn;
 			}

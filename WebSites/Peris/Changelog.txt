@@ -6,6 +6,8 @@ TODO:
 
 2015.1.30	K.L.	<k.l.lambda@gmail.com>
 
+	+	static/viewer.js: setColumn added.
+
 	>	Renamed database field figure.labels -> figure.tags.
 
 	+	static/viewer.js: added file size in status bar.

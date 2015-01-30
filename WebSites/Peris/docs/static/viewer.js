@@ -87,7 +87,7 @@ Viewer.prototype.clear = function (data) {
 	this.SlotStream.find(".slot").remove();
 };
 
-Viewer.prototype.newSlot = function (path) {
+Viewer.prototype.newSlot = function (path, options) {
 	var slot = $("<div class='slot new'><div>");
 	slot.data("path", path);
 	slot.css({
@@ -112,7 +112,9 @@ Viewer.prototype.newSlot = function (path) {
 		viewer.mountSlot(slot);
 	};
 
-	this.loadSlot(slot, onload, onerror);
+	setTimeout(function () {
+		viewer.loadSlot(slot, onload, onerror);
+	}, options.latency || 0);
 
 	slot.mouseenter(function (e) {
 		viewer.FocusSlot = e.currentTarget;
@@ -172,10 +174,12 @@ Viewer.prototype.onFocusSlotChanged = function () {
 };
 
 Viewer.prototype.laySlots = function (count) {
+	var viewer = this;
+
 	var start = this.SlotStream.find(".slot").length;
 	var until = Math.min(start + count, this.PathList.length);
 	for (var i = start; i < until; ++i) {
-		var slot = this.newSlot(this.PathList[i]);
+		var slot = this.newSlot(this.PathList[i], {latency: i});
 		slot.appendTo(this.SlotStream);
 	}
 
@@ -243,7 +247,7 @@ Viewer.prototype.getReadyBottom = function () {
 	return bottom;
 };
 
-Viewer.prototype.slotCompleted = function () {
+Viewer.prototype.isSlotCompleted = function () {
 	return this.SlotStream.find(".slot").length >= this.PathList.length;
 };
 
@@ -251,7 +255,7 @@ Viewer.prototype.updateLayout = function () {
 	var readyBottom = this.getReadyBottom();
 	var scrollTop = this.Container.scrollTop();
 
-	if (!this.slotCompleted()) {
+	if (!this.isSlotCompleted()) {
 		var newSlotCount = this.SlotStream.find(".slot.new").length;
 		if (scrollTop + this.Container.height() > readyBottom) {
 			while (newSlotCount < this.SlotColumn * this.SlotColumn) {

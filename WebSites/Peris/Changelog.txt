@@ -5,6 +5,26 @@ TODO:
 
 2015.1.30	K.L.	<k.l.lambda@gmail.com>
 
+	+	templates/Home.html: refined note link of duplicated.
+
+	*!	Javascipt closure binding variable:
+			for (var i = 0; i < 100; ++i) {
+				(function () {
+					var m = i;
+					setTimeout(function () {
+						console.log(m);
+					}, i);
+				})();
+			}
+
+	*!	Same path query:
+			select GROUP_CONCAT(hash)
+			from (select count(*) as c, path, hash, 1 as cc
+				from file_register
+				group by hash) as same_hash
+			where c > 1
+			group by cc
+
 	+	templates/Home.html: add loading icon on viewer.
 
 	+	static/viewer.js: setColumn added.

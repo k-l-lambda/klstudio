@@ -227,8 +227,17 @@
 				.userData = { begin: Date.now() };
 			};
 
+			var setViewerColumn = function (column) {
+				localStorage.ViewerColumn = column;
+
+				viewer.setColumn(column);
+			};
+
 			$(function () {
 				viewer = new Viewer($("#viewer"));
+
+				if (localStorage.ViewerColumn)
+					viewer.setColumn(localStorage.ViewerColumn);
 
 				var updateParams = function () {
 					var params = parseQueries(location.hash);

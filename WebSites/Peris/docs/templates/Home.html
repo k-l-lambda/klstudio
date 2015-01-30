@@ -161,7 +161,7 @@
 
 			#note-list li
 			{
-				height: 30px;
+				margin: 0.6em 0;
 			}
 
 			#note-list a
@@ -189,6 +189,8 @@
 		</style>
 		<script src="/static/jquery.min.js" type="text/javascript"></script>
 		<script src="/static/viewer.js" type="text/javascript"></script>
+		<script src="/static/peer.js" type="text/javascript"></script>
+		<script src="/static/slider.js" type="text/javascript"></script>
 		<script>
 			var viewer;
 
@@ -253,7 +255,7 @@
 			};
 
 			$(function () {
-				viewer = new Viewer($("#viewer"));
+				viewer = new Peris.Viewer($("#viewer"));
 
 				if (localStorage.ViewerColumn)
 					viewer.setColumn(localStorage.ViewerColumn);
@@ -293,9 +295,11 @@
 	<body>
 		<div id="sider">
 			<ul id="note-list">
-				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20score%20is%20null">Raw</a></li>
+				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20score%20is%20null%0Aorder%20by%20date%20desc">Raw</a></li>
 				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20score%20%3E%206%0Aorder%20by%20score%20desc">High Score</a></li>
+				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20tags%20not%20like%20'%25SE%25'%0Aorder%20by%20score%20desc">Non-Sensitive</a></li>
 				<li><a href="#sql=select%20*%0Afrom%20file_register%0Awhere%20FIND_IN_SET(hash%2C%20(select%20GROUP_CONCAT(hash)%0A%09%09%09from%20(select%20count(*)%20as%20c%2C%20path%2C%20hash%2C%201%20as%20cc%0A%09%09%09%09from%20file_register%0A%09%09%09%09group%20by%20hash)%20as%20same_hash%0A%09%09%09where%20c%20%3E%201%0A%09%09%09group%20by%20cc))%20%3E%200%0A%0Aorder%20by%20hash">Duplicated</a></li>
+				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20tags%20like%20'%25SM%25'%0Aorder%20by%20score%20desc">SM</a></li>
 			</ul>
 		</div>
 		<div id="main">

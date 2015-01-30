@@ -1,23 +1,26 @@
 
-Viewer = function (container) {
+var Peris = Peris || {};
+
+
+Peris.Viewer = function (container) {
 	this.Container = container;
 
 	this.initialize();
 };
 
-Viewer.prototype.PathList = [];
+Peris.Viewer.prototype.PathList = [];
 
-Viewer.prototype.ColumnBottom = [];
+Peris.Viewer.prototype.ColumnBottom = [];
 
-Viewer.prototype.SlotColumn = 5;
-Viewer.prototype.SlotGap = 0.04;
+Peris.Viewer.prototype.SlotColumn = 5;
+Peris.Viewer.prototype.SlotGap = 0.04;
 
-Viewer.prototype.CacheHeight = 1600;
+Peris.Viewer.prototype.CacheHeight = 1600;
 
-Viewer.prototype.FocusSlot = null;
+Peris.Viewer.prototype.FocusSlot = null;
 
 
-Viewer.prototype.initialize = function () {
+Peris.Viewer.prototype.initialize = function () {
 	this.Container.addClass("viewer");
 
 	this.SlotStream = $("<div class='slot-stream'></div>");
@@ -51,9 +54,11 @@ Viewer.prototype.initialize = function () {
 	this.SlotStream.on("appear", ".slot.blank", function (e, slot) {
 		viewer.loadSlot(slot);
 	});
+
+	this.Peer = new Peris.Peer(this);
 };
 
-Viewer.prototype.update = function (data) {
+Peris.Viewer.prototype.update = function (data) {
 	this.clear();
 
 	this.PathList = [];
@@ -67,19 +72,19 @@ Viewer.prototype.update = function (data) {
 	this.updateLayout();
 };
 
-Viewer.prototype.setColumn = function (column) {
-	this.SlotColumn = column;
+Peris.Viewer.prototype.setColumn = function (column) {
+	this.SlotColumn = Number(column);
 
 	this.clear();
 	this.updateStyle();
 	this.updateLayout();
 };
 
-Viewer.prototype.updateStyle = function () {
+Peris.Viewer.prototype.updateStyle = function () {
 	this.StyleTag.text(".slot { width: " + (((1 - this.SlotGap) / this.SlotColumn) * 100).toFixed(2) + "%; }");
 };
 
-Viewer.prototype.clear = function (data) {
+Peris.Viewer.prototype.clear = function (data) {
 	this.ColumnBottom = [];
 	for (var i = 0; i < this.SlotColumn; ++i)
 		this.ColumnBottom[i] = 0;
@@ -87,7 +92,7 @@ Viewer.prototype.clear = function (data) {
 	this.SlotStream.find(".slot").remove();
 };
 
-Viewer.prototype.newSlot = function (path, options) {
+Peris.Viewer.prototype.newSlot = function (path, options) {
 	var slot = $("<div class='slot new'><div>");
 	slot.data("path", path);
 	slot.css({
@@ -129,10 +134,17 @@ Viewer.prototype.newSlot = function (path, options) {
 		}
 	});
 
+	slot.click(function () {
+		var slot = $(this);
+
+		if (slot.hasClass("ready"))
+			viewer.Peer.open(slot);
+	});
+
 	return slot;
 };
 
-Viewer.prototype.onFocusSlotChanged = function () {
+Peris.Viewer.prototype.onFocusSlotChanged = function () {
 	var $slot = this.FocusSlot ? $(this.FocusSlot) : null;
 
 	var figure = $slot ? $slot.find(".figure")[0] : null;
@@ -173,13 +185,13 @@ Viewer.prototype.onFocusSlotChanged = function () {
 	}
 };
 
-Viewer.prototype.laySlots = function (count) {
+Peris.Viewer.prototype.laySlots = function (count) {
 	var viewer = this;
 
 	var start = this.SlotStream.find(".slot").length;
 	var until = Math.min(start + count, this.PathList.length);
 	for (var i = start; i < until; ++i) {
-		var slot = this.newSlot(this.PathList[i], {latency: i});
+		var slot = this.newSlot(this.PathList[i], { latency: i - start });
 		slot.appendTo(this.SlotStream);
 	}
 
@@ -187,13 +199,14 @@ Viewer.prototype.laySlots = function (count) {
 		this.StatusBar.find(".status-lay-count").text(until);
 };
 
-Viewer.prototype.getSlot = function (index) {
+Peris.Viewer.prototype.getSlot = function (index) {
 	return $(this.SlotStream.find(".slot")[index]);
 };
 
-Viewer.prototype.loadSlot = function (slot, onload, onerror) {
+Peris.Viewer.prototype.loadSlot = function (slot, onload, onerror) {
 	var path = slot.data("path");
 
+	slot.find(".figure").remove();
 	var img = $("<img class='figure' src='/images/" + encodeURI(path) + "' alt='" + path + "' />");
 	img.appendTo(slot);
 
@@ -207,7 +220,7 @@ Viewer.prototype.loadSlot = function (slot, onload, onerror) {
 	slot.addClass("filled");
 };
 
-Viewer.prototype.unloadSlot = function (slot) {
+Peris.Viewer.prototype.unloadSlot = function (slot) {
 	slot.css({ height: slot.height() + "px" });
 
 	slot.find(".figure").remove();
@@ -218,7 +231,7 @@ Viewer.prototype.unloadSlot = function (slot) {
 	slot.appear();
 };
 
-Viewer.prototype.mountSlot = function (slot) {
+Peris.Viewer.prototype.mountSlot = function (slot) {
 	var shortest = 0;
 	for (var i = 0; i < this.SlotColumn; ++i) {
 		if (this.ColumnBottom[i] < this.ColumnBottom[shortest])
@@ -238,7 +251,7 @@ Viewer.prototype.mountSlot = function (slot) {
 	this.ColumnBottom[shortest] = slot.position().top + slot.height();
 };
 
-Viewer.prototype.getReadyBottom = function () {
+Peris.Viewer.prototype.getReadyBottom = function () {
 	var bottom = this.ColumnBottom[0];
 	for (var i = 0; i < this.SlotColumn; ++i) {
 		bottom = Math.min(bottom, this.ColumnBottom[i]);
@@ -247,11 +260,11 @@ Viewer.prototype.getReadyBottom = function () {
 	return bottom;
 };
 
-Viewer.prototype.isSlotCompleted = function () {
+Peris.Viewer.prototype.isSlotCompleted = function () {
 	return this.SlotStream.find(".slot").length >= this.PathList.length;
 };
 
-Viewer.prototype.updateLayout = function () {
+Peris.Viewer.prototype.updateLayout = function () {
 	var readyBottom = this.getReadyBottom();
 	var scrollTop = this.Container.scrollTop();
 

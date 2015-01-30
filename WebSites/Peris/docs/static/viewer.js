@@ -26,9 +26,10 @@ Viewer.prototype.initialize = function () {
 	this.StatusBar = $("<div class='viewer-statius'>"
 		+ "<span class='status-path'></span>"
 		+ "<span class='status-dimensions'></span>"
+		+ "<span class='status-size'></span>"
 		+ "<span class='status-date'></span>"
 		+ "<span class='status-score'></span>"
-		+ "<span class='status-labels'></span>"
+		+ "<span class='status-tags'></span>"
 		+ "<span class='status-counter'><span class='status-lay-count'></span> / <span class='status-total'></span></span></div>");
 	this.StatusBar.appendTo(this.Container);
 
@@ -130,13 +131,18 @@ Viewer.prototype.onFocusSlotChanged = function () {
 
 	var viewer = this;
 
+	this.StatusBar.find(".status-date").text("");
+	this.StatusBar.find(".status-score").text("");
+	this.StatusBar.find(".status-tags").text("");
+	this.StatusBar.find(".status-size").text("");
+
 	if ($slot) {
 		var path = $slot.data("path");
 		$.post("query", { query: 'file-info', path: path }, function (json, s, ajax) {
 			if (json.result == "success") {
 				viewer.StatusBar.find(".status-date").text(json.data.date ? json.data.date : "?");
 				viewer.StatusBar.find(".status-score").text(json.data.score ? json.data.score : "--");
-				viewer.StatusBar.find(".status-labels").text(json.data.labels ? json.data.labels : "");
+				viewer.StatusBar.find(".status-tags").text(json.data.tags ? json.data.tags : "");
 			}
 			else if (json.result == "fail") {
 				console.warn("query file info " + path + " failed:", json.error);
@@ -144,11 +150,11 @@ Viewer.prototype.onFocusSlotChanged = function () {
 			else
 				console.error("unexpect json result:", json);
 		}, "json");
-	}
-	else {
-		this.StatusBar.find(".status-date").text("");
-		this.StatusBar.find(".status-score").text("");
-		this.StatusBar.find(".status-labels").text("");
+
+		if (figure)
+			$.get(figure.src, function (d, s, xhr) {
+				viewer.StatusBar.find(".status-size").text(Number(xhr.getResponseHeader('Content-Length')).toLocaleString() + " bytes");
+			});
 	}
 };
 

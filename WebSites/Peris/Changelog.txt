@@ -4,6 +4,13 @@ TODO:
 	image finger print by 16*16 gray matrix.
 
 
+2015.1.30	K.L.	<k.l.lambda@gmail.com>
+
+	>	Renamed database field figure.labels -> figure.tags.
+
+	+	static/viewer.js: added file size in status bar.
+
+
 2015.1.29	K.L.	<k.l.lambda@gmail.com>
 
 	+	Serializer.py: added support of decimal.Decimal.

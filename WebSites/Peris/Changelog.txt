@@ -1,6 +1,12 @@
 
 TODO:
+	peer: figure zoom animation when open/close.
 	image finger print by 16*16 gray matrix.
+
+
+2015.1.31	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/peer.js: panel added.
 
 
 2015.1.30	K.L.	<k.l.lambda@gmail.com>

@@ -124,3 +124,25 @@
 {
 	width: 100%;
 }
+
+.peer
+{
+	display: none;
+	z-index: 10000;
+	background: rgba(64, 64, 64, 0.9);
+	text-align: center;
+	vertical-align: middle;
+}
+
+.peer .figure
+{
+	transition: 0.3s;
+	margin: auto;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	max-height: 100%;
+	max-width: 100%;
+}

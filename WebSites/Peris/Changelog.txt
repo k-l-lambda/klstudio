@@ -1,10 +1,15 @@
 
 TODO:
-	peer: figure zoom animation when open/close.
+	peer:
+		editor
+		prev/next
+		figure zoom animation when open/close.
 	image finger print by 16*16 gray matrix.
 
 
 2015.1.31	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/peer.js: figure zoom and pan implemented.
 
 	+	static/peer.js: panel added.
 

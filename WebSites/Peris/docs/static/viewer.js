@@ -141,7 +141,7 @@ Peris.Viewer.prototype.newSlot = function (path, options) {
 	slot.click(function () {
 		var slot = $(this);
 
-		if (slot.hasClass("ready"))
+		if (slot.hasClass("filled"))
 			viewer.Peer.open(slot);
 	});
 

@@ -4,6 +4,8 @@ var Peris = Peris || {};
 
 Peris.Peer = function (viewer) {
 	this.Viewer = viewer;
+
+	// TODO: create work panel
 };
 
 Peris.Peer.prototype.open = function (slot) {

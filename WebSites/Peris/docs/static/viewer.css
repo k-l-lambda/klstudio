@@ -41,12 +41,12 @@
 
 .viewer-status.higher
 {
-	padding-top: 1em;
+	padding-top: 1.4em;
 }
 
 .viewer-status.higher .status-path
 {
-	bottom: 1em;
+	bottom: 1.4em;
 }
 
 .status-path

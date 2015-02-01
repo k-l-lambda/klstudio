@@ -59,6 +59,7 @@ Peris.Viewer.prototype.initialize = function () {
 
 	this.Container.click(function () {
 		viewer.updateLayout();
+		$.force_appear();
 	});
 };
 
@@ -96,8 +97,12 @@ Peris.Viewer.prototype.clear = function (data) {
 	this.SlotStream.find(".slot").remove();
 };
 
+Peris.Viewer.prototype.focusSlot = function (slot) {
+	this.Container.scrollTo(slot.position().top + slot.height() / 2 - this.Container.height() / 2, 200);
+};
+
 Peris.Viewer.prototype.newSlot = function (path, options) {
-	var slot = $("<div class='slot new'><div>");
+	var slot = $("<div class='slot new'></div>");
 	slot.data("path", path);
 	slot.css({
 		height: "200px"
@@ -201,6 +206,10 @@ Peris.Viewer.prototype.laySlots = function (count) {
 
 	if (until > start)
 		this.StatusBar.find(".status-lay-count").text(until);
+};
+
+Peris.Viewer.prototype.laySlotsRow = function () {
+	this.laySlots(this.SlotColumn);
 };
 
 Peris.Viewer.prototype.getSlot = function (index) {

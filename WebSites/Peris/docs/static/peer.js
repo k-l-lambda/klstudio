@@ -16,7 +16,11 @@ Peris.Peer.prototype.DraggingFigure = false;
 
 
 Peris.Peer.prototype.initialize = function () {
-	this.Panel = $("<div class='peer fullscreen-panel'></div>");
+	this.Panel = $("<div class='peer fullscreen-panel'>"
+		+ "<button class='prev'>&lt;</button>"
+		+ "<button class='next'>&gt;</button>"
+		+ "<button class='show-slider'></button>"
+		+ "</div>");
 
 	this.Panel.appendTo("body");
 
@@ -26,6 +30,10 @@ Peris.Peer.prototype.initialize = function () {
 
 	this.Panel.mouseup(function () { peer.onMouseUp(event); });
 	this.Panel.mousemove(function () { peer.onMouseMove(event); });
+
+	this.Panel.find(".prev").click(function () { peer.prev(); });
+	this.Panel.find(".next").click(function () { peer.next(); });
+	this.Panel.find(".show-slider").click(function () { peer.showSlider(); });
 };
 
 Peris.Peer.prototype.open = function (slot) {
@@ -45,22 +53,53 @@ Peris.Peer.prototype.open = function (slot) {
 	this.Showing = true;
 	this.Zoom = 1;
 	this.Translate = { x: 0, y: 0 };
+
+	this.Viewer.focusSlot(slot);
 };
 
 Peris.Peer.prototype.close = function () {
 	var peer = this;
 
 	this.Panel.fadeOut(function () {
-		peer.Figure.css({ transform: "none" });
-		peer.Figure.unbind("mousedown");
-		peer.Figure.unbind("mouseup");
-		peer.Figure.unbind("mousemove");
-
-		peer.Figure.detach();
-		peer.Figure.appendTo(peer.SourceSlot);
+		peer.clearSlotBinding();
 	});
 
 	this.Showing = false;
+};
+
+Peris.Peer.prototype.clearSlotBinding = function () {
+	this.Figure.css({ transform: "none" });
+	this.Figure.unbind("mousedown");
+	this.Figure.unbind("mouseup");
+	this.Figure.unbind("mousemove");
+
+	this.Figure.detach();
+	this.Figure.appendTo(this.SourceSlot);
+
+	this.SourceSlot.removeClass("hangout");
+};
+
+Peris.Peer.prototype.prev = function () {
+	if (this.SourceSlot && this.SourceSlot.prev(".slot.ready").length) {
+		this.clearSlotBinding();
+		this.open(this.SourceSlot.prev(".slot.ready"));
+	}
+};
+
+Peris.Peer.prototype.next = function () {
+	var next = this.SourceSlot.next(".slot.ready");
+
+	if (this.SourceSlot && next.length) {
+		this.clearSlotBinding();
+
+		if (!next.next(".slot.ready").length)
+			this.Viewer.laySlotsRow();
+
+		this.open(next);
+	}
+};
+
+Peris.Peer.prototype.showSlider = function () {
 };
 
 Peris.Peer.prototype.initializePanel = function (slot) {
@@ -70,6 +109,9 @@ Peris.Peer.prototype.initializePanel = function (slot) {
 	this.Figure = slot.find(".figure");
 
 	this.Panel.fadeIn();
+
+	slot.css({ height: slot.height() + "px" });
+	slot.addClass("hangout");
 
 	this.Figure.detach();
 	this.Figure.appendTo(this.Panel);
@@ -90,7 +132,7 @@ Peris.Peer.prototype.onClick = function (e) {
 		switch (e.button) {
 			// left button
 			case 0:
-				if (!this.DraggingFigure) {
+				if (!this.DraggingFigure && this.Panel.find("button:hover").length == 0) {
 					this.close();
 				}
 

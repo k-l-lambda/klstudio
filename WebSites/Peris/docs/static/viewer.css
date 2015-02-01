@@ -8,6 +8,7 @@
 	height: 100%;
 }
 
+
 .viewer
 {
 	position: relative;
@@ -130,6 +131,7 @@
 	width: 100%;
 }
 
+
 .peer
 {
 	display: none;
@@ -170,7 +172,7 @@
 
 .peer button:active
 {
-	background: rgba(192, 255, 192, 0.7);
+	background: rgba(192, 255, 192, 0.7) !important;
 }
 
 .peer .prev, .peer .next
@@ -178,8 +180,13 @@
 	width: 10%;
 	height: 100%;
 	font-size: 10vw;
-	background: rgba(200, 200, 200, 0.4);
+	background: transparent;
 	color: rgba(255, 255, 255, 0.4);
+}
+
+.peer .prev:hover, .peer .next:hover
+{
+	background: rgba(200, 200, 200, 0.2);
 }
 
 .peer .prev
@@ -200,4 +207,39 @@
 	height: 8%;
 	width: 100%;
 	background: rgba(0, 0, 0, 0.6);
+}
+
+
+.slider
+{
+	display: none;
+	z-index: 20000;
+	background: black;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.slider button
+{
+	position: absolute;
+	border: none;
+	transition: 0.3s;
+	opacity: 0;
+	cursor: pointer;
+	font-weight: bold;
+}
+
+.slider button:hover
+{
+	opacity: 1;
+}
+
+.slider .exit
+{
+	left: 0;
+	top: 0;
+	width: 10vw;
+	height: 10vw;
+	background: rgba(255, 0, 0, 0.4);
+	border-bottom-right-radius: 100%;
 }

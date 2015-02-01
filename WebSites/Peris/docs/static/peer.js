@@ -14,6 +14,7 @@ Peris.Peer.prototype.Translate = {x: 0, y: 0};
 Peris.Peer.prototype.HoldingFigure = false;
 Peris.Peer.prototype.DraggingFigure = false;
 Peris.Peer.prototype.LoadingSlot = false;
+Peris.Peer.prototype.FadeDuration = 300;
 
 
 Peris.Peer.prototype.initialize = function () {
@@ -73,7 +74,7 @@ Peris.Peer.prototype.open = function (slot) {
 Peris.Peer.prototype.close = function () {
 	var peer = this;
 
-	this.Panel.fadeOut(function () {
+	this.Panel.fadeOut(this.FadeDuration, function () {
 		peer.clearSlotBinding();
 	});
 
@@ -118,6 +119,12 @@ Peris.Peer.prototype.next = function () {
 };
 
 Peris.Peer.prototype.showSlider = function () {
+	var statIndex = 0;
+	if (this.Showing) {
+		statIndex = this.Viewer.PathList.indexOf(this.SourceSlot.data("path"));
+	}
+
+	this.Viewer.Slider.open(statIndex);
 };
 
 Peris.Peer.prototype.initializePanel = function (slot) {
@@ -126,7 +133,7 @@ Peris.Peer.prototype.initializePanel = function (slot) {
 	this.SourceSlot = slot;
 	this.Figure = slot.find(".figure");
 
-	this.Panel.fadeIn();
+	this.Panel.fadeIn(this.FadeDuration);
 
 	slot.css({ height: slot.height() + "px" });
 	slot.addClass("hangout");

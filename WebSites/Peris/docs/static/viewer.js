@@ -56,6 +56,7 @@ Peris.Viewer.prototype.initialize = function () {
 	});
 
 	this.Peer = new Peris.Peer(this);
+	this.Slider = new Peris.Slider(this);
 
 	this.Container.click(function () {
 		viewer.updateLayout();

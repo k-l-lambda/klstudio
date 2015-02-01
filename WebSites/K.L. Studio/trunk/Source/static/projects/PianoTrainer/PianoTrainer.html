@@ -2096,6 +2096,69 @@
 				return "data:audio/mid;base64," + btoa(midiData);
 			}
 
+			var generateMetronomeMidi = function (options) {
+				options = options || {}
+				options.BarVelocity = options.BarVelocity || 100;
+				options.BeatVelocity = options.BeatVelocity || 80;
+				options.BeatNote = options.BeatNote || 36;
+				options.BarNote = options.BarNote || options.BeatNote + 60;
+				options.Channel = options.Channel || 0;
+
+				var currentData = atob(localStorage.SourceData.split(",")[1]);
+				var file = MidiFile(currentData);
+
+				// removed all note events
+				if (options.RemoveOrigin) {
+					for (var i in file.tracks) {
+						for (var ii = 0; ii < file.tracks[i].length; ++ii) {
+							var event = file.tracks[i][ii];
+							if (event.subtype == "noteOn" || event.subtype == "noteOff") {
+								if (file.tracks[i][ii + 1])
+									file.tracks[i][ii + 1].deltaTime += event.deltaTime;
+
+								file.tracks[i].splice(ii, 1);
+								--ii;
+							}
+						}
+					}
+				}
+				console.log(file);
+
+				var notations = parseMidiData(MIDI.Player.data);
+
+				var track = [];
+				file.tracks.push(track);
+
+				var defaultBeatLength = 50;
+				var lastBeatLength = 0;
+
+				for (var i in notations.bars) {
+					var bar = notations.bars[i];
+
+					var deltaTicks = i > 0 ? file.header.ticksPerBeat : 0;
+
+					var beatLength = Math.min(deltaTicks, defaultBeatLength);
+
+					if (bar.index == 0) {
+						track.push({ deltaTime: deltaTicks - lastBeatLength, type: "channel", channel: options.Channel, subtype: "noteOff", noteNumber: options.BarNote });
+						track.push({ deltaTime: 0, type: "channel", channel: options.Channel, subtype: "noteOn", noteNumber: options.BarNote, velocity: options.BarVelocity });
+
+						beatLength = 0;
+					}
+					else {
+						track.push({ deltaTime: deltaTicks - lastBeatLength, type: "channel", channel: options.Channel, subtype: "noteOn", noteNumber: options.BeatNote, velocity: options.BeatVelocity });
+						track.push({ deltaTime: beatLength, type: "channel", channel: options.Channel, subtype: "noteOff", noteNumber: options.BeatNote });
+					}
+
+					lastBeatLength = beatLength;
+				}
+
+				track.push({ deltaTime: 0, type: "meta", subtype: "endOfTrack" });
+
+				var midiData = OMidiFile(file.header, file.tracks);
+				return "data:audio/mid;base64," + btoa(midiData);
+			};
+
 			$(function () {
 				$("body, body *").each(function (i, elem) {
 					elem.ondrop = function (e) {

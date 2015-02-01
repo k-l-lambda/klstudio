@@ -103,6 +103,9 @@ Peris.Viewer.prototype.clear = function (data) {
 Peris.Viewer.prototype.focusSlot = function (slot) {
 	this.Container.clearQueue();
 	this.Container.scrollTo(slot.position().top + slot.height() / 2 - this.Container.height() / 2, 200);
+
+	this.SlotStream.find(".slot.focus").removeClass("focus");
+	slot.addClass("focus");
 };
 
 Peris.Viewer.prototype.newSlot = function (path, options) {

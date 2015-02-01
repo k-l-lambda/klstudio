@@ -124,7 +124,17 @@ Peris.Peer.prototype.showSlider = function () {
 		statIndex = this.Viewer.PathList.indexOf(this.SourceSlot.data("path"));
 	}
 
-	this.Viewer.Slider.open(statIndex);
+	var peer = this;
+
+	this.Viewer.Slider.open({ startIndex: statIndex,
+		onClose: function () {
+			var slot = peer.Viewer.SlotStream.find(".slot.focus");
+			if (slot.length) {
+				peer.clearSlotBinding();
+				peer.open(slot);
+			}
+		}
+	});
 };
 
 Peris.Peer.prototype.initializePanel = function (slot) {

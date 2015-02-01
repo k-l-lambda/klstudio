@@ -61,6 +61,8 @@ Peris.Viewer.prototype.initialize = function () {
 		viewer.updateLayout();
 		$.force_appear();
 	});
+
+	this.Container.smoothWheel();
 };
 
 Peris.Viewer.prototype.update = function (data) {
@@ -98,6 +100,7 @@ Peris.Viewer.prototype.clear = function (data) {
 };
 
 Peris.Viewer.prototype.focusSlot = function (slot) {
+	this.Container.clearQueue();
 	this.Container.scrollTo(slot.position().top + slot.height() / 2 - this.Container.height() / 2, 200);
 };
 
@@ -220,7 +223,7 @@ Peris.Viewer.prototype.loadSlot = function (slot, onload, onerror) {
 	var path = slot.data("path");
 
 	slot.find(".figure").remove();
-	var img = $("<img class='figure' src='/images/" + encodeURI(path) + "' alt='" + path + "' />");
+	var img = $("<img class='figure' src=\"/images/" + encodeURI(path) + "\" alt='" + path + "' />");
 	img.appendTo(slot);
 
 	if (onload)

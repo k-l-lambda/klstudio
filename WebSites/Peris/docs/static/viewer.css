@@ -217,6 +217,7 @@
 	background: black;
 	text-align: center;
 	vertical-align: middle;
+	-webkit-user-select: none;
 }
 
 .slider button
@@ -227,6 +228,7 @@
 	opacity: 0;
 	cursor: pointer;
 	font-weight: bold;
+	z-index: 21000;
 }
 
 .slider button:hover
@@ -242,4 +244,27 @@
 	height: 10vw;
 	background: rgba(255, 0, 0, 0.4);
 	border-bottom-right-radius: 100%;
+}
+
+.slider .figure
+{
+	display: inline-block;
+	margin: auto;
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+}
+
+.slider .figure.vertical-full
+{
+	height: 100vh;
+	width: auto;
+}
+
+.slider .figure.horizontal-full
+{
+	width: 100vw;
+	height: auto;
 }

@@ -146,7 +146,7 @@ Peris.Slider.prototype.switchFigure = function (options) {
 			slider.Prev.empty();
 
 			f1.detach();
-			f1.css({ left: "", transform: "scale(1, 1)" });
+			f1.css({ left: "", transform: "scale(1, 1)", "-webkittransform": "scale(1, 1)" });
 			f1.appendTo(slider.Prev);
 
 			f2.detach();
@@ -172,7 +172,7 @@ Peris.Slider.prototype.switchFigure = function (options) {
 			slider.Next.empty();
 
 			f1.detach();
-			f1.css({ left: "", transform: "scale(1, 1)" });
+			f1.css({ left: "", transform: "scale(1, 1)", "-webkittransform": "scale(1, 1)" });
 			f1.appendTo(slider.Next);
 
 			f2.detach();
@@ -295,7 +295,8 @@ Peris.Slider.prototype.onSwitched = function () {
 	this.Viewer.focusSlot($(slots[index]));
 
 	var figure = this.Current.find(".figure");
-	figure.css({ transform: "scale(1.3, 1.3)" });
+	if (!Peris.isIPad)
+		figure.css({ transform: "scale(1.3, 1.3)" });
 
 	this.LastSwitchTime = Date.now();
 };

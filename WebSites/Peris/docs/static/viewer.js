@@ -2,6 +2,9 @@
 var Peris = Peris || {};
 
 
+Peris.isIPad = (/ipad/i).test(navigator.userAgent);
+
+
 Peris.Viewer = function (container) {
 	this.Container = container;
 
@@ -389,7 +392,7 @@ Peris.Viewer.prototype.onKeyDown = function (e) {
 				break;
 			default:
 				handled = false;
-				console.log(e.keyCode);
+				//console.log(e.keyCode);
 		}
 
 		if (handled)

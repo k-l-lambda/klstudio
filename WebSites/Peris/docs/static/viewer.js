@@ -25,6 +25,8 @@ Peris.Viewer.prototype.ScrollDeltaFromLastForceAppear = 0;
 Peris.Viewer.prototype.initialize = function () {
 	this.Container.addClass("viewer");
 
+	var viewer = this;
+
 	this.SlotStream = $("<div class='slot-stream'></div>");
 	this.SlotStream.appendTo(this.Container);
 
@@ -38,7 +40,16 @@ Peris.Viewer.prototype.initialize = function () {
 		+ "<span class='status-counter'><span class='status-lay-count'></span> / <span class='status-total'></span></span></div>");
 	this.StatusBar.appendTo(this.Container);
 
-	var viewer = this;
+	var expandButton = $("<button class='expand-button'></button>");
+	expandButton.appendTo(this.Container);
+	expandButton.click(function () {
+		if (viewer.Container.hasClass("expand"))
+			viewer.Container.removeClass("expand");
+		else
+			viewer.Container.addClass("expand");
+
+		viewer.onResized();
+	});
 
 	this.OldScrollTop = this.Container.scrollTop();
 
@@ -66,6 +77,18 @@ Peris.Viewer.prototype.initialize = function () {
 	});
 
 	this.Container.smoothWheel();
+
+	this.OldWindowSize = { w: $(window).width(), h: $(window).height() };
+	$(window).resize(function () {
+		if ($(window).width() != viewer.OldWindowSize.w)
+			viewer.onResized();
+
+		viewer.OldWindowSize = { w: $(window).width(), h: $(window).height() };
+	});
+
+	$(document).keydown(function () {
+		viewer.onKeyDown(event);
+	});
 };
 
 Peris.Viewer.prototype.update = function (data) {
@@ -171,7 +194,7 @@ Peris.Viewer.prototype.onFocusSlotChanged = function () {
 	this.StatusBar.find(".status-path").html($slot ? "<strong>" + $slot.data("path") + "</strong>" : "");
 	this.StatusBar.find(".status-dimensions").html(figure ? "(" + figure.naturalWidth + "&times;" + figure.naturalHeight + ")" : "");
 
-	if (this.StatusBar.find(".status-path").width() > this.StatusBar.find(".status-dimensions").position().left - 20)
+	if (this.StatusBar.find(".status-path").width() > this.StatusBar.find(".status-dimensions").position().left - 12)
 		this.StatusBar.addClass("higher");
 	else
 		this.StatusBar.removeClass("higher");
@@ -334,5 +357,42 @@ Peris.Viewer.prototype.updateLayout = function () {
 			$.force_appear();
 			this.ScrollDeltaFromLastForceAppear = 0;
 		}
+	}
+};
+
+Peris.Viewer.prototype.onResized = function () {
+	// recreate stream
+	this.clear();
+	this.updateLayout();
+};
+
+Peris.Viewer.prototype.onKeyDown = function (e) {
+	if (!this.Peer.Showing && !this.Slider.Showing) {
+		var handled = true;
+
+		switch (e.keyCode) {
+			case 27: // esc
+				if (this.Container.hasClass("expand")) {
+					this.Container.removeClass("expand");
+					this.onResized();
+				}
+
+				break;
+			case 118: // F7
+				var focus = this.SlotStream.find(".slot:hover");
+				if (!focus.length)
+					focus = this.SlotStream.find(".slot.focus");
+
+				var statIndex = focus.length ? this.PathList.indexOf(focus.data("path")) : 0;
+				this.Slider.open({ startIndex: statIndex });
+
+				break;
+			default:
+				handled = false;
+				console.log(e.keyCode);
+		}
+
+		if (handled)
+			e.preventDefault();
 	}
 };

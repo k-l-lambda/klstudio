@@ -19,6 +19,8 @@ Peris.Viewer.prototype.CacheHeight = 1600;
 
 Peris.Viewer.prototype.FocusSlot = null;
 
+Peris.Viewer.prototype.ScrollDeltaFromLastForceAppear = 0;
+
 
 Peris.Viewer.prototype.initialize = function () {
 	this.Container.addClass("viewer");
@@ -101,6 +103,8 @@ Peris.Viewer.prototype.clear = function (data) {
 };
 
 Peris.Viewer.prototype.focusSlot = function (slot) {
+	console.assert(slot.length, "Empty slot:", slot);
+
 	this.Container.clearQueue();
 	this.Container.scrollTo(slot.position().top + slot.height() / 2 - this.Container.height() / 2, 200);
 
@@ -232,12 +236,19 @@ Peris.Viewer.prototype.loadSlot = function (slot, onload, onerror) {
 
 	if (onload)
 		img.load(onload);
-
 	if (onerror)
 		img.error(onerror);
 
+	var onLoadEnd = function () {
+		slot.removeClass("loading");
+	};
+
+	img.load(onLoadEnd);
+	img.error(onLoadEnd);
+
 	slot.removeClass("blank");
 	slot.addClass("filled");
+	slot.addClass("loading");
 };
 
 Peris.Viewer.prototype.unloadSlot = function (slot) {
@@ -316,6 +327,12 @@ Peris.Viewer.prototype.updateLayout = function () {
 	});
 
 	// load appeared slots
-	if (delta < 0 || (bottomBound - delta < readyBottom))
-		$.force_appear();
+	if (delta < 0 || (bottomBound - delta < readyBottom)) {
+		this.ScrollDeltaFromLastForceAppear += delta;
+
+		if (Math.abs(this.ScrollDeltaFromLastForceAppear) > this.Container.height() * 0.3) {
+			$.force_appear();
+			this.ScrollDeltaFromLastForceAppear = 0;
+		}
+	}
 };

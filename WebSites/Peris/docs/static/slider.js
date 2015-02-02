@@ -205,7 +205,10 @@ Peris.Slider.prototype.newFigure = function (index, onFinish) {
 
 Peris.Slider.prototype.onClick = function (e) {
 	if (this.Showing) {
-		this.next(this.FastSwitchDuration);
+		if (e.x / this.Panel.width() < 0.3)
+			this.prev(this.FastSwitchDuration);
+		else
+			this.next(this.FastSwitchDuration);
 
 		e.preventDefault();
 	}
@@ -224,9 +227,23 @@ Peris.Slider.prototype.onKeyDown = function (e) {
 	if (this.Showing) {
 		var handled = true;
 
+		var slider = this;
+
 		switch (e.keyCode) {
 			case 27: // esc
 				this.close();
+
+				break;
+			case 37: // left
+				setTimeout(function () {
+					slider.prev(slider.FastSwitchDuration);
+				}, 1);
+
+				break;
+			case 39: // right
+				setTimeout(function () {
+					slider.next(slider.FastSwitchDuration);
+				}, 1);
 
 				break;
 			default:

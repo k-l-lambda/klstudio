@@ -223,7 +223,7 @@ Peris.Peer.prototype.onMouseMove = function (e) {
 };
 
 Peris.Peer.prototype.onKeyDown = function (e) {
-	if (this.Showing) {
+	if (this.Showing && !this.Viewer.Slider.Showing) {
 		var handled = true;
 
 		var peer = this;

@@ -256,6 +256,7 @@
 	bottom: 0;
 	left: 0;
 	right: 0;
+	transition: transform 30s linear;
 }
 
 .slider .figure.vertical-full

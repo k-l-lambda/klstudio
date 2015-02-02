@@ -1,9 +1,8 @@
 
 TODO:
-	slider:
-		animation figure
 	Home page:
 		start slider button
+		viewer fullscreen button
 	peer:
 		editor
 		figure zoom animation when open/close.
@@ -11,6 +10,8 @@ TODO:
 
 
 2015.2.2	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/slider.js: figure zoom animation implemented.
 
 	+	static/slider.js: prev by click added.
 	+	static/slider.js: prev/next by keyboard added.

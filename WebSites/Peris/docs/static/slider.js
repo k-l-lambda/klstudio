@@ -16,6 +16,7 @@ Peris.Slider.prototype.FastSwitchDuration = 300;
 Peris.Slider.prototype.SwitchInterval = 4000;
 Peris.Slider.prototype.SwitchHandle = null;
 Peris.Slider.prototype.Switching = false;
+Peris.Slider.prototype.LastSwitchTime = Date.now();
 
 
 Peris.Slider.prototype.initialize = function () {
@@ -70,7 +71,9 @@ Peris.Slider.prototype.open = function (options) {
 	this.Current.append(this.newFigure(this.CurrentIndex));
 	this.Next.append(this.newFigure(this.CurrentIndex + 1));
 
-	this.Current.find(".figure").show();
+	this.Current.find(".figure").fadeIn(this.SwitchDuration, function () {
+		slider.onSwitched();
+	});
 
 	this.startSwitching();
 
@@ -96,7 +99,8 @@ Peris.Slider.prototype.startSwitching = function () {
 	this.stopSwitching();
 
 	this.SwitchHandle = setInterval(function () {
-		slider.next();
+		if (Date.now() - slider.LastSwitchTime >= (slider.SwitchInterval - slider.SwitchDuration) * 0.9)
+			slider.next();
 	}, this.SwitchInterval);
 };
 
@@ -117,7 +121,7 @@ Peris.Slider.prototype.prev = function (duration) {
 
 	this.Switching = true;
 
-	this.Current.find(".figure").fadeOut(duration);
+	this.Current.find(".figure").fadeOut(duration).animate({ left: "+=60px" }, { duration: duration, queue: false });
 	this.Prev.find(".figure").fadeIn(duration, function () {
 		var f1 = slider.Current.find(".figure");
 		var f2 = slider.Prev.find(".figure");
@@ -125,6 +129,7 @@ Peris.Slider.prototype.prev = function (duration) {
 		slider.Next.empty();
 
 		f1.detach();
+		f1.css({ left: "" });
 		f1.appendTo(slider.Next);
 
 		f2.detach();
@@ -150,7 +155,7 @@ Peris.Slider.prototype.next = function (duration) {
 
 	this.Switching = true;
 
-	this.Current.find(".figure").fadeOut(duration);
+	this.Current.find(".figure").fadeOut(duration).animate({ left: "-=60px" }, { duration: duration, queue: false });
 	this.Next.find(".figure").fadeIn(duration, function () {
 		var f1 = slider.Current.find(".figure");
 		var f2 = slider.Next.find(".figure");
@@ -158,6 +163,7 @@ Peris.Slider.prototype.next = function (duration) {
 		slider.Prev.empty();
 
 		f1.detach();
+		f1.css({ left: "" });
 		f1.appendTo(slider.Prev);
 
 		f2.detach();
@@ -261,4 +267,9 @@ Peris.Slider.prototype.onSwitched = function () {
 	var index = Math.min(this.CurrentIndex, slots.length - 1);
 
 	this.Viewer.focusSlot($(slots[index]));
+
+	var figure = this.Current.find(".figure");
+	figure.css({ transform: "scale(1.3, 1.3)" });
+
+	this.LastSwitchTime = Date.now();
 };

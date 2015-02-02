@@ -168,6 +168,7 @@
 .peer button:hover
 {
 	opacity: 1;
+	box-shadow: 0 0 20px #000;
 }
 
 .peer button:active

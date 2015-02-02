@@ -292,7 +292,7 @@ Peris.Viewer.prototype.updateLayout = function () {
 	if (!this.isSlotCompleted()) {
 		var newSlotCount = this.SlotStream.find(".slot.new").length;
 		if (scrollTop + this.Container.height() > readyBottom) {
-			while (newSlotCount < this.SlotColumn * Math.max(this.SlotColumn * 0.3, 1)) {
+			while (newSlotCount < this.SlotColumn * Math.max(this.SlotColumn * 0.4, 1)) {
 				this.laySlots(this.SlotColumn);
 				newSlotCount += this.SlotColumn;
 			}

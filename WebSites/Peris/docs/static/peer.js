@@ -229,6 +229,10 @@ Peris.Peer.prototype.onKeyDown = function (e) {
 		var peer = this;
 
 		switch (e.keyCode) {
+			case 27: // esc
+				this.close();
+
+				break;
 			case 37: // left
 				setTimeout(function () {
 					peer.prev();

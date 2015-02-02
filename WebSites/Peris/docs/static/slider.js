@@ -100,7 +100,7 @@ Peris.Slider.prototype.startSwitching = function () {
 
 	this.SwitchHandle = setInterval(function () {
 		if (Date.now() - slider.LastSwitchTime >= (slider.SwitchInterval - slider.SwitchDuration) * 0.9)
-			slider.next();
+			slider.switchFigure({loop: true});
 	}, this.SwitchInterval);
 };
 
@@ -111,72 +111,85 @@ Peris.Slider.prototype.stopSwitching = function () {
 	}
 };
 
-Peris.Slider.prototype.prev = function (duration) {
-	if (this.Switching)
-		return;
+Peris.Slider.prototype.prev = function (options) {
+	options = options || {};
+	options.backwars = true;
 
-	duration = duration || this.SwitchDuration;
-
-	var slider = this;
-
-	this.Switching = true;
-
-	this.Current.find(".figure").fadeOut(duration).animate({ left: "+=60px" }, { duration: duration, queue: false });
-	this.Prev.find(".figure").fadeIn(duration, function () {
-		var f1 = slider.Current.find(".figure");
-		var f2 = slider.Prev.find(".figure");
-
-		slider.Next.empty();
-
-		f1.detach();
-		f1.css({ left: "" });
-		f1.appendTo(slider.Next);
-
-		f2.detach();
-		f2.appendTo(slider.Current);
-
-		slider.Prev.append(slider.newFigure(slider.CurrentIndex - 1));
-
-		slider.Switching = false;
-
-		slider.onSwitched();
-	});
-
-	--this.CurrentIndex;
+	this.switchFigure(options);
 };
 
-Peris.Slider.prototype.next = function (duration) {
+Peris.Slider.prototype.next = function (options) {
+	this.switchFigure(options);
+};
+
+Peris.Slider.prototype.switchFigure = function (options) {
+	options = options || {};
+
 	if (this.Switching)
 		return;
 
-	duration = duration || this.SwitchDuration;
+	duration = options.duration || (options.manually ? this.FastSwitchDuration : this.SwitchDuration);
 
 	var slider = this;
 
 	this.Switching = true;
 
-	this.Current.find(".figure").fadeOut(duration).animate({ left: "-=60px" }, { duration: duration, queue: false });
-	this.Next.find(".figure").fadeIn(duration, function () {
-		var f1 = slider.Current.find(".figure");
-		var f2 = slider.Next.find(".figure");
+	this.Current.find(".figure").fadeOut(duration)
+	if (options.manually)
+		this.Current.find(".figure").animate({ left: options.backwars ? "+=60px" : "-=60px" }, { duration: duration, queue: false });
 
-		slider.Prev.empty();
+	if (!options.backwars) {
+		this.Next.find(".figure").fadeIn(duration, function () {
+			var f1 = slider.Current.find(".figure");
+			var f2 = slider.Next.find(".figure");
 
-		f1.detach();
-		f1.css({ left: "" });
-		f1.appendTo(slider.Prev);
+			slider.Prev.empty();
 
-		f2.detach();
-		f2.appendTo(slider.Current);
+			f1.detach();
+			f1.css({ left: "", transform: "scale(1, 1)" });
+			f1.appendTo(slider.Prev);
 
-		slider.Next.append(slider.newFigure(slider.CurrentIndex + 1));
+			f2.detach();
+			f2.appendTo(slider.Current);
 
-		slider.Switching = false;
+			slider.Next.append(slider.newFigure(slider.CurrentIndex + 1));
 
-		slider.onSwitched();
-	});
+			slider.Switching = false;
 
-	++this.CurrentIndex;
+			slider.onSwitched();
+		});
+
+		if (this.CurrentIndex < this.PathList.length)
+			++this.CurrentIndex;
+		else if (options.loop)
+			this.CurrentIndex = 0;
+	}
+	else {
+		this.Prev.find(".figure").fadeIn(duration, function () {
+			var f1 = slider.Current.find(".figure");
+			var f2 = slider.Prev.find(".figure");
+
+			slider.Next.empty();
+
+			f1.detach();
+			f1.css({ left: "", transform: "scale(1, 1)" });
+			f1.appendTo(slider.Next);
+
+			f2.detach();
+			f2.appendTo(slider.Current);
+
+			slider.Prev.append(slider.newFigure(slider.CurrentIndex - 1));
+
+			slider.Switching = false;
+
+			slider.onSwitched();
+		});
+
+		if (this.CurrentIndex > 0)
+			--this.CurrentIndex;
+		else if (options.loop)
+			this.CurrentIndex = this.PathList.length - 1;
+	}
 };
 
 Peris.Slider.prototype.currentPath = function () {
@@ -212,9 +225,9 @@ Peris.Slider.prototype.newFigure = function (index, onFinish) {
 Peris.Slider.prototype.onClick = function (e) {
 	if (this.Showing) {
 		if (e.x / this.Panel.width() < 0.3)
-			this.prev(this.FastSwitchDuration);
+			this.prev({manually: true});
 		else
-			this.next(this.FastSwitchDuration);
+			this.next({manually: true});
 
 		e.preventDefault();
 	}
@@ -223,9 +236,9 @@ Peris.Slider.prototype.onClick = function (e) {
 Peris.Slider.prototype.onMouseWheel = function (e) {
 	if (this.Showing) {
 		if (e.wheelDelta > 0)
-			this.prev(this.FastSwitchDuration);
+			this.prev({manually: true});
 		else if (e.wheelDelta < 0)
-			this.next(this.FastSwitchDuration);
+			this.next({manually: true});
 	}
 };
 
@@ -242,14 +255,27 @@ Peris.Slider.prototype.onKeyDown = function (e) {
 				break;
 			case 37: // left
 				setTimeout(function () {
-					slider.prev(slider.FastSwitchDuration);
+					slider.prev({ manually: true });
 				}, 1);
 
 				break;
 			case 39: // right
 				setTimeout(function () {
-					slider.next(slider.FastSwitchDuration);
+					slider.next({ manually: true });
 				}, 1);
+
+				break;
+			case 13: // enter
+				this.switchFigure();
+
+				break;
+			case 32: // space
+				if (this.SwitchHandle)
+					this.stopSwitching();
+				else {
+					this.switchFigure();
+					this.startSwitching();
+				}
 
 				break;
 			default:
@@ -264,7 +290,7 @@ Peris.Slider.prototype.onKeyDown = function (e) {
 
 Peris.Slider.prototype.onSwitched = function () {
 	var slots = this.Viewer.SlotStream.find(".slot");
-	var index = Math.min(this.CurrentIndex, slots.length - 1);
+	var index = Math.max(Math.min(this.CurrentIndex, slots.length - 1), 0);
 
 	this.Viewer.focusSlot($(slots[index]));
 

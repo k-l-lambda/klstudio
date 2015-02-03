@@ -4,7 +4,7 @@ TODO:
 		start slider button
 	peer:
 		editor
-			score touch bar
+			score touch bar, rewrite by canvas
 		figure zoom animation when open/close.
 	image finger print by 16*16 gray matrix.
 

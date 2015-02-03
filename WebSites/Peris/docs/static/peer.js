@@ -22,6 +22,8 @@ Peris.Peer.prototype.initialize = function () {
 		+ "<button class='prev'>&lt;</button>"
 		+ "<button class='next'>&gt;</button>"
 		+ "<button class='show-slider'></button>"
+		+ "<div class='score-bar'><div class='score-gradient'></div><div class='score-touch'></div></div>"
+		+ "<div class='input-bar'><input class='input-tags' type='text' /><input class='input-score' type='text' /></div>"
 		+ "</div>");
 
 	this.Panel.appendTo("body");
@@ -69,6 +71,30 @@ Peris.Peer.prototype.open = function (slot) {
 	this.Translate = { x: 0, y: 0 };
 
 	this.Viewer.focusSlot(slot);
+
+	var inputBar = this.Panel.find(".input-bar");
+	inputBar.find(".input-score").val("");
+	inputBar.find(".input-tags").val("");
+	inputBar.addClass("disabled");
+
+	this.setScoreTouchValue(0);
+
+	var path = slot.data("path");
+	$.post("query", { query: 'file-info', path: path }, function (json, s, ajax) {
+		if (json.result == "success") {
+			inputBar.removeClass("disabled");
+
+			inputBar.find(".input-score").val(json.data.score);
+			inputBar.find(".input-tags").val(json.data.tags);
+
+			peer.setScoreTouchValue(Number(json.data.score));
+		}
+		else if (json.result == "fail") {
+			console.warn("query file info " + path + " failed:", json.error);
+		}
+		else
+			console.error("unexpect json result:", json);
+	}, "json");
 };
 
 Peris.Peer.prototype.close = function () {
@@ -164,12 +190,17 @@ Peris.Peer.prototype.initializePanel = function (slot) {
 	this.LoadingSlot = false;
 };
 
+Peris.Peer.prototype.setScoreTouchValue = function (score) {
+	var percent = score * 100 / 15;
+	this.Panel.find(".score-touch").css({ backgroundImage: "-webkit-gradient(linear,left center,right center,from(#0f0),color-stop(" + percent + "%, #0f0),color-stop(" + percent + "%, transparent),to(transparent))" });
+};
+
 Peris.Peer.prototype.onClick = function (e) {
 	if (this.Showing) {
 		switch (e.button) {
 			// left button
 			case 0:
-				if (!this.DraggingFigure && this.Panel.find("button:hover").length == 0) {
+				if (!this.DraggingFigure && this.Panel.find("button:hover, .input-bar:hover, .score-bar:hover").length == 0) {
 					this.close();
 				}
 

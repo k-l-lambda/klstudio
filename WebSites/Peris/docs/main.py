@@ -7,6 +7,7 @@ import datetime
 import md5
 import re
 import cgi
+import traceback
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -60,7 +61,7 @@ class DbQueryHandle:
 			return Serializer.save({'result': 'success', 'data': data})
 		except:
 			logging.warn('sql query error: %s', sys.exc_info())
-			return Serializer.save({'result': 'fail', 'error': str(sys.exc_info())})
+			return Serializer.save({'result': 'fail', 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
 
 	@staticmethod
 	def generalQuery(sql):
@@ -230,10 +231,46 @@ class ImportAlbumDataHandle:
 		yield '<p>End.</p>'
 
 
+class UpdateFigureHandle:
+	def POST(self):
+		web.header('Content-Type', 'application/json')
+
+		try:
+			input = web.input(score = None, tags = None)
+			hash = input.hash
+
+			if not hash:
+				return Serializer.save({'result': 'fail', 'error': 'hash is empty.'})
+
+			data = {}
+			if not input.score is None:
+				data['score'] = input.score
+			if not input.tags is None:
+				data['tags'] = input.tags
+
+			record = db.select('album', where = 'hash=$hash', vars = dict(hash = hash))
+			record = record and record[0]
+
+			if record:
+				db.update('album', where = 'hash=$hash', vars = dict(hash = hash), **data)
+
+				return Serializer.save({'result': 'success', 'type': 'update'})
+			else:
+				data.setdefault('score', None)
+				data.setdefault('tags', None)
+
+				db.insert('album', hash = hash, **data)
+
+				return Serializer.save({'result': 'success', 'type': 'insert'})
+		except:
+			logging.warn('figure update error: %s', sys.exc_info())
+			return Serializer.save({'result': 'fail', 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
+
 
 application = web.application((
 	'/',								'HomeHandle',
 	'/query',							'DbQueryHandle',
+	'/update-figure',					'UpdateFigureHandle',
 	'/constants.js',					'ConstantsHandle',
 	'/admin/',							'AdminHomeHandle',
 	'/admin/update-file-register',		'UpdateFileRegisterHandle',

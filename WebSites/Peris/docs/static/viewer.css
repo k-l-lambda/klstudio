@@ -280,6 +280,7 @@
 	top: 0;
 	opacity: 0.4;
 	transition: opacity 0.2s;
+	cursor: pointer;
 }
 
 .peer .score-bar:hover
@@ -289,19 +290,32 @@
 
 .peer .score-gradient, .peer .score-touch
 {
+	display: block;
 	width: 100%;
 }
 
 .peer .score-gradient
 {
+	transition: height 0.3s;
+	height: 1px;
+}
+
+.peer .score-bar:hover .score-gradient
+{
 	height: 8px;
-	background-image: -webkit-gradient(linear,left center,right center,from(#400),color-stop(16.7%, #cc0),color-stop(16.7%, #ff0),color-stop(33.3%, #0c0),color-stop(33.3%, #0f0),color-stop(50%, #22a),color-stop(50%, #00f),color-stop(66.7%, #c0f),color-stop(66.7%, #f00),to(white));
 }
 
 .peer .score-touch
 {
-	height: 22px;
-	cursor: pointer;
+	transition: 0.3s;
+	height: 20px;
+	background-color: rgba(109, 109, 109, 0.2);
+}
+
+.peer .score-bar:hover .score-touch
+{
+	height: 26px;
+	box-shadow: 0 0 20px 2px #000;
 }
 
 .peer .input-bar

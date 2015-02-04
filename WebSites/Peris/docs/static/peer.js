@@ -22,7 +22,7 @@ Peris.Peer.prototype.initialize = function () {
 		+ "<button class='prev'>&lt;</button>"
 		+ "<button class='next'>&gt;</button>"
 		+ "<button class='show-slider'></button>"
-		+ "<div class='score-bar'><div class='score-gradient'></div><div class='score-touch'></div></div>"
+		+ "<div class='score-bar'><canvas class='score-gradient' width='1500' height='10'></canvas><div class='score-touch'></div></div>"
 		+ "<div class='input-bar'><input class='input-tags' type='text' /><input class='input-score' type='text' /></div>"
 		+ "</div>");
 
@@ -41,6 +41,41 @@ Peris.Peer.prototype.initialize = function () {
 
 	$(document).keydown(function () {
 		peer.onKeyDown(event);
+	});
+
+	// paint score gradient
+	var canvas = this.Panel.find(".score-gradient");
+	var ctx = canvas[0].getContext("2d");
+	var gradient = ctx.createLinearGradient(0, 0, 1500, 0);
+	gradient.addColorStop(0, "#400");
+	gradient.addColorStop(2.5 / 15, "#cc0");
+	gradient.addColorStop(2.5000001 / 15, "#ff0");
+	gradient.addColorStop(5. / 15, "#0c0");
+	gradient.addColorStop(5.0000001 / 15, "#0f0");
+	gradient.addColorStop(7.5 / 15, "#22c");
+	gradient.addColorStop(7.5000001 / 15, "#00f");
+	gradient.addColorStop(10 / 15, "#90c");
+	gradient.addColorStop(10.0000001 / 15, "#c0f");
+	gradient.addColorStop(1, "white");
+	ctx.fillStyle = gradient;
+	ctx.fillRect(0, 0, 1500, 10);
+
+	this.Panel.find(".score-bar").mousemove(function () {
+		var score = event.x * 15 / $(this).width();
+		peer.setScoreTouchValue(score);
+	});
+
+	this.Panel.find(".score-bar").click(function () {
+		var score = Number((event.x * 15 / $(this).width()).toPrecision(4));
+		peer.Panel.find(".input-score").val(score);
+
+		peer.postFigureData({ score: score });
+	});
+
+	this.Panel.find(".score-bar").mouseleave(function () {
+		var score = peer.Panel.find(".input-score").val();
+		score = (score == "") ? null : Number(score);
+		peer.setScoreTouchValue(score);
 	});
 };
 
@@ -79,10 +114,14 @@ Peris.Peer.prototype.open = function (slot) {
 
 	this.setScoreTouchValue(0);
 
+	this.CurrentHash = null;
+
 	var path = slot.data("path");
-	$.post("query", { query: 'file-info', path: path }, function (json, s, ajax) {
+	$.post("/query", { query: 'file-info', path: path }, function (json, s, ajax) {
 		if (json.result == "success") {
 			inputBar.removeClass("disabled");
+
+			peer.CurrentHash = json.data.hash;
 
 			inputBar.find(".input-score").val(json.data.score);
 			inputBar.find(".input-tags").val(json.data.tags);
@@ -191,8 +230,20 @@ Peris.Peer.prototype.initializePanel = function (slot) {
 };
 
 Peris.Peer.prototype.setScoreTouchValue = function (score) {
-	var percent = score * 100 / 15;
-	this.Panel.find(".score-touch").css({ backgroundImage: "-webkit-gradient(linear,left center,right center,from(#0f0),color-stop(" + percent + "%, #0f0),color-stop(" + percent + "%, transparent),to(transparent))" });
+	if (score) {
+		var canvas = this.Panel.find(".score-gradient");
+		var ctx = canvas[0].getContext("2d");
+		var color = ctx.getImageData(score * 100, 0, 1, 1).data;
+		var colorStr = "rgb(" + color[0] + ", " + color[1] + ", " + color[2] + ")";
+
+		var percent = score * 100 / 15;
+		this.Panel.find(".score-touch").css({ backgroundImage: "-webkit-gradient(linear,left center,right center,from(" + colorStr + "),color-stop(" + percent + "%, " + colorStr + "),color-stop(" + percent + "%, transparent),to(transparent))" });
+		this.Panel.find(".score-bar").attr({ title: score.toPrecision(4) });
+	}
+	else {
+		this.Panel.find(".score-touch").css({ backgroundImage: "none" });
+		this.Panel.find(".score-bar").removeAttr("title");
+	}
 };
 
 Peris.Peer.prototype.onClick = function (e) {
@@ -288,4 +339,24 @@ Peris.Peer.prototype.onKeyDown = function (e) {
 
 Peris.Peer.prototype.updateTransform = function (e) {
 	this.Figure.css({ transform: "scale(" + this.Zoom + ", " + this.Zoom + ") translate(" + this.Translate.x + "px, " + this.Translate.y + "px)" });
+};
+
+Peris.Peer.prototype.postFigureData = function (data) {
+	if (!this.CurrentHash) {
+		console.warn("CurrentHash is null, figure data post cancelled.");
+		return;
+	}
+
+	data.hash = this.CurrentHash;
+
+	$.post("/update-figure", data, function (json, s, ajax) {
+		if (json.result == "success") {
+			console.log("figure data post:", data, json);
+		}
+		else if (json.result == "fail") {
+			console.warn("post figure failed:", json.error);
+		}
+		else
+			console.error("unexpect json result:", json);
+	}, "json");
 };

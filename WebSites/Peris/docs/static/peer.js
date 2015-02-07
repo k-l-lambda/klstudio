@@ -24,7 +24,7 @@ Peris.Peer.prototype.initialize = function () {
 		+ "<button class='next'>&gt;</button>"
 		+ "<button class='show-slider'></button>"
 		+ "<div class='score-bar'><canvas class='score-gradient' width='1500' height='10'></canvas><div class='score-touch'><div class='score-touch-colored'></div></div></div>"
-		+ "<div class='input-bar'><input class='input-tags' type='text' /><input class='input-score' type='text' readonly /></div>"
+		+ "<div class='input-bar'><ol class='tag-list'></ol><input class='input-tags' type='text' /><input class='input-score' type='text' readonly /></div>"
 		+ "</div>");
 
 	this.Panel.appendTo("body");
@@ -97,6 +97,8 @@ Peris.Peer.prototype.initialize = function () {
 		if ($(this).is(".dirty"))
 			peer.postFigureData({ tags: $(this).val() });
 	});
+
+	this.TagList = new Peris.TagList();
 };
 
 Peris.Peer.prototype.open = function (slot) {
@@ -124,6 +126,7 @@ Peris.Peer.prototype.open = function (slot) {
 	this.Showing = true;
 	this.Zoom = 1;
 	this.Translate = { x: 0, y: 0 };
+	this.HoldingFigure = false;
 
 	this.Viewer.focusSlot(slot);
 
@@ -148,6 +151,14 @@ Peris.Peer.prototype.open = function (slot) {
 
 			peer.setScoreTouchValue(Number(json.data.score));
 			inputBar.find(".input-tags").val(json.data.tags);
+
+			if (json.data.tags) {
+				var tagsArray = json.data.tags.split("|");
+				for (var i in tagsArray)
+					peer.TagList.update(tagsArray[i], 1);
+			}
+
+			peer.renderTagList();
 		}
 		else if (json.result == "fail") {
 			console.warn("query file info " + path + " failed:", json.error);
@@ -364,6 +375,23 @@ Peris.Peer.prototype.onKeyDown = function (e) {
 	}
 };
 
+Peris.Peer.prototype.onTagItemClick = function (item) {
+	var tagsArray = this.getCurrentTagArray();
+	var tag = item.find(".text").text();
+
+	if (item.is(".used")) {
+		if (tagsArray.indexOf(tag) >= 0)
+			tagsArray.splice(tagsArray.indexOf(tag), 1);
+	}
+	else
+		tagsArray.push(tag);
+
+	var tags = tagsArray.join("|");
+	this.Panel.find(".input-tags").val(tags);
+	this.Panel.find(".input-tags").addClass("dirty");
+	this.postFigureData({ tags: tags });
+};
+
 Peris.Peer.prototype.updateTransform = function (e) {
 	this.Figure.css({ transform: "scale(" + this.Zoom + ", " + this.Zoom + ") translate(" + this.Translate.x + "px, " + this.Translate.y + "px)" });
 };
@@ -372,6 +400,16 @@ Peris.Peer.prototype.postFigureData = function (data) {
 	if (!this.CurrentHash) {
 		console.warn("CurrentHash is null, figure data post cancelled.");
 		return;
+	}
+
+	if (data.tags) {
+		var tags0 = this.getCurrentTagArray();
+		var tags1 = data.tags.split("|");
+
+		for (i in tags1)
+			if (tags0.indexOf(tags1[i]) < 0) {
+				this.TagList.update(tags1[i], 3);
+			}
 	}
 
 	for (var k in data)
@@ -385,8 +423,10 @@ Peris.Peer.prototype.postFigureData = function (data) {
 		if (json.result == "success") {
 			console.log("figure data post:", data, json);
 
-			if (data.tags)
+			if (data.tags || data.tags == "") {
 				peer.Panel.find(".input-tags").removeClass("dirty");
+				peer.renderTagList();
+			}
 		}
 		else if (json.result == "fail") {
 			console.warn("post figure failed:", json.error);
@@ -394,4 +434,94 @@ Peris.Peer.prototype.postFigureData = function (data) {
 		else
 			console.error("unexpect json result:", json);
 	}, "json");
+};
+
+Peris.Peer.prototype.renderTagList = function () {
+	var list = this.TagList.getSortedList(true);
+	var ol = this.Panel.find(".tag-list");
+	ol.empty();
+
+	var tagsArray = this.getCurrentTagArray();
+
+	var peer = this;
+
+	for (var i in list) {
+		var item = $("<li><span class='text'></span><span class='icon'><span></li>");
+		item.find(".text").text(list[i].key);
+
+		var used = tagsArray.indexOf(list[i].key) >= 0;
+		if (used)
+			item.addClass("used");
+
+		item.find(".icon").text(used ? "\u00d7" : "+");
+
+		item.appendTo(ol);
+
+		item.click(function () {
+			peer.onTagItemClick($(this));
+		});
+	}
+};
+
+Peris.Peer.prototype.getCurrentTagArray = function () {
+	var tagsArray = [];
+	if (this.CurrentData.tags)
+		tagsArray = this.CurrentData.tags.split("|");
+
+	return tagsArray;
+};
+
+
+Peris.TagList = function () {
+	this.load();
+};
+
+Peris.TagList.prototype.List = {};
+
+Peris.TagList.prototype.LengthMax = 30;
+Peris.TagList.prototype.FrequencyDecreaseFactor = 0.9;
+
+Peris.TagList.prototype.load = function () {
+	if (localStorage.TagList)
+		this.List = $.parseJSON(localStorage.TagList);
+};
+
+Peris.TagList.prototype.save = function () {
+	localStorage.TagList = $.toJSON(this.List);
+};
+
+Peris.TagList.prototype.update = function (key, inc) {
+	this.List[key] = this.List[key] || 0;
+	this.List[key] += inc;
+
+	for (var k in this.List) {
+		if (k != key) {
+			this.List[k] *= this.FrequencyDecreaseFactor;
+		}
+	}
+
+	var sorted = this.getSortedList(true);
+	for (var i in sorted) {
+		if (Object.keys(this.List).length <= this.LengthMax)
+			break;
+
+		delete this.List[sorted[i].key];
+	}
+
+	this.save();
+};
+
+Peris.TagList.prototype.getSortedList = function (rise) {
+	var list = [];
+
+	for (var k in this.List) {
+		list.push({ key: k, frequency: this.List[k] });
+	}
+
+	list.sort(function (a, b) {
+		var sub = a.frequency - b.frequency;
+		return rise ? sub : -sub;
+	});
+
+	return list;
 };

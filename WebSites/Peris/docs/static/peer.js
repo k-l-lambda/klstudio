@@ -22,7 +22,7 @@ Peris.Peer.prototype.initialize = function () {
 		+ "<button class='prev'>&lt;</button>"
 		+ "<button class='next'>&gt;</button>"
 		+ "<button class='show-slider'></button>"
-		+ "<div class='score-bar'><canvas class='score-gradient' width='1500' height='10'></canvas><div class='score-touch'></div></div>"
+		+ "<div class='score-bar'><canvas class='score-gradient' width='1500' height='10'></canvas><div class='score-touch'><div class='score-touch-colored'></div></div></div>"
 		+ "<div class='input-bar'><input class='input-tags' type='text' /><input class='input-score' type='text' /></div>"
 		+ "</div>");
 
@@ -234,14 +234,16 @@ Peris.Peer.prototype.setScoreTouchValue = function (score) {
 		var canvas = this.Panel.find(".score-gradient");
 		var ctx = canvas[0].getContext("2d");
 		var color = ctx.getImageData(score * 100, 0, 1, 1).data;
-		var colorStr = "rgb(" + color[0] + ", " + color[1] + ", " + color[2] + ")";
+		var colorStr = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
 
 		var percent = score * 100 / 15;
-		this.Panel.find(".score-touch").css({ backgroundImage: "-webkit-gradient(linear,left center,right center,from(" + colorStr + "),color-stop(" + percent + "%, " + colorStr + "),color-stop(" + percent + "%, transparent),to(transparent))" });
+		this.Panel.find(".score-touch-colored").css({ width: percent + "%", background: colorStr });
 		this.Panel.find(".score-bar").attr({ title: score.toPrecision(4) });
+		this.Panel.find(".score-bar").removeClass("empty");
 	}
 	else {
-		this.Panel.find(".score-touch").css({ backgroundImage: "none" });
+		this.Panel.find(".score-touch-colored").css({ width: 0, background: "transparent" });
+		this.Panel.find(".score-bar").addClass("empty");
 		this.Panel.find(".score-bar").removeAttr("title");
 	}
 };

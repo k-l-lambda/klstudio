@@ -15,6 +15,7 @@ Peris.Peer.prototype.HoldingFigure = false;
 Peris.Peer.prototype.DraggingFigure = false;
 Peris.Peer.prototype.LoadingSlot = false;
 Peris.Peer.prototype.FadeDuration = 300;
+Peris.Peer.prototype.PostTagsHandle = null;
 
 
 Peris.Peer.prototype.initialize = function () {
@@ -23,7 +24,7 @@ Peris.Peer.prototype.initialize = function () {
 		+ "<button class='next'>&gt;</button>"
 		+ "<button class='show-slider'></button>"
 		+ "<div class='score-bar'><canvas class='score-gradient' width='1500' height='10'></canvas><div class='score-touch'><div class='score-touch-colored'></div></div></div>"
-		+ "<div class='input-bar'><input class='input-tags' type='text' /><input class='input-score' type='text' /></div>"
+		+ "<div class='input-bar'><input class='input-tags' type='text' /><input class='input-score' type='text' readonly /></div>"
 		+ "</div>");
 
 	this.Panel.appendTo("body");
@@ -73,9 +74,28 @@ Peris.Peer.prototype.initialize = function () {
 	});
 
 	this.Panel.find(".score-bar").mouseleave(function () {
-		var score = peer.Panel.find(".input-score").val();
-		score = (score == "") ? null : Number(score);
+		var score = (peer.CurrentData && peer.CurrentData.score) ? peer.CurrentData.score : null;
 		peer.setScoreTouchValue(score);
+	});
+
+	this.Panel.find(".input-tags").bind("textchange", function () {
+		var inputTags = $(this);
+		inputTags.addClass("dirty");
+
+		if (peer.PostTagsHandle)
+			clearTimeout(peer.PostTagsHandle);
+
+		peer.PostTagsHandle = setTimeout(function () {
+			if (inputTags.is(".dirty"))
+				peer.postFigureData({ tags: inputTags.val() });
+
+			peer.PostTagsHandle = null;
+		}, 5000);
+	});
+
+	this.Panel.find(".input-tags").focusout(function () {
+		if ($(this).is(".dirty"))
+			peer.postFigureData({ tags: $(this).val() });
 	});
 };
 
@@ -110,11 +130,13 @@ Peris.Peer.prototype.open = function (slot) {
 	var inputBar = this.Panel.find(".input-bar");
 	inputBar.find(".input-score").val("");
 	inputBar.find(".input-tags").val("");
+	inputBar.find(".input-tags").removeClass("dirty");
 	inputBar.addClass("disabled");
 
 	this.setScoreTouchValue(0);
 
 	this.CurrentHash = null;
+	this.CurrentData = null;
 
 	var path = slot.data("path");
 	$.post("/query", { query: 'file-info', path: path }, function (json, s, ajax) {
@@ -122,11 +144,10 @@ Peris.Peer.prototype.open = function (slot) {
 			inputBar.removeClass("disabled");
 
 			peer.CurrentHash = json.data.hash;
-
-			inputBar.find(".input-score").val(json.data.score);
-			inputBar.find(".input-tags").val(json.data.tags);
+			peer.CurrentData = { score: json.data.score, tags: json.data.tags };
 
 			peer.setScoreTouchValue(Number(json.data.score));
+			inputBar.find(".input-tags").val(json.data.tags);
 		}
 		else if (json.result == "fail") {
 			console.warn("query file info " + path + " failed:", json.error);
@@ -138,6 +159,10 @@ Peris.Peer.prototype.open = function (slot) {
 
 Peris.Peer.prototype.close = function () {
 	var peer = this;
+
+	var inputTags = this.Panel.find(".input-tags");
+	if (inputTags.is(".dirty"))
+		peer.postFigureData({ tags: inputTags.val() });
 
 	this.Panel.fadeOut(this.FadeDuration, function () {
 		peer.clearSlotBinding();
@@ -238,13 +263,13 @@ Peris.Peer.prototype.setScoreTouchValue = function (score) {
 
 		var percent = score * 100 / 15;
 		this.Panel.find(".score-touch-colored").css({ width: percent + "%", background: colorStr });
-		this.Panel.find(".score-bar").attr({ title: score.toPrecision(4) });
 		this.Panel.find(".score-bar").removeClass("empty");
+		this.Panel.find(".input-score").val(score);
 	}
 	else {
 		this.Panel.find(".score-touch-colored").css({ width: 0, background: "transparent" });
 		this.Panel.find(".score-bar").addClass("empty");
-		this.Panel.find(".score-bar").removeAttr("title");
+		this.Panel.find(".input-score").val("");
 	}
 };
 
@@ -349,11 +374,19 @@ Peris.Peer.prototype.postFigureData = function (data) {
 		return;
 	}
 
+	for (var k in data)
+		this.CurrentData[k] = data[k];
+
 	data.hash = this.CurrentHash;
+
+	var peer = this;
 
 	$.post("/update-figure", data, function (json, s, ajax) {
 		if (json.result == "success") {
 			console.log("figure data post:", data, json);
+
+			if (data.tags)
+				peer.Panel.find(".input-tags").removeClass("dirty");
 		}
 		else if (json.result == "fail") {
 			console.warn("post figure failed:", json.error);

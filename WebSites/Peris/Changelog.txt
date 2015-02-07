@@ -6,12 +6,14 @@ TODO:
 		start slider button
 	peer:
 		editor
-			post tags
+			tag list
 		figure zoom animation when open/close.
 	image finger print by 16*16 gray matrix.
 
 
 2015.2.7	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/peer.js: tags post added.
 
 	+	static/peer.js: score touch colored added.
 

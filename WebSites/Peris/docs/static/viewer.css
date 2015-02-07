@@ -307,9 +307,23 @@
 
 .peer .score-touch
 {
+	position: relative;
 	transition: 0.3s;
 	height: 20px;
 	background-color: rgba(109, 109, 109, 0.2);
+}
+
+.peer .score-touch-colored
+{
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+}
+
+.empty .score-touch
+{
+	background: transparent;
 }
 
 .peer .score-bar:hover .score-touch

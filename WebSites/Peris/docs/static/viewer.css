@@ -286,6 +286,7 @@
 .peer .score-bar:hover
 {
 	opacity: 1;
+	box-shadow: 0 0 20px 2px #000;
 }
 
 .peer .score-gradient, .peer .score-touch
@@ -329,7 +330,6 @@
 .peer .score-bar:hover .score-touch
 {
 	height: 26px;
-	box-shadow: 0 0 20px 2px #000;
 }
 
 .peer .input-bar

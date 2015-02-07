@@ -2,6 +2,7 @@
 TODO:
 	recent post list in local storage
 	Home page:
+		save navigator links in local storage
 		start slider button
 	peer:
 		editor

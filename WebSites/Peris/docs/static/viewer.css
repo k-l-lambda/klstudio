@@ -278,7 +278,7 @@
 .peer .score-bar
 {
 	top: 0;
-	opacity: 0.4;
+	opacity: 0.8;
 	transition: opacity 0.2s;
 	cursor: pointer;
 }
@@ -320,6 +320,7 @@
 	left: 0;
 	top: 0;
 	bottom: 0;
+	/*transition: width 0.1s, background 0.1s;*/
 }
 
 .empty .score-touch
@@ -329,12 +330,12 @@
 
 .peer .score-bar:hover .score-touch
 {
-	height: 26px;
+	height: 30px;
 }
 
 .peer .input-bar
 {
-	top: 30px;
+	top: 38px;
 	padding: 0.4em 1em;
 	text-align: right;
 }
@@ -359,6 +360,11 @@
 {
 	color: #fff;
 	text-shadow: 1px 1px 0 #000;
+}
+
+.peer input.dirty
+{
+	background: rgba(255, 0, 96, 0.3);
 }
 
 .peer .input-score

@@ -18,6 +18,7 @@ Peris.Peer.prototype.FadeDuration = 300;
 Peris.Peer.prototype.PostTagsHandle = null;
 Peris.Peer.prototype.RecentPostList = new Peris.LocalDataEntry("RecentPostList");
 Peris.Peer.prototype.RecentPostListLengthLimit = 1000;
+Peris.Peer.prototype.LastTouch = null;
 
 
 Peris.Peer.prototype.initialize = function () {
@@ -37,6 +38,25 @@ Peris.Peer.prototype.initialize = function () {
 
 	this.Panel.mouseup(function () { peer.onMouseUp(event); });
 	this.Panel.mousemove(function () { peer.onMouseMove(event); });
+
+	this.Panel.bind("touchmove", function () {
+		if (event.changedTouches[0]) {
+			var touch = event.changedTouches[0];
+
+			if (peer.LastTouch) {
+				var deltaX = touch.pageX - peer.LastTouch.x;
+				var deltaY = touch.pageY - peer.LastTouch.y;
+				//console.log("touchmove", deltaX, deltaY);
+
+				peer.updatePan(deltaX, deltaY);
+
+				event.preventDefault();
+			}
+
+			peer.LastTouch = { x: touch.pageX, y: touch.pageY };
+		}
+	});
+	this.Panel.bind("touchend", function () { peer.LastTouch = null; });
 
 	this.Panel.find(".prev").click(function () { peer.prev(); });
 	this.Panel.find(".next").click(function () { peer.next(); });
@@ -98,6 +118,14 @@ Peris.Peer.prototype.initialize = function () {
 	this.Panel.find(".input-tags").focusout(function () {
 		if ($(this).is(".dirty"))
 			peer.postFigureData({ tags: $(this).val() });
+	});
+
+	this.Panel.bind("gesturechange", function () {
+		peer.updateZoom(Math.pow(event.scale, 0.1));
+
+		peer.LastTouch = null;
+
+		event.preventDefault();
 	});
 
 	this.TagList = new Peris.TagList();
@@ -314,17 +342,7 @@ Peris.Peer.prototype.onClick = function (e) {
 
 Peris.Peer.prototype.onMouseWheel = function (e) {
 	if (this.Showing) {
-		var oldZoom = this.Zoom;
-
-		this.Zoom *= Math.exp(e.wheelDelta / 400);
-		this.Zoom = Math.max(this.Zoom, 0.1);
-
-		var delta = this.Zoom / oldZoom;
-
-		this.Translate.x /= delta;
-		this.Translate.y /= delta;
-
-		this.updateTransform();
+		this.updateZoom(Math.exp(e.wheelDelta / 400));
 	}
 };
 
@@ -335,12 +353,7 @@ Peris.Peer.prototype.onMouseUp = function (e) {
 
 Peris.Peer.prototype.onMouseMove = function (e) {
 	if (this.HoldingFigure && e.movementX && e.movementY) {
-		this.Translate.x += e.movementX / this.Zoom;
-		this.Translate.y += e.movementY / this.Zoom;
-		this.updateTransform();
-
-		this.DraggingFigure = true;
-		this.Figure.css({ transition: "none" });
+		this.updatePan(e.movementX, e.movementY);
 
 		e.preventDefault();
 	}
@@ -490,6 +503,29 @@ Peris.Peer.prototype.appendRecentPostList = function (path) {
 	this.RecentPostList.save();
 };
 
+Peris.Peer.prototype.updateZoom = function (zoom) {
+	var oldZoom = this.Zoom;
+
+	this.Zoom *= zoom;
+	this.Zoom = Math.max(this.Zoom, 0.1);
+
+	var delta = this.Zoom / oldZoom;
+
+	this.Translate.x /= delta;
+	this.Translate.y /= delta;
+
+	this.updateTransform();
+};
+
+Peris.Peer.prototype.updatePan = function (x, y) {
+	this.Translate.x += x / this.Zoom;
+	this.Translate.y += y / this.Zoom;
+	this.updateTransform();
+
+	this.DraggingFigure = true;
+	this.Figure.css({ transition: "none" });
+};
+
 
 Peris.TagList = function () {
 	this.load();
@@ -499,7 +535,7 @@ Peris.TagList.prototype = new Peris.LocalDataEntry("TagList", {});
 
 Peris.TagList.prototype.List = {};
 
-Peris.TagList.prototype.LengthMax = 20;
+Peris.TagList.prototype.LengthMax = 50;
 Peris.TagList.prototype.FrequencyDecreaseFactor = 0.99;
 
 Peris.TagList.prototype.load = function () {

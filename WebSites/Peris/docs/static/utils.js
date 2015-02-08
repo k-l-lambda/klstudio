@@ -2,6 +2,10 @@
 var Peris = Peris || {};
 
 
+Peris.isIPad = (/ipad/i).test(navigator.userAgent);
+Peris.isTouchDevice = "ontouchstart" in window;
+
+
 Peris.LocalDataEntry = function (name, data) {
 	this.Name = name;
 	this.Data = data;

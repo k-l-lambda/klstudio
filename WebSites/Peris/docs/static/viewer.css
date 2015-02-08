@@ -212,6 +212,11 @@
 	cursor: move;
 }
 
+.touch-device .peer .figure
+{
+	transition: none;
+}
+
 .peer button
 {
 	position: absolute;
@@ -376,7 +381,7 @@
 
 .peer .input-tags
 {
-	width: 12em;
+	width: 9em;
 	direction: ltr;
 }
 
@@ -399,7 +404,7 @@
 	display: inline-block;
 	border-radius: 3px;
 	background-color: #111;
-	margin: 0 0.5em;
+	margin: 0 0.2em;
 	padding: 0.2em 0.4em;
 	cursor: pointer;
 	visibility: hidden;

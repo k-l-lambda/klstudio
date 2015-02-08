@@ -2,9 +2,6 @@
 var Peris = Peris || {};
 
 
-Peris.isIPad = (/ipad/i).test(navigator.userAgent);
-
-
 Peris.Viewer = function (container) {
 	this.Container = container;
 

@@ -377,6 +377,7 @@
 .peer .input-tags
 {
 	width: 12em;
+	direction: ltr;
 }
 
 .peer .tag-list

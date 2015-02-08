@@ -264,6 +264,16 @@
 				var updateParams = function () {
 					var params = parseQueries(location.hash);
 
+					if (Object.keys(params).indexOf("recentPost") >= 0) {
+						var data = [];
+						for (var i in viewer.Peer.RecentPostList)
+							data.push({ path: viewer.Peer.RecentPostList[i] });
+
+						viewer.update(data);
+
+						return;
+					}
+
 					if (params.sql) {
 						runSql(decodeURIComponent(params.sql));
 					}
@@ -296,6 +306,7 @@
 	<body>
 		<div id="sider">
 			<ul id="note-list">
+				<li><a href="#recentPost">Recent Post</a></li>
 				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20score%20is%20null%0Aorder%20by%20date%20desc">Raw</a></li>
 				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20score%20%3E%206%0Aorder%20by%20score%20desc">High Score</a></li>
 				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20tags%20not%20like%20'%25SE%25'%0Aorder%20by%20score%20desc">Non-Sensitive</a></li>

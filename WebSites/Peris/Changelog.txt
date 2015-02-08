@@ -2,7 +2,6 @@
 TODO:
 	Home page:
 		open file in explore
-		save navigator links in local storage
 		start slider button
 	peer:
 		figure zoom animation when open/close.
@@ -10,6 +9,8 @@ TODO:
 
 
 2015.2.8	K.L.	<k.l.lambda@gmail.com>
+
+	+	templates/Home.html: user bookmark added.
 
 	+	templates/Home.html: recent post list added.
 

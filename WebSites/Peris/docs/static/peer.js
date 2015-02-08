@@ -16,6 +16,8 @@ Peris.Peer.prototype.DraggingFigure = false;
 Peris.Peer.prototype.LoadingSlot = false;
 Peris.Peer.prototype.FadeDuration = 300;
 Peris.Peer.prototype.PostTagsHandle = null;
+Peris.Peer.prototype.RecentPostList = [];
+Peris.Peer.prototype.RecentPostListLengthLimit = 1000;
 
 
 Peris.Peer.prototype.initialize = function () {
@@ -24,7 +26,7 @@ Peris.Peer.prototype.initialize = function () {
 		+ "<button class='next'>&gt;</button>"
 		+ "<button class='show-slider'></button>"
 		+ "<div class='score-bar'><canvas class='score-gradient' width='1500' height='10'></canvas><div class='score-touch'><div class='score-touch-colored'></div></div></div>"
-		+ "<div class='input-bar'><ol class='tag-list'></ol><input class='input-tags' type='text' /><input class='input-score' type='text' readonly /></div>"
+		+ "<div class='input-bar'><input class='input-score' type='text' readonly /><input class='input-tags' type='text' /><ol class='tag-list'></ol></div>"
 		+ "</div>");
 
 	this.Panel.appendTo("body");
@@ -99,6 +101,8 @@ Peris.Peer.prototype.initialize = function () {
 	});
 
 	this.TagList = new Peris.TagList();
+
+	this.loadRecentPostList();
 };
 
 Peris.Peer.prototype.open = function (slot) {
@@ -141,8 +145,8 @@ Peris.Peer.prototype.open = function (slot) {
 	this.CurrentHash = null;
 	this.CurrentData = null;
 
-	var path = slot.data("path");
-	$.post("/query", { query: 'file-info', path: path }, function (json, s, ajax) {
+	this.CurrentPath = slot.data("path");
+	$.post("/query", { query: 'file-info', path: this.CurrentPath }, function (json, s, ajax) {
 		if (json.result == "success") {
 			inputBar.removeClass("disabled");
 
@@ -161,7 +165,7 @@ Peris.Peer.prototype.open = function (slot) {
 			peer.renderTagList();
 		}
 		else if (json.result == "fail") {
-			console.warn("query file info " + path + " failed:", json.error);
+			console.warn("query file info " + peer.CurrentPath + " failed:", json.error);
 		}
 		else
 			console.error("unexpect json result:", json);
@@ -434,10 +438,13 @@ Peris.Peer.prototype.postFigureData = function (data) {
 		else
 			console.error("unexpect json result:", json);
 	}, "json");
+
+	// update post list
+	this.appendRecentPostList(this.CurrentPath);
 };
 
 Peris.Peer.prototype.renderTagList = function () {
-	var list = this.TagList.getSortedList(true);
+	var list = this.TagList.getSortedList(false);
 	var ol = this.Panel.find(".tag-list");
 	ol.empty();
 
@@ -446,7 +453,7 @@ Peris.Peer.prototype.renderTagList = function () {
 	var peer = this;
 
 	for (var i in list) {
-		var item = $("<li><span class='text'></span><span class='icon'><span></li>");
+		var item = $("<li><span class='icon'></span><span class='text'></span></li>");
 		item.find(".text").text(list[i].key);
 
 		var used = tagsArray.indexOf(list[i].key) >= 0;
@@ -471,6 +478,27 @@ Peris.Peer.prototype.getCurrentTagArray = function () {
 	return tagsArray;
 };
 
+Peris.Peer.prototype.loadRecentPostList = function () {
+	if (localStorage.RecentPostList)
+		this.RecentPostList = $.parseJSON(localStorage.RecentPostList);
+};
+
+Peris.Peer.prototype.saveRecentPostList = function () {
+	localStorage.RecentPostList = $.toJSON(this.RecentPostList);
+};
+
+Peris.Peer.prototype.appendRecentPostList = function (path) {
+	var index = this.RecentPostList.indexOf(this.CurrentPath);
+	if (index >= 0)
+		this.RecentPostList.splice(index, 1);
+	this.RecentPostList.unshift(this.CurrentPath);
+
+	if (this.RecentPostList.length > this.RecentPostListLengthLimit)
+		this.RecentPostList.splice(this.RecentPostListLengthLimit, this.RecentPostList.length);
+
+	this.saveRecentPostList();
+};
+
 
 Peris.TagList = function () {
 	this.load();
@@ -478,8 +506,8 @@ Peris.TagList = function () {
 
 Peris.TagList.prototype.List = {};
 
-Peris.TagList.prototype.LengthMax = 30;
-Peris.TagList.prototype.FrequencyDecreaseFactor = 0.9;
+Peris.TagList.prototype.LengthMax = 20;
+Peris.TagList.prototype.FrequencyDecreaseFactor = 0.99;
 
 Peris.TagList.prototype.load = function () {
 	if (localStorage.TagList)

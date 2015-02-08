@@ -16,7 +16,7 @@ Peris.Peer.prototype.DraggingFigure = false;
 Peris.Peer.prototype.LoadingSlot = false;
 Peris.Peer.prototype.FadeDuration = 300;
 Peris.Peer.prototype.PostTagsHandle = null;
-Peris.Peer.prototype.RecentPostList = [];
+Peris.Peer.prototype.RecentPostList = new Peris.LocalDataEntry("RecentPostList");
 Peris.Peer.prototype.RecentPostListLengthLimit = 1000;
 
 
@@ -102,7 +102,7 @@ Peris.Peer.prototype.initialize = function () {
 
 	this.TagList = new Peris.TagList();
 
-	this.loadRecentPostList();
+	this.RecentPostList.load();
 };
 
 Peris.Peer.prototype.open = function (slot) {
@@ -478,25 +478,16 @@ Peris.Peer.prototype.getCurrentTagArray = function () {
 	return tagsArray;
 };
 
-Peris.Peer.prototype.loadRecentPostList = function () {
-	if (localStorage.RecentPostList)
-		this.RecentPostList = $.parseJSON(localStorage.RecentPostList);
-};
-
-Peris.Peer.prototype.saveRecentPostList = function () {
-	localStorage.RecentPostList = $.toJSON(this.RecentPostList);
-};
-
 Peris.Peer.prototype.appendRecentPostList = function (path) {
-	var index = this.RecentPostList.indexOf(this.CurrentPath);
+	var index = this.RecentPostList.Data.indexOf(this.CurrentPath);
 	if (index >= 0)
-		this.RecentPostList.splice(index, 1);
-	this.RecentPostList.unshift(this.CurrentPath);
+		this.RecentPostList.Data.splice(index, 1);
+	this.RecentPostList.Data.unshift(this.CurrentPath);
 
-	if (this.RecentPostList.length > this.RecentPostListLengthLimit)
-		this.RecentPostList.splice(this.RecentPostListLengthLimit, this.RecentPostList.length);
+	if (this.RecentPostList.Data.length > this.RecentPostListLengthLimit)
+		this.RecentPostList.Data.splice(this.RecentPostListLengthLimit, this.RecentPostList.Data.length);
 
-	this.saveRecentPostList();
+	this.RecentPostList.save();
 };
 
 
@@ -504,18 +495,15 @@ Peris.TagList = function () {
 	this.load();
 };
 
+Peris.TagList.prototype = new Peris.LocalDataEntry("TagList", {});
+
 Peris.TagList.prototype.List = {};
 
 Peris.TagList.prototype.LengthMax = 20;
 Peris.TagList.prototype.FrequencyDecreaseFactor = 0.99;
 
 Peris.TagList.prototype.load = function () {
-	if (localStorage.TagList)
-		this.List = $.parseJSON(localStorage.TagList);
-};
-
-Peris.TagList.prototype.save = function () {
-	localStorage.TagList = $.toJSON(this.List);
+	this.List = Peris.LocalDataEntry.prototype.load.call(this);
 };
 
 Peris.TagList.prototype.update = function (key, inc) {

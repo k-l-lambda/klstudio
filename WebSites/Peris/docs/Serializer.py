@@ -34,7 +34,6 @@ def normalizeData(data):
 		return unicode(data)
 	elif isinstance(data, datetime.datetime):
 		return str(data)
-		return {'nickname': data.nickname(), 'email': data.email(), 'user_id': data.user_id()}
 	else:
 		raise RuntimeError('unsupported type: %s' % t)
 

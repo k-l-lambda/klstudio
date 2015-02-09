@@ -21,3 +21,10 @@ Peris.LocalDataEntry.prototype.load = function () {
 Peris.LocalDataEntry.prototype.save = function () {
 	localStorage[this.Name] = $.toJSON(this.Data);
 };
+
+
+Peris.showFileInFolder = function (path) {
+	$.post("/exec", { command: "os.system(r'explorer /select,%(data_root)s" + path.replace("/", "\\") + "')" }, function (json) {
+		console.log(json);
+	});
+};

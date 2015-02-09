@@ -316,6 +316,14 @@
 
 				var currentName = "";
 
+				$("#note-list li").each(function (i, li) {
+					var $li = $(li);
+					if ($li.find("a").attr("href") == location.hash)
+						$li.addClass("focus");
+					else
+						$li.removeClass("focus");
+				});
+
 				for (var i in bookmarks.Data) {
 					var li = $("<li><a></a></li>");
 					li.find("a").text(bookmarks.Data[i].name);

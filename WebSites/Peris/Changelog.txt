@@ -9,6 +9,8 @@ TODO:
 
 2015.2.9	K.L.	<k.l.lambda@gmail.com>
 
+	+	static/peer.js: refined score touch events.
+
 	+	static/peer.js: show file in explorer implemented.
 
 

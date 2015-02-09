@@ -16,7 +16,7 @@ Peris.Peer.prototype.DraggingFigure = false;
 Peris.Peer.prototype.LoadingSlot = false;
 Peris.Peer.prototype.FadeDuration = 300;
 Peris.Peer.prototype.PostTagsHandle = null;
-Peris.Peer.prototype.RecentPostList = new Peris.LocalDataEntry("RecentPostList");
+Peris.Peer.prototype.RecentPostList = new Peris.LocalDataEntry("RecentPostList", []);
 Peris.Peer.prototype.RecentPostListLengthLimit = 1000;
 Peris.Peer.prototype.LastTouch = null;
 
@@ -40,7 +40,7 @@ Peris.Peer.prototype.initialize = function () {
 	this.Panel.mousemove(function () { peer.onMouseMove(event); });
 
 	this.Panel.bind("touchmove", function () {
-		if (event.changedTouches[0]) {
+		if (event.changedTouches[0] && !peer.Panel.find(".score-bar").is(":hover")) {
 			var touch = event.changedTouches[0];
 
 			if (peer.LastTouch) {
@@ -88,11 +88,29 @@ Peris.Peer.prototype.initialize = function () {
 		peer.setScoreTouchValue(score);
 	});
 
+	this.Panel.find(".score-bar").bind("touchmove", function () {
+		var x = event.changedTouches[0].pageX;
+		var score = x * 15 / $(this).width();
+		peer.setScoreTouchValue(score);
+
+		event.preventDefault();
+	});
+
 	this.Panel.find(".score-bar").click(function () {
 		var score = Number((event.x * 15 / $(this).width()).toPrecision(4));
-		peer.Panel.find(".input-score").val(score);
+		peer.setScoreTouchValue(score);
 
 		peer.postFigureData({ score: score });
+	});
+
+	this.Panel.find(".score-bar").bind("touchend", function () {
+		var x = event.changedTouches[0].pageX;
+		var score = Number((x * 15 / $(this).width()).toPrecision(4));
+		peer.setScoreTouchValue(score);
+
+		peer.postFigureData({ score: score });
+
+		event.preventDefault();
 	});
 
 	this.Panel.find(".score-bar").mouseleave(function () {
@@ -287,7 +305,7 @@ Peris.Peer.prototype.initializePanel = function (slot) {
 	var peer = this;
 
 	this.Figure.mousedown(function () {
-		if (event.button == 0) {
+		if (event.button == 0 && !peer.Panel.find(".score-bar").is(":hover")) {
 			peer.HoldingFigure = true;
 
 			event.preventDefault();
@@ -307,7 +325,7 @@ Peris.Peer.prototype.setScoreTouchValue = function (score) {
 		var percent = score * 100 / 15;
 		this.Panel.find(".score-touch-colored").css({ width: percent + "%", background: colorStr });
 		this.Panel.find(".score-bar").removeClass("empty");
-		this.Panel.find(".input-score").val(score);
+		this.Panel.find(".input-score").val(score.toPrecision(4));
 	}
 	else {
 		this.Panel.find(".score-touch-colored").css({ width: 0, background: "transparent" });

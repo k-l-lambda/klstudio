@@ -24,7 +24,7 @@ Peris.LocalDataEntry.prototype.save = function () {
 
 
 Peris.showFileInFolder = function (path) {
-	$.post("/exec", { command: "os.system(r'explorer /select,%(data_root)s" + path.replace("/", "\\") + "')" }, function (json) {
+	$.post("/exec", { command: "os.system(r'explorer /select,%(data_root)s" + path.replace(/\//g, "\\") + "')" }, function (json) {
 		console.log(json);
 	});
 };

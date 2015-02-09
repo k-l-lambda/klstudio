@@ -1,11 +1,15 @@
 
 TODO:
 	Home page:
-		open file in explore
 		start slider button
 	peer:
 		figure zoom animation when open/close.
 	image finger print by 16*16 gray matrix.
+
+
+2015.2.9	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/peer.js: show file in explorer implemented.
 
 
 2015.2.8	K.L.	<k.l.lambda@gmail.com>

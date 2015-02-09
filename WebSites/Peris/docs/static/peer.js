@@ -382,6 +382,10 @@ Peris.Peer.prototype.onKeyDown = function (e) {
 				}, 1);
 
 				break;
+			case 120: // F9
+				Peris.showFileInFolder(this.CurrentPath);
+
+				break;
 			default:
 				handled = false;
 				//console.log(e.keyCode);

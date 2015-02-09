@@ -267,11 +267,30 @@ class UpdateFigureHandle:
 			return Serializer.save({'result': 'fail', 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
 
 
+class ExecHandle:
+	def POST(self):
+		web.header('Content-Type', 'application/json')
+
+		try:
+			input = web.input()
+			command = input.command % {'data_root': config.data_root}
+			ret = eval(command)
+
+			return Serializer.save({'result': 'success', 'command': command, 'ret': ret})
+		except:
+			logging.warn('Exec command error: %s', traceback.format_exception(*sys.exc_info()))
+			return Serializer.save({'result': 'fail', 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
+
+	#def GET(self):
+	#	return self.POST()
+
+
 application = web.application((
 	'/',								'HomeHandle',
+	'/constants.js',					'ConstantsHandle',
 	'/query',							'DbQueryHandle',
 	'/update-figure',					'UpdateFigureHandle',
-	'/constants.js',					'ConstantsHandle',
+	'/exec',							'ExecHandle',
 	'/admin/',							'AdminHomeHandle',
 	'/admin/update-file-register',		'UpdateFileRegisterHandle',
 	'/admin/import-album-data',			'ImportAlbumDataHandle',

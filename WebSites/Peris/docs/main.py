@@ -121,6 +121,13 @@ class UpdateFileRegisterHandle:
 		yield '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">'
 		yield '</head>'
 
+		yield '<p>Fetching all files path ...</p>'
+
+		records = db.select('file_register', what = 'path')
+		pathSet = set([r.path for r in records])
+
+		yield '<p>Files count in file_register: <em>%d</em></p>' % len(pathSet)
+
 		yield '<p>Scan directory <em>%s</em> ...</p>' % config.data_root
 
 		for root, dirs, files in os.walk(config.data_root):
@@ -143,6 +150,9 @@ class UpdateFileRegisterHandle:
 
 						relpath = os.path.relpath(path, config.data_root).replace('\\', '/')
 
+						if relpath in pathSet:
+							pathSet.remove(relpath)
+
 						record = db.select('file_register', where = 'path=$path', vars = dict(path = relpath))
 						record = record and record[0]
 						if record and record.date == modify_time:
@@ -160,6 +170,12 @@ class UpdateFileRegisterHandle:
 							yield u'<p class="new"><em>%s</em></p>' % relpath
 					except:
 						yield u'<p class="error">Error when proess <em>%s / %s</em>: <strong>%s</strong></p>' % (root, file, sys.exc_info())
+
+		yield '<p>Removing non-existent files...</p>'
+
+		for path in pathSet:
+			db.delete('file_register', where = 'path=$path', vars = dict(path = path))
+			yield '<p class="remove">Removed: <em>%s</em></p>' % path
 
 		yield '<p>End.</p>'
 

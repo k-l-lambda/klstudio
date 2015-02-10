@@ -9,6 +9,10 @@ TODO:
 
 2015.2.10	K.L.	<k.l.lambda@gmail.com>
 
+	+	utils.js: Peris.moveDuplicatedFigureFiles added.
+
+	+	main.py: CheckFileHandle added.
+
 	+	main.py/UpdateFileRegisterHandle: remove non-existent files.
 
 

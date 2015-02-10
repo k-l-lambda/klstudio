@@ -28,3 +28,20 @@ Peris.showFileInFolder = function (path) {
 		console.log(json);
 	});
 };
+
+
+Peris.getImageData = function (url, callback) {
+	var xmlHTTP = new XMLHttpRequest();
+	xmlHTTP.open("GET", url, true);
+
+	xmlHTTP.responseType = 'arraybuffer';
+
+	xmlHTTP.onload = function (e) {
+		var arr = new Uint8Array(this.response);
+		var raw = String.fromCharCode.apply(null, arr);
+
+		callback(raw);
+	};
+
+	xmlHTTP.send();
+};

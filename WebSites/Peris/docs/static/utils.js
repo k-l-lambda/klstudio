@@ -23,10 +23,30 @@ Peris.LocalDataEntry.prototype.save = function () {
 };
 
 
+Peris.extendFigurePath = function (path) {
+	return "{data_root}" + path.replace(/\//g, "\\");
+};
+
 Peris.showFileInFolder = function (path) {
-	$.post("/exec", { command: "os.system(r'explorer /select,%(data_root)s" + path.replace(/\//g, "\\") + "')" }, function (json) {
+	$.post("/exec", { command: "os.system(r'explorer /select," + Peris.extendFigurePath(path) + "')" }, function (json) {
 		console.log(json);
 	});
+};
+
+Peris.moveDuplicatedFigureFiles = function (data) {
+	for (var i in data) {
+		if (i > 0 && data[i].hash == data[i - 1].hash) {
+			var path = Peris.extendFigurePath(data[i].path);
+
+			$.post("/exec", { command: "os.system(r'move \"" + path + "\"  {data_root} ')" }, function (json, s, xhr) {
+				console.log(json);
+
+				$.post("/check-file", { path: xhr.user_path }, function (json) {
+					console.log(json);
+				});
+			}).user_path = data[i].path;
+		}
+	}
 };
 
 

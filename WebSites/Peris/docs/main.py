@@ -175,7 +175,7 @@ class UpdateFileRegisterHandle:
 
 		for path in pathSet:
 			db.delete('file_register', where = 'path=$path', vars = dict(path = path))
-			yield '<p class="remove">Removed: <em>%s</em></p>' % path
+			yield '<p class="remove"><em>%s</em></p>' % path
 
 		yield '<p>End.</p>'
 
@@ -289,7 +289,7 @@ class ExecHandle:
 
 		try:
 			input = web.input()
-			command = input.command % {'data_root': config.data_root}
+			command = input.command.format(data_root = config.data_root)
 			ret = eval(command)
 
 			return Serializer.save({'result': 'success', 'command': command, 'ret': ret})
@@ -301,12 +301,31 @@ class ExecHandle:
 	#	return self.POST()
 
 
+class CheckFileHandle:
+	def POST(self):
+		web.header('Content-Type', 'application/json')
+
+		try:
+			input = web.input()
+
+			if os.path.isfile(input.path):
+				# TODO: update hash
+				return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file exists.'})
+			else:
+				db.delete('file_register', where = 'path=$path', vars = dict(path = input.path))
+				return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file non-existent, removed register.'})
+		except:
+			logging.warn('Check file error: %s', traceback.format_exception(*sys.exc_info()))
+			return Serializer.save({'result': 'fail', 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
+
+
 application = web.application((
 	'/',								'HomeHandle',
 	'/constants.js',					'ConstantsHandle',
 	'/query',							'DbQueryHandle',
 	'/update-figure',					'UpdateFigureHandle',
 	'/exec',							'ExecHandle',
+	'/check-file',						'CheckFileHandle',
 	'/admin/',							'AdminHomeHandle',
 	'/admin/update-file-register',		'UpdateFileRegisterHandle',
 	'/admin/import-album-data',			'ImportAlbumDataHandle',

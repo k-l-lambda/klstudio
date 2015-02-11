@@ -307,13 +307,32 @@ class CheckFileHandle:
 
 		try:
 			input = web.input()
+			full_path = config.data_root + input.path
 
-			if os.path.isfile(input.path):
-				# TODO: update hash
-				return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file exists.'})
+			if os.path.isfile(full_path):
+				record = db.select('file_register', where = 'path=$path', vars = dict(path = input.path))
+				record = record and record[0]
+
+				modify_time = None
+				try:
+					modify_time = datetime.datetime.fromtimestamp(os.path.getmtime(full_path)).replace(microsecond=0)
+				except:
+					modify_time = datetime.datetime.now()
+
+				if record and record.date == modify_time:
+					return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file exists, register up to date.'})
+
+				hash = md5.md5(open(full_path, 'rb').read()).hexdigest()
+
+				if record:
+					db.update('file_register', where = 'path=$path', vars = dict(path = input.path), hash = hash, date = modify_time)
+					return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file exists, register updated: %s' % hash})
+				else:
+					db.insert('file_register', path = input.path, hash = hash, date = modify_time)
+					return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file exists, register inserted: %s' % hash})
 			else:
-				db.delete('file_register', where = 'path=$path', vars = dict(path = input.path))
-				return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file non-existent, removed register.'})
+				ret = db.delete('file_register', where = 'path=$path', vars = dict(path = input.path))
+				return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file non-existent, removed %d register(s).' % ret})
 		except:
 			logging.warn('Check file error: %s', traceback.format_exception(*sys.exc_info()))
 			return Serializer.save({'result': 'fail', 'error': ''.join(traceback.format_exception(*sys.exc_info()))})

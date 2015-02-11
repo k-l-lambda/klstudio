@@ -7,6 +7,11 @@ TODO:
 	image finger print by 16*16 gray matrix.
 
 
+2015.2.11	K.L.	<k.l.lambda@gmail.com>
+
+	+	main.py: enhanced CheckFileHandle.
+
+
 2015.2.10	K.L.	<k.l.lambda@gmail.com>
 
 	+	utils.js: Peris.moveDuplicatedFigureFiles added.

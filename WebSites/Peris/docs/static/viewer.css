@@ -30,6 +30,7 @@
 .slot-stream
 {
 	position: relative;
+	-webkit-user-select: none;
 }
 
 .viewer-status
@@ -286,6 +287,7 @@
 	opacity: 0.8;
 	transition: opacity 0.2s;
 	cursor: pointer;
+	-webkit-user-select: none;
 }
 
 .peer .score-bar:hover

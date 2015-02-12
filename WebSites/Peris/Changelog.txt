@@ -3,9 +3,13 @@ TODO:
 	Home page:
 		start slider button
 	peer:
-		tag list prompt when typing
 		figure zoom animation when open/close.
 	image finger print by 16*16 gray matrix.
+
+
+2015.2.12	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/peer.js: tag label prompting added.
 
 
 2015.2.11	K.L.	<k.l.lambda@gmail.com>

@@ -16,6 +16,9 @@ Peris.Peer.prototype.DraggingFigure = false;
 Peris.Peer.prototype.LoadingSlot = false;
 Peris.Peer.prototype.FadeDuration = 300;
 Peris.Peer.prototype.PostTagsHandle = null;
+Peris.Peer.prototype.TagsAutoSaveWaiting = 15000;
+Peris.Peer.prototype.RefreshTagLabelsHandle = null;
+Peris.Peer.prototype.TagsAutoRefreshWaiting = 200;
 Peris.Peer.prototype.RecentPostList = new Peris.LocalDataEntry("RecentPostList", []);
 Peris.Peer.prototype.RecentPostListLengthLimit = 1000;
 Peris.Peer.prototype.LastTouch = null;
@@ -130,11 +133,20 @@ Peris.Peer.prototype.initialize = function () {
 				peer.postFigureData({ tags: inputTags.val() });
 
 			peer.PostTagsHandle = null;
-		}, 5000);
+		}, peer.TagsAutoSaveWaiting);
+
+		if (peer.RefreshTagLabelsHandle)
+			clearTimeout(peer.RefreshTagLabelsHandle);
+
+		peer.RefreshTagLabelsHandle = setTimeout(function () {
+			peer.renderTagList();
+
+			peer.RefreshTagLabelsHandle = null;
+		}, peer.TagsAutoRefreshWaiting);
 	});
 
 	this.Panel.find(".input-tags").focusout(function () {
-		if ($(this).is(".dirty"))
+		if ($(this).is(".dirty") && !peer.Panel.find(".tag-list li:hover").length)
 			peer.postFigureData({ tags: $(this).val() });
 	});
 
@@ -485,6 +497,8 @@ Peris.Peer.prototype.renderTagList = function () {
 
 	var tagsArray = this.getCurrentTagArray();
 
+	var inputTagsArray = this.Panel.find(".input-tags").val().split("|");
+
 	var peer = this;
 
 	for (var i in list) {
@@ -494,6 +508,11 @@ Peris.Peer.prototype.renderTagList = function () {
 		var used = tagsArray.indexOf(list[i].key) >= 0;
 		if (used)
 			item.addClass("used");
+		else
+			for (var ii in inputTagsArray) {
+				if (inputTagsArray[ii].length > 0 && list[i].key.indexOf(inputTagsArray[ii]) >= 0)
+					item.addClass("contained");
+			}
 
 		item.find(".icon").text(used ? "\u00d7" : "+");
 
@@ -557,7 +576,7 @@ Peris.TagList.prototype = new Peris.LocalDataEntry("TagList", {});
 
 Peris.TagList.prototype.List = {};
 
-Peris.TagList.prototype.LengthMax = 50;
+Peris.TagList.prototype.LengthMax = 100;
 Peris.TagList.prototype.FrequencyDecreaseFactor = 0.99;
 
 Peris.TagList.prototype.load = function () {

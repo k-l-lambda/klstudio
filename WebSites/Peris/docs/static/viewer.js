@@ -207,6 +207,8 @@ Peris.Viewer.prototype.onFocusSlotChanged = function () {
 	this.StatusBar.find(".status-size").text("");
 
 	if ($slot) {
+		$(".viewer-status").addClass("shown");
+
 		var path = $slot.data("path");
 		$.post("query", { query: 'file-info', path: path }, function (json, s, ajax) {
 			if (json.result == "success") {
@@ -219,12 +221,20 @@ Peris.Viewer.prototype.onFocusSlotChanged = function () {
 			}
 			else
 				console.error("unexpect json result:", json);
+
+			$(".viewer-status").removeClass("loading");
 		}, "json");
 
-		if (figure)
+		$(".viewer-status").addClass("loading");
+
+		if (figure) {
 			$.get(figure.src, function (d, s, xhr) {
 				viewer.StatusBar.find(".status-size").text(Number(xhr.getResponseHeader('Content-Length')).toLocaleString() + " bytes");
 			});
+		}
+	}
+	else {
+		$(".viewer-status").removeClass("shown");
 	}
 };
 

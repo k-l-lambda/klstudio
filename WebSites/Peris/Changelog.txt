@@ -9,6 +9,8 @@ TODO:
 
 2015.2.12	K.L.	<k.l.lambda@gmail.com>
 
+	>	static/viewer.js: refined status bar.
+
 	+	static/peer.js: tag label prompting added.
 
 

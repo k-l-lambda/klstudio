@@ -43,6 +43,18 @@
 	padding: 0.2em 0;
 	background: #ccc;
 	color: #222;
+	height: 0;
+	transition: height 0.3s;
+}
+
+.viewer-status.shown
+{
+	height: auto;
+}
+
+.viewer-status.loading
+{
+	background: #aaa;
 }
 
 .viewer.expand .viewer-status
@@ -422,6 +434,7 @@
 	background-color: #ab4e02;
 	float: right;
 	visibility: visible;
+	font-weight: bold;
 }
 
 .peer .tag-list li.contained
@@ -429,6 +442,7 @@
 	background-color: #023aab;
 	float: right;
 	visibility: visible;
+	font-weight: bold;
 }
 
 .peer .tag-list li .icon

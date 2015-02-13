@@ -37,7 +37,10 @@ def desaturate(image):
 
 
 def getHistogram(image):
-	return list(image.getdata()).sort()
+	h = list(image.getdata())
+	h.sort()
+
+	return h
 
 
 def genThumbnail(image, dimensions):

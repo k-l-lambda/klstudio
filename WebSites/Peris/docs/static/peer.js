@@ -198,6 +198,8 @@ Peris.Peer.prototype.open = function (slot) {
 	inputBar.find(".input-tags").removeClass("dirty");
 	inputBar.addClass("disabled");
 
+	this.Panel.find(".tag-list").empty();
+
 	this.setScoreTouchValue(0);
 
 	this.CurrentHash = null;

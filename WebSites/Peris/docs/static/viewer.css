@@ -203,7 +203,6 @@
 	height: auto;
 	cursor: pointer;
 	border-radius: 8px;
-	pointer-events: none;
 }
 
 .slot-placeholder
@@ -235,7 +234,6 @@
 	max-width: 100%;
 	box-shadow: #000 0 0 40px 12px;
 	cursor: move;
-	pointer-events: none;
 }
 
 .touch-device .peer .figure
@@ -331,7 +329,6 @@
 {
 	transition: height 0.3s;
 	height: 1px;
-	pointer-events: none;
 }
 
 .peer .score-bar:hover .score-gradient
@@ -435,12 +432,13 @@
 	margin: 0 0.2em;
 	padding: 0.2em 0.4em;
 	cursor: pointer;
-	visibility: hidden;
+	opacity: 0;
+	transition: opacity 0.3s;
 }
 
 .peer .input-bar:hover .tag-list li
 {
-	visibility: visible;
+	opacity: 1;
 }
 
 .peer .tag-list li.used
@@ -527,7 +525,6 @@
 	right: 0;
 	transition: transform 30s linear;
 	-webkit-transition: transform 30s linear;
-	pointer-events: none;
 }
 
 .slider .figure.vertical-full

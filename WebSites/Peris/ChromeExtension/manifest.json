@@ -1,0 +1,29 @@
+{
+  "manifest_version": 2,
+  "name": "Peris",
+  "version": "0.1",
+  "description": "Peris Chrome Extension",
+  "icons": { "128": "logo.png" },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [ {
+     "js": [ "jquery.js", "data.js", "peris.js" ],
+     "matches": [ "*://*.weiyun.com/*" ]
+  } ],
+  "permissions": [
+    "tabs", "downloads", "*://*/*"
+  ],
+  "page_action": {
+    "default_title": "Peris",
+    "default_icon": "logo16.png"
+  },
+  "web_accessible_resources": [
+    "loading.gif",
+    "icons16.png",
+    "icons24.png",
+    "logo.png",
+    "logo16.png",
+    "peris.css"
+  ]
+}

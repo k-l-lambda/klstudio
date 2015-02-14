@@ -60,10 +60,27 @@ Peris.getImageData = function (url, callback) {
 		var arr = new Uint8Array(this.response);
 		var raw = String.fromCharCode.apply(null, arr);
 
-		callback(raw);
+		callback(raw, this.response);
 	};
 
 	xmlHTTP.send();
+};
+
+
+Peris.getImageFingerprint = function (url, callback) {
+	Peris.getImageData(url, function (raw, arr) {
+		$.ajax({
+			url: "/fingerprint",
+			type: 'POST',
+			contentType: 'application/octet-stream',
+			data: arr,
+			processData: false,
+			dataType: "json",
+			complete: function (xhr) {
+				callback(xhr.responseJSON);
+			}
+		});
+	});
 };
 
 

@@ -8,6 +8,7 @@ import md5
 import re
 import cgi
 import traceback
+import StringIO
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -353,6 +354,24 @@ class CheckFileHandle:
 			return Serializer.save({'result': 'fail', 'path': input.path, 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
 
 
+class FingerprintHandle:
+	def POST(self):
+		return self.GET()
+
+	def GET(self):
+		web.header('Content-Type', 'application/json')
+
+		try:
+			data = web.data()
+			stream = StringIO.StringIO(data)
+			fingerprint = Fingerprint16.fileFingerprint(stream)
+
+			return Serializer.save({'result': 'success', 'fingerprint': fingerprint})
+		except:
+			logging.warn('Calculate fingerprint error: %s', traceback.format_exception(*sys.exc_info()))
+			return Serializer.save({'result': 'fail', 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
+
+
 application = web.application((
 	'/',								'HomeHandle',
 	'/constants.js',					'ConstantsHandle',
@@ -360,6 +379,7 @@ application = web.application((
 	'/update-figure',					'UpdateFigureHandle',
 	'/exec',							'ExecHandle',
 	'/check-file',						'CheckFileHandle',
+	'/fingerprint',						'FingerprintHandle',
 	'/admin/',							'AdminHomeHandle',
 	'/admin/update-file-register',		'UpdateFileRegisterHandle',
 	'/admin/import-album-data',			'ImportAlbumDataHandle',

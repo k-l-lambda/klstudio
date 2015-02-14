@@ -44,7 +44,7 @@
 	background: #ccc;
 	color: #222;
 	height: 0;
-	transition: height 0.3s;
+	transition: height 0.2s, background-color 0.2s;
 }
 
 .viewer-status.shown
@@ -54,7 +54,7 @@
 
 .viewer-status.loading
 {
-	background: #aaa;
+	background: no-repeat no-repeat #777 url(/static/loading-5d.gif) center;
 }
 
 .viewer.expand .viewer-status
@@ -114,6 +114,17 @@
 .status-counter
 {
 	right: 1em;
+}
+
+.status-operation
+{
+	right: 6em;
+}
+
+.viewer-status.loading .status-operation
+{
+	font-weight: bold;
+	color: #fd0;
 }
 
 .viewer .expand-button

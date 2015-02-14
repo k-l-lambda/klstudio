@@ -13,6 +13,7 @@ sys.path.append(os.path.dirname(__file__))
 
 import config
 import Serializer
+import Fingerprint16
 
 
 db = web.database(host='127.0.0.1', dbn='mysql', user=config.db_user, pw=config.db_password, db='peris')
@@ -75,7 +76,7 @@ class DbQueryHandle:
 			if not register:
 				return None
 
-			info = {'path': input.path, 'hash': register.hash, 'date': register.date}
+			info = {'path': input.path, 'hash': register.hash, 'date': register.date, 'fingerprint': register.fingerprint}
 
 			figure = db.select('album', where = 'hash=$hash', vars = dict(hash = register.hash))
 			figure = figure and figure[0]
@@ -92,8 +93,15 @@ class ConstantsHandle:
 		web.header('Content-Type', 'text/javascript')
 
 		yield '''
-			constants = constants || {}
-		'''
+			constants = constants || {};
+			constants.python_version = "%(ver)s";
+			constants.python_path = %(path)s;
+			constants.python_ospath = '%(ospath)s';
+		''' % {
+			'ver': sys.version,
+			'path': sys.path,
+			'ospath': os.environ['PATH'].replace('\\', '\\\\'),
+		}
 
 
 def decodeUnicode(str):
@@ -159,13 +167,14 @@ class UpdateFileRegisterHandle:
 							continue
 
 						hash = md5.md5(open(path, 'rb').read()).hexdigest()
+						fingerprint = Fingerprint16.fileFingerprint(path)
 
 						if record:
-							db.update('file_register', where = 'path=$path', vars = dict(path = relpath), hash = hash, date = modify_time)
+							db.update('file_register', where = 'path=$path', vars = dict(path = relpath), hash = hash, date = modify_time, fingerprint = fingerprint)
 
 							yield '<p class="update"><em>%s</em> [%s -> %s]</p>' % (relpath, record and record.date or 'null', modify_time)
 						else:
-							db.insert('file_register', path = relpath, hash = hash, date = modify_time)
+							db.insert('file_register', path = relpath, hash = hash, date = modify_time, fingerprint = fingerprint)
 
 							yield u'<p class="new"><em>%s</em></p>' % relpath
 					except:
@@ -288,9 +297,14 @@ class ExecHandle:
 		web.header('Content-Type', 'application/json')
 
 		try:
-			input = web.input()
+			input = web.input(byExec = False)
 			command = input.command.format(data_root = config.data_root)
-			ret = eval(command)
+
+			ret = None
+			if input.byExec:
+				exec command
+			else:
+				ret = eval(command)
 
 			return Serializer.save({'result': 'success', 'command': command, 'ret': ret})
 		except:
@@ -319,17 +333,18 @@ class CheckFileHandle:
 				except:
 					modify_time = datetime.datetime.now()
 
-				if record and record.date == modify_time:
+				if record and record.date == modify_time and record.fingerprint:
 					return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file exists, register up to date.'})
 
 				hash = md5.md5(open(full_path, 'rb').read()).hexdigest()
+				fingerprint = Fingerprint16.fileFingerprint(full_path)
 
 				if record:
-					db.update('file_register', where = 'path=$path', vars = dict(path = input.path), hash = hash, date = modify_time)
-					return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file exists, register updated: %s' % hash})
+					db.update('file_register', where = 'path=$path', vars = dict(path = input.path), hash = hash, date = modify_time, fingerprint = fingerprint)
+					return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file exists, register updated: %s, %s' % (hash, fingerprint)})
 				else:
-					db.insert('file_register', path = input.path, hash = hash, date = modify_time)
-					return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file exists, register inserted: %s' % hash})
+					db.insert('file_register', path = input.path, hash = hash, date = modify_time, fingerprint = fingerprint)
+					return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file exists, register inserted: %s, %s' % (hash, fingerprint)})
 			else:
 				ret = db.delete('file_register', where = 'path=$path', vars = dict(path = input.path))
 				return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file non-existent, removed %d register(s).' % ret})

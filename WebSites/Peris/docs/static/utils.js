@@ -65,3 +65,25 @@ Peris.getImageData = function (url, callback) {
 
 	xmlHTTP.send();
 };
+
+
+var hexBlurPattern = function (c, distance) {
+	var center = parseInt(c, 16);
+	var chars = "";
+	for (var i = Math.max(center - distance, 0); i <= Math.min(center + distance, 15); ++i)
+		chars += i.toString(16);
+
+	return chars;
+};
+
+Peris.fingerprintBlurPattern = function (fingerprint, distance) {
+	distance = distance || 1;
+
+	var pattern = "";
+
+	for (var i in fingerprint) {
+		pattern += "[" + hexBlurPattern(fingerprint[i], distance) + "]";
+	}
+
+	return pattern;
+};

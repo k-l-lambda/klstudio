@@ -44,9 +44,11 @@ CREATE TABLE IF NOT EXISTS `file_register` (
   `path` varchar(200) NOT NULL,
   `hash` varchar(32) CHARACTER SET ascii NOT NULL,
   `date` datetime NOT NULL,
+  `fingerprint` varchar(16) CHARACTER SET ascii DEFAULT NULL,
   PRIMARY KEY (`path`),
   KEY `date` (`date`),
-  KEY `hash` (`hash`)
+  KEY `hash` (`hash`),
+  KEY `fingerprint` (`fingerprint`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

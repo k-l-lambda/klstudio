@@ -4,7 +4,7 @@ from PIL import Image
 
 SAMPLE_IMAGE_DIMENSION_MAX = 1024
 
-PRINT_DIMENSION = 16
+PRINT_DIMENSION = 4
 
 
 def crop(image):
@@ -30,7 +30,9 @@ def desaturate(image):
 	for x in range(0, image.size[0]):
 		for y in range(0, image.size[1]):
 			color = image.getpixel((x, y))
-			grayscale = (min(color) + max(color)) / 2
+			grayscale = color
+			if type(color) == tuple:
+				grayscale = (min(color) + max(color)) / 2
 			result.putpixel((x, y), grayscale)
 
 	return result
@@ -41,6 +43,17 @@ def getHistogram(image):
 	h.sort()
 
 	return h
+
+
+def lookupHistogram(color, histogram):
+	if not histogram or color < histogram[0]:
+		return 0
+
+	c = color
+	while not c in histogram:
+		c -= 1
+
+	return float(histogram.index(c)) / len(histogram)
 
 
 def genThumbnail(image, dimensions):
@@ -56,3 +69,53 @@ def genThumbnail(image, dimensions):
 			result.putpixel((x, y), grayscale)
 
 	return result
+
+
+def fileFingerprint(file):
+	source = Image.open(file)
+	sample = desaturate(crop(source))
+
+	histogram = getHistogram(sample)
+
+	thumb = genThumbnail(sample, (PRINT_DIMENSION, PRINT_DIMENSION))
+
+	scales = []
+	for p in [(x,y) for y in range(0, thumb.size[1]) for x in range(0, thumb.size[0])]:
+		color = thumb.getpixel(p)
+		scale = int(lookupHistogram(color, histogram) * 16)
+		scales.append(scale)
+
+	return ('%x' * len(scales)) % tuple(scales)
+
+
+def fileThumbnailCode(file):
+	source = Image.open(file)
+	sample = desaturate(crop(source))
+
+	thumb = genThumbnail(sample, (PRINT_DIMENSION, PRINT_DIMENSION))
+	data = [x / 16 for x in list(thumb.getdata())]
+
+	return ('%x' * len(data)) % tuple(data)
+
+
+def rawDifferFingerprints(print1, print2):
+	a1 = [int(x, 16) for x in print1]
+	a2 = [int(x, 16) for x in print2]
+
+	differ = 0
+	for i in range(0, len(a1)):
+		differ += abs(a1[i] - a2[i])
+
+	return differ
+
+
+def mirrorFingerprint(fp, segment = 4):
+	return ''.join([fp[i:i + segment][::-1] for i in range(0, len(fp), segment)])
+
+
+def differFingerprints(print1, print2):
+	return min(rawDifferFingerprints(print1, print2), rawDifferFingerprints(mirrorFingerprint(print1), print2))
+
+
+def differFiles(file1, file2):
+	return differFingerprints(fileFingerprint(file1), fileFingerprint(file2))

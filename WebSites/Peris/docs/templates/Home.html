@@ -221,6 +221,7 @@
 				color: #fff;
 				border: 1px #aac dotted;
 				font-style: normal;
+				background: rgba(0, 0, 0, 0.4);
 			}
 
 			#loading
@@ -385,7 +386,7 @@
 					location.hash = "sql=" + encodeURIComponent($("#sql").val());
 				});
 
-				$("#note-list a").click(function () {
+				$("#note-list a, #bookmarks a").click(function () {
 					if (event.ctrlKey) {
 						var link = $(this).attr("href").replace("#sql=", "#xsql=");
 						location.hash = link;

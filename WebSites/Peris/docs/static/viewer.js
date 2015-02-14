@@ -37,6 +37,7 @@ Peris.Viewer.prototype.initialize = function () {
 		+ "<span class='status-date'></span>"
 		+ "<span class='status-score'></span>"
 		+ "<span class='status-tags'></span>"
+		+ "<span class='status-operation'></span>"
 		+ "<span class='status-counter'><span class='status-lay-count'></span> / <span class='status-total'></span></span></div>");
 	this.StatusBar.appendTo(this.Container);
 
@@ -123,6 +124,8 @@ Peris.Viewer.prototype.clear = function (data) {
 		this.ColumnBottom[i] = 0;
 
 	this.SlotStream.find(".slot").remove();
+
+	this.setStatusBar(null);
 };
 
 Peris.Viewer.prototype.focusSlot = function (slot) {
@@ -224,10 +227,10 @@ Peris.Viewer.prototype.onFocusSlotChanged = function () {
 			else
 				console.error("unexpect json result:", json);
 
-			$(".viewer-status").removeClass("loading");
+			viewer.setStatusBar(null);
 		}, "json");
 
-		$(".viewer-status").addClass("loading");
+		this.setStatusBar("QUERYING");
 
 		if (figure) {
 			$.get(figure.src, function (d, s, xhr) {
@@ -372,6 +375,18 @@ Peris.Viewer.prototype.updateLayout = function () {
 	}
 };
 
+Peris.Viewer.prototype.setStatusBar = function (operation) {
+	if (operation) {
+		this.StatusBar.find(".status-operation").text(operation);
+		this.StatusBar.addClass("loading");
+	}
+	else {
+		this.StatusBar.find(".status-operation").text("");
+		this.StatusBar.removeClass("loading");
+	}
+};
+
+
 Peris.Viewer.prototype.onResized = function () {
 	// recreate stream
 	this.clear();
@@ -382,21 +397,61 @@ Peris.Viewer.prototype.onKeyDown = function (e) {
 	if (!this.Peer.Showing && !this.Slider.Showing) {
 		var handled = true;
 
+		var viewer = this;
+
 		switch (e.keyCode) {
-			case 27: // esc
+			case 27: // esc,	exit expand mode
 				if (this.Container.hasClass("expand")) {
 					this.Container.removeClass("expand");
 					this.onResized();
 				}
 
 				break;
-			case 118: // F7
+			case 118: // F7,	start slider
 				var focus = this.SlotStream.find(".slot:hover");
 				if (!focus.length)
 					focus = this.SlotStream.find(".slot.focus");
 
 				var statIndex = focus.length ? this.PathList.indexOf(focus.data("path")) : 0;
 				this.Slider.open({ startIndex: statIndex });
+
+				break;
+			case 120: // F9
+				Peris.showFileInFolder(this.CurrentData.path);
+
+				break;
+			case 121: // F10,	show similar figures
+				var deep = e.ctrlKey;
+
+				var openQuery = function (fingerprint) {
+					var pattern1 = Peris.fingerprintBlurPattern(fingerprint, deep ? 2 : 1);
+					var pattern2 = Peris.fingerprintBlurPattern(Peris.mirrorFingerprint(fingerprint), deep ? 2 : 1);
+					var sql = "select path from file_register\nwhere fingerprint regexp '" + pattern1 + "' or fingerprint regexp '" + pattern2 + "'";
+
+					open("#expandViewer&sql=" + encodeURIComponent(sql), "_blank");
+				};
+
+				if (this.CurrentData) {
+					if (this.CurrentData.fingerprint) {
+						openQuery(this.CurrentData.fingerprint);
+					}
+					else {
+						$.post("/check-file", { path: this.CurrentData.path }, function (json) {
+							if (json.result == "success") {
+								//console.log("check file", viewer.CurrentData.path, "success, fingerprint:", json.data.fingerprint);
+								openQuery(json.data.fingerprint);
+							}
+							else {
+								console.log("check file", viewer.CurrentData.path, "failed:", json);
+							}
+
+							viewer.setStatusBar(null);
+						});
+						console.log("checking file:", viewer.CurrentData.path);
+
+						this.setStatusBar("CHECKING");
+					}
+				}
 
 				break;
 			default:

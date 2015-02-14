@@ -341,10 +341,10 @@ class CheckFileHandle:
 
 				if record:
 					db.update('file_register', where = 'path=$path', vars = dict(path = input.path), hash = hash, date = modify_time, fingerprint = fingerprint)
-					return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file exists, register updated: %s, %s' % (hash, fingerprint)})
+					return Serializer.save({'result': 'success', 'path': input.path, 'description': 'File exists, register updated.', 'data': {'hash': hash, 'date': modify_time, 'fingerprint': fingerprint}})
 				else:
 					db.insert('file_register', path = input.path, hash = hash, date = modify_time, fingerprint = fingerprint)
-					return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file exists, register inserted: %s, %s' % (hash, fingerprint)})
+					return Serializer.save({'result': 'success', 'path': input.path, 'description': 'File exists, register inserted.', 'data': {'hash': hash, 'date': modify_time, 'fingerprint': fingerprint}})
 			else:
 				ret = db.delete('file_register', where = 'path=$path', vars = dict(path = input.path))
 				return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file non-existent, removed %d register(s).' % ret})

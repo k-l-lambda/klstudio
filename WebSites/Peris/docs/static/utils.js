@@ -87,3 +87,12 @@ Peris.fingerprintBlurPattern = function (fingerprint, distance) {
 
 	return pattern;
 };
+
+Peris.mirrorFingerprint = function (fingerprint) {
+	var result = fingerprint.substr(0, 4).split("").reverse().join("");
+	result += fingerprint.substr(4, 4).split("").reverse().join("");
+	result += fingerprint.substr(8, 4).split("").reverse().join("");
+	result += fingerprint.substr(12, 4).split("").reverse().join("");
+
+	return result;
+};

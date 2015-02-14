@@ -330,6 +330,7 @@
 					var li = $("<li><a></a></li>");
 					li.find("a").text(bookmarks.Data[i].name);
 					li.find("a").attr("href", bookmarks.Data[i].link);
+					li.find("a").click(onNoteLinkClick);
 
 					li.appendTo($("#bookmarks"));
 
@@ -345,6 +346,15 @@
 					$("#new-bookmark-name").addClass("focus");
 
 				bookmarksDirty = false;
+			};
+
+			var onNoteLinkClick = function () {
+				if (event.ctrlKey) {
+					var link = $(this).attr("href").replace("#sql=", "#xsql=");
+					location.hash = link;
+
+					event.preventDefault();
+				}
 			};
 
 			$(function () {
@@ -364,16 +374,20 @@
 							data.push({ path: viewer.Peer.RecentPostList.Data[i] });
 
 						viewer.update(data);
+					}
+					else {
+						if (params.sql) {
+							runSql(decodeURIComponent(params.sql));
+						}
 
-						return;
+						if (params.xsql) {
+							$("#sql").val(decodeURIComponent(params.xsql));
+						}
 					}
 
-					if (params.sql) {
-						runSql(decodeURIComponent(params.sql));
-					}
-
-					if (params.xsql) {
-						$("#sql").val(decodeURIComponent(params.xsql));
+					if (Object.keys(params).indexOf("expandViewer") >= 0) {
+						viewer.Container.addClass("expand");
+						viewer.onResized();
 					}
 				};
 
@@ -386,14 +400,7 @@
 					location.hash = "sql=" + encodeURIComponent($("#sql").val());
 				});
 
-				$("#note-list a, #bookmarks a").click(function () {
-					if (event.ctrlKey) {
-						var link = $(this).attr("href").replace("#sql=", "#xsql=");
-						location.hash = link;
-
-						event.preventDefault();
-					}
-				});
+				$("#note-list a, #bookmarks a").click(onNoteLinkClick);
 
 				bookmarks.load();
 				renderBookmarks();

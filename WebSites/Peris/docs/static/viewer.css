@@ -203,6 +203,7 @@
 	height: auto;
 	cursor: pointer;
 	border-radius: 8px;
+	pointer-events: none;
 }
 
 .slot-placeholder
@@ -234,6 +235,7 @@
 	max-width: 100%;
 	box-shadow: #000 0 0 40px 12px;
 	cursor: move;
+	pointer-events: none;
 }
 
 .touch-device .peer .figure
@@ -329,6 +331,7 @@
 {
 	transition: height 0.3s;
 	height: 1px;
+	pointer-events: none;
 }
 
 .peer .score-bar:hover .score-gradient
@@ -524,6 +527,7 @@
 	right: 0;
 	transition: transform 30s linear;
 	-webkit-transition: transform 30s linear;
+	pointer-events: none;
 }
 
 .slider .figure.vertical-full

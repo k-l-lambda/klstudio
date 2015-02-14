@@ -221,6 +221,15 @@ Peris.Peer.prototype.open = function (slot) {
 			}
 
 			peer.renderTagList();
+
+			if (!json.data.fingerprint) {
+				$.post("/check-file", { path: peer.CurrentPath }, function (json) {
+					console.log("Check file result:", json);
+
+					if (json.data && json.data.fingerprint)
+						peer.CurrentData.fingerprint = json.data.fingerprint;
+				});
+			}
 		}
 		else if (json.result == "fail") {
 			console.warn("query file info " + peer.CurrentPath + " failed:", json.error);
@@ -414,6 +423,14 @@ Peris.Peer.prototype.onKeyDown = function (e) {
 				break;
 			case 120: // F9
 				Peris.showFileInFolder(this.CurrentPath);
+
+				break;
+			case 121: // F10,	show similar figures
+				var deep = e.ctrlKey;
+
+				if (this.CurrentData && this.CurrentData.fingerprint) {
+					Peris.openSimilarQuery(this.CurrentData.fingerprint, deep ? 2 : 1);
+				}
 
 				break;
 			default:

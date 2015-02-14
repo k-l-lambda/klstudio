@@ -447,23 +447,14 @@ Peris.Viewer.prototype.onKeyDown = function (e) {
 			case 121: // F10,	show similar figures
 				var deep = e.ctrlKey;
 
-				var openQuery = function (fingerprint) {
-					var pattern1 = Peris.fingerprintBlurPattern(fingerprint, deep ? 2 : 1);
-					var pattern2 = Peris.fingerprintBlurPattern(Peris.mirrorFingerprint(fingerprint), deep ? 2 : 1);
-					var sql = "select path from file_register\nwhere fingerprint regexp '" + pattern1 + "' or fingerprint regexp '" + pattern2 + "'";
-
-					open("#expandViewer&sql=" + encodeURIComponent(sql), "_blank");
-				};
-
 				if (this.CurrentData) {
 					if (this.CurrentData.fingerprint) {
-						openQuery(this.CurrentData.fingerprint);
+						Peris.openSimilarQuery(this.CurrentData.fingerprint, deep ? 2 : 1);
 					}
 					else {
 						$.post("/check-file", { path: this.CurrentData.path }, function (json) {
 							if (json.result == "success") {
-								//console.log("check file", viewer.CurrentData.path, "success, fingerprint:", json.data.fingerprint);
-								openQuery(json.data.fingerprint);
+								Peris.openSimilarQuery(json.data.fingerprint, deep ? 2 : 1);
 							}
 							else {
 								console.log("check file", viewer.CurrentData.path, "failed:", json);

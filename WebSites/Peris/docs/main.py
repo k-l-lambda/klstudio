@@ -350,7 +350,7 @@ class CheckFileHandle:
 				return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file non-existent, removed %d register(s).' % ret})
 		except:
 			logging.warn('Check file error: %s', traceback.format_exception(*sys.exc_info()))
-			return Serializer.save({'result': 'fail', 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
+			return Serializer.save({'result': 'fail', 'path': input.path, 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
 
 
 application = web.application((

@@ -386,6 +386,30 @@ Peris.Viewer.prototype.setStatusBar = function (operation) {
 	}
 };
 
+Peris.Viewer.prototype.checkAll = function () {
+	var viewer = this;
+
+	var check;
+	check = function () {
+		$.post("/check-file", { path: viewer.PathList[viewer.CheckAllIndex] }, function (json) {
+			if (json.result == "success")
+				console.log(viewer.CheckAllIndex, json.data && json.data || json);
+			else
+				console.warn(viewer.CheckAllIndex, json);
+
+			++viewer.CheckAllIndex;
+			if (viewer.CheckAllIndex < viewer.PathList.length)
+				check();
+			else {
+				console.log("Viewer checkAll completed.");
+			}
+		});
+	};
+
+	this.CheckAllIndex = 0;
+	check();
+};
+
 
 Peris.Viewer.prototype.onResized = function () {
 	// recreate stream

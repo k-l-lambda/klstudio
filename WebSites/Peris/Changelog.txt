@@ -9,6 +9,8 @@ TODO:
 
 2015.2.14	K.L.	<k.l.lambda@gmail.com>
 
+	+	static/viewer.js: checkAll added.
+
 	+	static/viewer.js: show similar figures added.
 
 	+	Fingerprint16.py: fileFingerprint implemented.

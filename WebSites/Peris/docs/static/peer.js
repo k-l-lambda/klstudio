@@ -209,7 +209,7 @@ Peris.Peer.prototype.open = function (slot) {
 			inputBar.removeClass("disabled");
 
 			peer.CurrentHash = json.data.hash;
-			peer.CurrentData = { score: json.data.score, tags: json.data.tags };
+			peer.CurrentData = { score: json.data.score, tags: json.data.tags, fingerprint: json.data.fingerprint };
 
 			peer.setScoreTouchValue(Number(json.data.score));
 			inputBar.find(".input-tags").val(json.data.tags);

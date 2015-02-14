@@ -1,6 +1,7 @@
 
 TODO:
 	Chrome extension
+		post image data to server
 	Home page:
 		start slider button
 	peer:
@@ -8,6 +9,8 @@ TODO:
 
 
 2015.2.14	K.L.	<k.l.lambda@gmail.com>
+
+	+	Chrome Extension of Peris created.
 
 	+	viewer-touch.css: created.
 

@@ -80,26 +80,32 @@ var surveryImage = function () {
 	//console.log(src, "loaded.");
 
 	if (this.naturalWidth >= Peris.SURVEY_IMG_DIMENSION_MIN && this.naturalHeight >= Peris.SURVEY_IMG_DIMENSION_MIN) {
+		image.addClass("Peris-survey-img");
+		image.wrap("<span class='Peris-img-wrapper'></span>");
+
+		var wrapper = image.parent();
+
+		var queryBtn = $("<button class='Peris-quety'></button>");
+		queryBtn.appendTo(wrapper);
+
+		wrapper.addClass("Peris-loading");
+
 		Peris.getImageFingerprint(src, function (json) {
 			//console.log("Fingerprint for", src, ":", json);
 
 			if (json.fingerprint) {
-				image.addClass("Peris-survey-img");
-				image.wrap("<span class='Peris-img-wrapper'></span>");
-
-				var wrapper = image.parent();
-
 				wrapper.data("fingerprint", json.fingerprint);
 
-				var queryBtn = $("<button>Q</button>");
-				queryBtn.appendTo(wrapper);
+				queryBtn.attr({ title: json.fingerprint });
 
 				var sql = Peris.fingerprintSimilarQuery(json.fingerprint);
 				$.post(Peris.PERIS_WEB_HOST + "/query", { sql: sql }, function (json, s, ajax) {
 					if (json.data) {
 						ajax.userData.queryBtn.text(json.data.length);
 					}
-				}, "json").userData = { queryBtn: queryBtn };
+
+					wrapper.removeClass("Peris-loading");
+				}, "json").userData = { queryBtn: queryBtn, wrapper: wrapper };
 
 				queryBtn.click(function () {
 					//console.log("fingerprint:", $(this).parent().data("fingerprint"));

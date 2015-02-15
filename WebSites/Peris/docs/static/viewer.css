@@ -196,6 +196,11 @@
 	background: no-repeat no-repeat url(/static/loading-5d.gif) center;
 }
 
+.slot.raw
+{
+	border: 2px solid #a2ff00;
+}
+
 .slot .figure
 {
 	display: block;

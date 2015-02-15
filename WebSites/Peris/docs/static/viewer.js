@@ -217,9 +217,13 @@ Peris.Viewer.prototype.onFocusSlotChanged = function () {
 		var path = $slot.data("path");
 		$.post("/query", { query: 'file-info', path: path }, function (json, s, ajax) {
 			if (json.result == "success") {
-				viewer.StatusBar.find(".status-date").text(json.data.date ? json.data.date : "?");
-				viewer.StatusBar.find(".status-score").text(json.data.score ? json.data.score : "--");
-				viewer.StatusBar.find(".status-tags").text(json.data.tags ? json.data.tags : "");
+				if (json.data) {
+					viewer.StatusBar.find(".status-date").text(json.data.date ? json.data.date : "?");
+					viewer.StatusBar.find(".status-score").text(json.data.score ? json.data.score : "--");
+					viewer.StatusBar.find(".status-tags").text(json.data.tags ? json.data.tags : "");
+				}
+				else
+					$slot.addClass("raw");
 
 				viewer.CurrentData = json.data;
 			}

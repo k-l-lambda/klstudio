@@ -2,13 +2,14 @@
 TODO:
 	Chrome extension
 	Home page:
-		open peer by gesture
 		start slider button
 	peer:
 		figure zoom animation when close.
 
 
 2015.2.15	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/viewer.js: open peer by gesture.
 
 	+	static/peer.js: added figure open animation.
 

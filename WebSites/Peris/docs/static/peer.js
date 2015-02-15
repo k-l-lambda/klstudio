@@ -11,6 +11,7 @@ Peris.Peer = function (viewer) {
 Peris.Peer.prototype.Showing = false;
 Peris.Peer.prototype.Zoom = 1;
 Peris.Peer.prototype.Translate = {x: 0, y: 0};
+Peris.Peer.prototype.Rotation = 0;
 Peris.Peer.prototype.HoldingFigure = false;
 Peris.Peer.prototype.DraggingFigure = false;
 Peris.Peer.prototype.LoadingSlot = false;
@@ -22,6 +23,7 @@ Peris.Peer.prototype.TagsAutoRefreshWaiting = 200;
 Peris.Peer.prototype.RecentPostList = new Peris.LocalDataEntry("RecentPostList", []);
 Peris.Peer.prototype.RecentPostListLengthLimit = 1000;
 Peris.Peer.prototype.LastTouch = null;
+Peris.Peer.prototype.FigureClear = true;
 
 
 Peris.Peer.prototype.initialize = function () {
@@ -150,7 +152,13 @@ Peris.Peer.prototype.initialize = function () {
 			peer.postFigureData({ tags: $(this).val() });
 	});
 
+	this.Panel.bind("gesturestart", function () {
+		peer.BeginRotation = peer.Rotation;
+	});
+
 	this.Panel.bind("gesturechange", function () {
+		if (event.rotation)
+			peer.Rotation = peer.BeginRotation + event.rotation;
 		peer.updateZoom(Math.pow(event.scale, 0.1));
 
 		peer.LastTouch = null;
@@ -187,6 +195,7 @@ Peris.Peer.prototype.open = function (slot) {
 
 	this.Showing = true;
 	this.Zoom = 1;
+	this.Rotation = 0;
 	this.Translate = { x: 0, y: 0 };
 	this.HoldingFigure = false;
 
@@ -245,6 +254,8 @@ Peris.Peer.prototype.close = function () {
 	});
 
 	this.Showing = false;
+
+	this.FigureClear = true;
 };
 
 Peris.Peer.prototype.updateData = function (data) {
@@ -280,6 +291,8 @@ Peris.Peer.prototype.clearSlotBinding = function () {
 	figures.removeClass("holding");
 
 	this.SourceSlot.removeClass("hangout");
+
+	this.Figure = null;
 };
 
 Peris.Peer.prototype.prev = function () {
@@ -342,20 +355,19 @@ Peris.Peer.prototype.initializePanel = function (slot) {
 
 	var scale = 1 / Math.min(newSize.width / oldSize.width, newSize.height / oldSize.height);
 	var translation = { x: (oldPosition.x - newPosition.x) / scale, y: (oldPosition.y - newPosition.y) / scale };
-	this.Figure.css({ transform: "scale(" + scale + ", " + scale + ") translate(" + translation.x + "px, " + translation.y + "px)" });
+	if (this.FigureClear)
+		this.Figure.css({ transform: "scale(" + scale + ", " + scale + ") translate(" + translation.x + "px, " + translation.y + "px)" });
 
 	this.Figure.detach();
 	this.Figure.appendTo(this.Panel);
 
 	var peer = this;
 
-	setTimeout(function () {
-		peer.Figure.css({ transform: "scale(" + scale + ", " + scale + ") translate(0, 0)" });
-	}, 1);
-
-	setTimeout(function () {
-		peer.Figure.css({ transform: "scale(1,1) translate(0, 0)" });
-	}, 100);
+	if (this.FigureClear) {
+		setTimeout(function () {
+			peer.Figure.css({ transform: "scale(1,1) translate(0, 0)" });
+		}, 1);
+	}
 
 	this.Figure.mousedown(function () {
 		if (event.button == 0 && !peer.Panel.find(".score-bar").is(":hover")) {
@@ -367,6 +379,7 @@ Peris.Peer.prototype.initializePanel = function (slot) {
 		}
 	});
 
+	this.FigureClear = false;
 	this.LoadingSlot = false;
 };
 
@@ -496,7 +509,7 @@ Peris.Peer.prototype.onTagItemClick = function (item) {
 };
 
 Peris.Peer.prototype.updateTransform = function (e) {
-	this.Figure.css({ transform: "scale(" + this.Zoom + ", " + this.Zoom + ") translate(" + this.Translate.x + "px, " + this.Translate.y + "px)" });
+	this.Figure.css({ transform: "scale(" + this.Zoom + ", " + this.Zoom + ") translate(" + this.Translate.x + "px, " + this.Translate.y + "px) rotate(" + this.Rotation + "deg)" });
 };
 
 Peris.Peer.prototype.postFigureData = function (data) {

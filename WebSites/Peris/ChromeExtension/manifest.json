@@ -9,18 +9,20 @@
   },
   "content_scripts": [ {
      "js": [ "jquery.js", "data.js", "peris.js" ],
-     "matches": [ "*://*.weiyun.com/*" ]
+     "matches": [ "*://*/*" ]
   } ],
   "permissions": [
     "tabs", "downloads", "*://*/*"
   ],
   "page_action": {
     "default_title": "Peris",
-    "default_icon": "logo16.png"
+    "default_icon": "logo16-inactive.png",
+    "default_popup": "popup.html"
   },
   "web_accessible_resources": [
     "loading.gif",
     "icons16.png",
+    "logo16-inactive.png",
     "icons24.png",
     "logo.png",
     "logo16.png",

@@ -223,7 +223,7 @@
 
 .peer .figure
 {
-	transition: 0.3s;
+	transition: 0.3s ease-out;
 	margin: auto;
 	position: absolute;
 	top: 0;
@@ -234,6 +234,11 @@
 	max-width: 100%;
 	box-shadow: #000 0 0 40px 12px;
 	cursor: move;
+}
+
+.peer .figure.holding
+{
+	transition: none;
 }
 
 .touch-device .peer .figure

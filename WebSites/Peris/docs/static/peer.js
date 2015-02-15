@@ -269,6 +269,8 @@ Peris.Peer.prototype.clearSlotBinding = function () {
 	figures.detach();
 	figures.appendTo(this.SourceSlot);
 
+	figures.removeClass("holding");
+
 	this.SourceSlot.removeClass("hangout");
 };
 
@@ -322,14 +324,36 @@ Peris.Peer.prototype.initializePanel = function (slot) {
 	slot.css({ height: slot.height() + "px" });
 	slot.addClass("hangout");
 
+	var oldPosition = this.Figure.offset();
+	var oldSize = { width: this.Figure.width(), height: this.Figure.height() };
+	oldPosition.x = oldPosition.left + oldSize.width / 2;
+	oldPosition.y = oldPosition.top + oldSize.height / 2;
+
+	var newPosition = { x: $(window).width() / 2, y: $(window).height() / 2 };
+	var newSize = { width: Math.min($(window).width(), this.Figure[0].naturalWidth), height: Math.min($(window).height(), this.Figure[0].naturalHeight) };
+
+	var scale = 1 / Math.min(newSize.width / oldSize.width, newSize.height / oldSize.height);
+	var translation = { x: (oldPosition.x - newPosition.x) / scale, y: (oldPosition.y - newPosition.y) / scale };
+	this.Figure.css({ transform: "scale(" + scale + ", " + scale + ") translate(" + translation.x + "px, " + translation.y + "px)" });
+
 	this.Figure.detach();
 	this.Figure.appendTo(this.Panel);
 
 	var peer = this;
 
+	setTimeout(function () {
+		peer.Figure.css({ transform: "scale(" + scale + ", " + scale + ") translate(0, 0)" });
+	}, 1);
+
+	setTimeout(function () {
+		peer.Figure.css({ transform: "scale(1,1) translate(0, 0)" });
+	}, 240);
+
 	this.Figure.mousedown(function () {
 		if (event.button == 0 && !peer.Panel.find(".score-bar").is(":hover")) {
 			peer.HoldingFigure = true;
+
+			$(this).addClass("holding");
 
 			event.preventDefault();
 		}
@@ -389,11 +413,12 @@ Peris.Peer.prototype.onMouseWheel = function (e) {
 
 Peris.Peer.prototype.onMouseUp = function (e) {
 	this.HoldingFigure = false;
-	this.Figure.css({ transition: "" });
+
+	this.Figure.removeClass("holding");
 };
 
 Peris.Peer.prototype.onMouseMove = function (e) {
-	if (this.HoldingFigure && e.movementX && e.movementY) {
+	if (this.HoldingFigure && (e.movementX || e.movementY)) {
 		this.updatePan(e.movementX, e.movementY);
 
 		e.preventDefault();
@@ -583,7 +608,6 @@ Peris.Peer.prototype.updatePan = function (x, y) {
 	this.updateTransform();
 
 	this.DraggingFigure = true;
-	this.Figure.css({ transition: "none" });
 };
 
 

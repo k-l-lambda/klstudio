@@ -7,6 +7,11 @@ TODO:
 		figure zoom animation when open/close.
 
 
+2015.2.15	K.L.	<k.l.lambda@gmail.com>
+
+	+	main.py: ListDirHandle added.
+
+
 2015.2.14	K.L.	<k.l.lambda@gmail.com>
 
 	+	ChromeExtension: calculate fingerprint, query similar figures implemented.

@@ -97,7 +97,9 @@ Peris.Viewer.prototype.update = function (data) {
 
 	this.PathList = [];
 	for (var i in data) {
-		if (data[i].path)
+		if (typeof data[i] === "string")
+			this.PathList.push(data[i]);
+		else if (data[i].path)
 			this.PathList.push(data[i].path);
 	}
 

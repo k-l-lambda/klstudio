@@ -9,6 +9,7 @@ import re
 import cgi
 import traceback
 import StringIO
+import glob
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -372,6 +373,33 @@ class FingerprintHandle:
 			return Serializer.save({'result': 'fail', 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
 
 
+class ListDirHandle:
+	def GET(self):
+		web.header('Content-Type', 'application/json')
+
+		try:
+			input = web.input(dir = '*\\*', orderby = None)
+
+			search_dir = os.path.join(config.data_root, input.dir)
+			files = filter(os.path.isfile, glob.glob(search_dir))
+
+			if input.orderby == 'ctime':
+				files.sort(key = lambda x: os.path.getctime(x))
+			elif input.orderby == '-ctime':
+				files.sort(key = lambda x: -os.path.getctime(x))
+			elif input.orderby == 'mtime':
+				files.sort(key = lambda x: os.path.getmtime(x))
+			elif input.orderby == '-mtime':
+				files.sort(key = lambda x: -os.path.getmtime(x))
+
+			files = [decodeUnicode(os.path.relpath(f, config.data_root).replace('\\', '/')) for f in files]
+
+			return Serializer.save({'result': 'success', 'files': files})
+		except:
+			logging.warn('List directory error: %s', traceback.format_exception(*sys.exc_info()))
+			return Serializer.save({'result': 'fail', 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
+
+
 application = web.application((
 	'/',								'HomeHandle',
 	'/constants.js',					'ConstantsHandle',
@@ -380,6 +408,7 @@ application = web.application((
 	'/exec',							'ExecHandle',
 	'/check-file',						'CheckFileHandle',
 	'/fingerprint',						'FingerprintHandle',
+	'/list-dir',						'ListDirHandle',
 	'/admin/',							'AdminHomeHandle',
 	'/admin/update-file-register',		'UpdateFileRegisterHandle',
 	'/admin/import-album-data',			'ImportAlbumDataHandle',

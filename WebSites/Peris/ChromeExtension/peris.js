@@ -73,8 +73,8 @@ var processedImages = {};
 var surveryImage = function () {
 	var image = $(this);
 
-	if (image.is(".Peris-survey-img, .Peris-exclude-img"))
-		return;
+	//if (image.is(".Peris-survey-img, .Peris-exclude-img"))
+	//	return;
 
 	var src = image.attr("src");
 

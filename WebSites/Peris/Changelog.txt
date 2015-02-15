@@ -1,6 +1,9 @@
 
 TODO:
+	ChromeExtension
+		disable auto survey on large image.
 	Home page:
+		check loading failure figure
 		start slider button
 	peer:
 		figure zoom animation when close.

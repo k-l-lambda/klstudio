@@ -379,6 +379,19 @@
 
 						viewer.update(data);
 					}
+					else if (Object.keys(params).indexOf("listDir") >= 0) {
+						var queries = "";
+
+						if (params.dir)
+							queries += "dir=" + params.dir + "&";
+
+						if (params.orderby)
+							queries += "orderby=" + params.orderby;
+
+						$.getJSON("/list-dir?" + queries, function (json) {
+							viewer.update(json.files);
+						});
+					}
 					else {
 						if (params.sql) {
 							runSql(decodeURIComponent(params.sql));
@@ -450,6 +463,7 @@
 				<li><a href="#recentPost">Recent Post</a></li>
 				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20score%20is%20null%20and%20tags%20is%20null%0Aorder%20by%20date%20desc">Raw</a></li>
 				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Aorder%20by%20score%20desc">Score Descend</a></li>
+				<li><a href="#listDir&orderby=-ctime">List Recent Dir</a></li>
 			</ul>
 			<ol id="bookmarks">
 			</ol>

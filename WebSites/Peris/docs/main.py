@@ -18,6 +18,8 @@ import Serializer
 import Fingerprint16
 
 
+imageFilePattern = re.compile('.*\.(jpg|jpeg|jpe|png|bmp|gif)$')
+
 db = web.database(host='127.0.0.1', dbn='mysql', user=config.db_user, pw=config.db_password, db='peris')
 
 
@@ -149,7 +151,7 @@ class UpdateFileRegisterHandle:
 					yield '<p class="error">Failed to decode <em>%s / %s</em>: <strong>%s</strong></p>' % (root, file, sys.exc_info())
 					#continue
 
-				if re.match('.*\.(jpg|jpeg|jpe|png|bmp|gif)$', file, re.I):
+				if imageFilePattern.match(file, re.I):
 					try:
 						path = os.path.join(root, file)
 						modify_time = None
@@ -381,7 +383,7 @@ class ListDirHandle:
 			input = web.input(dir = '*\\*', orderby = None)
 
 			search_dir = os.path.join(config.data_root, input.dir)
-			files = filter(os.path.isfile, glob.glob(search_dir))
+			files = filter(lambda f: os.path.isfile(f) and imageFilePattern.match(f), glob.glob(search_dir))
 
 			if input.orderby == 'ctime':
 				files.sort(key = lambda x: os.path.getctime(x))

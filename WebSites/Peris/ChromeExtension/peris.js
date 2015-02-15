@@ -124,7 +124,6 @@ var surveyImages = function (parent) {
 	}
 };
 
-
 surveyImages($("body"));
 
 

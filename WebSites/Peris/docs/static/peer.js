@@ -210,27 +210,19 @@ Peris.Peer.prototype.open = function (slot) {
 		if (json.result == "success") {
 			inputBar.removeClass("disabled");
 
-			peer.CurrentHash = json.data.hash;
-			peer.CurrentData = { score: json.data.score, tags: json.data.tags, fingerprint: json.data.fingerprint };
+			if (json.data)
+				peer.updateData(json.data);
 
-			peer.setScoreTouchValue(Number(json.data.score));
-			inputBar.find(".input-tags").val(json.data.tags);
-
-			if (json.data.tags) {
-				var tagsArray = json.data.tags.split("|");
-				for (var i in tagsArray)
-					peer.TagList.update(tagsArray[i], 1);
-			}
-
-			peer.renderTagList();
-
-			if (!json.data.fingerprint) {
+			if (!json.data || !json.data.fingerprint) {
 				$.post("/check-file", { path: peer.CurrentPath }, function (json) {
 					console.log("Check file result:", json);
 
-					if (json.data && json.data.fingerprint)
-						peer.CurrentData.fingerprint = json.data.fingerprint;
+					if (json.data) {
+						peer.updateData(json.data);
+						slot.removeClass("raw");
+					}
 				});
+				console.log("Checking file:", peer.CurrentPath);
 			}
 		}
 		else if (json.result == "fail") {
@@ -253,6 +245,22 @@ Peris.Peer.prototype.close = function () {
 	});
 
 	this.Showing = false;
+};
+
+Peris.Peer.prototype.updateData = function (data) {
+	this.CurrentHash = data.hash;
+	this.CurrentData = { score: data.score, tags: data.tags, fingerprint: data.fingerprint };
+
+	this.setScoreTouchValue(Number(data.score));
+	this.Panel.find(".input-bar .input-tags").val(data.tags);
+
+	if (data.tags) {
+		var tagsArray = data.tags.split("|");
+		for (var i in tagsArray)
+			this.TagList.update(tagsArray[i], 1);
+	}
+
+	this.renderTagList();
 };
 
 Peris.Peer.prototype.clearSlotBinding = function () {
@@ -347,7 +355,7 @@ Peris.Peer.prototype.initializePanel = function (slot) {
 
 	setTimeout(function () {
 		peer.Figure.css({ transform: "scale(1,1) translate(0, 0)" });
-	}, 240);
+	}, 100);
 
 	this.Figure.mousedown(function () {
 		if (event.button == 0 && !peer.Panel.find(".score-bar").is(":hover")) {

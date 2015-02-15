@@ -67,16 +67,21 @@ Peris.fingerprintSimilarQuery = function (fingerprint, tolerance) {
 };
 
 
-$("head").append("<link type='text/css' rel='stylesheet' href='" + chrome.extension.getURL("peris.css") + "'>");
-
-chrome.extension.sendRequest({ action: "setPageAction", visible: true });
+var processedImages = {};
 
 
 var surveryImage = function () {
 	var image = $(this);
 
+	if (image.is(".Peris-survey-img, .Peris-exclude-img"))
+		return;
+
 	var src = image.attr("src");
 
+	if (processedImages[src])
+		return;
+
+	processedImages[src] = true;
 	//console.log(src, "loaded.");
 
 	if (this.naturalWidth >= Peris.SURVEY_IMG_DIMENSION_MIN && this.naturalHeight >= Peris.SURVEY_IMG_DIMENSION_MIN) {
@@ -111,28 +116,46 @@ var surveryImage = function () {
 					//console.log("fingerprint:", $(this).parent().data("fingerprint"));
 					var sql = Peris.fingerprintSimilarQuery($(this).parent().data("fingerprint"));
 					open(Peris.PERIS_WEB_HOST + "#expandViewer&sql=" + encodeURIComponent(sql), "_blank");
+
+					event.preventDefault();
 				});
 			}
 		});
 	}
 	else {
-		console.log("Drop too small image:", this.naturalWidth, this.naturalHeight);
+		image.addClass("Peris-exclude-img");
+		//console.log("Drop too small image:", this.naturalWidth, this.naturalHeight);
 	}
 };
 
 
 var surveyImages = function (parent) {
 	var images = parent.is("img") ? parent : parent.find("img");
-	if (images.length) {
-		//console.log(images.length, "images found.");
 
-		images.load(surveryImage);
-	}
+	images.each(function(i, image) {
+		if (image.complete)
+			surveryImage.call(image);
+		else
+			$(image).load(surveryImage);
+	});
 };
 
-surveyImages($("body"));
 
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+	switch (request.action) {
+		case "activate":
+			console.log("Peris Chrome Extension activated.");
 
-$("body").live("DOMNodeInserted", function (ev) {
-	surveyImages($(ev.target));
+			$("head").append("<link type='text/css' rel='stylesheet' href='" + chrome.extension.getURL("peris.css") + "'>");
+
+			surveyImages($("body"));
+
+			$("body").live("DOMNodeInserted", function (ev) {
+				surveyImages($(ev.target));
+			});
+
+			break;
+	}
 });
+
+chrome.extension.sendRequest({ action: "load", hostname: location.hostname });

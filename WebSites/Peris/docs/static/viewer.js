@@ -189,6 +189,15 @@ Peris.Viewer.prototype.newSlot = function (path, options) {
 			viewer.Peer.open(slot);
 	});
 
+	slot.bind("gestureend", function () {
+		if (!viewer.Peer.Showing && event.scale > 1) {
+			var slot = $(this);
+
+			if (slot.hasClass("filled"))
+				viewer.Peer.open(slot);
+		}
+	});
+
 	return slot;
 };
 

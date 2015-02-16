@@ -338,7 +338,7 @@ class CheckFileHandle:
 					modify_time = datetime.datetime.now()
 
 				if record and record.date == modify_time and record.fingerprint:
-					return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file exists, register up to date.'})
+					return Serializer.save({'success': True, 'result': 'ignore', 'path': input.path, 'description': 'file exists, register up to date.'})
 
 				hash = md5.md5(open(full_path, 'rb').read()).hexdigest()
 				fingerprint = Fingerprint16.fileFingerprint(full_path)

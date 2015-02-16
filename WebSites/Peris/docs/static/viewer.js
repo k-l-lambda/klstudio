@@ -426,7 +426,7 @@ Peris.Viewer.prototype.checkAll = function () {
 	var check;
 	check = function () {
 		$.post("/check-file", { path: viewer.PathList[viewer.CheckAllIndex] }, function (json) {
-			if (json.result == "success")
+			if (json.success)
 				console.log(viewer.CheckAllIndex, json.data && json.data || json);
 			else
 				console.warn(viewer.CheckAllIndex, json);

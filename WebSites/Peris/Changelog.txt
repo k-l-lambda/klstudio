@@ -2,11 +2,14 @@
 TODO:
 	ChromeExtension
 		disable auto survey on large image.
+		colored matched images
 	Home page:
 		start slider button
 
 
 2015.2.16	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/viewer.js: auto check unregister files.
 
 	+	static/peer.js: added figure close animation.
 

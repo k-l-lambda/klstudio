@@ -240,8 +240,18 @@ Peris.Viewer.prototype.onFocusSlotChanged = function () {
 					viewer.StatusBar.find(".status-score").text(json.data.score ? json.data.score : "--");
 					viewer.StatusBar.find(".status-tags").text(json.data.tags ? json.data.tags : "");
 				}
-				else
+				else {
 					$slot.addClass("raw");
+
+					$.post("/check-file", { path: $slot.data("path") }, function (json) {
+						console.log("Check raw figure:", json);
+
+						if (json.success) {
+							$slot.removeClass("raw");
+							$slot.addClass("registered");
+						}
+					});
+				}
 
 				viewer.CurrentData = json.data;
 			}

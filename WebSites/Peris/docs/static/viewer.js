@@ -163,6 +163,10 @@ Peris.Viewer.prototype.newSlot = function (path, options) {
 		slot.css({ height: "4em" });
 
 		viewer.mountSlot(slot);
+
+		$.post("/check-file", { path: slot.data("path") }, function (json) {
+			console.log("Check error figure:", json);
+		});
 	};
 
 	setTimeout(function () {

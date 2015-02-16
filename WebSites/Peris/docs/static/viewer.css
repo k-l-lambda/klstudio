@@ -218,12 +218,17 @@
 
 .peer
 {
-	display: none;
 	z-index: 10000;
-	background: rgba(64, 64, 64, 0.9);
 	text-align: center;
 	vertical-align: middle;
 	-webkit-user-select: none;
+}
+
+.peer .controls
+{
+	background: rgba(64, 64, 64, 0.9);
+	width: 100%;
+	height: 100%;
 }
 
 .peer .figure

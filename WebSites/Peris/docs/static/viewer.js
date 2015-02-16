@@ -164,8 +164,13 @@ Peris.Viewer.prototype.newSlot = function (path, options) {
 
 		viewer.mountSlot(slot);
 
+		slot.addClass("failure");
+
 		$.post("/check-file", { path: slot.data("path") }, function (json) {
 			console.log("Check error figure:", json);
+
+			if (json.result == "delete")
+				slot.addClass("removed");
 		});
 	};
 
@@ -472,7 +477,7 @@ Peris.Viewer.prototype.onKeyDown = function (e) {
 					}
 					else {
 						$.post("/check-file", { path: this.CurrentData.path }, function (json) {
-							if (json.result == "success") {
+							if (json.success) {
 								Peris.openSimilarQuery(json.data.fingerprint, deep ? 2 : 1);
 							}
 							else {

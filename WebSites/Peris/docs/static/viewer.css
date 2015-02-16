@@ -201,6 +201,16 @@
 	border: 2px solid #a2ff00;
 }
 
+.slot.failure
+{
+	background: rgba(255, 0, 0, 0.3);
+}
+
+.slot.removed
+{
+	opacity: 0.1;
+}
+
 .slot .figure
 {
 	display: block;

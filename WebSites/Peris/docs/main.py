@@ -345,16 +345,16 @@ class CheckFileHandle:
 
 				if record:
 					db.update('file_register', where = 'path=$path', vars = dict(path = input.path), hash = hash, date = modify_time, fingerprint = fingerprint)
-					return Serializer.save({'result': 'success', 'path': input.path, 'description': 'File exists, register updated.', 'data': {'hash': hash, 'date': modify_time, 'fingerprint': fingerprint}})
+					return Serializer.save({'success': True, 'result': 'update', 'path': input.path, 'description': 'File exists, register updated.', 'data': {'hash': hash, 'date': modify_time, 'fingerprint': fingerprint}})
 				else:
 					db.insert('file_register', path = input.path, hash = hash, date = modify_time, fingerprint = fingerprint)
-					return Serializer.save({'result': 'success', 'path': input.path, 'description': 'File exists, register inserted.', 'data': {'hash': hash, 'date': modify_time, 'fingerprint': fingerprint}})
+					return Serializer.save({'success': True, 'result': 'insert', 'path': input.path, 'description': 'File exists, register inserted.', 'data': {'hash': hash, 'date': modify_time, 'fingerprint': fingerprint}})
 			else:
 				ret = db.delete('file_register', where = 'path=$path', vars = dict(path = input.path))
-				return Serializer.save({'result': 'success', 'path': input.path, 'description': 'file non-existent, removed %d register(s).' % ret})
+				return Serializer.save({'success': True, 'result': 'delete', 'path': input.path, 'description': 'file non-existent, removed %d register(s).' % ret})
 		except:
 			logging.warn('Check file error: %s', traceback.format_exception(*sys.exc_info()))
-			return Serializer.save({'result': 'fail', 'path': input.path, 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
+			return Serializer.save({'success': False, 'path': input.path, 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
 
 
 class FingerprintHandle:

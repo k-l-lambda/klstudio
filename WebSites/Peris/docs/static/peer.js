@@ -28,14 +28,18 @@ Peris.Peer.prototype.FigureClear = true;
 
 Peris.Peer.prototype.initialize = function () {
 	this.Panel = $("<div class='peer fullscreen-panel'>"
+		+ "<div class='controls'>"
 		+ "<button class='prev'>&lt;</button>"
 		+ "<button class='next'>&gt;</button>"
 		+ "<button class='show-slider'></button>"
 		+ "<div class='score-bar'><canvas class='score-gradient' width='1500' height='10'></canvas><div class='score-touch'><div class='score-touch-colored'></div></div></div>"
 		+ "<div class='input-bar'><input class='input-score' type='text' readonly /><input class='input-tags' type='text' /><ol class='tag-list'></ol></div>"
-		+ "</div>");
+		+ "</div></div>");
 
 	this.Panel.appendTo("body");
+
+	this.Panel.find(".controls").hide();
+	this.Panel.hide();
 
 	var peer = this;
 
@@ -249,9 +253,23 @@ Peris.Peer.prototype.close = function () {
 	if (inputTags.is(".dirty"))
 		peer.postFigureData({ tags: inputTags.val() });
 
-	this.Panel.fadeOut(this.FadeDuration, function () {
+	this.Panel.find(".controls").fadeOut(this.FadeDuration, function () {
+		peer.Panel.hide();
 		peer.clearSlotBinding();
 	});
+
+	// animate figure to source slot
+	var targetPosition = this.SourceSlot.offset();
+	var targetSize = { width: this.SourceSlot.width(), height: this.SourceSlot.height() };
+	targetPosition.x = targetPosition.left + targetSize.width / 2;
+	targetPosition.y = targetPosition.top + targetSize.height / 2;
+
+	var currentPosition = { x: $(window).width() / 2, y: $(window).height() / 2 };
+	var currentSize = { width: Math.min($(window).width(), this.Figure[0].naturalWidth), height: Math.min($(window).height(), this.Figure[0].naturalHeight) };
+
+	var scale = 1 / Math.min(currentSize.width / targetSize.width, currentSize.height / targetSize.height);
+	var translation = { x: (targetPosition.x - currentPosition.x) / scale, y: (targetPosition.y - currentPosition.y) / scale };
+	this.Figure.css({ transform: "scale(" + scale + ", " + scale + ") translate(" + translation.x + "px, " + translation.y + "px)" });
 
 	this.Showing = false;
 
@@ -340,7 +358,8 @@ Peris.Peer.prototype.initializePanel = function (slot) {
 	this.SourceSlot = slot;
 	this.Figure = slot.find(".figure");
 
-	this.Panel.fadeIn(this.FadeDuration);
+	this.Panel.show();
+	this.Panel.find(".controls").fadeIn(this.FadeDuration);
 
 	slot.css({ height: slot.height() + "px" });
 	slot.addClass("hangout");
@@ -435,7 +454,8 @@ Peris.Peer.prototype.onMouseWheel = function (e) {
 Peris.Peer.prototype.onMouseUp = function (e) {
 	this.HoldingFigure = false;
 
-	this.Figure.removeClass("holding");
+	if (this.Figure)
+		this.Figure.removeClass("holding");
 };
 
 Peris.Peer.prototype.onMouseMove = function (e) {

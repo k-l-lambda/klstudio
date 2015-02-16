@@ -1,5 +1,6 @@
 
 var Peris = {
 	SURVEY_IMG_DIMENSION_MIN: 64,
+	SURVEY_IMG_AUTO_SURVEY_DIMENSION_MAX: 256,
 	PERIS_WEB_HOST: "http://localhost:8082"
 };

@@ -31,3 +31,9 @@
 {
 	background: no-repeat no-repeat transparent url(/loading.gif) center;
 }
+
+.Peris-img-wrapper .Peris-quety.Peris-matched
+{
+	background-color: rgba(255, 94, 177, 0.7);
+	font-weight: bold;
+}

@@ -70,11 +70,51 @@ Peris.fingerprintSimilarQuery = function (fingerprint, tolerance) {
 var processedImages = {};
 
 
-var surveryImage = function () {
-	var image = $(this);
+var surveyImage = function (image) {
+	var wrapper = image.parent();
+	wrapper.addClass("Peris-loading");
 
-	//if (image.is(".Peris-survey-img, .Peris-exclude-img"))
-	//	return;
+	var src = image.attr("src");
+
+	console.log("Surveying image:", src);
+
+	var queryBtn = wrapper.find(".Peris-quety");
+	queryBtn.text("");
+
+	Peris.getImageFingerprint(src, function (json) {
+		//console.log("Fingerprint for", src, ":", json);
+
+		if (json.fingerprint) {
+			wrapper.data("fingerprint", json.fingerprint);
+
+			queryBtn.attr({ title: json.fingerprint });
+
+			var sql = Peris.fingerprintSimilarQuery(json.fingerprint);
+			$.post(Peris.PERIS_WEB_HOST + "/query", { sql: sql }, function (json, s, ajax) {
+				if (json.data) {
+					ajax.userData.queryBtn.text(json.data.length);
+
+					if (json.data.length)
+						ajax.userData.queryBtn.addClass("Peris-matched");
+				}
+
+				wrapper.removeClass("Peris-loading");
+			}, "json").userData = { queryBtn: queryBtn, wrapper: wrapper };
+
+			queryBtn.click(function () {
+				//console.log("fingerprint:", $(this).parent().data("fingerprint"));
+				var sql = Peris.fingerprintSimilarQuery($(this).parent().data("fingerprint"));
+				open(Peris.PERIS_WEB_HOST + "#expandViewer&sql=" + encodeURIComponent(sql), "_blank");
+
+				event.preventDefault();
+			});
+		}
+	});
+};
+
+
+var wrapImage = function () {
+	var image = $(this);
 
 	var src = image.attr("src");
 
@@ -85,42 +125,26 @@ var surveryImage = function () {
 	//console.log(src, "loaded.");
 
 	if (this.naturalWidth >= Peris.SURVEY_IMG_DIMENSION_MIN && this.naturalHeight >= Peris.SURVEY_IMG_DIMENSION_MIN) {
-		image.addClass("Peris-survey-img");
+		image.addClass("Peris-img");
 		image.wrap("<span class='Peris-img-wrapper'></span>");
 
 		var wrapper = image.parent();
 
-		var queryBtn = $("<button class='Peris-quety'></button>");
+		var queryBtn = $("<button class='Peris-quety'>Q</button>");
 		queryBtn.appendTo(wrapper);
 
-		wrapper.addClass("Peris-loading");
+		if (image.is(":visible") && Math.min(this.naturalWidth, this.naturalHeight) <= Peris.SURVEY_IMG_AUTO_SURVEY_DIMENSION_MAX)
+			surveyImage(image);
+		else {
+			queryBtn.click(function () {
+				var queryBtn = $(this);
+				queryBtn.unbind("click");
 
-		Peris.getImageFingerprint(src, function (json) {
-			//console.log("Fingerprint for", src, ":", json);
+				surveyImage(queryBtn.parent().find(".Peris-img"));
 
-			if (json.fingerprint) {
-				wrapper.data("fingerprint", json.fingerprint);
-
-				queryBtn.attr({ title: json.fingerprint });
-
-				var sql = Peris.fingerprintSimilarQuery(json.fingerprint);
-				$.post(Peris.PERIS_WEB_HOST + "/query", { sql: sql }, function (json, s, ajax) {
-					if (json.data) {
-						ajax.userData.queryBtn.text(json.data.length);
-					}
-
-					wrapper.removeClass("Peris-loading");
-				}, "json").userData = { queryBtn: queryBtn, wrapper: wrapper };
-
-				queryBtn.click(function () {
-					//console.log("fingerprint:", $(this).parent().data("fingerprint"));
-					var sql = Peris.fingerprintSimilarQuery($(this).parent().data("fingerprint"));
-					open(Peris.PERIS_WEB_HOST + "#expandViewer&sql=" + encodeURIComponent(sql), "_blank");
-
-					event.preventDefault();
-				});
-			}
-		});
+				event.preventDefault();
+			});
+		}
 	}
 	else {
 		image.addClass("Peris-exclude-img");
@@ -129,14 +153,14 @@ var surveryImage = function () {
 };
 
 
-var surveyImages = function (parent) {
+var wrapImages = function (parent) {
 	var images = parent.is("img") ? parent : parent.find("img");
 
 	images.each(function(i, image) {
 		if (image.complete)
-			surveryImage.call(image);
+			wrapImage.call(image);
 		else
-			$(image).load(surveryImage);
+			$(image).load(wrapImage);
 	});
 };
 
@@ -148,10 +172,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
 			$("head").append("<link type='text/css' rel='stylesheet' href='" + chrome.extension.getURL("peris.css") + "'>");
 
-			surveyImages($("body"));
+			wrapImages($("body"));
 
 			$("body").live("DOMNodeInserted", function (ev) {
-				surveyImages($(ev.target));
+				wrapImages($(ev.target));
 			});
 
 			break;

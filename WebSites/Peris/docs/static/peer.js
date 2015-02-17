@@ -26,6 +26,53 @@ Peris.Peer.prototype.LastTouch = null;
 Peris.Peer.prototype.FigureClear = true;
 
 
+var paintScoreGradient = function (ctx) {
+	/*var gradient = ctx.createLinearGradient(0, 0, 1500, 0);
+	gradient.addColorStop(0, "#400");
+	gradient.addColorStop(2.5 / 15, "#cc0");
+	gradient.addColorStop(2.50000001 / 15, "#ff0");
+	gradient.addColorStop(5. / 15, "#0c0");
+	gradient.addColorStop(5.00000001 / 15, "#0f0");
+	gradient.addColorStop(7.5 / 15, "#22c");
+	gradient.addColorStop(7.50000001 / 15, "#00f");
+	gradient.addColorStop(10 / 15, "#90c");
+	gradient.addColorStop(10.0000001 / 15, "#c0f");
+	gradient.addColorStop(1, "white");
+	ctx.fillStyle = gradient;
+	ctx.fillRect(0, 0, 1500, 10);*/
+
+	var gradient1 = ctx.createLinearGradient(0, 0, 250, 0);
+	gradient1.addColorStop(0, "#400");
+	gradient1.addColorStop(1, "#cc0");
+	ctx.fillStyle = gradient1;
+	ctx.fillRect(0, 0, 250, 10);
+
+	var gradient2 = ctx.createLinearGradient(250, 0, 500, 0);
+	gradient2.addColorStop(0, "#ff0");
+	gradient2.addColorStop(1, "#0c0");
+	ctx.fillStyle = gradient2;
+	ctx.fillRect(250, 0, 500, 10);
+
+	var gradient3 = ctx.createLinearGradient(500, 0, 750, 0);
+	gradient3.addColorStop(0, "#0f0");
+	gradient3.addColorStop(1, "#22c");
+	ctx.fillStyle = gradient3;
+	ctx.fillRect(500, 0, 750, 10);
+
+	var gradient4 = ctx.createLinearGradient(750, 0, 1000, 0);
+	gradient4.addColorStop(0, "#00f");
+	gradient4.addColorStop(1, "#90c");
+	ctx.fillStyle = gradient4;
+	ctx.fillRect(750, 0, 1000, 10);
+
+	var gradient5 = ctx.createLinearGradient(1000, 0, 1500, 0);
+	gradient5.addColorStop(0, "#c0f");
+	gradient5.addColorStop(1, "white");
+	ctx.fillStyle = gradient5;
+	ctx.fillRect(1000, 0, 1500, 10);
+};
+
+
 Peris.Peer.prototype.initialize = function () {
 	this.Panel = $("<div class='peer fullscreen-panel'>"
 		+ "<div class='controls'>"
@@ -77,20 +124,7 @@ Peris.Peer.prototype.initialize = function () {
 
 	// paint score gradient
 	var canvas = this.Panel.find(".score-gradient");
-	var ctx = canvas[0].getContext("2d");
-	var gradient = ctx.createLinearGradient(0, 0, 1500, 0);
-	gradient.addColorStop(0, "#400");
-	gradient.addColorStop(2.5 / 15, "#cc0");
-	gradient.addColorStop(2.5000001 / 15, "#ff0");
-	gradient.addColorStop(5. / 15, "#0c0");
-	gradient.addColorStop(5.0000001 / 15, "#0f0");
-	gradient.addColorStop(7.5 / 15, "#22c");
-	gradient.addColorStop(7.5000001 / 15, "#00f");
-	gradient.addColorStop(10 / 15, "#90c");
-	gradient.addColorStop(10.0000001 / 15, "#c0f");
-	gradient.addColorStop(1, "white");
-	ctx.fillStyle = gradient;
-	ctx.fillRect(0, 0, 1500, 10);
+	paintScoreGradient(canvas[0].getContext("2d"));
 
 	this.Panel.find(".score-bar").mousemove(function () {
 		var score = event.x * 15 / $(this).width();
@@ -163,6 +197,8 @@ Peris.Peer.prototype.initialize = function () {
 	this.Panel.bind("gesturechange", function () {
 		if (event.rotation)
 			peer.Rotation = peer.BeginRotation + event.rotation;
+		if (Math.abs(peer.Rotation) < 5)
+			peer.Rotation = 0;
 		peer.updateZoom(Math.pow(event.scale, 0.1));
 
 		peer.LastTouch = null;
@@ -511,21 +547,27 @@ Peris.Peer.prototype.onKeyDown = function (e) {
 	}
 };
 
-Peris.Peer.prototype.onTagItemClick = function (item) {
+Peris.Peer.prototype.onTagItemClick = function (item, e) {
 	var tagsArray = this.getCurrentTagArray();
 	var tag = item.find(".text").text();
 
-	if (item.is(".used")) {
-		if (tagsArray.indexOf(tag) >= 0)
-			tagsArray.splice(tagsArray.indexOf(tag), 1);
+	if (e.ctrlKey) {
+		var sql = "select path from file_register left join album on file_register.hash = album.hash\nwhere tags like '%" + tag + "%'\norder by score desc";
+		open("#expandViewer&sql=" + encodeURIComponent(sql), "_blank");
 	}
-	else
-		tagsArray.push(tag);
+	else {
+		if (item.is(".used")) {
+			if (tagsArray.indexOf(tag) >= 0)
+				tagsArray.splice(tagsArray.indexOf(tag), 1);
+		}
+		else
+			tagsArray.push(tag);
 
-	var tags = tagsArray.join("|");
-	this.Panel.find(".input-tags").val(tags);
-	this.Panel.find(".input-tags").addClass("dirty");
-	this.postFigureData({ tags: tags });
+		var tags = tagsArray.join("|");
+		this.Panel.find(".input-tags").val(tags);
+		this.Panel.find(".input-tags").addClass("dirty");
+		this.postFigureData({ tags: tags });
+	}
 };
 
 Peris.Peer.prototype.updateTransform = function (e) {
@@ -604,7 +646,7 @@ Peris.Peer.prototype.renderTagList = function () {
 		item.appendTo(ol);
 
 		item.click(function () {
-			peer.onTagItemClick($(this));
+			peer.onTagItemClick($(this), event);
 		});
 	}
 };

@@ -390,9 +390,14 @@
 
 						$("#viewer-area").addClass("loading");
 						$.getJSON("/list-dir?" + queries, function (json) {
-							viewer.update(json.files);
+							if (json.success) {
+								viewer.update(json.files);
 
-							$("#viewer-area").removeClass("loading");
+								$("#viewer-area").removeClass("loading");
+							}
+							else {
+								console.warn("get list dir failed:", json.error);
+							}
 						});
 					}
 					else {

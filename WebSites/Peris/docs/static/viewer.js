@@ -426,10 +426,12 @@ Peris.Viewer.prototype.checkAll = function () {
 	var check;
 	check = function () {
 		$.post("/check-file", { path: viewer.PathList[viewer.CheckAllIndex] }, function (json) {
+			var leftCount = viewer.PathList.length - viewer.CheckAllIndex;
+
 			if (json.success)
-				console.log(viewer.CheckAllIndex, json.data && json.data || json);
+				console.log(leftCount, json.data && json.data || json);
 			else
-				console.warn(viewer.CheckAllIndex, json);
+				console.warn(leftCount, json);
 
 			++viewer.CheckAllIndex;
 			if (viewer.CheckAllIndex < viewer.PathList.length)

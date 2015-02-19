@@ -396,10 +396,10 @@ class ListDirHandle:
 
 			files = [decodeUnicode(os.path.relpath(f, config.data_root).replace('\\', '/')) for f in files]
 
-			return Serializer.save({'result': 'success', 'files': files})
+			return Serializer.save({'success': True, 'files': files})
 		except:
 			logging.warn('List directory error: %s', traceback.format_exception(*sys.exc_info()))
-			return Serializer.save({'result': 'fail', 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
+			return Serializer.save({'success': False, 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
 
 
 application = web.application((

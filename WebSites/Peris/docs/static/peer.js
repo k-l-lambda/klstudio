@@ -267,8 +267,8 @@ Peris.Peer.prototype.open = function (slot) {
 					console.log("Check file result:", json);
 
 					if (json.data) {
-						//peer.updateData(json.data);
-						peer.CurrentData.fingerprint = json.data.fingerprint;
+						if (peer.CurrentData)
+							peer.CurrentData.fingerprint = json.data.fingerprint;
 						slot.removeClass("raw");
 					}
 				});

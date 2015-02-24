@@ -211,7 +211,7 @@
 	background: rgba(255, 0, 0, 0.3);
 }
 
-.slot.removed
+.slot.removed, .slot.removed .figure
 {
 	opacity: 0.1;
 }

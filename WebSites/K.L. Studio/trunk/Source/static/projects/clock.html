@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Clock</title>
+		<style>
+			#canvas
+			{
+				display: block;
+				position: absolute;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				margin: auto;
+				width: 100vh;
+				height: 100vh;
+			}
+
+			.frame
+			{
+				fill: none;
+				stroke: #555;
+			}
+
+			.hour-scale
+			{
+				stroke: #555;
+				stroke-width: 0.5;
+			}
+
+			.pointer-line
+			{
+				stroke: #000;
+				stroke-width: 0.3;
+			}
+		</style>
+		<script src="../js/jquery.js" type="text/javascript"></script>
+		<script src="../js/jquery.svg.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			var svg = function (selector) {
+				return new $.svg._wrapperClass($(selector)[0]);
+			};
+
+			var C = {
+				CENTER_X: 200,
+				CENTER_Y: 200,
+				FRAME_RADIUS: 100,
+				HOUR_SCALE_LENGTH: 5
+			};
+
+			var initializeClockFrame = function () {
+				var canvas = svg("#canvas");
+				canvas.configure({ viewBox: "80 80 240 240" });
+
+				canvas.circle(C.CENTER_X, C.CENTER_Y, C.FRAME_RADIUS, { class: "frame" });
+
+				for (var i = 0; i < 12; ++i) {
+					var angle = Math.PI * i / 6;
+					var cosa = Math.cos(angle);
+					var sina = Math.sin(angle);
+
+					canvas.line(C.CENTER_X + cosa * C.FRAME_RADIUS, C.CENTER_Y + sina * C.FRAME_RADIUS, C.CENTER_X + cosa * (C.FRAME_RADIUS - C.HOUR_SCALE_LENGTH), C.CENTER_Y + sina * (C.FRAME_RADIUS - C.HOUR_SCALE_LENGTH), { class: "hour-scale" });
+				}
+
+				var hourPointer = svg("#hour-pointer");
+				hourPointer.line(C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.3, C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.5, {class: "pointer-line"});
+
+				var minutePointer = svg("#minute-pointer");
+				minutePointer.line(C.CENTER_X, C.CENTER_Y, C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.75, { class: "pointer-line" });
+
+				var secondPointer = svg("#second-pointer");
+				secondPointer.line(C.CENTER_X, C.CENTER_Y, C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.94, { class: "pointer-line" });
+			};
+
+			var updatePointers = function (time) {
+				var ha = 360 * (time % 43200000) / 43200000;
+				var ma = 360 * (time % 3600000) / 3600000;
+				var sa = 360 * (time % 60000) / 60000;
+
+				var hourPointer = svg("#hour-pointer");
+				var minutePointer = svg("#minute-pointer");
+				var secondPointer = svg("#second-pointer");
+
+				var center = ", " + C.CENTER_X + ", " + C.CENTER_Y;
+
+				hourPointer.configure({ transform: "rotate(" + ha + center + ")" });
+				minutePointer.configure({ transform: "rotate(" + ma + center + ")" });
+				secondPointer.configure({ transform: "rotate(" + sa + center + ")" });
+			};
+
+			$(function () {
+				initializeClockFrame();
+
+				setInterval(function(){
+					var now = new Date;
+					updatePointers(now.getTime() - now.getTimezoneOffset() * 60000);
+				}, 100);
+			});
+		</script>
+	</head>
+	<body>
+		<svg id="canvas">
+			<g id="hour-pointer"></g>
+			<g id="minute-pointer"></g>
+			<g id="second-pointer"></g>
+		</svg>
+	</body>
+</html>

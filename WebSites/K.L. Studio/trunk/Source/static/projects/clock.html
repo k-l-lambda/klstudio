@@ -45,6 +45,20 @@
 				stroke-width: 0.3;
 			}
 
+			.pointer-arrow
+			{
+				/*stroke: #ccc;
+				stroke-width: 0.5;*/
+				fill: #aaa;
+				opacity: 0.3;
+			}
+
+			.pointer-hammer
+			{
+				fill: #faa;
+				opacity: 0.8;
+			}
+
 			.scale-text
 			{
 				text-anchor: middle;
@@ -129,7 +143,8 @@
 				var canvas = svg("#canvas");
 				canvas.configure({ viewBox: "80 80 240 240" });
 
-				canvas.circle(C.CENTER_X, C.CENTER_Y, C.FRAME_RADIUS, { class: "frame" });
+				var panel = svg("#panel");
+				panel.circle(C.CENTER_X, C.CENTER_Y, C.FRAME_RADIUS, { class: "frame" });
 
 				// scales
 				for (var i = 0; i < 12; ++i) {
@@ -137,7 +152,7 @@
 					var cosa = Math.cos(angle);
 					var sina = Math.sin(angle);
 
-					canvas.line(C.CENTER_X + cosa * C.FRAME_RADIUS, C.CENTER_Y + sina * C.FRAME_RADIUS, C.CENTER_X + cosa * (C.FRAME_RADIUS - C.HOUR_SCALE_LENGTH), C.CENTER_Y + sina * (C.FRAME_RADIUS - C.HOUR_SCALE_LENGTH), { class: "hour-scale" });
+					panel.line(C.CENTER_X + cosa * C.FRAME_RADIUS, C.CENTER_Y + sina * C.FRAME_RADIUS, C.CENTER_X + cosa * (C.FRAME_RADIUS - C.HOUR_SCALE_LENGTH), C.CENTER_Y + sina * (C.FRAME_RADIUS - C.HOUR_SCALE_LENGTH), { class: "hour-scale" });
 				}
 
 				for (var i = 0; i < 60; ++i) {
@@ -146,19 +161,34 @@
 						var cosa = Math.cos(angle);
 						var sina = Math.sin(angle);
 
-						canvas.line(C.CENTER_X + cosa * C.FRAME_RADIUS, C.CENTER_Y + sina * C.FRAME_RADIUS, C.CENTER_X + cosa * (C.FRAME_RADIUS - C.MINUTE_SCALE_LENGTH), C.CENTER_Y + sina * (C.FRAME_RADIUS - C.MINUTE_SCALE_LENGTH), { class: "minute-scale" });
+						panel.line(C.CENTER_X + cosa * C.FRAME_RADIUS, C.CENTER_Y + sina * C.FRAME_RADIUS, C.CENTER_X + cosa * (C.FRAME_RADIUS - C.MINUTE_SCALE_LENGTH), C.CENTER_Y + sina * (C.FRAME_RADIUS - C.MINUTE_SCALE_LENGTH), { class: "minute-scale" });
 					}
 				}
 
 				// pointers
 				var hourPointer = svg("#hour-pointer");
-				hourPointer.line(C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.3, C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.5, { class: "pointer-line" });
+				var harrow = hourPointer.createPath();
+				harrow.move(C.CENTER_X, C.CENTER_Y);
+				harrow.line(C.CENTER_X - 5, C.CENTER_Y - C.FRAME_RADIUS * 0.14);
+				harrow.line(C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.6);
+				harrow.line(C.CENTER_X + 5, C.CENTER_Y - C.FRAME_RADIUS * 0.14);
+				harrow.close();
+				hourPointer.path(harrow, { class: "pointer-arrow" });
+				hourPointer.line(C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.2, C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.6, { class: "pointer-line" });
 
 				var minutePointer = svg("#minute-pointer");
-				minutePointer.line(C.CENTER_X, C.CENTER_Y, C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.75, { class: "pointer-line" });
+				var marrow = minutePointer.createPath();
+				marrow.move(C.CENTER_X, C.CENTER_Y);
+				marrow.line(C.CENTER_X - 2, C.CENTER_Y - C.FRAME_RADIUS * 0.1);
+				marrow.line(C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.95);
+				marrow.line(C.CENTER_X + 2, C.CENTER_Y - C.FRAME_RADIUS * 0.1);
+				marrow.close();
+				minutePointer.path(marrow, { class: "pointer-arrow" });
+				minutePointer.line(C.CENTER_X, C.CENTER_Y, C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.95, { class: "pointer-line" });
 
 				var secondPointer = svg("#second-pointer");
-				secondPointer.line(C.CENTER_X, C.CENTER_Y, C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.95, { class: "pointer-line" });
+				secondPointer.line(C.CENTER_X, C.CENTER_Y, C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.98, { class: "pointer-line" });
+				secondPointer.circle(C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.93, 2, { class: "pointer-hammer" });
 
 				// text
 				if (TextInterval) {
@@ -166,7 +196,7 @@
 						var angle = Math.PI * 2 * t / (TextSpan * 3600000 / TimeScaler);
 						var time = new Date(StartTime + t);
 
-						canvas.text(C.CENTER_X + Math.sin(angle) * C.FRAME_RADIUS * C.TEXT_POSITION, C.CENTER_Y - Math.cos(angle) * C.FRAME_RADIUS * C.TEXT_POSITION + 6, time.format(TextFormat), { class: "scale-text" });
+						panel.text(C.CENTER_X + Math.sin(angle) * C.FRAME_RADIUS * C.TEXT_POSITION, C.CENTER_Y - Math.cos(angle) * C.FRAME_RADIUS * C.TEXT_POSITION + 6, time.format(TextFormat), { class: "scale-text" });
 					}
 				}
 			};
@@ -227,6 +257,7 @@
 	</head>
 	<body>
 		<svg id="canvas">
+			<g id="panel"></g>
 			<g id="hour-pointer"></g>
 			<g id="minute-pointer"></g>
 			<g id="second-pointer"></g>

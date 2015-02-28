@@ -12,6 +12,11 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2015.2.28	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/clock.html: refined pointers.
+
+
 2015.2.27	K.L.	<k.l.lambda@gmail.com>
 
 	+	Source/static/projects/clock.html: added scale texts.

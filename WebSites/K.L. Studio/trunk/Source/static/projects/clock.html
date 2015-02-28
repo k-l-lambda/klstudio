@@ -247,11 +247,13 @@
 				if (params.texth)
 					TextSpan = Number(params.texth);
 
+				var updateInterval = params.interval || 100;
+
 				initializeClockFrame();
 
 				TimerHandle = setInterval(function () {
 					updatePointers(Date.now());
-				}, 100);
+				}, updateInterval);
 			});
 		</script>
 	</head>

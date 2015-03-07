@@ -1046,6 +1046,27 @@
 					if (!$("#player-source").val())
 						$("#player-source-tips").show();
 				});
+
+				for (var name in Synesthesia) {
+					var option = $("<option value='" + name + "'>" + name + "</option>")
+					option.appendTo("#settings-synesthesia-scheme");
+
+					if (name == SynesthesiaScheme)
+						option.attr("selected", true);
+				}
+				$("#settings-synesthesia-scheme").hide();
+
+				$("#settings-synesthesia").change(function () {
+					if ($("#settings-synesthesia").attr("checked"))
+						$("#settings-synesthesia-scheme").show();
+					else
+						$("#settings-synesthesia-scheme").hide();
+				});
+
+				$("#settings-synesthesia-scheme").change(function () {
+					SynesthesiaScheme = $(this).val();
+					updateSynesthesiaStyle();
+				});
 			});
 		</script>
 		<script type="text/javascript">
@@ -1174,6 +1195,7 @@
 			<p id="settings-touch-line">
 				<input id="settings-touch" type="checkbox" /> Touch
 				<input id="settings-synesthesia" type="checkbox" /> Synesthesia
+				<select id="settings-synesthesia-scheme"></select>
 			</p>
 			<p>
 				Mode: <select id="settings-mode">

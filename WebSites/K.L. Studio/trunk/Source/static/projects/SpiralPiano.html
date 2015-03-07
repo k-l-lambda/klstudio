@@ -599,6 +599,16 @@
 				return Math.floor(note / Config.GroupLen);
 			};
 
+			var keyToOffset = function (key) {
+				var offset = key % 12;
+				while (offset < -5)
+					offset += 12;
+				while (offset > 6)
+					offset -= 12;
+
+				return offset;
+			};
+
 			var getSpanExtends = function (low, high) {
 				var exts = [];
 				var avg = (low + high) / 2;
@@ -975,13 +985,27 @@
 
 							var key = $("#panel .key[data-note='" + data.note + "']");
 							var key2 = $("#span-keyboard .key[data-note='" + data.note + "']");
-							if (data.message === 144) {
-								activeKey(key, 0);
-								activeKey(key2, 0);
-							}
-							else {
-								deactiveKey(key, true);
-								deactiveKey(key2, true);
+							switch (data.message) {
+								case 144:
+									activeKey(key, 0);
+									activeKey(key2, 0);
+
+									break;
+								case 128:
+									deactiveKey(key, true);
+									deactiveKey(key2, true);
+
+									break;
+								case "meta":
+									switch (data.subtype) {
+										case "keySignature":
+											$("#settings-mode").val(keyToOffset(data.key));
+											$("#settings-mode").change();
+
+											break;
+									}
+
+									break;
 							}
 						});
 

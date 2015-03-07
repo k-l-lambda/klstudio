@@ -183,6 +183,7 @@
 			#player-source
 			{
 				width: 30em;
+				height: 100%;
 			}
 
 			.player-button
@@ -340,7 +341,7 @@
 					7: "#00fff6",
 					8: "#008cff",
 					9: "#0003ff",
-					10: "#6e00ff",
+					10: "#8e00ff",
 					11: "#f000ff"
 				},
 				FifthRainbow: {
@@ -354,7 +355,7 @@
 					2: "#00fff6",
 					9: "#008cff",
 					4: "#0003ff",
-					11: "#6e00ff",
+					11: "#8e00ff",
 					6: "#f000ff"
 				},
 				'Isaac Newton (1704)': {
@@ -677,7 +678,7 @@
 			var paintKeys = function () {
 				var points = [];
 				for (var p = 0; p < Config.KeyCount + Config.GroupLen + 1; ++p) {
-					var offsetAngle = getOffsetAngles(keyToNote(p));
+					var offsetAngle = getOffsetAngles(keyToNote(p) - Status.ModalOffset);
 					var angle = Math.PI * (1.5 - (Status.ModalOffset + p - offsetAngle) * 2 / Config.GroupLen);
 					var radius = (Status.KeyPoints[p] + (p > 0 ? Status.KeyPoints[p - 1] : Status.KeyPoints[p])) / 2;
 
@@ -764,7 +765,7 @@
 				// regions
 				var regionPoints = [];
 				for (var i = 0; i < Config.GroupLen; ++i) {
-					var offsetAngle = getOffsetAngles(i + Status.ModalOffset);
+					var offsetAngle = getOffsetAngles(i);
 					var angle = Math.PI * (1.5 + (i + offsetAngle) * 2 / Config.GroupLen);
 
 					regionPoints[i] = { x: Config.Center.x + Math.cos(angle) * Config.RegionRadius, y: Config.Center.y + Math.sin(angle) * Config.RegionRadius };
@@ -1115,7 +1116,7 @@
 					<feColorMatrix type="saturate" values="0.7"/>
 				</filter>
 				<filter id="filter-grey">
-					<feColorMatrix type="saturate" values="0.4"/>
+					<feColorMatrix type="saturate" values="0.04"/>
 				</filter>
 				<filter id="filter-brightness-n4">
 					<feComponentTransfer>

@@ -600,7 +600,7 @@
 			};
 
 			var keyToOffset = function (key) {
-				var offset = key % 12;
+				var offset = (key * 7) % 12;
 				while (offset < -5)
 					offset += 12;
 				while (offset > 6)

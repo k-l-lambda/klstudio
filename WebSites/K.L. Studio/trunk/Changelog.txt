@@ -12,6 +12,11 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2015.3.9	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/static/projects/SpiralPiano.html: refined synesthesia region.
+
+
 2015.3.7	K.L.	<k.l.lambda@gmail.com>
 
 	+	Source/static/projects/SpiralPiano.html: auto set key signature.

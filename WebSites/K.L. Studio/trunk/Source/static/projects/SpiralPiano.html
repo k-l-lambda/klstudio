@@ -934,10 +934,10 @@
 					// set melody pitch color
 					var melodyNote = getMelodyNote();
 					var melodyPitch = (melodyNote - Status.ModalOffset) % Config.GroupLen;
-					$("body").css("background-color", melodyNote === null ? "transparent" : rgbFormat(Synesthesia[SynesthesiaScheme][melodyPitch]));
+					$(".region").css("fill", melodyNote === null ? "" : rgbFormat(Synesthesia[SynesthesiaScheme][melodyPitch]));
 				}
 				else
-					$("body").css("background-color", "transparent");
+					$(".region").css("fill", "");
 			};
 
 			$(function () {

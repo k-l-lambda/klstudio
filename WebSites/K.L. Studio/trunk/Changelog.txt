@@ -12,6 +12,11 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2015.3.13	K.L.	<k.l.lambda@gmail.com>
+
+	|	Migrated to Github.
+
+
 2015.3.9	K.L.	<k.l.lambda@gmail.com>
 
 	>	Source/static/projects/SpiralPiano.html: refined synesthesia region.

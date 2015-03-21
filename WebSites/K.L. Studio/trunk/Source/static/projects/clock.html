@@ -45,6 +45,11 @@
 				stroke-width: 0.3;
 			}
 
+			#hour-pointer .pointer-line
+			{
+				stroke-width: 0.1;
+			}
+
 			.pointer-arrow
 			{
 				/*stroke: #ccc;
@@ -174,7 +179,7 @@
 				harrow.line(C.CENTER_X + 5, C.CENTER_Y - C.FRAME_RADIUS * 0.14);
 				harrow.close();
 				hourPointer.path(harrow, { class: "pointer-arrow" });
-				hourPointer.line(C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.2, C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.6, { class: "pointer-line" });
+				hourPointer.line(C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.2, C.CENTER_X, C.CENTER_Y - C.FRAME_RADIUS * 0.9, { class: "pointer-line" });
 
 				var minutePointer = svg("#minute-pointer");
 				var marrow = minutePointer.createPath();

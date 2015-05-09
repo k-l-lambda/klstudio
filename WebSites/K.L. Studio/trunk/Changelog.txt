@@ -12,6 +12,14 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2015.5.9	K.L.	<k.l.lambda@gmail.com>
+
+	*!	Note transform:
+			filterMidiFileTransformNotes(Musical.noteTransformers.log3)
+
+	+	Source/static/projects/PianoTrainer.html: function of filterMidiFileTransformNotes added.
+
+
 2015.3.21	K.L.	<k.l.lambda@gmail.com>
 
 	>	Source/static/projects/clock.html: refined hour pointer.

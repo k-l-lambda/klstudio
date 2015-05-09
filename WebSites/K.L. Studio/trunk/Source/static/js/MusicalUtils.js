@@ -43,3 +43,17 @@ Musical.notePitch = function (note) {
 Musical.noteGroup = function (note) {
 	return Math.floor(note / Musical.GroupLen);
 };
+
+
+Musical.contants = {
+	log2_3: Math.log(3) / Math.log(2)
+};
+
+Musical.noteTransformers = {
+	reverse: function (n) {
+		return 124 - n;
+	},
+	log3: function (n){
+		return Math.round((n - 60) * Musical.contants.log2_3 ) + 60;
+	}
+};

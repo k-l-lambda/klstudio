@@ -2096,6 +2096,18 @@
 				return "data:audio/mid;base64," + btoa(midiData);
 			}
 
+			var filterMidiFileTransformNotes = function (trans) {
+				return filterMidiFile(function (f) {
+					for (var i in f.tracks) {
+						for (var ii in f.tracks[i]) {
+							var event = f.tracks[i][ii];
+							if (event.noteNumber)
+								event.noteNumber = trans(event.noteNumber);
+						}
+					}
+				});
+			}
+
 			var generateMetronomeMidi = function (options) {
 				options = options || {}
 				options.BarVelocity = options.BarVelocity || 100;

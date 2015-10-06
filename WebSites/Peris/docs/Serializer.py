@@ -4,8 +4,8 @@ import string
 import datetime
 import web
 import decimal
+import json
 
-from django.utils import simplejson
 
 
 class PlainText:
@@ -39,7 +39,7 @@ def normalizeData(data):
 
 
 def save(data):
-	return simplejson.dumps(normalizeData(data))
+	return json.dumps(normalizeData(data))
 
 
 def saveTuple(*datas):

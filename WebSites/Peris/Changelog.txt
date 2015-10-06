@@ -4,6 +4,15 @@ TODO:
 		start slider button
 
 
+2015.10.6	K.L.	<k.l.lambda@gmail.com>
+
+	>	Serializer.py: use json instead of django.utils.simplejson.
+
+	*!	The error of 'client denied by server' is because of missing of file '.htaccess'
+
+	*!	WSGI module depends on python2 32bits.
+
+
 2015.2.17	K.L.	<k.l.lambda@gmail.com>
 
 	+	static/peer.js: added list tag by ctrl+click.

@@ -269,6 +269,20 @@
 				return dict;
 			};
 
+			var encodeURIParams = function (params) {
+				var result = "";
+				for (var k in params) {
+					if (params[k] !== null && params[k] !== undefined) {
+						if (result)
+							result += "&";
+
+						result += k + "=" + encodeURIComponent(params[k]);
+					}
+				}
+
+				return result;
+			};
+
 			var log = function (msg, cls, quote) {
 				console.log("[query " + cls + "]", $("<span>" + msg + "</span>").text());
 
@@ -279,19 +293,42 @@
 				$("#log").prepend("<li class='" + cls + "'>" + quoteSpan.html() + msg + "</li>");
 			};
 
-			var runSql = function (sql) {
+			var runSql = function (sqlSource) {
+				var m = sqlSource.match(/((.|[\r\n])*?)(function(.|[\r\n])*)/)
+
+				var sql = m ? m[1] : sqlSource;
+				var filterSource = m ? m[3] : null;
+
 				$("#viewer-area").addClass("loading");
+
+				var filter = null;
+				try {
+					if (filterSource)
+						console.log("parse filter:", filterSource);
+
+					filter = filterSource ? eval("(" + filterSource + ")") : null;
+				}
+				catch (e) {
+					log($("<span/>").text(e).html(), "error", sqlSource);
+
+					viewer.clear();
+					$("#viewer-area").removeClass("loading");
+
+					return;
+				}
 
 				$.post("query", { sql: sql }, function (json, s, ajax) {
 					if (json.result == "success") {
 						var cost = Date.now() - ajax.userData.begin;
 
-						log("<em>" + json.data.length + "</em> reocrds get, <em>" + (cost / 1000) + "</em> seconds cost.", "info", sql);
+						log("<em>" + json.data.length + "</em> reocrds get, <em>" + (cost / 1000) + "</em> seconds cost.", "info", sqlSource);
 
-						viewer.update(json.data);
+						var data = filter ? filter(json.data) : json.data;
+
+						viewer.update(data);
 					}
 					else if (json.result == "fail") {
-						log($("<span/>").text(json.error).html(), "error", sql);
+						log($("<span/>").text(json.error).html(), "error", sqlSource);
 
 						viewer.clear();
 					}
@@ -422,7 +459,7 @@
 					updateParams();
 
 				$("#query").click(function () {
-					location.hash = "sql=" + encodeURIComponent($("#sql").val());
+					location.hash = encodeURIParams({ sql: $("#sql").val() });
 				});
 
 				$("#note-list a, #bookmarks a").click(onNoteLinkClick);

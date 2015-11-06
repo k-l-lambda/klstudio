@@ -4,6 +4,11 @@ TODO:
 		start slider button
 
 
+2015.11.6	K.L.	<k.l.lambda@gmail.com>
+
+	+	templates/Home.html: added query filter.
+
+
 2015.10.6	K.L.	<k.l.lambda@gmail.com>
 
 	>	Serializer.py: use json instead of django.utils.simplejson.

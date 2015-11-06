@@ -21,6 +21,8 @@ Peris.Viewer.prototype.FocusSlot = null;
 
 Peris.Viewer.prototype.ScrollDeltaFromLastForceAppear = 0;
 
+Peris.Viewer.prototype.Data = null;
+
 
 Peris.Viewer.prototype.initialize = function () {
 	this.Container.addClass("viewer");
@@ -103,6 +105,8 @@ Peris.Viewer.prototype.update = function (data) {
 			this.PathList.push(data[i].path);
 	}
 
+	this.Data = data;
+
 	this.StatusBar.find(".status-total").text(data.length);
 
 	this.updateLayout();
@@ -120,7 +124,7 @@ Peris.Viewer.prototype.updateStyle = function () {
 	this.StyleTag.text(".slot { width: " + (((1 - this.SlotGap) / this.SlotColumn) * 100).toFixed(2) + "%; }");
 };
 
-Peris.Viewer.prototype.clear = function (data) {
+Peris.Viewer.prototype.clear = function () {
 	this.ColumnBottom = [];
 	for (var i = 0; i < this.SlotColumn; ++i)
 		this.ColumnBottom[i] = 0;

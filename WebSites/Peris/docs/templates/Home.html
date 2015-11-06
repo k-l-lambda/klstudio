@@ -321,11 +321,21 @@
 					if (json.result == "success") {
 						var cost = Date.now() - ajax.userData.begin;
 
-						log("<em>" + json.data.length + "</em> reocrds get, <em>" + (cost / 1000) + "</em> seconds cost.", "info", sqlSource);
+						try {
+							var data = filter ? filter(json.data) : json.data;
 
-						var data = filter ? filter(json.data) : json.data;
+							log("<em>" + json.data.length + "</em> reocrds get, <em>" + (cost / 1000) + "</em> seconds cost.", "info", sqlSource);
 
-						viewer.update(data);
+							viewer.update(data);
+						}
+						catch (e) {
+							log($("<span/>").text(e).html(), "error", sqlSource);
+
+							viewer.clear();
+							$("#viewer-area").removeClass("loading");
+
+							return;
+						}
 					}
 					else if (json.result == "fail") {
 						log($("<span/>").text(json.error).html(), "error", sqlSource);

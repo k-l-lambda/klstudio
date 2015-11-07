@@ -6,6 +6,33 @@ Peris.isIPad = (/ipad/i).test(navigator.userAgent);
 Peris.isTouchDevice = "ontouchstart" in window;
 
 
+Date.prototype.format = function (format) {
+	/*
+	* eg:format="yyyy-MM-dd hh:mm:ss";
+	*/
+	var o = {
+		"M+": this.getMonth() + 1,  //month
+		"d+": this.getDate(),     //day
+		"h+": this.getHours(),    //hour
+		"m+": this.getMinutes(),  //minute
+		"s+": this.getSeconds(), //second
+		"q+": Math.floor((this.getMonth() + 3) / 3),  //quarter
+		"S": this.getMilliseconds() //millisecond
+	};
+
+	if (/(y+)/.test(format)) {
+		format = format.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+	}
+
+	for (var k in o) {
+		if (new RegExp("(" + k + ")").test(format)) {
+			format = format.replace(RegExp.$1, RegExp.$1.length == 1 ? o[k] : ("00" + o[k]).substr(("" + o[k]).length));
+		}
+	}
+	return format;
+};
+
+
 Peris.LocalDataEntry = function (name, data) {
 	this.Name = name;
 	this.Data = data;
@@ -33,12 +60,15 @@ Peris.showFileInFolder = function (path) {
 	});
 };
 
-Peris.moveDuplicatedFigureFiles = function (data) {
+Peris.moveDuplicatedFigureFiles = function (data, targetDir) {
+	if (targetDir === undefined)
+		targetDir = "{data_root}";
+
 	for (var i in data) {
 		if (i > 0 && data[i].hash == data[i - 1].hash) {
 			var path = Peris.extendFigurePath(data[i].path);
 
-			$.post("/exec", { command: "os.system(r'move \"" + path + "\"  {data_root} ')" }, function (json, s, xhr) {
+			$.post("/exec", { command: "os.system(r'move \"" + path + "\"  " + targetDir + " ')" }, function (json, s, xhr) {
 				console.log(json);
 
 				$.post("/check-file", { path: xhr.user_path }, function (json) {
@@ -46,6 +76,32 @@ Peris.moveDuplicatedFigureFiles = function (data) {
 				});
 			}).user_path = data[i].path;
 		}
+	}
+};
+
+Peris.batchProcessFiles = function (data, command) {
+	for (var i in data) {
+		var path = Peris.extendFigurePath(data[i].path);
+		var dirs = data[i].path.split("/");
+		var filename = dirs ? dirs[dirs.length - 1] : "";
+		var segs = filename.match(/(.*)\.([^\.]*)/);
+		var stem = segs ? segs[1] : "";
+		var ext = segs ? segs[2] : "";
+		var date = new Date().format("yyyyMMddThhmmss");
+
+		var cmd = command.replace(/{path}/g, path);
+		cmd = cmd.replace(/{filename}/g, filename);
+		cmd = cmd.replace(/{stem}/g, stem);
+		cmd = cmd.replace(/{ext}/g, ext);
+		cmd = cmd.replace(/{date}/g, date);
+
+		$.post("/exec", { command: "os.system(r'" + cmd + "')" }, function (json, s, xhr) {
+			console.log(json);
+
+			$.post("/check-file", { path: xhr.user_path }, function (json) {
+				console.log(json);
+			});
+		}).user_path = data[i].path;
 	}
 };
 

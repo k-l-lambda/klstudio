@@ -324,7 +324,7 @@
 						try {
 							var data = filter ? filter(json.data) : json.data;
 
-							log("<em>" + json.data.length + "</em> reocrds get, <em>" + (cost / 1000) + "</em> seconds cost.", "info", sqlSource);
+							log("<em>" + json.data.length + "</em> reocrds get, " + (filter ? ("<em>" + data.length + "</em> remain after filter,") : "") + " <em>" + (cost / 1000) + "</em> seconds cost.", "info", sqlSource);
 
 							viewer.update(data);
 						}

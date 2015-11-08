@@ -171,7 +171,15 @@ class UpdateFileRegisterHandle:
 							continue
 
 						hash = md5.md5(open(path, 'rb').read()).hexdigest()
-						fingerprint = Fingerprint16.fileFingerprint(path)
+
+						identityFile = db.select('file_register', where = 'hash=$hash', vars = dict(hash = hash))
+						identityFile = identityFile and identityFile[0]
+
+						fingerprint = None
+						if identityFile and identityFile.fingerprint:
+							fingerprint = identityFile.fingerprint
+						else:
+							fingerprint = Fingerprint16.fileFingerprint(path)
 
 						if record:
 							db.update('file_register', where = 'path=$path', vars = dict(path = relpath), hash = hash, date = modify_time, fingerprint = fingerprint)

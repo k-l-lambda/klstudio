@@ -10,10 +10,17 @@ function(data){
 		var seg1 = path1.split("/");
 		var seg2 = path2.split("/");
 		
-		if(seg1.length == seg2.length)
-			return cc(seg1[seg1.length - 1].length, seg2[seg2.length - 1].length);
+		var baks1 = (path1.match(/bak\//g) || []).length;
+		var baks2 = (path2.match(/bak\//g) || []).length;
+
+		if(baks1 == baks2) {
+			if(seg1.length == seg2.length)
+				return cc(seg1[seg1.length - 1].length, seg2[seg2.length - 1].length);
+			else
+				return cc(seg2.length, seg1.length);
+		}
 		else
-			return cc(seg2.length, seg1.length);
+			return cc(baks1, baks2);
 	};
 
 	var compare = function(d1, d2){

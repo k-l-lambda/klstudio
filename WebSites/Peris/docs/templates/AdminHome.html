@@ -7,7 +7,39 @@
 				border-top: 1px dashed #ccc;
 				padding: 1em 0;
 			}
+
+			#fingerprint-canvas
+			{
+				border-collapse: collapse;
+				display: inline-block;
+				vertical-align: middle;
+				margin-left: 1em;
+			}
+
+			#fingerprint-canvas td
+			{
+				width: 8px;
+				height: 8px;
+				padding: 0;
+			}
 		</style>
+		<script src="/static/jquery.min.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			$(function () {
+				$("#fingerprint-str").bind("textchange", function () {
+					var source = $(this).val();
+
+					if (source.length == 16) {
+						console.log("rendering fingerprint:", source);
+
+						for (var i in source) {
+							var color = "#" + source[i] + source[i] + source[i];
+							$($("#fingerprint-canvas td")[i]).css("background-color", color);
+						}
+					}
+				});
+			});
+		</script>
 	</head>
 	<body>
 		<h1>Peris Admin</h1>
@@ -24,6 +56,17 @@
 				<p>Label: <input type="text" name="Label" size="10" /></p>
 				<p><input type="submit" value="Import Album Data" /></p>
 			</form>
+		</div>
+		<div class="section">
+			Fingerprint: <input id="fingerprint-str" type="text" size="16" />
+			<table id="fingerprint-canvas">
+				<tbody>
+					<tr><td></td><td></td><td></td><td></td></tr>
+					<tr><td></td><td></td><td></td><td></td></tr>
+					<tr><td></td><td></td><td></td><td></td></tr>
+					<tr><td></td><td></td><td></td><td></td></tr>
+				</tbody>
+			</table>
 		</div>
 	</body>
 </html>

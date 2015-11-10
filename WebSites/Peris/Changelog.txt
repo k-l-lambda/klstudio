@@ -19,7 +19,7 @@ TODO:
 	+	static/utils.js: Peris.batchProcessFiles added.
 
 	*	batchProcessFiles sample:
-			Peris.batchProcessFiles(viewer.Data, "move \"{path}\" \"F:\\Documents\\Peris\\Photos\\{stem} {date}.{ext}\"")
+			Peris.batchProcessFiles(viewer.Data, "move \"{path}\" \"{data_root}Photos\\{stem} {date}.{ext}\"")
 
 2015.11.6	K.L.	<k.l.lambda@gmail.com>
 

@@ -69,39 +69,55 @@ Peris.moveDuplicatedFigureFiles = function (data, targetDir) {
 			var path = Peris.extendFigurePath(data[i].path);
 
 			$.post("/exec", { command: "os.system(r'move \"" + path + "\"  " + targetDir + " ')" }, function (json, s, xhr) {
-				console.log(json);
+				console.log("exec:", json);
 
 				$.post("/check-file", { path: xhr.user_path }, function (json) {
-					console.log(json);
+					console.log("check:", json);
 				});
 			}).user_path = data[i].path;
 		}
 	}
 };
 
-Peris.batchProcessFiles = function (data, command) {
+Peris.batchProcessFiles = function (data, command, checkPath) {
+	if (checkPath === undefined)
+		checkPath = ["{path}"];
+
+	var date = new Date().format("yyyyMMddThhmmss");
+
 	for (var i in data) {
-		var path = Peris.extendFigurePath(data[i].path);
-		var dirs = data[i].path.split("/");
-		var filename = dirs ? dirs[dirs.length - 1] : "";
-		var segs = filename.match(/(.*)\.([^\.]*)/);
-		var stem = segs ? segs[1] : "";
-		var ext = segs ? segs[2] : "";
-		var date = new Date().format("yyyyMMddThhmmss");
+		(function () {
+			var ii = i;
+			var path = Peris.extendFigurePath(data[ii].path);
+			var dirs = data[ii].path.split("/");
+			var filename = dirs ? dirs[dirs.length - 1] : "";
+			var segs = filename.match(/(.*)\.([^\.]*)/);
+			var stem = segs ? segs[1] : "";
+			var ext = segs ? segs[2] : "";
+			var cmd = command.replace(/{path}/g, path);
+			cmd = cmd.replace(/{filename}/g, filename);
+			cmd = cmd.replace(/{stem}/g, stem);
+			cmd = cmd.replace(/{ext}/g, ext);
+			cmd = cmd.replace(/{date}/g, date);
 
-		var cmd = command.replace(/{path}/g, path);
-		cmd = cmd.replace(/{filename}/g, filename);
-		cmd = cmd.replace(/{stem}/g, stem);
-		cmd = cmd.replace(/{ext}/g, ext);
-		cmd = cmd.replace(/{date}/g, date);
+			setTimeout(function () {
+				$.post("/exec", { command: "os.system(r'" + cmd + "')" }, function (json, s, xhr) {
+					console.log(data.length - xhr.user_data.index, "exec:", json);
 
-		$.post("/exec", { command: "os.system(r'" + cmd + "')" }, function (json, s, xhr) {
-			console.log(json);
+					for (var ip in checkPath) {
+						var ck = checkPath[ip].replace(/{path}/g, xhr.user_data.path);
+						ck = ck.replace(/{filename}/g, xhr.user_data.filename);
+						ck = ck.replace(/{stem}/g, xhr.user_data.stem);
+						ck = ck.replace(/{ext}/g, xhr.user_data.ext);
+						ck = ck.replace(/{date}/g, date);
 
-			$.post("/check-file", { path: xhr.user_path }, function (json) {
-				console.log(json);
-			});
-		}).user_path = data[i].path;
+						$.post("/check-file", { path: ck }, function (json) {
+							console.log("check:", json);
+						});
+					}
+				}).user_data = { index: ii, path: data[ii].path, filename: filename, stem: stem, ext: ext };
+			}, ii * 60);
+		})();
 	}
 };
 

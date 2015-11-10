@@ -349,14 +349,24 @@ class CheckFileHandle:
 					return Serializer.save({'success': True, 'result': 'ignore', 'path': input.path, 'description': 'file exists, register up to date.'})
 
 				hash = md5.md5(open(full_path, 'rb').read()).hexdigest()
-				fingerprint = Fingerprint16.fileFingerprint(full_path)
+
+				identityFile = db.select('file_register', where = 'hash=$hash', vars = dict(hash = hash))
+				identityFile = identityFile and identityFile[0]
+
+				fingerprint = None
+				if identityFile and identityFile.fingerprint:
+					fingerprint = identityFile.fingerprint
+				else:
+					fingerprint = Fingerprint16.fileFingerprint(full_path)
+
+				duplicated = identityFile and identityFile.path or None
 
 				if record:
 					db.update('file_register', where = 'path=$path', vars = dict(path = input.path), hash = hash, date = modify_time, fingerprint = fingerprint)
-					return Serializer.save({'success': True, 'result': 'update', 'path': input.path, 'description': 'File exists, register updated.', 'data': {'hash': hash, 'date': modify_time, 'fingerprint': fingerprint}})
+					return Serializer.save({'success': True, 'result': 'update', 'path': input.path, 'description': 'File exists, register updated.', 'data': {'hash': hash, 'date': modify_time, 'fingerprint': fingerprint}, 'duplicated': duplicated})
 				else:
 					db.insert('file_register', path = input.path, hash = hash, date = modify_time, fingerprint = fingerprint)
-					return Serializer.save({'success': True, 'result': 'insert', 'path': input.path, 'description': 'File exists, register inserted.', 'data': {'hash': hash, 'date': modify_time, 'fingerprint': fingerprint}})
+					return Serializer.save({'success': True, 'result': 'insert', 'path': input.path, 'description': 'File exists, register inserted.', 'data': {'hash': hash, 'date': modify_time, 'fingerprint': fingerprint}, 'duplicated': duplicated})
 			else:
 				ret = db.delete('file_register', where = 'path=$path', vars = dict(path = input.path))
 				return Serializer.save({'success': True, 'result': 'delete', 'path': input.path, 'description': 'file non-existent, removed %d register(s).' % ret})

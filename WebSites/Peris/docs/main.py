@@ -10,6 +10,7 @@ import cgi
 import traceback
 import StringIO
 import glob
+import shutil
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -197,6 +198,58 @@ class UpdateFileRegisterHandle:
 		for path in pathSet:
 			db.delete('file_register', where = 'path=$path', vars = dict(path = path))
 			yield '<p class="remove"><em>%s</em></p>' % path
+
+		yield '<p>End.</p>'
+
+
+class FilterNewFiles:
+	def POST(self):
+		input = web.input(sourceDir = None, targetDir = config.data_root)
+
+		input.targetDir = input.targetDir or config.data_root
+
+		yield '<head>'
+		yield '<link href="/static/console.css" rel="stylesheet" type="text/css">'
+		yield '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">'
+		yield '</head>'
+
+		yield '<p><em>%s</em> -> <em>%s</em></p>' % (input.sourceDir, input.targetDir)
+
+		for root, dirs, files in os.walk(input.sourceDir):
+			for file in files:
+				try:
+					root = decodeUnicode(root)
+					file = decodeUnicode(file)
+				except:
+					yield '<p class="error">Failed to decode <em>%s / %s</em>: <strong>%s</strong></p>' % (root, file, sys.exc_info())
+					#continue
+
+				if imageFilePattern.match(file, re.I):
+					try:
+						path = os.path.join(root, file)
+
+						relpath = os.path.relpath(path, input.sourceDir).replace('\\', '/')
+
+						hash = md5.md5(open(path, 'rb').read()).hexdigest()
+
+						identityFile = db.select('file_register', where = 'hash=$hash', vars = dict(hash = hash))
+						identityFile = identityFile and identityFile[0]
+
+						if identityFile:
+							yield u'<p class="duplicated"><em>%s</em> duplicated with <em>%s</em>: <span class="trivial">%s</span></p>' % (relpath, identityFile.path, hash)
+						else:
+							fingerprint = Fingerprint16.fileFingerprint(path)
+
+							targetPath = os.path.join(input.targetDir, file)
+							if os.path.isfile(targetPath):
+								name, ext = os.path.splitext(file)
+								targetPath = os.path.join(input.targetDir, '%s %s%s' % (name, datetime.datetime.now().strftime('%Y%m%dT%H%M%S'), ext))
+
+							shutil.copy(path, targetPath)
+
+							yield u'<p class="new"><em>%s</em>: <span class="trivial">%s</span>. copied to <em>%s</em></p>' % (relpath, hash, targetPath)
+					except:
+						yield u'<p class="error">Error when proess <em>%s / %s</em>: <strong>%s</strong></p>' % (root, file, sys.exc_info())
 
 		yield '<p>End.</p>'
 
@@ -432,4 +485,5 @@ application = web.application((
 	'/admin/',							'AdminHomeHandle',
 	'/admin/update-file-register',		'UpdateFileRegisterHandle',
 	'/admin/import-album-data',			'ImportAlbumDataHandle',
+	'/admin/filter-new-files',			'FilterNewFiles',
 	), globals()).wsgifunc()

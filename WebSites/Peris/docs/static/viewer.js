@@ -488,13 +488,13 @@ Peris.Viewer.prototype.onKeyDown = function (e) {
 				var deep = e.ctrlKey;
 
 				if (this.CurrentData) {
-					if (this.CurrentData.fingerprint) {
-						Peris.openSimilarQuery(this.CurrentData.fingerprint, deep ? 2 : 1);
+					if (this.CurrentData.thumb) {
+						Peris.openSimilarQuery(this.CurrentData.thumb, deep ? 2 : 1);
 					}
 					else {
 						$.post("/check-file", { path: this.CurrentData.path }, function (json) {
 							if (json.success) {
-								Peris.openSimilarQuery(json.data.fingerprint, deep ? 2 : 1);
+								Peris.openSimilarQuery(json.data.thumb, deep ? 2 : 1);
 							}
 							else {
 								console.log("check file", viewer.CurrentData.path, "failed:", json);

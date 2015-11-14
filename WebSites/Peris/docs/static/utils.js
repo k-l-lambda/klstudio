@@ -190,7 +190,7 @@ Peris.mirrorFingerprint = function (fingerprint) {
 Peris.openSimilarQuery = function (fingerprint, tolerance) {
 	var pattern1 = Peris.fingerprintBlurPattern(fingerprint, tolerance);
 	var pattern2 = Peris.fingerprintBlurPattern(Peris.mirrorFingerprint(fingerprint), tolerance);
-	var sql = "select path from file_register\nwhere fingerprint regexp '" + pattern1 + "' or fingerprint regexp '" + pattern2 + "'";
+	var sql = "select path from file_register left join cbir on file_register.hash = cbir.hash\nwhere thumb regexp '" + pattern1 + "' or thumb regexp '" + pattern2 + "'";
 
 	open("#expandViewer&sql=" + encodeURIComponent(sql), "_blank");
 };

@@ -262,13 +262,13 @@ Peris.Peer.prototype.open = function (slot) {
 			if (json.data)
 				peer.updateData(json.data);
 
-			if (!json.data || !json.data.fingerprint) {
+			if (!json.data || !json.data.thumb) {
 				$.post("/check-file", { path: peer.CurrentPath }, function (json) {
 					console.log("Check file result:", json);
 
 					if (json.data) {
 						if (peer.CurrentData)
-							peer.CurrentData.fingerprint = json.data.fingerprint;
+							peer.CurrentData.thumb = json.data.thumb;
 						slot.removeClass("raw");
 					}
 				});
@@ -315,7 +315,7 @@ Peris.Peer.prototype.close = function () {
 
 Peris.Peer.prototype.updateData = function (data) {
 	this.CurrentHash = data.hash;
-	this.CurrentData = { score: data.score, tags: data.tags, fingerprint: data.fingerprint };
+	this.CurrentData = { score: data.score, tags: data.tags, thumb: data.thumb };
 
 	this.setScoreTouchValue(Number(data.score));
 	this.Panel.find(".input-bar .input-tags").val(data.tags);
@@ -533,8 +533,8 @@ Peris.Peer.prototype.onKeyDown = function (e) {
 			case 121: // F10,	show similar figures
 				var deep = e.ctrlKey;
 
-				if (this.CurrentData && this.CurrentData.fingerprint) {
-					Peris.openSimilarQuery(this.CurrentData.fingerprint, deep ? 2 : 1);
+				if (this.CurrentData && this.CurrentData.thumb) {
+					Peris.openSimilarQuery(this.CurrentData.thumb, deep ? 2 : 1);
 				}
 
 				break;

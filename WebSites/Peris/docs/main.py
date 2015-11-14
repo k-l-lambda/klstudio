@@ -81,7 +81,13 @@ class DbQueryHandle:
 			if not register:
 				return None
 
-			info = {'path': input.path, 'hash': register.hash, 'date': register.date, 'fingerprint': register.fingerprint}
+			info = {'path': input.path, 'hash': register.hash, 'date': register.date}
+
+			cbir = db.select('cbir', where = 'hash=$hash', vars = dict(hash = register.hash))
+			cbir = cbir and cbir[0]
+
+			if cbir:
+				info['thumb'] = cbir.thumb
 
 			figure = db.select('album', where = 'hash=$hash', vars = dict(hash = register.hash))
 			figure = figure and figure[0]
@@ -91,6 +97,22 @@ class DbQueryHandle:
 
 			return info
 
+
+class DbCbir:
+	@staticmethod
+	def updateFile(path):
+		hash = md5.md5(open(path, 'rb').read()).hexdigest()
+
+		identityFile = db.select('cbir', where = 'hash=$hash', vars = dict(hash = hash))
+		identityFile = identityFile and identityFile[0]
+
+		if not (identityFile and identityFile.thumb):
+			thumb = Fingerprint16.fileFingerprint(path)
+			db.insert('cbir', hash = hash, thumb = thumb)
+
+			return 'updated'
+
+		return 'ignored'
 
 class ConstantsHandle:
 	def GET(self):
@@ -173,23 +195,21 @@ class UpdateFileRegisterHandle:
 
 						hash = md5.md5(open(path, 'rb').read()).hexdigest()
 
+						DbCbir.updateFile(full_path)
+
 						identityFile = db.select('file_register', where = 'hash=$hash', vars = dict(hash = hash))
 						identityFile = identityFile and identityFile[0]
 
-						fingerprint = None
-						if identityFile and identityFile.fingerprint:
-							fingerprint = identityFile.fingerprint
-						else:
-							fingerprint = Fingerprint16.fileFingerprint(path)
+						duplicated = identityFile and ('(duplicated with <em>%s</em>)' % identityFile.path) or ''
 
 						if record:
-							db.update('file_register', where = 'path=$path', vars = dict(path = relpath), hash = hash, date = modify_time, fingerprint = fingerprint)
+							db.update('file_register', where = 'path=$path', vars = dict(path = relpath), hash = hash, date = modify_time)
 
-							yield '<p class="update"><em>%s</em> [%s -> %s]</p>' % (relpath, record and record.date or 'null', modify_time)
+							yield '<p class="update"><em>%s</em> [%s -> %s]</p> %s' % (relpath, record and record.date or 'null', modify_time, duplicated)
 						else:
-							db.insert('file_register', path = relpath, hash = hash, date = modify_time, fingerprint = fingerprint)
+							db.insert('file_register', path = relpath, hash = hash, date = modify_time)
 
-							yield u'<p class="new"><em>%s</em></p>' % relpath
+							yield u'<p class="new"><em>%s</em></p> %s' % (relpath, duplicated)
 					except:
 						yield u'<p class="error">Error when proess <em>%s / %s</em>: <strong>%s</strong></p>' % (root, file, sys.exc_info())
 
@@ -238,8 +258,6 @@ class FilterNewFiles:
 						if identityFile:
 							yield u'<p class="duplicated"><em>%s</em> duplicated with <em>%s</em>: <span class="trivial">%s</span></p>' % (relpath, identityFile.path, hash)
 						else:
-							fingerprint = Fingerprint16.fileFingerprint(path)
-
 							targetPath = os.path.join(input.targetDir, file)
 							if os.path.isfile(targetPath):
 								name, ext = os.path.splitext(file)
@@ -398,28 +416,24 @@ class CheckFileHandle:
 				except:
 					modify_time = datetime.datetime.now()
 
-				if record and record.date == modify_time and record.fingerprint:
-					return Serializer.save({'success': True, 'result': 'ignore', 'path': input.path, 'description': 'file exists, register up to date.'})
-
 				hash = md5.md5(open(full_path, 'rb').read()).hexdigest()
+
+				DbCbir.updateFile(full_path)
+
+				if record and record.date == modify_time:
+					return Serializer.save({'success': True, 'result': 'ignore', 'path': input.path, 'description': 'file exists, register up to date.'})
 
 				identityFile = db.select('file_register', where = 'hash=$hash', vars = dict(hash = hash))
 				identityFile = identityFile and identityFile[0]
 
-				fingerprint = None
-				if identityFile and identityFile.fingerprint:
-					fingerprint = identityFile.fingerprint
-				else:
-					fingerprint = Fingerprint16.fileFingerprint(full_path)
-
 				duplicated = identityFile and identityFile.path or None
 
 				if record:
-					db.update('file_register', where = 'path=$path', vars = dict(path = input.path), hash = hash, date = modify_time, fingerprint = fingerprint)
-					return Serializer.save({'success': True, 'result': 'update', 'path': input.path, 'description': 'File exists, register updated.', 'data': {'hash': hash, 'date': modify_time, 'fingerprint': fingerprint}, 'duplicated': duplicated})
+					db.update('file_register', where = 'path=$path', vars = dict(path = input.path), hash = hash, date = modify_time)
+					return Serializer.save({'success': True, 'result': 'update', 'path': input.path, 'description': 'File exists, register updated.', 'data': {'hash': hash, 'date': modify_time}, 'duplicated': duplicated})
 				else:
-					db.insert('file_register', path = input.path, hash = hash, date = modify_time, fingerprint = fingerprint)
-					return Serializer.save({'success': True, 'result': 'insert', 'path': input.path, 'description': 'File exists, register inserted.', 'data': {'hash': hash, 'date': modify_time, 'fingerprint': fingerprint}, 'duplicated': duplicated})
+					db.insert('file_register', path = input.path, hash = hash, date = modify_time)
+					return Serializer.save({'success': True, 'result': 'insert', 'path': input.path, 'description': 'File exists, register inserted.', 'data': {'hash': hash, 'date': modify_time}, 'duplicated': duplicated})
 			else:
 				ret = db.delete('file_register', where = 'path=$path', vars = dict(path = input.path))
 				return Serializer.save({'success': True, 'result': 'delete', 'path': input.path, 'description': 'file non-existent, removed %d register(s).' % ret})

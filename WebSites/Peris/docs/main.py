@@ -195,7 +195,7 @@ class UpdateFileRegisterHandle:
 
 						hash = md5.md5(open(path, 'rb').read()).hexdigest()
 
-						DbCbir.updateFile(full_path)
+						DbCbir.updateFile(path)
 
 						identityFile = db.select('file_register', where = 'hash=$hash', vars = dict(hash = hash))
 						identityFile = identityFile and identityFile[0]
@@ -205,11 +205,11 @@ class UpdateFileRegisterHandle:
 						if record:
 							db.update('file_register', where = 'path=$path', vars = dict(path = relpath), hash = hash, date = modify_time)
 
-							yield '<p class="update"><em>%s</em> [%s -> %s]</p> %s' % (relpath, record and record.date or 'null', modify_time, duplicated)
+							yield '<p class="update"><em>%s</em> [%s -> %s] %s</p>' % (relpath, record and record.date or 'null', modify_time, duplicated)
 						else:
 							db.insert('file_register', path = relpath, hash = hash, date = modify_time)
 
-							yield u'<p class="new"><em>%s</em></p> %s' % (relpath, duplicated)
+							yield u'<p class="new"><em>%s</em> %s</p>' % (relpath, duplicated)
 					except:
 						yield u'<p class="error">Error when proess <em>%s / %s</em>: <strong>%s</strong></p>' % (root, file, sys.exc_info())
 

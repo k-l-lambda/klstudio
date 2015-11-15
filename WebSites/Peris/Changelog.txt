@@ -4,6 +4,11 @@ TODO:
 		start slider button
 
 
+2015.11.15	K.L.	<k.l.lambda@gmail.com>
+
+	>	main.py: used photo taken date in file register.
+
+
 2015.11.14	K.L.	<k.l.lambda@gmail.com>
 
 	+	Added new table cbir to repalce file_register.fingerprint.

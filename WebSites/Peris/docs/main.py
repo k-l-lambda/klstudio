@@ -11,6 +11,7 @@ import traceback
 import StringIO
 import glob
 import shutil
+from PIL import Image
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -26,6 +27,26 @@ db = web.database(host='127.0.0.1', dbn='mysql', user=config.db_user, pw=config.
 
 def renderTemplate(template):
 	return open(os.path.dirname(__file__) + '/templates/' + template, 'r').read()
+
+
+def getImageDate(path):
+	try:
+		exif = Image.open(path)._getexif()
+		if exif and exif[36867]:
+			taken_time = datetime.datetime.strptime(exif[36867], '%Y:%m:%d %H:%M:%S')
+			if taken_time:
+				return taken_time
+	except:
+		pass
+
+	try:
+		modify_time = datetime.datetime.fromtimestamp(os.path.getmtime(path)).replace(microsecond=0)
+		if modify_time:
+			return modify_time
+	except:
+		pass
+
+	return datetime.datetime.now()
 
 
 class HomeHandle:
@@ -177,11 +198,7 @@ class UpdateFileRegisterHandle:
 				if imageFilePattern.match(file, re.I):
 					try:
 						path = os.path.join(root, file)
-						modify_time = None
-						try:
-							modify_time = datetime.datetime.fromtimestamp(os.path.getmtime(path)).replace(microsecond=0)
-						except:
-							modify_time = datetime.datetime.now()
+						date = getImageDate(path)
 
 						relpath = os.path.relpath(path, config.data_root).replace('\\', '/')
 
@@ -190,7 +207,7 @@ class UpdateFileRegisterHandle:
 
 						record = db.select('file_register', where = 'path=$path', vars = dict(path = relpath))
 						record = record and record[0]
-						if record and record.date == modify_time:
+						if record and record.date == date:
 							continue
 
 						hash = md5.md5(open(path, 'rb').read()).hexdigest()
@@ -200,14 +217,14 @@ class UpdateFileRegisterHandle:
 						identityFile = db.select('file_register', where = 'hash=$hash', vars = dict(hash = hash))
 						identityFile = identityFile and identityFile[0]
 
-						duplicated = identityFile and ('(duplicated with <em>%s</em>)' % identityFile.path) or ''
+						duplicated = (identityFile and identityFile.path != relpath) and ('(duplicated with <em>%s</em>)' % identityFile.path) or ''
 
 						if record:
-							db.update('file_register', where = 'path=$path', vars = dict(path = relpath), hash = hash, date = modify_time)
+							db.update('file_register', where = 'path=$path', vars = dict(path = relpath), hash = hash, date = date)
 
-							yield '<p class="update"><em>%s</em> [%s -> %s] %s</p>' % (relpath, record and record.date or 'null', modify_time, duplicated)
+							yield '<p class="update"><em>%s</em> [%s -> %s] %s</p>' % (relpath, record and record.date or 'null', date, duplicated)
 						else:
-							db.insert('file_register', path = relpath, hash = hash, date = modify_time)
+							db.insert('file_register', path = relpath, hash = hash, date = date)
 
 							yield u'<p class="new"><em>%s</em> %s</p>' % (relpath, duplicated)
 					except:
@@ -410,30 +427,26 @@ class CheckFileHandle:
 				record = db.select('file_register', where = 'path=$path', vars = dict(path = input.path))
 				record = record and record[0]
 
-				modify_time = None
-				try:
-					modify_time = datetime.datetime.fromtimestamp(os.path.getmtime(full_path)).replace(microsecond=0)
-				except:
-					modify_time = datetime.datetime.now()
+				date = getImageDate(full_path)
 
 				hash = md5.md5(open(full_path, 'rb').read()).hexdigest()
 
 				DbCbir.updateFile(full_path)
 
-				if record and record.date == modify_time:
+				if record and record.date == date:
 					return Serializer.save({'success': True, 'result': 'ignore', 'path': input.path, 'description': 'file exists, register up to date.'})
 
 				identityFile = db.select('file_register', where = 'hash=$hash', vars = dict(hash = hash))
 				identityFile = identityFile and identityFile[0]
 
-				duplicated = identityFile and identityFile.path or None
+				duplicated = (identityFile and identityFile.path != input.path) and identityFile.path or None
 
 				if record:
-					db.update('file_register', where = 'path=$path', vars = dict(path = input.path), hash = hash, date = modify_time)
-					return Serializer.save({'success': True, 'result': 'update', 'path': input.path, 'description': 'File exists, register updated.', 'data': {'hash': hash, 'date': modify_time}, 'duplicated': duplicated})
+					db.update('file_register', where = 'path=$path', vars = dict(path = input.path), hash = hash, date = date)
+					return Serializer.save({'success': True, 'result': 'update', 'path': input.path, 'description': 'File exists, register updated.', 'data': {'hash': hash, 'date': date}, 'duplicated': duplicated})
 				else:
-					db.insert('file_register', path = input.path, hash = hash, date = modify_time)
-					return Serializer.save({'success': True, 'result': 'insert', 'path': input.path, 'description': 'File exists, register inserted.', 'data': {'hash': hash, 'date': modify_time}, 'duplicated': duplicated})
+					db.insert('file_register', path = input.path, hash = hash, date = date)
+					return Serializer.save({'success': True, 'result': 'insert', 'path': input.path, 'description': 'File exists, register inserted.', 'data': {'hash': hash, 'date': date}, 'duplicated': duplicated})
 			else:
 				ret = db.delete('file_register', where = 'path=$path', vars = dict(path = input.path))
 				return Serializer.save({'success': True, 'result': 'delete', 'path': input.path, 'description': 'file non-existent, removed %d register(s).' % ret})

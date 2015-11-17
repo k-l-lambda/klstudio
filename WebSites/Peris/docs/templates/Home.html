@@ -489,30 +489,40 @@
 					var name = $(this).val();
 					var link = location.hash;
 
-					if (name.length > 0) {
-						var item = null;
-						for (var i in bookmarks.Data) {
-							if (bookmarks.Data[i].link == link) {
-								item = bookmarks.Data[i];
+					var item = null;
+					for (var i in bookmarks.Data) {
+						if (bookmarks.Data[i].link == link) {
+							item = bookmarks.Data[i];
+
+							if (name.length > 0) {
 								var oldname = item.name;
 								if (oldname != name) {
 									item.name = name;
 
 									console.log("bookmark renamed:", oldname, "->", name);
 								}
-								break;
 							}
+							else {
+								var name = item.name;
+								bookmarks.Data.splice(i, 1);
+
+								console.log("bookmark removed:", name);
+
+								renderBookmarks();
+							}
+
+							break;
 						}
-
-						if (!item) {
-							bookmarks.Data.push({ name: name, link: link });
-
-							console.log("bookmark created:", name, link);
-						}
-
-						bookmarks.save();
-						bookmarksDirty = true;
 					}
+
+					if (!item && name.length > 0) {
+						bookmarks.Data.push({ name: name, link: link });
+
+						console.log("bookmark created:", name, link);
+					}
+
+					bookmarks.save();
+					bookmarksDirty = true;
 				});
 
 				if (Peris.isTouchDevice)

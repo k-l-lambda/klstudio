@@ -223,6 +223,12 @@
 	opacity: 0.1;
 }
 
+.slot.selected
+{
+	outline: 3px solid #3091f2;
+	background: rgba(48, 145, 242, 0.3);
+}
+
 .slot .figure
 {
 	display: block;

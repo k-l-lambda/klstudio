@@ -135,6 +135,16 @@ class DbCbir:
 
 		return 'ignored'
 
+	@staticmethod
+	def query(hash):
+		record = db.select('cbir', where = 'hash=$hash', vars = dict(hash = hash))
+		record = record and record[0]
+
+		if record:
+			return {'thumb': record.thumb}
+
+		return None
+
 class ConstantsHandle:
 	def GET(self):
 
@@ -433,20 +443,23 @@ class CheckFileHandle:
 
 				DbCbir.updateFile(full_path)
 
-				if record and record.date == date:
-					return Serializer.save({'success': True, 'result': 'ignore', 'path': input.path, 'description': 'file exists, register up to date.'})
-
 				identityFile = db.select('file_register', where = 'hash=$hash', vars = dict(hash = hash))
 				identityFile = identityFile and identityFile[0]
 
 				duplicated = (identityFile and identityFile.path != input.path) and identityFile.path or None
 
+				cbir = DbCbir.query(hash)
+				thumb = cbir and cbir['thumb'] or None
+
+				if record and record.date == date:
+					return Serializer.save({'success': True, 'result': 'ignore', 'path': input.path, 'data': {'hash': hash, 'date': date, 'thumb': thumb }, 'description': 'file exists, register up to date.'})
+
 				if record:
 					db.update('file_register', where = 'path=$path', vars = dict(path = input.path), hash = hash, date = date)
-					return Serializer.save({'success': True, 'result': 'update', 'path': input.path, 'description': 'File exists, register updated.', 'data': {'hash': hash, 'date': date}, 'duplicated': duplicated})
+					return Serializer.save({'success': True, 'result': 'update', 'path': input.path, 'description': 'File exists, register updated.', 'data': {'hash': hash, 'date': date, 'thumb': thumb }, 'duplicated': duplicated})
 				else:
 					db.insert('file_register', path = input.path, hash = hash, date = date)
-					return Serializer.save({'success': True, 'result': 'insert', 'path': input.path, 'description': 'File exists, register inserted.', 'data': {'hash': hash, 'date': date}, 'duplicated': duplicated})
+					return Serializer.save({'success': True, 'result': 'insert', 'path': input.path, 'description': 'File exists, register inserted.', 'data': {'hash': hash, 'date': date, 'thumb': thumb}, 'duplicated': duplicated})
 			else:
 				ret = db.delete('file_register', where = 'path=$path', vars = dict(path = input.path))
 				return Serializer.save({'success': True, 'result': 'delete', 'path': input.path, 'description': 'file non-existent, removed %d register(s).' % ret})

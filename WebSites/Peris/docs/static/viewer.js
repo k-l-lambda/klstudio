@@ -8,7 +8,7 @@ Peris.Viewer = function (container) {
 	this.initialize();
 };
 
-Peris.Viewer.prototype.PathList = [];
+//Peris.Viewer.prototype.PathList = [];
 
 Peris.Viewer.prototype.ColumnBottom = [];
 
@@ -21,7 +21,7 @@ Peris.Viewer.prototype.FocusSlot = null;
 
 Peris.Viewer.prototype.ScrollDeltaFromLastForceAppear = 0;
 
-Peris.Viewer.prototype.Data = null;
+Peris.Viewer.prototype.Data = [];
 
 
 Peris.Viewer.prototype.initialize = function () {
@@ -97,15 +97,20 @@ Peris.Viewer.prototype.initialize = function () {
 Peris.Viewer.prototype.update = function (data) {
 	this.clear();
 
-	this.PathList = [];
+	/*this.PathList = [];
 	for (var i in data) {
-		if (typeof data[i] === "string")
-			this.PathList.push(data[i]);
-		else if (data[i].path)
-			this.PathList.push(data[i].path);
-	}
+	if (typeof data[i] === "string")
+	this.PathList.push(data[i]);
+	else if (data[i].path)
+	this.PathList.push(data[i].path);
+	}*/
 
 	this.Data = data;
+
+	for (var i in this.Data) {
+		if (typeof this.Data[i] === "string")
+			this.Data[i] = {path: this.Data[i]};
+	}
 
 	this.StatusBar.find(".status-total").text(data.length);
 
@@ -144,9 +149,9 @@ Peris.Viewer.prototype.focusSlot = function (slot) {
 	slot.addClass("focus");
 };
 
-Peris.Viewer.prototype.newSlot = function (path, options) {
+Peris.Viewer.prototype.newSlot = function (data, options) {
 	var slot = $("<div class='slot new'></div>");
-	slot.data("path", path);
+	slot.data("path", data.path);
 	slot.css({
 		height: "200px"
 	});
@@ -285,9 +290,9 @@ Peris.Viewer.prototype.laySlots = function (count) {
 	var viewer = this;
 
 	var start = this.SlotStream.find(".slot").length;
-	var until = Math.min(start + count, this.PathList.length);
+	var until = Math.min(start + count, this.Data.length);
 	for (var i = start; i < until; ++i) {
-		var slot = this.newSlot(this.PathList[i], { latency: i - start });
+		var slot = this.newSlot(this.Data[i], { latency: i - start });
 		slot.appendTo(this.SlotStream);
 	}
 
@@ -368,7 +373,7 @@ Peris.Viewer.prototype.getReadyBottom = function () {
 };
 
 Peris.Viewer.prototype.isSlotCompleted = function () {
-	return this.SlotStream.find(".slot").length >= this.PathList.length;
+	return this.SlotStream.find(".slot").length >= this.Data.length;
 };
 
 Peris.Viewer.prototype.updateLayout = function () {
@@ -429,8 +434,8 @@ Peris.Viewer.prototype.checkAll = function () {
 
 	var check;
 	check = function () {
-		$.post("/check-file", { path: viewer.PathList[viewer.CheckAllIndex] }, function (json) {
-			var leftCount = viewer.PathList.length - viewer.CheckAllIndex;
+		$.post("/check-file", { path: viewer.Data[viewer.CheckAllIndex].path }, function (json) {
+			var leftCount = viewer.Data.length - viewer.CheckAllIndex;
 
 			if (json.success)
 				console.log(leftCount, json.data && json.data || json);
@@ -438,7 +443,7 @@ Peris.Viewer.prototype.checkAll = function () {
 				console.warn(leftCount, json);
 
 			++viewer.CheckAllIndex;
-			if (viewer.CheckAllIndex < viewer.PathList.length)
+			if (viewer.CheckAllIndex < viewer.Data.length)
 				check();
 			else {
 				console.log("Viewer checkAll completed.");
@@ -450,6 +455,14 @@ Peris.Viewer.prototype.checkAll = function () {
 	check();
 };
 
+Peris.Viewer.prototype.indexOfPath = function(path) {
+	for(var i in this.Data) {
+		if(this.Data[i].path == path)
+			return i;
+	}
+
+	return -1;
+};
 
 Peris.Viewer.prototype.onResized = function () {
 	// recreate stream
@@ -476,7 +489,7 @@ Peris.Viewer.prototype.onKeyDown = function (e) {
 				if (!focus.length)
 					focus = this.SlotStream.find(".slot.focus");
 
-				var statIndex = focus.length ? this.PathList.indexOf(focus.data("path")) : 0;
+				var statIndex = focus.length ? this.indexOfPath(focus.data("path")) : 0;
 				this.Slider.open({ startIndex: statIndex });
 
 				break;

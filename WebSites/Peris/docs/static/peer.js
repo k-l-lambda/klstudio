@@ -373,7 +373,7 @@ Peris.Peer.prototype.next = function () {
 Peris.Peer.prototype.showSlider = function () {
 	var statIndex = 0;
 	if (this.Showing) {
-		statIndex = this.Viewer.PathList.indexOf(this.SourceSlot.data("path"));
+		statIndex = this.Viewer.indexOfPath(this.SourceSlot.data("path"));
 	}
 
 	var peer = this;

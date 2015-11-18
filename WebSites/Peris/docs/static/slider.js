@@ -10,7 +10,8 @@ Peris.Slider = function (viewer) {
 
 Peris.Slider.prototype.Showing = false;
 Peris.Slider.prototype.CurrentIndex = 0;
-Peris.Slider.prototype.PathList = [];
+//Peris.Slider.prototype.PathList = [];
+Peris.Slider.prototype.Data = [];
 Peris.Slider.prototype.SwitchDuration = 800;
 Peris.Slider.prototype.FastSwitchDuration = 300;
 Peris.Slider.prototype.SwitchInterval = 4000;
@@ -51,7 +52,7 @@ Peris.Slider.prototype.open = function (options) {
 	console.log("Slider open at", options.startIndex);
 
 	this.CurrentIndex = options.startIndex;
-	this.PathList = this.Viewer.PathList;
+	this.Data = this.Viewer.Data;
 	this.OnClose = options.onClose;
 
 	this.Panel.fadeIn();
@@ -159,7 +160,7 @@ Peris.Slider.prototype.switchFigure = function (options) {
 			slider.onSwitched();
 		});
 
-		if (this.CurrentIndex < this.PathList.length)
+		if (this.CurrentIndex < this.Data.length)
 			++this.CurrentIndex;
 		else if (options.loop)
 			this.CurrentIndex = 0;
@@ -188,19 +189,19 @@ Peris.Slider.prototype.switchFigure = function (options) {
 		if (this.CurrentIndex > 0)
 			--this.CurrentIndex;
 		else if (options.loop)
-			this.CurrentIndex = this.PathList.length - 1;
+			this.CurrentIndex = this.Data.length - 1;
 	}
 };
 
 Peris.Slider.prototype.currentPath = function () {
-	return this.PathList[this.CurrentIndex];
+	return this.Data[this.CurrentIndex].path;
 };
 
 Peris.Slider.prototype.newFigure = function (index, onFinish) {
-	index = Math.min(index, this.PathList.length - 1);
+	index = Math.min(index, this.Data.length - 1);
 	index = Math.max(index, 0);
 
-	var path = this.PathList[index];
+	var path = this.Data[index].path;
 	var figure = $("<img class='figure' src=\"/images/" + encodeURI(path) + "\" alt='" + path + "'>");
 	figure.hide();
 

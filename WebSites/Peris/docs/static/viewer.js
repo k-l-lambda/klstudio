@@ -8,8 +8,6 @@ Peris.Viewer = function (container) {
 	this.initialize();
 };
 
-//Peris.Viewer.prototype.PathList = [];
-
 Peris.Viewer.prototype.ColumnBottom = [];
 
 Peris.Viewer.prototype.SlotColumn = 5;
@@ -97,14 +95,6 @@ Peris.Viewer.prototype.initialize = function () {
 Peris.Viewer.prototype.update = function (data) {
 	this.clear();
 
-	/*this.PathList = [];
-	for (var i in data) {
-	if (typeof data[i] === "string")
-	this.PathList.push(data[i]);
-	else if (data[i].path)
-	this.PathList.push(data[i].path);
-	}*/
-
 	this.Data = data;
 
 	for (var i in this.Data) {
@@ -156,6 +146,12 @@ Peris.Viewer.prototype.newSlot = function (data, options) {
 		height: "200px"
 	});
 
+	slot.append("<div class='checker icon-image'></div>");
+	var checker = slot.find(".checker");
+
+	if (data.selected)
+		slot.addClass("selected");
+
 	var viewer = this;
 
 	var onload = function () {
@@ -203,6 +199,9 @@ Peris.Viewer.prototype.newSlot = function (data, options) {
 	slot.click(function () {
 		var slot = $(this);
 
+		if (slot.find(".checker").is(":hover"))
+			return;
+
 		if (slot.hasClass("filled"))
 			viewer.Peer.open(slot);
 	});
@@ -214,6 +213,17 @@ Peris.Viewer.prototype.newSlot = function (data, options) {
 			if (slot.hasClass("filled"))
 				viewer.Peer.open(slot);
 		}
+	});
+
+	checker.click(function () {
+		var slot = $(this).parent();
+		if (slot.is(".selected"))
+			slot.removeClass("selected");
+		else
+			slot.addClass("selected");
+
+		var index = viewer.indexOfPath(slot.data("path"));
+		viewer.Data[index].selected = slot.is(".selected");
 	});
 
 	return slot;

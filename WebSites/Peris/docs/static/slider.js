@@ -10,7 +10,6 @@ Peris.Slider = function (viewer) {
 
 Peris.Slider.prototype.Showing = false;
 Peris.Slider.prototype.CurrentIndex = 0;
-//Peris.Slider.prototype.PathList = [];
 Peris.Slider.prototype.Data = [];
 Peris.Slider.prototype.SwitchDuration = 800;
 Peris.Slider.prototype.FastSwitchDuration = 300;

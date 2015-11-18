@@ -9,6 +9,13 @@
 }
 
 
+.icon-image
+{
+	background-image: url(/static/icons.png);
+	background-size: 100% auto;
+}
+
+
 .viewer
 {
 	position: relative;
@@ -230,6 +237,28 @@
 	width: 100%;
 }
 
+.slot .checker
+{
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 1.6vw;
+	height: 1.6vw;
+	opacity: 0;
+
+	background-position: 0 0;
+}
+
+.slot .checker:hover
+{
+	opacity: 1;
+}
+
+.slot.selected .checker
+{
+	background-position: 0 61%;
+	opacity: 1;
+}
 
 .peer
 {

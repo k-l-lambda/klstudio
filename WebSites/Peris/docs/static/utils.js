@@ -79,13 +79,18 @@ Peris.moveDuplicatedFigureFiles = function (data, targetDir) {
 	}
 };
 
-Peris.batchProcessFiles = function (data, command, checkPath) {
-	if (checkPath === undefined)
-		checkPath = ["{path}"];
+Peris.batchProcessFiles = function (data, command, options) {
+	options = options || {};
+
+	if (options.checkPath === undefined)
+		options.checkPath = ["{path}"];
 
 	var date = new Date().format("yyyyMMddThhmmss");
 
 	for (var i in data) {
+		if (options.filter && !options.filter(data[i]))
+			continue;
+
 		(function () {
 			var ii = i;
 			var path = Peris.extendFigurePath(data[ii].path);
@@ -104,8 +109,8 @@ Peris.batchProcessFiles = function (data, command, checkPath) {
 				$.post("/exec", { command: "os.system(r'" + cmd + "')" }, function (json, s, xhr) {
 					console.log(data.length - xhr.user_data.index, "exec:", json);
 
-					for (var ip in checkPath) {
-						var ck = checkPath[ip].replace(/{path}/g, xhr.user_data.path);
+					for (var ip in options.checkPath) {
+						var ck = options.checkPath[ip].replace(/{path}/g, xhr.user_data.path);
 						ck = ck.replace(/{filename}/g, xhr.user_data.filename);
 						ck = ck.replace(/{stem}/g, xhr.user_data.stem);
 						ck = ck.replace(/{ext}/g, xhr.user_data.ext);

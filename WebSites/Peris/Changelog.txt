@@ -4,6 +4,14 @@ TODO:
 		start slider button
 
 
+2015.11.19	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/utils.js: added filter option for Peris.batchProcessFiles.
+
+	*	 Peris.batchProcessFiles sample:
+			Peris.batchProcessFiles(viewer.Data, "echo {path}", {filter: function(d){return d.selected;}})
+
+
 2015.11.18	K.L.	<k.l.lambda@gmail.com>
 
 	+	static/viewer.js: checker control for selection added.

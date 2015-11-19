@@ -121,15 +121,25 @@ class DbQueryHandle:
 
 class DbCbir:
 	@staticmethod
-	def updateFile(path):
-		hash = md5.md5(open(path, 'rb').read()).hexdigest()
+	def updateFile(path, hash = None):
+		hash = hash or md5.md5(open(path, 'rb').read()).hexdigest()
 
-		identityFile = db.select('cbir', where = 'hash=$hash', vars = dict(hash = hash))
-		identityFile = identityFile and identityFile[0]
+		record = db.select('cbir', where = 'hash=$hash', vars = dict(hash = hash))
+		record = record and record[0]
 
-		if not (identityFile and identityFile.thumb):
+		if not record:
 			thumb = Fingerprint16.fileFingerprint(path)
-			db.insert('cbir', hash = hash, thumb = thumb)
+			size = Image.open(path).size
+			db.insert('cbir', hash = hash, thumb = thumb, width = size[0], height = size[1])
+
+			return 'created'
+		elif not record.thumb or not record.width or not record.height:
+			if not record.thumb:
+				db.update('cbir', where = 'hash=$hash', vars = dict(hash = hash), thumb = thumb)
+
+			if not record.width or not record.height:
+				size = Image.open(path).size
+				db.update('cbir', where = 'hash=$hash', vars = dict(hash = hash), width = size[0], height = size[1])
 
 			return 'updated'
 
@@ -182,6 +192,8 @@ def decodeUnicode(str):
 
 class UpdateFileRegisterHandle:
 	def POST(self):
+		input = web.input(updateAll = False)
+
 		yield '<head>'
 		yield '<link href="/static/console.css" rel="stylesheet" type="text/css">'
 		yield '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">'
@@ -217,12 +229,12 @@ class UpdateFileRegisterHandle:
 
 						record = db.select('file_register', where = 'path=$path', vars = dict(path = relpath))
 						record = record and record[0]
-						if record and record.date == date:
+						if not input.updateAll and record and record.date == date:
 							continue
 
 						hash = md5.md5(open(path, 'rb').read()).hexdigest()
 
-						DbCbir.updateFile(path)
+						DbCbir.updateFile(path, hash)
 
 						identityFile = db.select('file_register', where = 'hash=$hash', vars = dict(hash = hash))
 						identityFile = identityFile and identityFile[0]
@@ -441,7 +453,7 @@ class CheckFileHandle:
 
 				hash = md5.md5(open(full_path, 'rb').read()).hexdigest()
 
-				DbCbir.updateFile(full_path)
+				DbCbir.updateFile(full_path, hash)
 
 				identityFile = db.select('file_register', where = 'hash=$hash', vars = dict(hash = hash))
 				identityFile = identityFile and identityFile[0]

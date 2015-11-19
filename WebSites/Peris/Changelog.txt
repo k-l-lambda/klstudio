@@ -6,6 +6,8 @@ TODO:
 
 2015.11.19	K.L.	<k.l.lambda@gmail.com>
 
+	+	Added width & height fields in table of cbir.
+
 	+	static/utils.js: added filter option for Peris.batchProcessFiles.
 
 	*	 Peris.batchProcessFiles sample:

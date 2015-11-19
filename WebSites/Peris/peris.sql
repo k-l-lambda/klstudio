@@ -37,8 +37,11 @@ CREATE TABLE IF NOT EXISTS `album` (
 CREATE TABLE IF NOT EXISTS `cbir` (
   `hash` varchar(32) CHARACTER SET ascii NOT NULL,
   `thumb` varchar(16) CHARACTER SET ascii DEFAULT NULL,
+  `width` int(6) unsigned NOT NULL,
+  `height` int(6) unsigned NOT NULL,
   PRIMARY KEY (`hash`),
-  KEY `thumb` (`thumb`)
+  KEY `thumb` (`thumb`),
+  KEY `width` (`width`,`height`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------

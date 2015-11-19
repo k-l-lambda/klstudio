@@ -266,6 +266,11 @@
 	opacity: 1;
 }
 
+.slot.selected .checker:hover
+{
+	opacity: 0.8;
+}
+
 .peer
 {
 	z-index: 10000;

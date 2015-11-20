@@ -160,6 +160,9 @@ Peris.Viewer.prototype.newSlot = function (data, options) {
 		slot.css({ height: "auto" });
 
 		viewer.mountSlot(slot);
+
+		if (options.onMounted)
+			options.onMounted("load");
 	};
 
 	var onerror = function () {
@@ -177,11 +180,15 @@ Peris.Viewer.prototype.newSlot = function (data, options) {
 			if (json.result == "delete")
 				slot.addClass("removed");
 		});
+
+		if (options.onMounted)
+			options.onMounted("error");
 	};
 
-	setTimeout(function () {
-		viewer.loadSlot(slot, onload, onerror);
-	}, options.latency || 0);
+	if(!options.noLoad)
+		setTimeout(function () {
+			viewer.loadSlot(slot, onload, onerror);
+		}, options.latency || 0);
 
 	slot.mouseenter(function (e) {
 		viewer.FocusSlot = e.currentTarget;

@@ -21,6 +21,8 @@ Peris.Viewer.prototype.ScrollDeltaFromLastForceAppear = 0;
 
 Peris.Viewer.prototype.Data = [];
 
+Peris.Viewer.prototype.OnSlotsLayFinished = [];
+
 
 Peris.Viewer.prototype.initialize = function () {
 	this.Container.addClass("viewer");
@@ -154,7 +156,7 @@ Peris.Viewer.prototype.newSlot = function (data, options) {
 
 	var viewer = this;
 
-	var onload = function () {
+	slot.onload = function () {
 		var slot = $(event.currentTarget).parent();
 
 		slot.css({ height: "auto" });
@@ -165,7 +167,7 @@ Peris.Viewer.prototype.newSlot = function (data, options) {
 			options.onMounted("load");
 	};
 
-	var onerror = function () {
+	slot.onerror = function () {
 		var slot = $(event.currentTarget).parent();
 
 		slot.css({ height: "4em" });
@@ -187,7 +189,7 @@ Peris.Viewer.prototype.newSlot = function (data, options) {
 
 	if(!options.noLoad)
 		setTimeout(function () {
-			viewer.loadSlot(slot, onload, onerror);
+			viewer.loadSlot(slot, slot.onload, slot.onerror);
 		}, options.latency || 0);
 
 	slot.mouseenter(function (e) {
@@ -306,12 +308,46 @@ Peris.Viewer.prototype.onFocusSlotChanged = function () {
 Peris.Viewer.prototype.laySlots = function (count) {
 	var viewer = this;
 
+	var lastSlot = null;
+	var headSlot = null;
+
 	var start = this.SlotStream.find(".slot").length;
 	var until = Math.min(start + count, this.Data.length);
 	for (var i = start; i < until; ++i) {
-		var slot = this.newSlot(this.Data[i], { latency: i - start });
+		var options = { latency: i - start, noLoad: true };
+		var slot = this.newSlot(this.Data[i], options);
 		slot.appendTo(this.SlotStream);
+		//console.log("lay:", this.Data[i]);
+
+		(function () {
+			var s = slot;
+			options.onMounted = function () {
+				//console.log("onMounted:", s[0]);
+				var next = s.nextSlot;
+				if (next)
+					viewer.loadSlot(next, next.onload, next.onerror);
+				else {
+					if (viewer.OnSlotsLayFinished[0])
+						viewer.OnSlotsLayFinished.shift()();
+				}
+			}
+		})();
+
+		if (!headSlot)
+			headSlot = slot;
+
+		if (lastSlot)
+		{
+			lastSlot.nextSlot = slot;
+		}
+
+		lastSlot = slot;
 	}
+
+	viewer.OnSlotsLayFinished.push(function () {
+		if (headSlot)
+			viewer.loadSlot(headSlot, headSlot.onload, headSlot.onerror);
+	});
 
 	if (until > start)
 		this.StatusBar.find(".status-lay-count").text(until);
@@ -405,6 +441,9 @@ Peris.Viewer.prototype.updateLayout = function () {
 				this.laySlots(this.SlotColumn);
 				newSlotCount += this.SlotColumn;
 			}
+
+			if (this.OnSlotsLayFinished[0])
+				this.OnSlotsLayFinished.shift()();
 		}
 	}
 

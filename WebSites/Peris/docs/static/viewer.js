@@ -23,6 +23,10 @@ Peris.Viewer.prototype.Data = [];
 
 Peris.Viewer.prototype.OnSlotsLayFinished = [];
 
+Peris.Viewer.prototype.LastColumn = 0;
+
+Peris.Viewer.prototype.SlotsLaying = false;
+
 
 Peris.Viewer.prototype.initialize = function () {
 	this.Container.addClass("viewer");
@@ -129,6 +133,8 @@ Peris.Viewer.prototype.clear = function () {
 	this.SlotStream.find(".slot").remove();
 
 	this.setStatusBar(null);
+
+	this.LastColumn = 0;
 };
 
 Peris.Viewer.prototype.focusSlot = function (slot) {
@@ -161,7 +167,7 @@ Peris.Viewer.prototype.newSlot = function (data, options) {
 
 		slot.css({ height: "auto" });
 
-		viewer.mountSlot(slot);
+		viewer.mountSlot(slot, data.sub);
 
 		if (options.onMounted)
 			options.onMounted("load");
@@ -172,7 +178,7 @@ Peris.Viewer.prototype.newSlot = function (data, options) {
 
 		slot.css({ height: "4em" });
 
-		viewer.mountSlot(slot);
+		viewer.mountSlot(slot, data.sub);
 
 		slot.addClass("failure");
 
@@ -329,6 +335,8 @@ Peris.Viewer.prototype.laySlots = function (count) {
 				else {
 					if (viewer.OnSlotsLayFinished[0])
 						viewer.OnSlotsLayFinished.shift()();
+					else
+						viewer.SlotsLaying = false;
 				}
 			}
 		})();
@@ -337,17 +345,21 @@ Peris.Viewer.prototype.laySlots = function (count) {
 			headSlot = slot;
 
 		if (lastSlot)
-		{
 			lastSlot.nextSlot = slot;
-		}
 
 		lastSlot = slot;
 	}
 
-	viewer.OnSlotsLayFinished.push(function () {
+	this.OnSlotsLayFinished.push(function () {
+		//console.log("OnSlotsLayFinished:", headSlot);
 		if (headSlot)
 			viewer.loadSlot(headSlot, headSlot.onload, headSlot.onerror);
 	});
+
+	if (!this.SlotsLaying) {
+		this.SlotsLaying = true;
+		this.OnSlotsLayFinished.shift()();	// start loading
+	}
 
 	if (until > start)
 		this.StatusBar.find(".status-lay-count").text(until);
@@ -396,7 +408,7 @@ Peris.Viewer.prototype.unloadSlot = function (slot) {
 	slot.appear();
 };
 
-Peris.Viewer.prototype.mountSlot = function (slot) {
+Peris.Viewer.prototype.shortestColumn = function () {
 	var shortest = 0;
 	for (var i = 0; i < this.SlotColumn; ++i) {
 		if (this.ColumnBottom[i] < this.ColumnBottom[shortest])
@@ -404,16 +416,26 @@ Peris.Viewer.prototype.mountSlot = function (slot) {
 	}
 	//console.log("shortest: ", shortest, this.ColumnBottom);
 
+	return shortest;
+};
+
+Peris.Viewer.prototype.mountSlot = function (slot, followLast) {
+	var column = followLast ? this.LastColumn : this.shortestColumn();
+
+	//console.log("mountSlot:", this.indexOfPath(slot.data("path")), column, followLast);
+
 	slot.css({
-		top: (this.ColumnBottom[shortest] + 10).toFixed(0) + "px",
-		left: ((shortest + this.SlotGap * 0.5) * 100 / this.SlotColumn).toFixed(2) + "%",
+		top: (this.ColumnBottom[column] + 10).toFixed(0) + "px",
+		left: ((column + this.SlotGap * 0.5) * 100 / this.SlotColumn).toFixed(2) + "%",
 		height: "auto"
 	});
 
 	slot.removeClass("new");
 	slot.addClass("ready");
 
-	this.ColumnBottom[shortest] = slot.position().top + slot.height();
+	this.ColumnBottom[column] = slot.position().top + slot.height();
+
+	this.LastColumn = column;
 };
 
 Peris.Viewer.prototype.getReadyBottom = function () {
@@ -441,9 +463,6 @@ Peris.Viewer.prototype.updateLayout = function () {
 				this.laySlots(this.SlotColumn);
 				newSlotCount += this.SlotColumn;
 			}
-
-			if (this.OnSlotsLayFinished[0])
-				this.OnSlotsLayFinished.shift()();
 		}
 	}
 
@@ -533,7 +552,15 @@ Peris.Viewer.prototype.onKeyDown = function (e) {
 		var viewer = this;
 
 		switch (e.keyCode) {
-			case 27: // esc,	exit expand mode
+			case 17: // Ctrl	show slot data
+				if (!e.repeat) {
+					var index = this.indexOfPath(this.CurrentData.path);
+					if(index >= 0)
+						console.log("data:", index, this.Data[index]);
+				}
+
+				break;
+			case 27: // ESC,	exit expand mode
 				if (this.Container.hasClass("expand")) {
 					this.Container.removeClass("expand");
 					this.onResized();

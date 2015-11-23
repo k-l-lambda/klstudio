@@ -135,6 +135,8 @@ Peris.Viewer.prototype.clear = function () {
 	this.setStatusBar(null);
 
 	this.LastColumn = 0;
+
+	this.SlotsLaying = false;
 };
 
 Peris.Viewer.prototype.focusSlot = function (slot) {

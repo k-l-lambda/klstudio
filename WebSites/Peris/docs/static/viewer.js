@@ -356,6 +356,8 @@ Peris.Viewer.prototype.laySlots = function (count) {
 		//console.log("OnSlotsLayFinished:", headSlot);
 		if (headSlot)
 			viewer.loadSlot(headSlot, headSlot.onload, headSlot.onerror);
+		else
+			viewer.SlotsLaying = false;
 	});
 
 	if (!this.SlotsLaying) {

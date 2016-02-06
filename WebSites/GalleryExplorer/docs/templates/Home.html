@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+		<script src="/static/jquery.min.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			var refreshViewer = function () {
+				var root = location.hash.match(/#(.*)/)[1];
+
+				$("#viewer").empty();
+
+				$.get("dir?root=" + encodeURIComponent(root), function (data) {
+					//console.log("dir result:",  data);
+					data = JSON.parse(data);
+
+					var ul = $("<ul></ul>");
+
+					ul.appendTo("#viewer");
+
+					ul = $("#viewer ul");
+
+					for (var i in data.dirs) {
+						var link = "#" + root + data.dirs[i] + "/";
+						$("<li><a href='" + link + "'>" + data.dirs[i] + "</a></li>").appendTo(ul);
+					}
+
+					for (var i in data.files) {
+						var link = "docs/" + root + data.files[i];
+						$("<li><em><a href='" + link + "'>" + data.files[i] + "</a></em></li>").appendTo(ul);
+					}
+				});
+			};
+
+			var onHashChanged = function () {
+				var hash = location.hash;
+				if (hash == "")
+					location.hash = "./";
+				else if (!/.*\/$/.test(hash))
+					location.hash = location.hash + "/";
+				else
+					refreshViewer();
+			};
+
+			$(function () {
+				window.onhashchange = onHashChanged;
+
+				onHashChanged();
+			});
+		</script>
+	</head>
+	<body>
+		<div id="viewer"></div>
+	</body>
+</html>

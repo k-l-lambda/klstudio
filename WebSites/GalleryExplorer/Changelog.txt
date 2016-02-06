@@ -1,6 +1,10 @@
 
 2016.2.6	K.L.	<k.l.lambda@gmail.com>
 
+	+	templates\Home.html: file created.
+
+	+	DirectoryHandle added.
+
 	+	ChangeLog.txt: created.
 
 

@@ -1,4 +1,11 @@
 
+
+2016.2.7	K.L.	<k.l.lambda@gmail.com>
+
+	+	viewer.css: created.
+	+	viewer.js: created.
+
+
 2016.2.6	K.L.	<k.l.lambda@gmail.com>
 
 	+	templates\Home.html: file created.

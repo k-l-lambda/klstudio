@@ -20,27 +20,9 @@
 			var refreshViewer = function () {
 				var root = location.hash.match(/#(.*)/)[1];
 
-				//$("#viewer").empty();
-
 				$.get("dir?root=" + encodeURIComponent(root), function (data) {
 					//console.log("dir result:",  data);
 					data = JSON.parse(data);
-
-					/*var ul = $("<ul></ul>");
-
-					ul.appendTo("#viewer");
-
-					ul = $("#viewer ul");
-
-					for (var i in data.dirs) {
-						var link = "#" + root + data.dirs[i] + "/";
-						$("<li><a href='" + link + "'>" + data.dirs[i] + "</a></li>").appendTo(ul);
-					}
-
-					for (var i in data.files) {
-						var link = "docs/" + root + data.files[i];
-						$("<li><em><a href='" + link + "'>" + data.files[i] + "</a></em></li>").appendTo(ul);
-					}*/
 
 					viewer.update(root, data);
 				});

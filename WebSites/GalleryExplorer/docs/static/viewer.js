@@ -43,6 +43,25 @@ GE.Viewer.prototype.update = function (root, data) {
 
 		var slot = this.newSlot({ name: name, type: "dir", link: link });
 		slot.appendTo(this.SlotStream);
+
+		slot.addClass("loading");
+
+		$.get("dir?root=" + encodeURIComponent(root + name + "/"), function (data, s, xhr) {
+			data = JSON.parse(data);
+
+			//console.log(xhr.user_data.name, data);
+			for (var i in data.files) {
+				var name = data.files[i];
+				if (GE.isImage(name)) {
+					var link = "docs/" + xhr.user_data.root + name;
+					xhr.user_data.slot.find(".slot-icon").append("<img src='" + link + "' />");
+
+					break;
+				}
+			}
+
+			xhr.user_data.slot.removeClass("loading");
+		}).user_data = { name: name, slot: slot, root: root + name + "/" };
 	}
 
 	for (var i in data.files) {
@@ -78,7 +97,7 @@ GE.Viewer.prototype.updateLayout = function () {
 };
 
 GE.Viewer.prototype.newSlot = function (data) {
-	var slot = $("<div class='slot new'><div class='slot-icon'></div><div class='slot-label'><a class='slot-label-link'></a></div></div>");
+	var slot = $("<div class='slot new'><div class='slot-icon'><div class='slot-loading'></div></div><div class='slot-label'><a class='slot-label-link'></a></div></div>");
 
 	slot.addClass(data.type);
 

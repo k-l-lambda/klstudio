@@ -45,10 +45,11 @@ a:hover
 .dir img
 {
 	position: absolute;
-	left: 10%;
-	top: 20%;
-	width: 80%;
-	height: 60%;
+	left: 5%;
+	top: 16%;
+	width: 90%;
+	height: 80%;
+	border-radius: 8px;
 }
 
 .slot-label

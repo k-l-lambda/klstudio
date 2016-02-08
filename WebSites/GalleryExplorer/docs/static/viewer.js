@@ -60,6 +60,24 @@ GE.Viewer.prototype.update = function (root, data) {
 				}
 			}
 
+			var videos = 0;
+			for (var i in data.files) {
+				var name = data.files[i];
+				if (GE.isVideo(name)) {
+					if (!videos) {
+						var link = "docs/" + xhr.user_data.root + name;
+						xhr.user_data.slot.find(".slot-icon .icon-player").show();
+						xhr.user_data.slot.find(".slot-icon .icon-player").attr("href", link);
+					}
+
+					++videos;
+				}
+			}
+
+			if (videos > 1) {
+				xhr.user_data.slot.find(".slot-icon .player-count").text(videos);
+			}
+
 			xhr.user_data.slot.removeClass("loading");
 		}).user_data = { name: name, slot: slot, root: root + name + "/" };
 	}
@@ -110,6 +128,10 @@ GE.Viewer.prototype.newSlot = function (data) {
 
 	if (data.type == "image")
 		slot.find(".slot-icon").append("<img src='" + data.link + "' />");
+	else if (data.type == "dir") {
+		slot.find(".slot-icon").append("<a class='icon-player'><span class='player-count'></span></a>");
+		slot.find(".slot-icon .icon-player").hide();
+	}
 
 	return slot;
 };

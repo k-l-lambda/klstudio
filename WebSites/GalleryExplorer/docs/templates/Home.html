@@ -51,7 +51,7 @@
 
 				var link = "#";
 				for (var i in dirs) {
-					var dirname = dirs[i];
+					var dirname = unescape(dirs[i]);
 					if (dirname) {
 						link += dirname + "/";
 						$("#navigator").append("<a href='" + link + "'>" + dirname + "</a>");

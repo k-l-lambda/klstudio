@@ -2,6 +2,8 @@
 
 2016.2.9	K.L.	<k.l.lambda@gmail.com>
 
+	>	main.py/DirectoryHandle: fixed URL encode issue for Safari browser.
+
 	+	Home.html: navigator added.
 
 

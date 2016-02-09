@@ -10,6 +10,8 @@ import traceback
 import StringIO
 import glob
 import shutil
+import HTMLParser
+import urllib
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -30,7 +32,8 @@ class DirectoryHandle:
 	def GET(self):
 		input = web.input()
 
-		root = os.path.join(config.data_root, input.root)
+		root = os.path.join(config.data_root, HTMLParser.HTMLParser().unescape(urllib.unquote(input.root)))
+		#logging.warn('root: %s', root)
 		items = os.listdir(root)
 
 		dirs = filter(lambda x: os.path.isdir(os.path.join(root, x)), items)

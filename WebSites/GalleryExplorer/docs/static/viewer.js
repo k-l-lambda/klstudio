@@ -35,6 +35,8 @@ GE.Viewer = function (container) {
 
 
 GE.Viewer.prototype.update = function (root, data) {
+	root = unescape(root);
+
 	this.SlotStream.empty();
 
 	for (var i in data.dirs) {

@@ -51,6 +51,9 @@ GE.Viewer.prototype.update = function (root, data) {
 		$.get("dir?root=" + encodeURIComponent(root + name + "/"), function (data, s, xhr) {
 			data = JSON.parse(data);
 
+			if (data.dirs.length)
+				xhr.user_data.slot.addClass("subdirs");
+
 			//console.log(xhr.user_data.name, data);
 			for (var i in data.files) {
 				var name = data.files[i];

@@ -30,6 +30,12 @@ a:hover
 	background-size: 100% 100%;
 }
 
+.dir.subdirs .slot-icon
+{
+	background: no-repeat no-repeat url(/static/folders.png) center;
+	background-size: 100% 100%;
+}
+
 .video .slot-icon
 {
 	background: no-repeat no-repeat url(/static/player.png) center;

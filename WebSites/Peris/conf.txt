@@ -2,13 +2,29 @@
 # Peris
 <VirtualHost localhost:8101>
 	ServerAdmin			postmaster@localhost
-	DocumentRoot		"peris_dir/docs"
 	ServerName			localhost:8101
 
-	WSGIScriptAlias		/				"peris_dir/docs/main.py/"
-	Alias				/static			"peris_dir/docs/static/"
-	Alias				/images			"data_dir/"
-	AddType				text/html		.py
+	DocumentRoot		"PERIS_DIR/docs"
+
+	Alias				/static			PERIS_DIR/docs/static/
+	Alias				/images			DATA_DIR/
+	Alias				/favicon.ico	PERIS_DIR/docs/favicon.ico
+
+	<Directory /static>
+		AllowOverride	All
+		Order			deny,allow
+		Allow			from all
+	</Directory>
+
+	<Directory /images>
+		AllowOverride	All
+		Order			deny,allow
+		Allow			from all
+	</Directory>
+
+	WSGIScriptAlias		/	PERIS_DIR/docs/main.py/
+
+	AddType				text/html	.py
 	AddType				image/x-icon	.ico
 
 	<Directory /admin/>

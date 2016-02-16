@@ -1,0 +1,32 @@
+
+# GalleryExplorer
+<VirtualHost *:8083>
+	DocumentRoot		"GE_DIR/docs"
+
+	Alias				/static			GE_DIR/docs/static/
+	Alias				/favicon.ico	GE_DIR/docs/favicon.ico
+
+	<Directory /static>
+		AllowOverride	All
+		Order			deny,allow
+		Allow			from all
+	</Directory>
+
+	WSGIScriptAlias		/	GE_DIR/docs/main.py/
+
+	AddType				text/html	.py
+	AddType				image/x-icon	.ico
+
+	<Directory />
+		Satisfy Any
+		Allow from all
+	</Directory>
+
+	Alias				/docs			"DATA_DIR/"
+
+	<Directory /docs>
+		AllowOverride	All
+		Order			deny,allow
+		Allow			from all
+	</Directory>
+</VirtualHost>

@@ -6,8 +6,8 @@ GE.SLOT_WIDTH = 240;
 GE.SLOT_HEIGHT = 280;
 
 
-GE.ImagePatterns = [/\.jpg$/i, /\.jpeg$/i, /\.bmp$/i, /\.png$/i, /\.gif$/i];
-GE.VideoPatterns = [/\.avi$/i, /\.mp4$/i, /\.wmv$/i, /\.rm$/i, /\.rmvb$/i, /\.flv$/i, /\.m4v$/i, /\.mkv$/i, /\.mpg$/i, /\.mpeg$/i, /\.vob$/i];
+GE.ImagePatterns = [/\.jpg$|\.jpeg$|\.bmp$|\.png$|\.gif$/i];
+GE.VideoPatterns = [/\.avi$|\.mp4$|\.wmv$|\.rm$|\.rmvb$|\.flv$|\.m4v$|\.mkv$|\.mpg$|\.mpeg$|\.vob$/i];
 
 GE.isInType = function (filename, patterns) {
 	for (var i in patterns)

@@ -7,7 +7,7 @@ GE.SLOT_HEIGHT = 280;
 
 
 GE.ImagePatterns = [/\.jpg$/i, /\.jpeg$/i, /\.bmp$/i, /\.png$/i, /\.gif$/i];
-GE.VideoPatterns = [/\.avi$/i, /\.mp4$/i, /\.wmv$/i, /\.rm$/i, /\.rmvb$/i, /\.flv$/i, /\.m4v$/i, /\.mkv$/i, /\.mpg$/i, /\.vob$/i];
+GE.VideoPatterns = [/\.avi$/i, /\.mp4$/i, /\.wmv$/i, /\.rm$/i, /\.rmvb$/i, /\.flv$/i, /\.m4v$/i, /\.mkv$/i, /\.mpg$/i, /\.mpeg$/i, /\.vob$/i];
 
 GE.isInType = function (filename, patterns) {
 	for (var i in patterns)
@@ -23,6 +23,17 @@ GE.isImage = function (filename) {
 
 GE.isVideo = function (filename) {
 	return GE.isInType(filename, GE.VideoPatterns);
+};
+
+GE.evaluateCoverPriority = function (filename) {
+	var priority = 0;
+
+	if (/cover/i.test(filename))
+		priority += 100;
+
+	priority -= filename.length;
+
+	return priority;
 };
 
 
@@ -54,15 +65,19 @@ GE.Viewer.prototype.update = function (root, data) {
 			if (data.dirs.length)
 				xhr.user_data.slot.addClass("subdirs");
 
+			var images = [];
+
 			//console.log(xhr.user_data.name, data);
 			for (var i in data.files) {
 				var name = data.files[i];
-				if (GE.isImage(name)) {
-					var link = "docs/" + xhr.user_data.root + name;
-					xhr.user_data.slot.find(".slot-icon").append("<img src='" + link + "' />");
+				if (GE.isImage(name))
+					images.push(name);
+			}
 
-					break;
-				}
+			images.sort(function (a, b) { return GE.evaluateCoverPriority(b) - GE.evaluateCoverPriority(a); });
+			if (images[0]) {
+				var link = "docs/" + xhr.user_data.root + images[0];
+				xhr.user_data.slot.find(".slot-icon").append("<img src='" + link + "' />");
 			}
 
 			var videos = 0;

@@ -31,6 +31,9 @@ GE.evaluateCoverPriority = function (filename) {
 	if (/cover/i.test(filename))
 		priority += 100;
 
+	if (/title/i.test(filename))
+		priority += 90;
+
 	priority -= filename.length;
 
 	return priority;

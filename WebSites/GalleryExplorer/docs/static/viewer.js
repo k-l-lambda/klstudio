@@ -34,6 +34,9 @@ GE.evaluateCoverPriority = function (filename) {
 	if (/title/i.test(filename))
 		priority += 90;
 
+	if (/\.gif$/i.test(filename))
+		priority += 100;
+
 	priority -= filename.length;
 
 	return priority;

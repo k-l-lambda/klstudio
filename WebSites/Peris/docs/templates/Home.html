@@ -513,6 +513,17 @@
 
 							break;
 						}
+						else if (bookmarks.Data[i].name == name) {
+							item = bookmarks.Data[i];
+
+							bookmarks.Data[i].link = link;
+
+							console.log("bookmark '" + name + "' updated.");
+
+							renderBookmarks();
+
+							break;
+						}
 					}
 
 					if (!item && name.length > 0) {

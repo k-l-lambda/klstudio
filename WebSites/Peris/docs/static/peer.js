@@ -442,12 +442,20 @@ Peris.Peer.prototype.initializePanel = function (slot) {
 	this.LoadingSlot = false;
 };
 
-Peris.Peer.prototype.setScoreTouchValue = function (score) {
+Peris.Peer.prototype.getScoreColor = function (score) {
 	if (score) {
 		var canvas = this.Panel.find(".score-gradient");
 		var ctx = canvas[0].getContext("2d");
 		var color = ctx.getImageData(score * 100, 0, 1, 1).data;
-		var colorStr = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
+		return "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
+	}
+
+	return "";
+}
+
+Peris.Peer.prototype.setScoreTouchValue = function (score) {
+	if (score) {
+		var colorStr = this.getScoreColor(score);
 
 		var percent = score * 100 / 15;
 		this.Panel.find(".score-touch-colored").css({ width: percent + "%", background: colorStr });

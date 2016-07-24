@@ -275,6 +275,9 @@ Peris.Viewer.prototype.onFocusSlotChanged = function () {
 					viewer.StatusBar.find(".status-date").text(json.data.date ? json.data.date : "?");
 					viewer.StatusBar.find(".status-score").text(json.data.score ? json.data.score : "--");
 					viewer.StatusBar.find(".status-tags").text(json.data.tags ? json.data.tags : "");
+
+					var scoreColor = viewer.Peer.getScoreColor(json.data.score);
+					viewer.StatusBar.find(".status-score").css("color", scoreColor);
 				}
 				else {
 					$slot.addClass("raw");

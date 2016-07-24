@@ -313,7 +313,9 @@ Peris.Peer.prototype.close = function () {
 	this.FigureClear = true;
 };
 
-Peris.Peer.prototype.updateData = function (data) {
+Peris.Peer.prototype.updateData = function (data, options) {
+	options = options || {};
+
 	this.CurrentHash = data.hash;
 	this.CurrentData = { score: data.score, tags: data.tags, thumb: data.thumb };
 
@@ -326,7 +328,8 @@ Peris.Peer.prototype.updateData = function (data) {
 			this.TagList.update(tagsArray[i], 1);
 	}
 
-	this.renderTagList();
+	if (options.refreshUI || $(".tag-list li").length == 0)
+		this.renderTagList();
 };
 
 Peris.Peer.prototype.clearSlotBinding = function () {

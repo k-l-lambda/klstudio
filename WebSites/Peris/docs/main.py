@@ -32,10 +32,12 @@ def renderTemplate(template):
 def getImageDate(path):
 	try:
 		exif = Image.open(path)._getexif()
-		if exif and exif[36867]:
-			taken_time = datetime.datetime.strptime(exif[36867], '%Y:%m:%d %H:%M:%S')
-			if taken_time:
-				return taken_time
+		if exif:
+			time_str = exif.get(36867) or exif.get(306)
+			if time_str:
+				taken_time = datetime.datetime.strptime(time_str, '%Y:%m:%d %H:%M:%S')
+				if taken_time:
+					return taken_time
 	except:
 		pass
 

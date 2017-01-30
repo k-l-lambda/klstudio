@@ -92,6 +92,7 @@ Peris.Peer.prototype.initialize = function () {
 
 	this.Panel.click(function () { peer.onClick(event); });
 
+	this.Panel.mousedown(function () { peer.onMouseDown(event); });
 	this.Panel.mouseup(function () { peer.onMouseUp(event); });
 	this.Panel.mousemove(function () { peer.onMouseMove(event); });
 
@@ -481,6 +482,27 @@ Peris.Peer.prototype.onClick = function (e) {
 				this.DraggingFigure = false;
 
 				break;
+			/*// middle button
+			case 1:
+				this.Translate = { x: 0, y: 0 };
+
+				this.Zoom = this.Figure[0].naturalWidth / this.Figure.width();
+				this.updateTransform();
+
+				break;*/
+		}
+	}
+};
+
+Peris.Peer.prototype.onMouseWheel = function (e) {
+	if (this.Showing) {
+		this.updateZoom(Math.exp(e.wheelDelta / 400));
+	}
+};
+
+Peris.Peer.prototype.onMouseDown = function (e) {
+	if (this.Showing) {
+		switch (e.button) {
 			// middle button
 			case 1:
 				this.Translate = { x: 0, y: 0 };
@@ -490,12 +512,6 @@ Peris.Peer.prototype.onClick = function (e) {
 
 				break;
 		}
-	}
-};
-
-Peris.Peer.prototype.onMouseWheel = function (e) {
-	if (this.Showing) {
-		this.updateZoom(Math.exp(e.wheelDelta / 400));
 	}
 };
 

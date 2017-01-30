@@ -4,6 +4,11 @@ TODO:
 		start slider button
 
 
+2017.1.30	K.L.	<k.l.lambda@gmail.com>
+
+	>	static/peer.js: fixed middle click issue on Chrome 55.
+
+
 2016.9.21	K.L.	<k.l.lambda@gmail.com>
 
 	>	main.py/getImageDate: refined taken time.

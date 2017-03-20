@@ -246,6 +246,45 @@ Peris.Viewer.prototype.newSlot = function (data, options) {
 	return slot;
 };
 
+Peris.Viewer.prototype.querySlot = function (slot) {
+	var path = slot.data("path");
+	$.post("/query", { query: 'file-info', path: path }, function (json, s, ajax) {
+		if (json.result == "success") {
+			if (json.data) {
+				viewer.StatusBar.find(".status-date").text(json.data.date ? json.data.date : "?");
+				viewer.StatusBar.find(".status-score").text(json.data.score ? json.data.score : "--");
+				viewer.StatusBar.find(".status-tags").text(json.data.tags ? json.data.tags : "");
+
+				var scoreColor = viewer.Peer.getScoreColor(json.data.score);
+				viewer.StatusBar.find(".status-score").css("color", scoreColor);
+			}
+			else {
+				slot.addClass("raw");
+
+				$.post("/check-file", { path: slot.data("path") }, function (json) {
+					console.log("Check raw figure:", json);
+
+					if (json.success) {
+						slot.removeClass("raw");
+						slot.addClass("registered");
+					}
+				});
+			}
+
+			viewer.CurrentData = json.data;
+		}
+		else if (json.result == "fail") {
+			console.warn("query file info " + path + " failed:", json.error);
+		}
+		else
+			console.error("unexpect json result:", json);
+
+		viewer.setStatusBar(null);
+	}, "json");
+
+	this.setStatusBar("QUERYING");
+}
+
 Peris.Viewer.prototype.onFocusSlotChanged = function () {
 	var $slot = this.FocusSlot ? $(this.FocusSlot) : null;
 
@@ -268,42 +307,7 @@ Peris.Viewer.prototype.onFocusSlotChanged = function () {
 	if ($slot) {
 		$(".viewer-status").addClass("shown");
 
-		var path = $slot.data("path");
-		$.post("/query", { query: 'file-info', path: path }, function (json, s, ajax) {
-			if (json.result == "success") {
-				if (json.data) {
-					viewer.StatusBar.find(".status-date").text(json.data.date ? json.data.date : "?");
-					viewer.StatusBar.find(".status-score").text(json.data.score ? json.data.score : "--");
-					viewer.StatusBar.find(".status-tags").text(json.data.tags ? json.data.tags : "");
-
-					var scoreColor = viewer.Peer.getScoreColor(json.data.score);
-					viewer.StatusBar.find(".status-score").css("color", scoreColor);
-				}
-				else {
-					$slot.addClass("raw");
-
-					$.post("/check-file", { path: $slot.data("path") }, function (json) {
-						console.log("Check raw figure:", json);
-
-						if (json.success) {
-							$slot.removeClass("raw");
-							$slot.addClass("registered");
-						}
-					});
-				}
-
-				viewer.CurrentData = json.data;
-			}
-			else if (json.result == "fail") {
-				console.warn("query file info " + path + " failed:", json.error);
-			}
-			else
-				console.error("unexpect json result:", json);
-
-			viewer.setStatusBar(null);
-		}, "json");
-
-		this.setStatusBar("QUERYING");
+		this.querySlot($slot);
 
 		if (figure) {
 			$.get(figure.src, function (d, s, xhr) {
@@ -536,6 +540,13 @@ Peris.Viewer.prototype.checkAll = function () {
 	this.CheckAllIndex = 0;
 	check();
 };
+
+Peris.Viewer.prototype.checkAllShown = function () {
+	var viewer = this;
+	this.SlotStream.find(".slot").each(function (i, slot) {
+		viewer.querySlot($(slot));
+	});
+}
 
 Peris.Viewer.prototype.indexOfPath = function(path) {
 	for(var i in this.Data) {

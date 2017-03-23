@@ -20,7 +20,7 @@ import Serializer
 import Fingerprint16
 
 
-imageFilePattern = re.compile('.*\.(jpg|jpeg|jpe|png|bmp|gif)$')
+imageFilePattern = re.compile('.*\.(jpg|jpeg|jpe|png|bmp|gif|webp)$')
 
 db = web.database(host='127.0.0.1', dbn='mysql', user=config.db_user, pw=config.db_password, db='peris')
 

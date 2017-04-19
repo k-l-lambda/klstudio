@@ -131,6 +131,11 @@
 				max-width: 446px;
 			}
 
+			#projects .section article a
+			{
+				color: #222;
+			}
+
 			#projects .section article h2
 			{
 				margin-bottom: 2em;
@@ -170,7 +175,7 @@
 					$("#cube-earth-image").attr("title", "click me~");
 				}
 
-				$(".appspot-link").click(function () {
+				/*$(".appspot-link").click(function () {
 					var link = $(this).attr("href");
 					var linkParse = link.match(/^\w+:\/*([^\/]+)(.*)$/);
 
@@ -182,7 +187,7 @@
 							event.preventDefault();
 						}
 					}
-				});
+				});*/
 			});
 		</script>
 		<link href="https://plus.google.com/111891513380364792258" rel="publisher" />
@@ -216,7 +221,15 @@
 			</div>
 			<div id="projects">
 				<div class="section">
-					<img src="/res/images/PianoTrainer.png" />
+					<a href="projects/SpiralPiano.html"><img src="/res/images/SpiralPiano.png" /></a>
+					<article>
+						<h2><a href="projects/SpiralPiano.html">Spiral Piano</a></h2>
+						An music visualization program which based on the <a href="https://en.wikipedia.org/wiki/Equal_temperament" target="_blank">Equal Temperament</a>. This program is a demo of applying patent.
+					</article>
+					<div class="clear"></div>
+</div>
+				<div class="section">
+					<a href="projects/PianoTrainer/PianoTrainer.html"><img src="/res/images/PianoTrainer.png" /></a>
 					<article>
 						<h2><a href="projects/PianoTrainer/PianoTrainer.html">Piano Trainer</a></h2>
 						An auxiliary tool for piano pratice. Also a visualized MIDI player.
@@ -224,16 +237,16 @@
 					<div class="clear"></div>
 				</div>
 				<div class="section">
-					<img src="/res/images/Othello3D.png" />
+					<a href="http://klstrigo-hrd.appspot.com/othello/robots/" target="_blank" class="appspot-link"><img src="/res/images/Othello3D.png" /></a>
 					<article>
-						<h2><a href="http://klstrigo.appspot.com/othello/robots/" target="_blank" class="appspot-link">Othello 3D</a></h2>
+						<h2><a href="http://klstrigo-hrd.appspot.com/othello/robots/" target="_blank" class="appspot-link">Othello 3D</a></h2>
 						The web game of 3D version of <a href="http://en.wikipedia.org/wiki/Reversi" target="_blank">Othello (Reversi,</a> <a href="http://zh.wikipedia.org/wiki/%E9%BB%91%E7%99%BD%E6%A3%8B" target="_blank">&#40657;&#30333;&#26827;)</a>.
 						Based on <em>WebGL</em>.
 					</article>
 					<div class="clear"></div>
 				</div>
 				<div class="section">
-					<img src="/res/images/LifeGame.png" />
+					<a href="projects/LifeGame/life-game.html"><img src="/res/images/LifeGame.png" /></a>
 					<article>
 						<h2><a href="projects/LifeGame/life-game.html">Life Game</a></h2>
 						A Simulator of <a href="http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank">Conway's Game of Life</a>.
@@ -242,16 +255,16 @@
 					<div class="clear"></div>
 				</div>
 				<div class="section">
-					<img src="/res/images/TrigoWeb.png" />
+					<a href="http://klstrigo-hrd.appspot.com/" target="_blank" class="appspot-link"><img src="/res/images/TrigoWeb.png" /></a>
 					<article>
-						<h2><a href="http://klstrigo.appspot.com/" target="_blank" class="appspot-link">Trigo Web</a></h2>
+						<h2><a href="http://klstrigo-hrd.appspot.com/" target="_blank" class="appspot-link">Trigo Web</a></h2>
 						The web game of 3D version of <a href="http://en.wikipedia.org/wiki/Go_(game)" target="_blank">Go (&#22260;&#26827;)</a>.
 						Based on <em>WebGL</em>.
 					</article>
 					<div class="clear"></div>
 				</div>
 				<div class="section">
-					<img src="/res/images/Tanx.png" />
+					<a href="projects/Tanx/Tanx.html"><img src="/res/images/Tanx.png" /></a>
 					<article>
 						<h2><a href="projects/Tanx/Tanx.html">Tanx</a></h2>
 						<strong><a href="http://sourceforge.net/projects/klstanx/" target="_blank">K.L.'a Tanx</a></strong> is an open source game engine, which gathered a lot of open source components. Include: <em>OGRE</em>, <em>Havok</em> <span class="comment">(non-open source)</span>, <em>CEGUI</em>, <em>OpenAL++</em>, <em>Lua</em>, <em>Luabind</em>, <em>wxWidgets</em> and so on.
@@ -259,7 +272,7 @@
 					<div class="clear"></div>
 				</div>
 				<div class="section">
-					<img src="/res/images/Tetra.png" />
+					<a href="projects/Tetra/Tetra.html"><img src="/res/images/Tetra.png" /></a>
 					<article>
 						<h2><a href="projects/Tetra/Tetra.html">Tetra</a></h2>
 						A game based on OGRE, 3D version of <a href="http://en.wikipedia.org/wiki/Chinese_Checkers" target="_blank">Chinese checkers</a>.
@@ -267,7 +280,7 @@
 					<div class="clear"></div>
 				</div>
 				<div class="section">
-					<img src="/res/images/Trigo.png" />
+					<a href="projects/Trigo/Trigo.html"><img src="/res/images/Trigo.png" /></a>
 					<article>
 						<h2><a href="projects/Trigo/Trigo.html">Trigo</a></h2>
 						A game based on OGRE, 3D version of <a href="http://en.wikipedia.org/wiki/Go_(game)" target="_blank">Go (&#22260;&#26827;)</a>.
@@ -275,7 +288,7 @@
 					<div class="clear"></div>
 				</div>
 				<div class="section">
-					<img src="/res/images/MagicCube.png" />
+					<a href="projects/MagicCube/MagicCube.html"><img src="/res/images/MagicCube.png" /></a>
 					<article>
 						<h2><a href="projects/MagicCube/MagicCube.html">Magic Cube</a></h2>
 						A simulator of <a href="http://en.wikipedia.org/wiki/Rubik%27s_Cube" target="_blank">Rubik's Cube</a>.

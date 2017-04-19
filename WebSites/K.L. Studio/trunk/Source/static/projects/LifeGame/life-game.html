@@ -249,7 +249,7 @@
 			var leftButtonDown = false;
 			var cc = null;
 			var lastMousePosition = null;
-			var zoom = 1, canvasZoom = 1;
+			var zoom = 4, canvasZoom = 4;
 
 			$(function() {
 				$("#world-width").bind("textchange", onWorldConfigChange);
@@ -477,9 +477,9 @@
 				Zoom: <select id="zoom">
 					<option value="0.25">1/4</option>
 					<option value="0.5">1/2</option>
-					<option value="1" selected="selected">1</option>
+					<option value="1">1</option>
 					<option value="2">2</option>
-					<option value="4">4</option>
+					<option value="4" selected="selected">4</option>
 					<option value="8">8</option>
 				</select>
 				<button id="reset">Reset</button>

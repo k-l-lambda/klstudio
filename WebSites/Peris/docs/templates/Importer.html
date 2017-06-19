@@ -13,12 +13,43 @@
 				font-weight: normal;
 				font-size: 60%;
 			}
+
+			.clear
+			{
+				clear: both;
+			}
+
+			#import-queue li
+			{
+				float: left;
+			}
+
+			#import-queue img
+			{
+				width: 120px;
+				height: 120px;
+			}
+
+			.raw img
+			{
+				border: 2px solid #a2ff00;
+			}
+
+			.ready img
+			{
+				border: 1px solid rgba(0, 64, 192, 0.3);
+			}
+
+			.error img
+			{
+				border: 2px solid #ff0000;
+			}
 		</style>
 		<script src="/static/jquery.min.js" type="text/javascript"></script>
 		<script src="/static/utils.js" type="text/javascript"></script>
 		<script src="/static/ajax_queue.js" type="text/javascript"></script>
 		<script type="text/javascript">
-			var QUERY_LIST_INTERVAL = 10000;
+			var QUERY_LIST_INTERVAL = 30000;
 
 			var queries = Peris.parseQueries(location.search);
 
@@ -32,24 +63,27 @@
 					$("#check-status").html("<em>" + check_list.length + "</em> files in checking: <span class='detail'>" + check_list[0] + "</span>");
 
 					if (ready_list.indexOf(check_list[0]) < 0) {
-						ajax.getJSON("/query?query=file-info&path=" + encodeURIComponent(check_list[0]), function (json) {
-							if (json.result == "success") {
-								if (!json.data) {
-									console.log("new file: " + check_list[0], json);
-								}
-							}
-							else if (json.result == "fail") {
-								console.warn("query file info " + check_list[0] + " failed:", json.error);
-							}
-							else
-								console.error("unexpect json result:", json);
+						(function (path) {
+							ajax.getJSON("/query?query=file-info&path=" + encodeURIComponent(path), function (json) {
+								if (json.result == "success") {
+									if (!json.data) {
+										console.log("New file found: " + path);
 
-							ready_list.push(check_list[0]);
-							check_list.splice(0, 1);
-						});
+										addCheckFile(path);
+									}
+								}
+								else if (json.result == "fail") {
+									console.warn("query file info " + path + " failed:", json.error);
+								}
+								else
+									console.error("unexpect json result:", json);
+
+								ready_list.push(path);
+							});
+						})(check_list[0]);
 					}
-					else
-						check_list.splice(0, 1);
+
+					check_list.splice(0, 1);
 				}
 				else {
 					var now = new Date().getTime();
@@ -57,7 +91,7 @@
 						queryDirList();
 					else {
 						var waiting = Math.ceil((last_query_list_time + QUERY_LIST_INTERVAL - now) / 1000);
-						$("#check-status").html("Waiting <em>" + waiting + "s</em> later query list again.");
+						$("#check-status").html("Waiting <em>" + waiting + "s</em>, query list again.");
 					}
 				}
 			};
@@ -83,6 +117,29 @@
 				last_query_list_time = new Date().getTime();
 			};
 
+			var addCheckFile = function (path) {
+				var figure = $("<li class='raw'><img src='/images/" + path + "' /></li>");
+				figure.appendTo("#import-queue");
+
+				(function (path, figure) {
+					ajax.post("/check-file", { path: path }, function (json) {
+						figure.removeClass("raw");
+
+						if (json.success) {
+							console.log("check file success: ", json);
+
+							figure.addClass("ready");
+						}
+						else {
+							console.warn("check file failed: ", json);
+
+							figure.addClass("error");
+							figure.attr("title", json.error);
+						}
+					});
+				})(path, figure);
+			};
+
 			$(function () {
 				ajax = new ajax_queue({ onIdle: onIdle });
 
@@ -96,6 +153,7 @@
 		</div>
 		<div class="section">
 			<ul id="import-queue"></ul>
+			<div class="clear"></div>
 		</div>
 	</body>
 </html>

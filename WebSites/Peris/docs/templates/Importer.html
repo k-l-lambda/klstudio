@@ -19,6 +19,11 @@
 				clear: both;
 			}
 
+			#check-status.querying
+			{
+				color: #ccc;
+			}
+
 			#import-queue li
 			{
 				float: left;
@@ -87,8 +92,10 @@
 				}
 				else {
 					var now = new Date().getTime();
-					if (now - last_query_list_time > QUERY_LIST_INTERVAL)
-						queryDirList();
+					if (now - last_query_list_time > QUERY_LIST_INTERVAL) {
+						if (!$("#check-status").hasClass("querying"))
+							queryDirList();
+					}
 					else {
 						var waiting = Math.ceil((last_query_list_time + QUERY_LIST_INTERVAL - now) / 1000);
 						$("#check-status").html("Waiting <em>" + waiting + "s</em>, query list again.");
@@ -98,6 +105,7 @@
 
 			var queryDirList = function () {
 				$("#check-status").html("Querying directory <em>" + decodeURIComponent(queries.dir) + "</em>");
+				$("#check-status").addClass("querying");
 
 				var search = "";
 				if (queries.dir)
@@ -105,6 +113,8 @@
 				if (queries.orderby)
 					search += "orderby=" + queries.orderby;
 				ajax.get("/list-dir?" + search, function (json) {
+					$("#check-status").removeClass("querying");
+
 					if (json.success) {
 						check_list = json.files;
 					}

@@ -187,7 +187,10 @@ def decodeUnicode(str):
 				try:
 					str = str.decode('big5')
 				except:
-					str = str.decode('utf-8')
+					try:
+						str = str.decode('utf-8')
+					except:
+						pass
 
 	return str
 
@@ -527,6 +530,11 @@ class ListDirHandle:
 			return Serializer.save({'success': False, 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
 
 
+class ImporterHandle:
+	def GET(self):
+		yield	renderTemplate('Importer.html')
+
+
 application = web.application((
 	'/',								'HomeHandle',
 	'/constants.js',					'ConstantsHandle',
@@ -540,4 +548,5 @@ application = web.application((
 	'/admin/update-file-register',		'UpdateFileRegisterHandle',
 	'/admin/import-album-data',			'ImportAlbumDataHandle',
 	'/admin/filter-new-files',			'FilterNewFiles',
+	'/admin/importer',					'ImporterHandle',
 	), globals()).wsgifunc()

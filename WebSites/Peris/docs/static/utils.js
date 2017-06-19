@@ -33,6 +33,22 @@ Date.prototype.format = function (format) {
 };
 
 
+Peris.parseQueries = function (source) {
+	var m = source.match(/^.*\?(.*)$|^([^\?]*)$/);
+	var q = m[1] || m[2];
+
+	var queries = q.match(/[^#\&\?]+/g);
+
+	var dict = {};
+	for (var i in queries) {
+		var pair = queries[i].split("=");
+		dict[pair[0]] = pair[1];
+	}
+
+	return dict;
+};
+
+
 Peris.LocalDataEntry = function (name, data) {
 	this.Name = name;
 	this.Data = data;

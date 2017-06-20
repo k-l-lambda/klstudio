@@ -4,6 +4,11 @@ TODO:
 		start slider button
 
 
+2017.6.20	K.L.	<k.l.lambda@gmail.com>
+
+	+	templates/Importer.html: refined styles.
+
+
 2017.6.19	K.L.	<k.l.lambda@gmail.com>
 
 	+	templates/Importer.html: added status of querying.

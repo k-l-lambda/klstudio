@@ -27,12 +27,19 @@
 			#import-queue li
 			{
 				float: left;
+				list-style: none;
+				padding: 0 6px;
 			}
 
 			#import-queue img
 			{
 				width: 120px;
 				height: 120px;
+			}
+
+			#import-queue p
+			{
+				margin: 0.2em 0;
 			}
 
 			.raw img
@@ -128,7 +135,11 @@
 			};
 
 			var addCheckFile = function (path) {
-				var figure = $("<li class='raw'><img src='/images/" + path + "' /></li>");
+				var url = "/images/" + path;
+				var name = path;
+				if (name.length > 17)
+					name = ".." + name.substr(name.length - 15, 15);
+				var figure = $("<li class='raw'><p><a target='_blank' href='" + url + "'><img src='" + url + "' /></a></p><p title='" + path + "'>" + name + "</p></li>");
 				figure.appendTo("#import-queue");
 
 				(function (path, figure) {

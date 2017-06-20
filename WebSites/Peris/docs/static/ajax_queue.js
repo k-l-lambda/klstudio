@@ -39,18 +39,15 @@ ajax_queue.prototype.post = function (url, data, callback) {
 ajax_queue.prototype.onRequestComplete = function () {
 	--this.pending_requests;
 
-	if (this.pending_requests < this.busy_threshold)
-		this.onIdle();
-
 	this.checkIdle();
 };
 
 ajax_queue.prototype.checkIdle = function () {
+	if (this.pending_requests < this.busy_threshold)
+		this.onIdle(this.busy_threshold - this.pending_requests);
+
 	var self = this;
 	setTimeout(function () {
-		if (self.pending_requests < self.busy_threshold)
-			self.onIdle();
-
 		self.checkIdle();
 	}, 10);
 };

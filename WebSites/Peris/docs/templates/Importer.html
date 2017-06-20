@@ -19,9 +19,20 @@
 				clear: both;
 			}
 
+			.section
+			{
+				margin: 1em;
+			}
+
 			#check-status.querying
 			{
 				color: #ccc;
+			}
+
+			#import-queue
+			{
+				margin: 0;
+				padding: 0;
 			}
 
 			#import-queue li
@@ -42,7 +53,12 @@
 				margin: 0.2em 0;
 			}
 
-			.raw img
+			.pending img
+			{
+				border: 2px solid #ccc;
+			}
+
+			.checking img
 			{
 				border: 2px solid #a2ff00;
 			}
@@ -70,7 +86,18 @@
 			var ready_list = [];
 			var last_query_list_time;
 
-			var onIdle = function () {
+			var onIdle = function (capability) {
+				// process pending files
+				if (capability >= 2) {
+					var pendings = $("#import-queue li.pending");
+					if (pendings.length > 0) {
+						var figure = $(pendings[0]);
+						var path = figure.data("path");
+						checkFile(path, figure);
+					}
+				}
+
+				// process check list
 				if (check_list.length > 0) {
 					$("#check-status").html("<em>" + check_list.length + "</em> files in checking: <span class='detail'>" + check_list[0] + "</span>");
 
@@ -134,31 +161,42 @@
 				last_query_list_time = new Date().getTime();
 			};
 
+			var updateFilesStatus = function () {
+				$("#files-status").html("<em>" + $("#import-queue li.ready").length + " / " + $("#import-queue li").length + "</em> new files");
+			};
+
 			var addCheckFile = function (path) {
-				var url = "/images/" + path;
+					var url = "/images/" + path;
 				var name = path;
 				if (name.length > 17)
-					name = ".." + name.substr(name.length - 15, 15);
-				var figure = $("<li class='raw'><p><a target='_blank' href='" + url + "'><img src='" + url + "' /></a></p><p title='" + path + "'>" + name + "</p></li>");
+					name = name.substr(0, 5) + ".." + name.substr(name.length - 10, 10);
+				var figure = $("<li class='pending' data-path=" + path + "><p><a target='_blank' href='" + url + "'><img src='" + url + "' /></a></p><p title='" + path + "'>" + name + "</p></li>");
 				figure.appendTo("#import-queue");
 
-				(function (path, figure) {
-					ajax.post("/check-file", { path: path }, function (json) {
-						figure.removeClass("raw");
+				updateFilesStatus();
+			};
 
-						if (json.success) {
-							console.log("check file success: ", json);
+			var checkFile = function (path, figure) {
+				figure.removeClass("pending");
+				figure.addClass("checking");
 
-							figure.addClass("ready");
-						}
-						else {
-							console.warn("check file failed: ", json);
+				ajax.post("/check-file", { path: path }, function (json) {
+					figure.removeClass("checking");
 
-							figure.addClass("error");
-							figure.attr("title", json.error);
-						}
-					});
-				})(path, figure);
+					if (json.success) {
+						console.log("check file success: ", json);
+
+						figure.addClass("ready");
+					}
+					else {
+						console.warn("check file failed: ", json);
+
+						figure.addClass("error");
+						figure.attr("title", json.error);
+					}
+
+					updateFilesStatus();
+				});
 			};
 
 			$(function () {
@@ -173,6 +211,7 @@
 			<h2 id="check-status"></h2>
 		</div>
 		<div class="section">
+			<h2 id="files-status"></h2>
 			<ul id="import-queue"></ul>
 			<div class="clear"></div>
 		</div>

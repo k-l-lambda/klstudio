@@ -40,6 +40,8 @@
 				float: left;
 				list-style: none;
 				padding: 0 6px;
+				height: 170px;
+				position: relative;
 			}
 
 			#import-queue img
@@ -71,6 +73,37 @@
 			.error img
 			{
 				border: 2px solid #ff0000;
+			}
+
+			#import-queue li .marker
+			{
+				position: absolute;
+				right: 18px;
+				bottom: 48px;
+				display: inline-block;
+				width: 18px;
+				height: 18px;
+				background-image: url(/static/icons.png);
+			}
+
+			#import-queue .pending .marker
+			{
+				background-position: 0 -250px;
+			}
+
+			#import-queue .checking .marker
+			{
+				background-position: 0 -100px;
+			}
+
+			#import-queue .ready .marker
+			{
+				background-position: 0 -150px;
+			}
+
+			#import-queue .error .marker
+			{
+				background-position: 0 -200px;
 			}
 		</style>
 		<script src="/static/jquery.min.js" type="text/javascript"></script>
@@ -170,7 +203,7 @@
 				var name = path;
 				if (name.length > 17)
 					name = name.substr(0, 5) + ".." + name.substr(name.length - 10, 10);
-				var figure = $("<li class='pending' data-path=" + path + "><p><a target='_blank' href='" + url + "'><img src='" + url + "' /></a></p><p title='" + path + "'>" + name + "</p></li>");
+				var figure = $("<li class='pending' data-path=" + path + "><p><span class='marker'></span><a target='_blank' href='" + url + "'><img src='" + url + "' /></a></p><p title='" + path + "'>" + name + "</p></li>");
 				figure.appendTo("#import-queue");
 
 				updateFilesStatus();

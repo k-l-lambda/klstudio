@@ -10,7 +10,8 @@ ajax_queue = function (options)
 
 };
 
-ajax_queue.prototype.onIdle = function() {};
+ajax_queue.prototype.onIdle = function () { };
+ajax_queue.prototype.running = false;
 
 ajax_queue.prototype.ajax = function (options) {
 	++this.pending_requests;
@@ -36,6 +37,10 @@ ajax_queue.prototype.post = function (url, data, callback) {
 	this.ajax({ type: "POST", url: url, data: data, success: callback });
 };
 
+ajax_queue.prototype.run = function () {
+	this.running = true;
+};
+
 ajax_queue.prototype.onRequestComplete = function () {
 	--this.pending_requests;
 
@@ -49,5 +54,7 @@ ajax_queue.prototype.checkIdle = function () {
 	var self = this;
 	setTimeout(function () {
 		self.checkIdle();
-	}, 10);
+	}, (this.pending_requests || this.running) > 0 ? 10 : 1000);
+
+	this.running = false;
 };

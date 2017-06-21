@@ -105,6 +105,45 @@
 			{
 				background-position: 0 -200px;
 			}
+
+			body
+			{
+				margin: 0;
+				padding: 0;
+			}
+
+			#header
+			{
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				padding: 1em;
+				background: #eee;
+				z-index: 100;
+			}
+
+			#footer
+			{
+				position: fixed;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				padding: 0 1em;
+				z-index: 100;
+				text-align: right;
+			}
+
+			#scroll
+			{
+				margin: 0;
+				padding-top: 160px;
+			}
+
+			#files-status
+			{
+				text-shadow: 1px 1px 1px #ccc;
+			}
 		</style>
 		<script src="/static/jquery.min.js" type="text/javascript"></script>
 		<script src="/static/utils.js" type="text/javascript"></script>
@@ -160,6 +199,8 @@
 						}
 
 						check_list.splice(0, 1);
+
+						ajax.run();
 					}
 					else {
 						var now = new Date().getTime();
@@ -269,11 +310,14 @@
 		</script>
 	</head>
 	<body>
-		<div class="section">
-			<h2 id="check-status"></h2> <button id="pause"></button>
+		<div id="header">
+			<h2 id="check-status"></h2>
+			<button id="pause"></button>
 		</div>
-		<div class="section">
-			<h2 id="files-status"></h2>
+		<div id="footer">
+			<span id="files-status"></span>
+		</div>
+		<div id="scroll">
 			<ul id="import-queue"></ul>
 			<div class="clear"></div>
 		</div>

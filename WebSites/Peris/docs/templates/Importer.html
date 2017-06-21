@@ -118,6 +118,7 @@
 			var check_list = [];
 			var ready_list = [];
 			var last_query_list_time;
+			var check_list_paused = false;
 
 			var onIdle = function (capability) {
 				// process pending files
@@ -130,43 +131,58 @@
 					}
 				}
 
-				// process check list
-				if (check_list.length > 0) {
-					$("#check-status").html("<em>" + check_list.length + "</em> files in checking: <span class='detail'>" + check_list[0] + "</span>");
+				if (!check_list_paused) {
+					// process check list
+					if (check_list.length > 0) {
+						$("#check-status").html("<em>" + check_list.length + "</em> files in checking: <span class='detail'>" + check_list[0] + "</span>");
+						$("#pause").text("Pause");
 
-					if (ready_list.indexOf(check_list[0]) < 0) {
-						(function (path) {
-							ajax.getJSON("/query?query=file-info&path=" + encodeURIComponent(path), function (json) {
-								if (json.result == "success") {
-									if (!json.data) {
-										console.log("New file found: " + path);
+						if (ready_list.indexOf(check_list[0]) < 0) {
+							(function (path) {
+								ajax.getJSON("/query?query=file-info&path=" + encodeURIComponent(path), function (json) {
+									if (json.result == "success") {
+										if (!json.data) {
+											console.log("New file found: " + path);
 
-										addCheckFile(path);
+											addCheckFile(path);
+										}
 									}
-								}
-								else if (json.result == "fail") {
-									console.warn("query file info " + path + " failed:", json.error);
-								}
-								else
-									console.error("unexpect json result:", json);
+									else if (json.result == "fail") {
+										console.warn("query file info " + path + " failed:", json.error);
+										check_list_paused = true;
+									}
+									else
+										console.error("unexpect json result:", json);
 
-								ready_list.push(path);
-							});
-						})(check_list[0]);
-					}
+									ready_list.push(path);
+								});
+							})(check_list[0]);
+						}
 
-					check_list.splice(0, 1);
-				}
-				else {
-					var now = new Date().getTime();
-					if (now - last_query_list_time > QUERY_LIST_INTERVAL) {
-						if (!$("#check-status").hasClass("querying"))
-							queryDirList();
+						check_list.splice(0, 1);
 					}
 					else {
-						var waiting = Math.ceil((last_query_list_time + QUERY_LIST_INTERVAL - now) / 1000);
-						$("#check-status").html("Waiting <em>" + waiting + "s</em>, query list again.");
+						var now = new Date().getTime();
+						if (now - last_query_list_time > QUERY_LIST_INTERVAL) {
+							if (!$("#check-status").hasClass("querying"))
+								queryDirList();
+							else
+								$("#pause").text("Pause");
+						}
+						else {
+							var waiting = Math.ceil((last_query_list_time + QUERY_LIST_INTERVAL - now) / 1000);
+							$("#check-status").html("Waiting <em>" + waiting + "s</em>, query list again.");
+							$("#pause").text("Start");
+						}
 					}
+				}
+				else {
+					$("#check-status").html("Paused.");
+					if (check_list.length > 0) {
+						$("#check-status").html($("#check-status").html() + " <em>" + check_list.length + "</em> files in checking");
+					}
+
+					$("#pause").text("Start");
 				}
 			};
 
@@ -236,12 +252,25 @@
 				ajax = new ajax_queue({ onIdle: onIdle });
 
 				queryDirList();
+
+				$("#pause").click(function () {
+					if (check_list_paused)
+						check_list_paused = false;
+					else {
+						if ($("#check-status").hasClass("querying") || check_list.length > 0) {
+							check_list_paused = true;
+						}
+						else {
+							last_query_list_time -= QUERY_LIST_INTERVAL;
+						}
+					}
+				});
 			});
 		</script>
 	</head>
 	<body>
 		<div class="section">
-			<h2 id="check-status"></h2>
+			<h2 id="check-status"></h2> <button id="pause"></button>
 		</div>
 		<div class="section">
 			<h2 id="files-status"></h2>

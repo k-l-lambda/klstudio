@@ -4,13 +4,16 @@ TODO:
 		start slider button
 
 
-2017.6.20	K.L.	<k.l.lambda@gmail.com>
+2017.6.21	K.L.	<k.l.lambda@gmail.com>
 
 	>	static/ajax_queue.js: avoid repeated checkIdle.
 
 	+	templates/Importer.html: added docked header.
 
 	+	templates/Importer.html: pause button added.
+
+
+2017.6.20	K.L.	<k.l.lambda@gmail.com>
 
 	>	templates/Importer.html: added marker icons.
 

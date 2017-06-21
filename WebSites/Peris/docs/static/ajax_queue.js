@@ -8,10 +8,14 @@ ajax_queue = function (options)
 	if(options.onIdle)
 		this.onIdle = options.onIdle;
 
+	this.busy_interval = options.busy_interval || 1;
+	this.idle_interval = options.idle_interval || 1000;
+
+	this.checkIdle();
 };
 
 ajax_queue.prototype.onIdle = function () { };
-ajax_queue.prototype.running = false;
+ajax_queue.prototype.in_busy = false;
 
 ajax_queue.prototype.ajax = function (options) {
 	++this.pending_requests;
@@ -37,24 +41,28 @@ ajax_queue.prototype.post = function (url, data, callback) {
 	this.ajax({ type: "POST", url: url, data: data, success: callback });
 };
 
-ajax_queue.prototype.run = function () {
-	this.running = true;
+ajax_queue.prototype.busy = function () {
+	this.in_busy = true;
 };
 
 ajax_queue.prototype.onRequestComplete = function () {
 	--this.pending_requests;
 
-	this.checkIdle();
+	this.triggerIdle();
+};
+
+ajax_queue.prototype.triggerIdle = function () {
+	if (this.pending_requests < this.busy_threshold)
+		this.onIdle(this.busy_threshold - this.pending_requests);
 };
 
 ajax_queue.prototype.checkIdle = function () {
-	if (this.pending_requests < this.busy_threshold)
-		this.onIdle(this.busy_threshold - this.pending_requests);
+	this.triggerIdle();
 
 	var self = this;
 	setTimeout(function () {
 		self.checkIdle();
-	}, (this.pending_requests || this.running) > 0 ? 10 : 1000);
+	}, (this.pending_requests || this.in_busy) > 0 ? this.busy_interval : this.idle_interval);
 
-	this.running = false;
+	this.in_busy = false;
 };

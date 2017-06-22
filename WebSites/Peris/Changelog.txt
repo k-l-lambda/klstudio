@@ -4,6 +4,13 @@ TODO:
 		start slider button
 
 
+2017.6.22	K.L.	<k.l.lambda@gmail.com>
+
+	+	templates/Importer.html: added ajax status icon.
+
+	+	templates/Importer.html: retry check file when click.
+
+
 2017.6.21	K.L.	<k.l.lambda@gmail.com>
 
 	>	static/ajax_queue.js: avoid repeated checkIdle.

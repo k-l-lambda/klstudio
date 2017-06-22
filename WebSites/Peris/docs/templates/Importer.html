@@ -144,6 +144,30 @@
 			{
 				text-shadow: 1px 1px 1px #ccc;
 			}
+
+			#ajax-status
+			{
+				display: inline-block;
+				width: 0.8em;
+				height: 0.8em;
+				border-radius: 0.4em;
+				vertical-align: middle;
+			}
+
+			#ajax-status.busy
+			{
+				background: #f00;
+			}
+
+			#ajax-status.working
+			{
+				background: #eb0;
+			}
+
+			#ajax-status.idle
+			{
+				background: #0f0;
+			}
 		</style>
 		<script src="/static/jquery.min.js" type="text/javascript"></script>
 		<script src="/static/utils.js" type="text/javascript"></script>
@@ -212,7 +236,8 @@
 						}
 						else {
 							var waiting = Math.ceil((last_query_list_time + QUERY_LIST_INTERVAL - now) / 1000);
-							$("#check-status").html("Waiting <em>" + waiting + "s</em>, query list again.");
+							if (!$("#check-status").hasClass("querying"))
+								$("#check-status").html("Waiting <em>" + waiting + "s</em>, query list again.");
 							$("#pause").text("Start");
 						}
 					}
@@ -225,6 +250,9 @@
 
 					$("#pause").text("Start");
 				}
+
+				if (ajax)
+					$("#ajax-status").attr("class", ajax.pending_requests >= ajax.busy_threshold ? "busy" : (ajax.pending_requests > 0 ? "working" : "idle"));
 			};
 
 			var queryDirList = function () {
@@ -263,11 +291,18 @@
 				var figure = $("<li class='pending' data-path=" + path + "><p><span class='marker'></span><a target='_blank' href='" + url + "'><img src='" + url + "' /></a></p><p title='" + path + "'>" + name + "</p></li>");
 				figure.appendTo("#import-queue");
 
+				figure.find(".marker").click(function () {
+					if (figure.hasClass("pending") || figure.hasClass("error") || figure.hasClass("ready"))
+						checkFile(path, figure);
+				});
+
 				updateFilesStatus();
 			};
 
 			var checkFile = function (path, figure) {
 				figure.removeClass("pending");
+				figure.removeClass("error");
+				figure.removeClass("ready");
 				figure.addClass("checking");
 
 				ajax.post("/check-file", { path: path }, function (json) {
@@ -312,7 +347,7 @@
 	<body>
 		<div id="header">
 			<h2 id="check-status"></h2>
-			<button id="pause"></button>
+			<span id="ajax-status"></span> <button id="pause"></button>
 		</div>
 		<div id="footer">
 			<span id="files-status"></span>

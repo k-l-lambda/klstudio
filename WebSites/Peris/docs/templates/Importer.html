@@ -200,9 +200,12 @@
 						$("#check-status").html("<em>" + check_list.length + "</em> files in checking: <span class='detail'>" + check_list[0] + "</span>");
 						$("#pause").text("Pause");
 
-						if (ready_list.indexOf(check_list[0]) < 0) {
+						while (check_list.length > 0 && ready_list.indexOf(check_list[0]) >= 0 && check_list.length % 100 > 0)
+							check_list.splice(0, 1);
+
+						if (check_list.length > 0 && ready_list.indexOf(check_list[0]) < 0) {
 							(function (path) {
-								ajax.getJSON("/query?query=file-info&path=" + encodeURIComponent(path), function (json) {
+								ajax.getJSON("/query?query=existence&path=" + encodeURIComponent(path), function (json) {
 									if (json.result == "success") {
 										if (!json.data) {
 											console.log("New file found: " + path);
@@ -288,7 +291,7 @@
 				var name = path;
 				if (name.length > 17)
 					name = name.substr(0, 5) + ".." + name.substr(name.length - 10, 10);
-				var figure = $("<li class='pending' data-path=" + path + "><p><span class='marker'></span><a target='_blank' href='" + url + "'><img src='" + url + "' /></a></p><p title='" + path + "'>" + name + "</p></li>");
+				var figure = $("<li class='pending' data-path='" + path + "'><p><span class='marker'></span><a target='_blank' href='" + url + "'><img src='" + url + "' /></a></p><p title='" + path + "'>" + name + "</p></li>");
 				figure.appendTo("#import-queue");
 
 				figure.find(".marker").click(function () {

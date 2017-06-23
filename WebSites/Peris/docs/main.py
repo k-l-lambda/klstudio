@@ -84,7 +84,7 @@ class DbQueryHandle:
 
 			if input.sql:
 				data = DbQueryHandle.generalQuery(input.sql)
-			elif input.query == 'file-info':
+			elif input.query == 'file-info' or input.query == 'existence':
 				data = DbQueryHandle.fileInfo(input)
 
 			return Serializer.save({'result': 'success', 'data': data})
@@ -103,6 +103,9 @@ class DbQueryHandle:
 			register = register and register[0]
 			if not register:
 				return None
+
+			if input.query == 'existence':
+				return {'path': input.path}
 
 			info = {'path': input.path, 'hash': register.hash, 'date': register.date}
 

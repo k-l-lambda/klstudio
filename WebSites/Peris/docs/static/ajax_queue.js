@@ -48,7 +48,7 @@ ajax_queue.prototype.busy = function () {
 ajax_queue.prototype.onRequestComplete = function () {
 	--this.pending_requests;
 
-	this.triggerIdle();
+	//this.triggerIdle();
 };
 
 ajax_queue.prototype.triggerIdle = function () {
@@ -56,13 +56,20 @@ ajax_queue.prototype.triggerIdle = function () {
 		this.onIdle(this.busy_threshold - this.pending_requests);
 };
 
+//var lastTime = new Date().getTime();
 ajax_queue.prototype.checkIdle = function () {
 	this.triggerIdle();
+
+	/*var now = new Date().getTime();
+	var delta = now - lastTime;
+	lastTime = now;*/
+	var waiting = (this.pending_requests || this.in_busy) > 0 ? this.busy_interval : this.idle_interval;
+	//console.log("delta:", delta, "waiting:", waiting);
 
 	var self = this;
 	setTimeout(function () {
 		self.checkIdle();
-	}, (this.pending_requests || this.in_busy) > 0 ? this.busy_interval : this.idle_interval);
+	}, waiting);
 
 	this.in_busy = false;
 };

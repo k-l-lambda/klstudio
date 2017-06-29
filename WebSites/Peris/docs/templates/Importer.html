@@ -168,6 +168,11 @@
 			{
 				background: #0f0;
 			}
+
+			.renamed .label
+			{
+				color: #a60;
+			}
 		</style>
 		<script src="/static/jquery.min.js" type="text/javascript"></script>
 		<script src="/static/utils.js" type="text/javascript"></script>
@@ -291,7 +296,7 @@
 				var name = path;
 				if (name.length > 17)
 					name = name.substr(0, 5) + ".." + name.substr(name.length - 10, 10);
-				var figure = $("<li class='pending' data-path='" + path + "'><p><span class='marker'></span><a target='_blank' href='" + url + "'><img src='" + url + "' /></a></p><p title='" + path + "'>" + name + "</p></li>");
+					var figure = $("<li class='pending' data-path='" + path + "'><p><span class='marker'></span><a target='_blank' href='" + url + "'><img src='" + url + "' /></a></p><p class='label' title='" + path + "'>" + name + "</p></li>");
 				figure.appendTo("#import-queue");
 
 				figure.find(".marker").click(function () {
@@ -308,11 +313,22 @@
 				figure.removeClass("ready");
 				figure.addClass("checking");
 
-				ajax.post("/check-file", { path: path }, function (json) {
+				ajax.post("/check-file", { path: path, fix_extension: true }, function (json) {
 					figure.removeClass("checking");
 
 					if (json.success) {
 						console.log("check file success: ", json);
+
+						if (json.rename) {
+							console.log("renamed:", json.path, "->", json.rename);
+							figure.data("path", json.rename);
+
+							var url = "/images/" + json.rename;
+							figure.find("img").attr("src", url);
+							figure.find("a").attr("href", url);
+							figure.find(".label").attr("title", json.rename);
+							figure.addClass("renamed");
+						}
 
 						figure.addClass("ready");
 					}

@@ -520,11 +520,14 @@ Peris.Viewer.prototype.checkAll = function () {
 
 	var check;
 	check = function () {
-		$.post("/check-file", { path: viewer.Data[viewer.CheckAllIndex].path }, function (json) {
+		$.post("/check-file", { path: viewer.Data[viewer.CheckAllIndex].path, fix_extension: true }, function (json) {
 			var leftCount = viewer.Data.length - viewer.CheckAllIndex;
 
-			if (json.success)
-				console.log(leftCount, json.data && json.data || json);
+			if (json.success) {
+				console.log(leftCount, json.description, json.data && json.data || json);
+				if (json.rename)
+					console.log("renamed:", json.path, "->", json.rename);
+			}
 			else
 				console.warn(leftCount, json);
 

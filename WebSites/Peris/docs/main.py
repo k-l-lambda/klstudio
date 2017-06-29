@@ -22,6 +22,12 @@ import Fingerprint16
 
 imageFilePattern = re.compile('.*\.(jpg|jpeg|jpe|png|bmp|gif|webp)$')
 
+formatExtensionMap = {
+	'JPEG':	'jpg',
+	'PNG':	'png',
+	'GIF':	'gif',
+}
+
 db = web.database(host='127.0.0.1', dbn='mysql', user=config.db_user, pw=config.db_password, db='peris')
 
 
@@ -49,6 +55,19 @@ def getImageDate(path):
 		pass
 
 	return datetime.datetime.now()
+
+
+def getImageExtensionFix(path):
+	f = open(path, 'rb')
+	i = Image.open(f)
+	ext = formatExtensionMap.get(i.format)
+	if ext is None:
+		raise 'unregistered image format ' + i.format
+
+	f.close()
+
+	if path[-len(ext):] != ext:
+		return ext
 
 
 class HomeHandle:
@@ -450,11 +469,35 @@ class CheckFileHandle:
 		web.header('Content-Type', 'application/json')
 
 		try:
-			input = web.input()
-			full_path = config.data_root + input.path
+			input = web.input(fix_extension = None)
+			path = input.path
+			full_path = config.data_root + path
 
 			if os.path.isfile(full_path):
-				record = db.select('file_register', where = 'path=$path', vars = dict(path = input.path))
+				rename = None
+				if input.fix_extension:
+					try:
+						rename = getImageExtensionFix(full_path)
+						if rename:
+							new_path = re.sub(r"\.\w+$", "." + rename, path)
+							os.rename(full_path, config.data_root + new_path)
+
+							record = db.select('file_register', where = 'path=$path', vars = dict(path = path))
+							record = record and record[0]
+							if record:
+								db.delete('file_register', where = 'path=$path', vars = dict(path = path))
+								try:
+									db.insert('file_register', path = new_path, hash = record.hash, date = record.date)
+								except:
+									pass
+
+							path = new_path
+							full_path = config.data_root + new_path
+					except:
+						logging.warn('fix image extension error: %s', sys.exc_info())
+						rename = None
+
+				record = db.select('file_register', where = 'path=$path', vars = dict(path = path))
 				record = record and record[0]
 
 				date = getImageDate(full_path)
@@ -466,26 +509,26 @@ class CheckFileHandle:
 				identityFile = db.select('file_register', where = 'hash=$hash', vars = dict(hash = hash))
 				identityFile = identityFile and identityFile[0]
 
-				duplicated = (identityFile and identityFile.path != input.path) and identityFile.path or None
+				duplicated = (identityFile and identityFile.path != path) and identityFile.path or None
 
 				cbir = DbCbir.query(hash)
 				thumb = cbir and cbir['thumb'] or None
 
 				if record and record.date == date:
-					return Serializer.save({'success': True, 'result': 'ignore', 'path': input.path, 'data': {'hash': hash, 'date': date, 'thumb': thumb }, 'description': 'file exists, register up to date.'})
+					return Serializer.save({'success': True, 'result': 'ignore', 'path': input.path, 'data': {'hash': hash, 'date': date, 'thumb': thumb }, 'description': 'file exists, register up to date.', 'rename': rename and path})
 
 				if record:
-					db.update('file_register', where = 'path=$path', vars = dict(path = input.path), hash = hash, date = date)
-					return Serializer.save({'success': True, 'result': 'update', 'path': input.path, 'description': 'File exists, register updated.', 'data': {'hash': hash, 'date': date, 'thumb': thumb }, 'duplicated': duplicated})
+					db.update('file_register', where = 'path=$path', vars = dict(path = path), hash = hash, date = date)
+					return Serializer.save({'success': True, 'result': 'update', 'path': input.path, 'description': 'File exists, register updated.', 'data': {'hash': hash, 'date': date, 'thumb': thumb }, 'duplicated': duplicated, 'rename': rename and path})
 				else:
-					db.insert('file_register', path = input.path, hash = hash, date = date)
-					return Serializer.save({'success': True, 'result': 'insert', 'path': input.path, 'description': 'File exists, register inserted.', 'data': {'hash': hash, 'date': date, 'thumb': thumb}, 'duplicated': duplicated})
+					db.insert('file_register', path = path, hash = hash, date = date)
+					return Serializer.save({'success': True, 'result': 'insert', 'path': input.path, 'description': 'File exists, register inserted.', 'data': {'hash': hash, 'date': date, 'thumb': thumb}, 'duplicated': duplicated, 'rename': rename and path})
 			else:
-				ret = db.delete('file_register', where = 'path=$path', vars = dict(path = input.path))
-				return Serializer.save({'success': True, 'result': 'delete', 'path': input.path, 'description': 'file non-existent, removed %d register(s).' % ret})
+				ret = db.delete('file_register', where = 'path=$path', vars = dict(path = path))
+				return Serializer.save({'success': True, 'result': 'delete', 'path': path, 'description': 'file non-existent, removed %d register(s).' % ret})
 		except:
 			logging.warn('Check file error: %s', traceback.format_exception(*sys.exc_info()))
-			return Serializer.save({'success': False, 'path': input.path, 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
+			return Serializer.save({'success': False, 'path': path, 'error': ''.join(traceback.format_exception(*sys.exc_info()))})
 
 
 class FingerprintHandle:

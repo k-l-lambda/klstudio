@@ -688,6 +688,15 @@
 				fill: #ff00cc;
 			}
 
+			.fingering
+			{
+				text-anchor: middle;
+				font-size: 12px;
+				fill: white;
+				text-shadow: #000 1px 1px;
+				font-weight: bold;
+			}
+
 			.beat-bar
 			{
 				stroke: white;
@@ -1734,6 +1743,9 @@
 				var tempos = 4;
 				var tempoIndex = 0;
 				var keyRange = {};
+				var fingeringPattern = null;
+				var fingerings = [];
+
 				for (var n = 0; n < data.length; ++n) {
 					if (data[n][1] > 0) {
 						var deltaBeats = data[n][1] / millisecondsPerBeat;
@@ -1826,6 +1838,24 @@
 									tempoIndex = 0;
 
 									break;
+								case "text":
+									var matches = event.text.match(/fingering-marker-pattern:(.*)/);
+									if (matches && matches[1])
+										fingeringPattern = new RegExp(matches[1]);
+
+									break;
+								case "marker":
+									if (fingeringPattern) {
+										var matches = event.text.match(fingeringPattern);
+										if (matches && matches.length > 2) {
+											var note = Number(matches[1]);
+											var fingers = matches[2];
+
+											fingerings.push({ start: time, note: note, fingers: fingers });
+										}
+									}
+
+									break;
 							}
 
 							break;
@@ -1845,7 +1875,7 @@
 				for (var i in notes)
 					notes[i].index = i;
 
-				return { channels: channels, notes: notes, pedals: pedals, bars: bars, endTime: time, keyRange: keyRange };
+				return { channels: channels, notes: notes, pedals: pedals, bars: bars, endTime: time, keyRange: keyRange, fingerings: fingerings };
 			};
 
 			var searchNotation = function (note, options) {
@@ -1915,6 +1945,16 @@
 				group.rect(0, data.start * ScoreTimeScale, 2080, Math.max(data.duration * ScoreTimeScale, 1), 0, 0, options);
 			};
 
+			var paintFingering = function (data, group) {
+				var pitch = Musical.notePitch(data.note);
+				var white = PinaoConfig.KeySerials.White.indexOf(pitch) >= 0;
+				var x = noteToX(data.note);
+				x = white ? x + 0.5 : x;
+
+				var options = { class: "fingering", "data-note": data.note };
+				group.text(x * PinaoConfig.KeyWidth, data.start * ScoreTimeScale + 12, data.fingers, options);
+			}
+
 			var paintScore = function () {
 				ScoreNotations = parseMidiData(MIDI.Player.data);
 
@@ -1947,6 +1987,11 @@
 
 					// only paint the first pedal channel
 					break;
+				}
+
+				var fingerings = svg(score.group({ class: "fingerings" }));
+				for (var i = 0; i < ScoreNotations.fingerings.length; ++i) {
+					paintFingering(ScoreNotations.fingerings[i], fingerings);
 				}
 
 				if (localStorage.KeyboardRangeAuto) {

@@ -14,6 +14,8 @@ Pending Issues:
 
 2017.9.1	K.L.	<k.l.lambda@gmail.com>
 
+	+	PianoTrainer: fingering edition save implemented.
+
 	+	PianoTrainer: added save fingrings.
 	+	PianoTrainer: fingerings edition implemented.
 	+	PianoTrainer: added editing mode.

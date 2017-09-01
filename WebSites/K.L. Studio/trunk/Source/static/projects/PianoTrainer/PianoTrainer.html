@@ -2018,7 +2018,7 @@
 								if (editing) {
 									var fingers = ScoreNotations.fingeringMap[noteData.start] ? ScoreNotations.fingeringMap[noteData.start][noteData.note] : "";
 									var newFingers = prompt("Edit Fingering", fingers);
-									if (newFingers != fingers) {
+									if (newFingers != null && newFingers != fingers) {
 										if (newFingers) {
 											ScoreNotations.fingeringMap[noteData.start] = ScoreNotations.fingeringMap[noteData.start] || [];
 											ScoreNotations.fingeringMap[noteData.start][noteData.note] = newFingers;
@@ -2287,6 +2287,9 @@
 						var event = file.tracks[i][ii];
 						if (event.type == "meta" && event.subtype == "marker") {
 							if (/finger:.*/.test(event.text)) {
+								if (file.tracks[i][ii + 1])
+									file.tracks[i][ii + 1].deltaTime += file.tracks[i][ii].deltaTime;
+
 								file.tracks[i].splice(ii, 1);
 								--ii;
 							}
@@ -2294,17 +2297,24 @@
 					}
 				}
 
+				var ticksPerBeat = file.header.ticksPerBeat;
+				var microsecondsPerBeat = 500000;
+
 				for (var i in file.tracks) {
 					var time = 0;
 
 					for (var ii = 0; ii < file.tracks[i].length; ++ii) {
 						var event = file.tracks[i][ii];
-						time += event.deltaTime;
+						time += event.deltaTime * microsecondsPerBeat / (ticksPerBeat * 1000);
+						//console.log("time:", time);
 
-						if (event.type == "channel" && event.subtype == "noteOn") {
+						if (event.type == "meta" && event.subtype == "setTempo") {
+							microsecondsPerBeat = event.microsecondsPerBeat;
+						}
+						else if (event.type == "channel" && event.subtype == "noteOn") {
 							var fingers = ScoreNotations.fingeringMap[time] && ScoreNotations.fingeringMap[time][event.noteNumber];
 							if (fingers) {
-								file.tracks[i].splice(ii, 0, { deltaTime: 0, type: "meta", subtype: "marker", text: "finger:" + event.noteNumber + "|" + fingers });
+								file.tracks[i].splice(ii + 1, 0, { deltaTime: 0, type: "meta", subtype: "marker", text: "finger:" + event.noteNumber + "|" + fingers });
 								++ii;
 							}
 						}
@@ -2322,6 +2332,8 @@
 				localStorage.SourceData = data;
 
 				$("#playback-save").attr("href", data);
+
+				console.log("Edition saved.");
 			};
 
 			$(function () {

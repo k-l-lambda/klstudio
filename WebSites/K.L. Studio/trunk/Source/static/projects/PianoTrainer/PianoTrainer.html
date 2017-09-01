@@ -1773,6 +1773,7 @@
 				var keyRange = {};
 				var fingeringPattern = null;
 				var fingerings = [];
+				var fingeringMap = [];
 
 				for (var n = 0; n < data.length; ++n) {
 					if (data[n][1] > 0) {
@@ -1880,6 +1881,8 @@
 											var fingers = matches[2];
 
 											fingerings.push({ start: time, note: note, fingers: fingers });
+											fingeringMap[time] = fingeringMap[time] || [];
+											fingeringMap[time][note] = fingers;
 										}
 									}
 
@@ -1903,7 +1906,7 @@
 				for (var i in notes)
 					notes[i].index = i;
 
-				return { channels: channels, notes: notes, pedals: pedals, bars: bars, endTime: time, keyRange: keyRange, fingerings: fingerings };
+				return { channels: channels, notes: notes, pedals: pedals, bars: bars, endTime: time, keyRange: keyRange, fingerings: fingerings, fingeringMap: fingeringMap };
 			};
 
 			var searchNotation = function (note, options) {
@@ -1963,9 +1966,9 @@
 				var options = { class: "note pitch-" + pitch, "data-note": note.note/*, "data-pitch": pitch*/, "data-index": note.index, style: "opacity:" + opacity };
 				var height = Math.max(note.duration * ScoreTimeScale - 1, 1);
 				if (white)
-					group.rect(x * PinaoConfig.KeyWidth + 2, note.start * ScoreTimeScale, PinaoConfig.KeyWidth - 4, height, 5, 5, options);
+					return group.rect(x * PinaoConfig.KeyWidth + 2, note.start * ScoreTimeScale, PinaoConfig.KeyWidth - 4, height, 5, 5, options);
 				else
-					group.rect((x - 0.25) * PinaoConfig.KeyWidth, note.start * ScoreTimeScale, PinaoConfig.KeyWidth * 0.5, height, options);
+					return group.rect((x - 0.25) * PinaoConfig.KeyWidth, note.start * ScoreTimeScale, PinaoConfig.KeyWidth * 0.5, height, options);
 			};
 
 			var paintPedal = function (data, group) {
@@ -1979,7 +1982,7 @@
 				var x = noteToX(data.note);
 				x = white ? x + 0.5 : x;
 
-				var options = { class: "fingering", "data-note": data.note };
+				var options = { class: "fingering", "data-note": data.note, "data-time": data.start };
 				group.text(x * PinaoConfig.KeyWidth, data.start * ScoreTimeScale + 12, data.fingers, options);
 			}
 
@@ -2002,7 +2005,33 @@
 				for (var c in ScoreNotations.channels) {
 					var g = svg(score.group({ class: "channel", "data-channel": c }));
 					for (var i = 0; i < ScoreNotations.channels[c].length; ++i) {
-						paintNote(ScoreNotations.channels[c][i], g);
+						var n = paintNote(ScoreNotations.channels[c][i], g);
+
+						(function () {
+							var note = n;
+							var noteData = ScoreNotations.channels[c][i];
+
+							$(note).click(function () {
+								var editing = $("body").hasClass("editing");
+								if (editing) {
+									var fingers = ScoreNotations.fingeringMap[noteData.start] ? ScoreNotations.fingeringMap[noteData.start][noteData.note] : "";
+									fingers = prompt("Edit Fingering", fingers);
+									if (fingers) {
+										ScoreNotations.fingeringMap[noteData.start] = ScoreNotations.fingeringMap[noteData.start] || [];
+										ScoreNotations.fingeringMap[noteData.start][noteData.note] = fingers;
+									}
+									else
+										delete ScoreNotations.fingeringMap[noteData.start][noteData.note];
+
+									var oldLabel = $(".fingering[data-note=" + noteData.note + "][data-time=" + noteData.start + "]");
+									if (oldLabel)
+										oldLabel.remove();
+
+									if (fingers)
+										paintFingering({ note: noteData.note, start: noteData.start, fingers: fingers }, svg($("g.fingerings")[0]));
+								}
+							});
+						})();
 					}
 				}
 
@@ -2026,13 +2055,6 @@
 				if (localStorage.KeyboardRangeAuto) {
 					setIntensiveRangeMask();
 				}
-
-				$(".note").click(function () {
-					var editing = $("body").hasClass("editing");
-					if (editing) {
-						prompt("Edit Fingering", $(this).data("note"));
-					}
-				});
 			};
 
 			var updateScorePosition = function (time) {

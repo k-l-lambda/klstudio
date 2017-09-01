@@ -199,6 +199,27 @@
 				background: url(/res/images/save.png) center no-repeat;
 			}
 
+			#playback-edit
+			{
+				display: inline-block;
+				vertical-align: middle;
+				width: 32px;
+				height: 32px;
+				background: url(/res/images/edit.png) center no-repeat;
+				opacity: 0;
+			}
+
+			.editing #playback-edit
+			{
+				opacity: 0.7;
+				background-color: #711;
+			}
+
+			#playback-edit:hover
+			{
+				opacity: 1;
+			}
+
 			#playback-mode
 			{
 				margin-left: 8px;
@@ -370,21 +391,28 @@
 				height: 38px;
 			}
 
-			#keyboard-canvas, #score-canvas
-			{
-				position: relative;
-			}
-
 			#keyboard .key
 			{
 				cursor: pointer;
 			}
 
+			#keyboard-canvas, #header
+			{
+				position: relative;
+				z-index: 100;
+			}
+
 			#score-canvas
 			{
-				z-index: -100;
+				/*z-index: -100;*/
+				position: relative;
 				height: 100000px;
 				background-color: black;
+			}
+
+			.editing #score-canvas
+			{
+				background-color: #200;
 			}
 
 			#klstudio
@@ -821,9 +849,9 @@
 
 			var ScoreTimeScale = 0.08;
 
-			var MetaData = $.parseJSON(localStorage.MetaData) || {};
+			var MetaData = $.parseJSON(localStorage.MetaData || null) || {};
 
-			var KeyMap = $.parseJSON(localStorage.KeyMap) || {
+			var KeyMap = $.parseJSON(localStorage.KeyMap || null) || {
 				// number keys
 				49: 60,
 				50: 62,
@@ -1989,6 +2017,7 @@
 					break;
 				}
 
+				// fingerings
 				var fingerings = svg(score.group({ class: "fingerings" }));
 				for (var i = 0; i < ScoreNotations.fingerings.length; ++i) {
 					paintFingering(ScoreNotations.fingerings[i], fingerings);
@@ -1997,6 +2026,13 @@
 				if (localStorage.KeyboardRangeAuto) {
 					setIntensiveRangeMask();
 				}
+
+				$(".note").click(function () {
+					var editing = $("body").hasClass("editing");
+					if (editing) {
+						prompt("Edit Fingering", $(this).data("note"));
+					}
+				});
 			};
 
 			var updateScorePosition = function (time) {
@@ -2054,7 +2090,7 @@
 			};
 
 			var pickFile = function (file) {
-				if (file.type == "audio/mid") {
+				if (file && file.type == "audio/mid") {
 					var fr = new FileReader();
 					fr.onloadend = function (e) {
 						console.log("MIDI file loaded:", file.name);
@@ -2460,6 +2496,15 @@
 							}
 						});
 
+						$("#playback-edit").click(function () {
+							var editing = $("body").hasClass("editing");
+
+							if (editing)
+								$("body").removeClass("editing");
+							else
+								$("body").addClass("editing");
+						});
+
 						Fll.start();
 
 						updatePlaybackProgress();
@@ -2636,6 +2681,7 @@
 						</span>
 						<span id="playback-speed"></span>
 					</span>
+					<button id="playback-edit" class="image-button"></button>
 				</span>
 				<span id="input-device-bar">
 					<select id="input-device" disabled="disabled" title="Choose a MIDI Input Device">

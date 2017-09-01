@@ -913,6 +913,8 @@
 
 			var MidiTimeStampOffset = null;
 
+			var EditionDirty = false;
+
 			var Follower = function () {
 				this.State = Follower.States.Idle;
 				this.Handler = null;
@@ -2015,20 +2017,24 @@
 								var editing = $("body").hasClass("editing");
 								if (editing) {
 									var fingers = ScoreNotations.fingeringMap[noteData.start] ? ScoreNotations.fingeringMap[noteData.start][noteData.note] : "";
-									fingers = prompt("Edit Fingering", fingers);
-									if (fingers) {
-										ScoreNotations.fingeringMap[noteData.start] = ScoreNotations.fingeringMap[noteData.start] || [];
-										ScoreNotations.fingeringMap[noteData.start][noteData.note] = fingers;
+									var newFingers = prompt("Edit Fingering", fingers);
+									if (newFingers != fingers) {
+										if (newFingers) {
+											ScoreNotations.fingeringMap[noteData.start] = ScoreNotations.fingeringMap[noteData.start] || [];
+											ScoreNotations.fingeringMap[noteData.start][noteData.note] = newFingers;
+										}
+										else
+											delete ScoreNotations.fingeringMap[noteData.start][noteData.note];
+
+										EditionDirty = true;
+
+										var oldLabel = $(".fingering[data-note=" + noteData.note + "][data-time=" + noteData.start + "]");
+										if (oldLabel)
+											oldLabel.remove();
+
+										if (newFingers)
+											paintFingering({ note: noteData.note, start: noteData.start, fingers: newFingers }, svg($("g.fingerings")[0]));
 									}
-									else
-										delete ScoreNotations.fingeringMap[noteData.start][noteData.note];
-
-									var oldLabel = $(".fingering[data-note=" + noteData.note + "][data-time=" + noteData.start + "]");
-									if (oldLabel)
-										oldLabel.remove();
-
-									if (fingers)
-										paintFingering({ note: noteData.note, start: noteData.start, fingers: fingers }, svg($("g.fingerings")[0]));
 								}
 							});
 						})();
@@ -2272,6 +2278,50 @@
 
 				var midiData = OMidiFile(file.header, file.tracks);
 				return "data:audio/mid;base64," + btoa(midiData);
+			};
+
+			var saveFingerings = function (file) {
+				// cleanup
+				for (var i in file.tracks) {
+					for (var ii = 0; ii < file.tracks[i].length; ++ii) {
+						var event = file.tracks[i][ii];
+						if (event.type == "meta" && event.subtype == "marker") {
+							if (/finger:.*/.test(event.text)) {
+								file.tracks[i].splice(ii, 1);
+								--ii;
+							}
+						}
+					}
+				}
+
+				for (var i in file.tracks) {
+					var time = 0;
+
+					for (var ii = 0; ii < file.tracks[i].length; ++ii) {
+						var event = file.tracks[i][ii];
+						time += event.deltaTime;
+
+						if (event.type == "channel" && event.subtype == "noteOn") {
+							var fingers = ScoreNotations.fingeringMap[time] && ScoreNotations.fingeringMap[time][event.noteNumber];
+							if (fingers) {
+								file.tracks[i].splice(ii, 0, { deltaTime: 0, type: "meta", subtype: "marker", text: "finger:" + event.noteNumber + "|" + fingers });
+								++ii;
+							}
+						}
+					}
+				}
+			};
+
+			var saveEdition = function () {
+				var data = filterMidiFile(function (file) {
+					saveFingerings(file);
+				});
+
+				MIDI.Player.loadFile(data);
+
+				localStorage.SourceData = data;
+
+				$("#playback-save").attr("href", data);
 			};
 
 			$(function () {
@@ -2521,10 +2571,16 @@
 						$("#playback-edit").click(function () {
 							var editing = $("body").hasClass("editing");
 
-							if (editing)
+							if (editing) {
+								if (EditionDirty)
+									saveEdition();
+
 								$("body").removeClass("editing");
-							else
+							}
+							else {
 								$("body").addClass("editing");
+								EditionDirty = false;
+							}
 						});
 
 						Fll.start();

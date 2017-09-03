@@ -1776,8 +1776,16 @@
 				var fingeringPattern = null;
 				var fingerings = [];
 				var fingeringMap = [];
+				//var ticks = [];
+				var ticks = 0;
 
 				for (var n = 0; n < data.length; ++n) {
+					/*var track = data[n][0].track;
+					ticks[track] = ticks[track] || 0;
+					ticks[track] += data[n][0].ticksToEvent;
+					var currentTick = ticks[track];*/
+					ticks += data[n][0].ticksToEvent;
+
 					if (data[n][1] > 0) {
 						var deltaBeats = data[n][1] / millisecondsPerBeat;
 						for (var b = Math.ceil(beats); b < beats + deltaBeats; ++b) {
@@ -1802,7 +1810,7 @@
 									note = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
 									if (channelStatus[event.channel][note])
 										console.warn("unexpected noteOn: ", n, time, event);
-									channelStatus[event.channel][note] = { start: time, velocity: event.velocity };
+									channelStatus[event.channel][note] = { startTick: ticks, start: time, velocity: event.velocity };
 
 									keyRange.low = Math.min(keyRange.low || note, note);
 
@@ -1816,7 +1824,7 @@
 									if (!status)
 										console.warn("unexpected noteOff: ", n, time, event);
 									else {
-										channels[event.channel].push({ note: note, start: status.start, duration: time - status.start, velocity: status.velocity });
+										channels[event.channel].push({ startTick: status.startTick, endTick: ticks, note: note, start: status.start, duration: time - status.start, velocity: status.velocity });
 										channelStatus[event.channel][note] = null;
 									}
 
@@ -1882,11 +1890,10 @@
 											var note = Number(matches[1]);
 											var fingers = matches[2];
 
-											fingerings.push({ start: time, note: note, fingers: fingers });
+											fingerings.push({ tick: ticks, start: time, note: note, fingers: fingers });
 
-											var timeKey = time.toFixed(3);
-											fingeringMap[timeKey] = fingeringMap[timeKey] || [];
-											fingeringMap[timeKey][note] = fingers;
+											fingeringMap[ticks] = fingeringMap[ticks] || [];
+											fingeringMap[ticks][note] = fingers;
 										}
 									}
 
@@ -1986,7 +1993,7 @@
 				var x = noteToX(data.note);
 				x = white ? x + 0.5 : x;
 
-				var options = { class: "fingering", "data-note": data.note, "data-time": data.start };
+				var options = { class: "fingering", "data-note": data.note, "data-tick": data.tick };
 				group.text(x * PinaoConfig.KeyWidth, data.start * ScoreTimeScale + 12, data.fingers, options);
 			}
 
@@ -2018,21 +2025,20 @@
 							$(note).click(function () {
 								var editing = $("body").hasClass("editing");
 								if (editing) {
-									var timeKey = noteData.start.toFixed(3);
-									var fingers = ScoreNotations.fingeringMap[timeKey] ? ScoreNotations.fingeringMap[timeKey][noteData.note] : "";
+									var fingers = ScoreNotations.fingeringMap[noteData.startTick] ? ScoreNotations.fingeringMap[noteData.startTick][noteData.note] : "";
 									var newFingers = prompt("Edit Fingering", fingers);
 									if (newFingers != null && newFingers != fingers) {
-										//console.log("timeKey:", timeKey);
+										//console.log("noteData.startTick:", noteData.startTick, newFingers);
 										if (newFingers) {
-											ScoreNotations.fingeringMap[timeKey] = ScoreNotations.fingeringMap[timeKey] || [];
-											ScoreNotations.fingeringMap[timeKey][noteData.note] = newFingers;
+											ScoreNotations.fingeringMap[noteData.startTick] = ScoreNotations.fingeringMap[noteData.startTick] || [];
+											ScoreNotations.fingeringMap[noteData.startTick][noteData.note] = newFingers;
 										}
 										else
-											delete ScoreNotations.fingeringMap[timeKey][noteData.note];
+											delete ScoreNotations.fingeringMap[noteData.startTick][noteData.note];
 
 										EditionDirty = true;
 
-										var oldLabel = $(".fingering[data-note=" + noteData.note + "][data-time='" + timeKey + "']");
+										var oldLabel = $(".fingering[data-note=" + noteData.note + "][data-tick='" + noteData.startTick + "']");
 										if (oldLabel)
 											oldLabel.remove();
 
@@ -2315,23 +2321,25 @@
 					file.tracks[0].splice(0, 0, { deltaTime: 0, type: "meta", subtype: "text", text: "Fingering by K.L.Pianist, fingering-marker-pattern:finger:(\\d+)\\|([\\d,-]+)" });
 
 				for (var i in file.tracks) {
-					var time = 0;
+					var tick = 0;
 
 					for (var ii = 0; ii < file.tracks[i].length; ++ii) {
 						var event = file.tracks[i][ii];
-						time += event.deltaTime * microsecondsPerBeat / (ticksPerBeat * 1000);
+						tick += event.deltaTime;
+						//console.log("tick:", tick, event.type, event.subtype);
+						//time += event.deltaTime * microsecondsPerBeat / (ticksPerBeat * 1000);
 						//console.log("time:", time);
 
-						if (event.type == "meta" && event.subtype == "setTempo") {
+						/*if (event.type == "meta" && event.subtype == "setTempo") {
 							microsecondsPerBeat = event.microsecondsPerBeat;
 						}
-						else if (event.type == "channel" && event.subtype == "noteOn") {
-							var timeKey = time.toFixed(3);
-							//console.log("time:", timeKey);
-							var fingers = ScoreNotations.fingeringMap[timeKey] && ScoreNotations.fingeringMap[timeKey][event.noteNumber];
+						else */if (event.type == "channel" && event.subtype == "noteOn") {
+							//console.log("tick:", tick, event.noteNumber);
+							var fingers = ScoreNotations.fingeringMap[tick] && ScoreNotations.fingeringMap[tick][event.noteNumber];
 							if (fingers) {
-								console.log("Saved fingers:", fingers);
 								file.tracks[i].splice(ii + 1, 0, { deltaTime: 0, type: "meta", subtype: "marker", text: "finger:" + event.noteNumber + "|" + fingers });
+								console.log("Saved fingers:", tick, fingers);
+
 								++ii;
 							}
 						}

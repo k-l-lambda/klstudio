@@ -220,6 +220,11 @@
 				opacity: 1;
 			}
 
+			.editing .pedals
+			{
+				display: none;
+			}
+
 			#playback-mode
 			{
 				margin-left: 8px;
@@ -1776,14 +1781,9 @@
 				var fingeringPattern = null;
 				var fingerings = [];
 				var fingeringMap = [];
-				//var ticks = [];
 				var ticks = 0;
 
 				for (var n = 0; n < data.length; ++n) {
-					/*var track = data[n][0].track;
-					ticks[track] = ticks[track] || 0;
-					ticks[track] += data[n][0].ticksToEvent;
-					var currentTick = ticks[track];*/
 					ticks += data[n][0].ticksToEvent;
 
 					if (data[n][1] > 0) {
@@ -2327,13 +2327,8 @@
 						var event = file.tracks[i][ii];
 						tick += event.deltaTime;
 						//console.log("tick:", tick, event.type, event.subtype);
-						//time += event.deltaTime * microsecondsPerBeat / (ticksPerBeat * 1000);
-						//console.log("time:", time);
 
-						/*if (event.type == "meta" && event.subtype == "setTempo") {
-							microsecondsPerBeat = event.microsecondsPerBeat;
-						}
-						else */if (event.type == "channel" && event.subtype == "noteOn") {
+						if (event.type == "channel" && event.subtype == "noteOn") {
 							//console.log("tick:", tick, event.noteNumber);
 							var fingers = ScoreNotations.fingeringMap[tick] && ScoreNotations.fingeringMap[tick][event.noteNumber];
 							if (fingers) {

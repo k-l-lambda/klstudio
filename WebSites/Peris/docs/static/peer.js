@@ -663,7 +663,7 @@ Peris.Peer.prototype.renderTagList = function () {
 		var used = tagsArray.indexOf(list[i].key) >= 0;
 		if (used)
 			item.addClass("used");
-		else
+		else if ($(".input-tags").is(":focus"))
 			for (var ii in inputTagsArray) {
 				if (inputTagsArray[ii].length > 0 && list[i].key.indexOf(inputTagsArray[ii]) >= 0)
 					item.addClass("contained");

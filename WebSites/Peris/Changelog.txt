@@ -4,6 +4,11 @@ TODO:
 		start slider button
 
 
+2017.9.23	K.L.	<k.l.lambda@gmail.com>
+
+	>	static/peer.js: show contained tags only when input box is focus.
+
+
 2017.6.29	K.L.	<k.l.lambda@gmail.com>
 
 	+	templates/Importer.html: added extension fix.

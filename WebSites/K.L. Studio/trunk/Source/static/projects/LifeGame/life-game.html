@@ -230,7 +230,7 @@
 			};
 
 			World.prototype.saveData = function() {
-				return this.Width + "," + this.Height + "," + ($("#world-wrap").attr("checked") ? 1 : 0) + "," + World.prototype.saveCells(this.Cells, world.Width, world.Height);
+				return this.Width + "," + this.Height + "," + ($("#world-wrap")[0].checked ? 1 : 0) + "," + World.prototype.saveCells(this.Cells, world.Width, world.Height);
 			};
 
 			World.prototype.loadData = function(data) {
@@ -299,7 +299,7 @@
 				if(data)
 					world = new World({ data: data, callbacks: { onCellChange: paintPoint, onStep: onStep} });
 				else
-					world = new World({ width: $("#world-width").val(), height: $("#world-height").val(), wrap: $("#world-wrap").attr("checked"), callbacks: { onCellChange: paintPoint, onStep: onStep} });
+					world = new World({ width: $("#world-width").val(), height: $("#world-height").val(), wrap: $("#world-wrap")[0].checked, callbacks: { onCellChange: paintPoint, onStep: onStep} });
 
 				refreshCanvas();
 			};

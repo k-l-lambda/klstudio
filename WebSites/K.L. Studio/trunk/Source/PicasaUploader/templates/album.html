@@ -34,7 +34,7 @@
 		<script type="text/javascript">
 			$(function() {
 			$("#all").click(function() {
-					var checked = $("#all").attr("checked");
+					var checked = $("#all")[0].checked;
 					$(".select").attr("checked", checked);
 				});
 			});

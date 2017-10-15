@@ -727,12 +727,12 @@
 					});
 
 					$("#panel .key").mouseenter(function () {
-						if (event.which == 1 || $("#settings-touch").attr("checked")) {
+						if (event.which == 1 || $("#settings-touch")[0].checked) {
 							activeKey($(this));
 						}
 					});
 					$("#panel .key").mouseleave(function () {
-						if (event.which == 1 || $("#settings-touch").attr("checked")) {
+						if (event.which == 1 || $("#settings-touch")[0].checked) {
 							deactiveKey($(this));
 						}
 					});
@@ -930,7 +930,7 @@
 			};
 
 			var updateBackground = function () {
-				if ($("#settings-synesthesia").attr("checked")) {
+				if ($("#settings-synesthesia")[0].checked) {
 					// set melody pitch color
 					var melodyNote = getMelodyNote();
 					var melodyPitch = (melodyNote - Status.ModalOffset) % Config.GroupLen;
@@ -1082,7 +1082,7 @@
 				$("#settings-synesthesia-scheme").hide();
 
 				$("#settings-synesthesia").change(function () {
-					if ($("#settings-synesthesia").attr("checked"))
+					if ($("#settings-synesthesia")[0].checked)
 						$("#settings-synesthesia-scheme").show();
 					else
 						$("#settings-synesthesia-scheme").hide();

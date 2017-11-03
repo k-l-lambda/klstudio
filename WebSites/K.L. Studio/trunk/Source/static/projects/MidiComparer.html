@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>MIDI Comparer</title>
+		<style type="text/css">
+			.midi-file.drag-hover
+			{
+				border: 2px solid red;
+			}
+
+			.midi-file.loading
+			{
+				color: #ccc;
+				background-color: #ff8;
+			}
+		</style>
+		<script src="../js/jquery.js" type="text/javascript"></script>
+		<script src="../js/MIDI/AudioDetect.js" type="text/javascript"></script>
+		<script src="../js/MIDI/LoadPlugin.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Plugin.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Player.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Window/DOMLoader.XMLHttp.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Window/DOMLoader.script.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/WebMIDIAPI.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/Base64.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/base64binary.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/replayer.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/midifile.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/stream.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			var MidiData = {}
+
+			var pickMidiFile = function (file, elem) {
+				if (file && file.type == "audio/mid") {
+					var fr = new FileReader();
+					fr.onloadend = function (e) {
+						elem.text(file.name);
+						elem.addClass("loading");
+
+						MIDI.Player.loadFile(e.currentTarget.result, function () {
+							var name = elem.data("name");
+							MidiData[name] = MIDI.Player.data;
+
+							elem.removeClass("loading");
+
+							console.log(name + " MIDI file loaded:", file.name);
+						});
+					};
+					fr.readAsDataURL(file);
+				}
+			};
+
+			$(function () {
+				$(".midi-file").each(function (i, elem) {
+					elem.ondragover = function (e) {
+						$(elem).addClass("drag-hover");
+						e.preventDefault();
+					};
+					elem.ondragleave = function () {
+						$(elem).removeClass("drag-hover");
+					};
+
+					elem.ondrop = function (e) {
+						$(elem).removeClass("drag-hover");
+
+						pickMidiFile(e.dataTransfer.files[0], $(elem));
+
+						e.preventDefault();
+						return false;
+					};
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<div id="input">
+			<button class="midi-file" data-name="criterion">...</button>
+			<button class="midi-file" data-name="sample">...</button>
+		</div>
+	</body>
+</html>

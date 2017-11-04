@@ -1,15 +1,21 @@
 
 TODO:
 	PianoTrainer.html:
-		practice mode
 		play piano by keyboard settings
 	SpiralPiano.html:
 		settings panel
 			mode
 				grpah UI
+	MidiComparer:
+		compare every notes by context in the same row, then Dijkstra algorithm
 
 Pending Issues:
 	cube earth sphere tangent space issue
+
+
+2017.11.4	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiComparer: added compare button.
 
 
 2017.11.3	K.L.	<k.l.lambda@gmail.com>

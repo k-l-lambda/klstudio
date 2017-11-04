@@ -13,6 +13,11 @@
 				color: #ccc;
 				background-color: #ff8;
 			}
+
+			#controls
+			{
+				margin: 1em 0;
+			}
 		</style>
 		<script src="../js/jquery.js" type="text/javascript"></script>
 		<script src="../js/MIDI/AudioDetect.js" type="text/javascript"></script>
@@ -30,6 +35,18 @@
 		<script type="text/javascript">
 			var MidiData = {}
 
+			var loadMidiFile = function (data, name, filename, onload) {
+				MIDI.Player.loadFile(data, function () {
+					MidiData[name] = MIDI.Player.data;
+
+					if (onload)
+						onload();
+				});
+
+				localStorage[name + "_data"] = data;
+				localStorage[name + "_filename"] = filename;
+			}
+
 			var pickMidiFile = function (file, elem) {
 				if (file && file.type == "audio/mid") {
 					var fr = new FileReader();
@@ -37,10 +54,7 @@
 						elem.text(file.name);
 						elem.addClass("loading");
 
-						MIDI.Player.loadFile(e.currentTarget.result, function () {
-							var name = elem.data("name");
-							MidiData[name] = MIDI.Player.data;
-
+						loadMidiFile(e.currentTarget.result, elem.data("name"), file.name, function () {
 							elem.removeClass("loading");
 
 							console.log(name + " MIDI file loaded:", file.name);
@@ -69,13 +83,43 @@
 						return false;
 					};
 				});
+
+				$("#compare").click(function () {
+					if (!MidiData.criterion) {
+						console.error("criterion data is null.");
+						return;
+					}
+
+					if (!MidiData.sample) {
+						console.error("sample data is null.");
+						return;
+					}
+
+					$("#compare").attr("disabled", true);
+				});
+
+				if (localStorage.criterion_data) {
+					loadMidiFile(localStorage.criterion_data, "criterion", localStorage.criterion_filename);
+					$("#file1").text(localStorage.criterion_filename);
+				}
+
+				if (localStorage.sample_data) {
+					loadMidiFile(localStorage.sample_data, "sample", localStorage.sample_filename);
+					$("#file2").text(localStorage.sample_filename);
+				}
 			});
 		</script>
 	</head>
 	<body>
 		<div id="input">
-			<button class="midi-file" data-name="criterion">...</button>
-			<button class="midi-file" data-name="sample">...</button>
+			<button id="file1" class="midi-file" data-name="criterion">...</button>
+			<button id="file2" class="midi-file" data-name="sample">...</button>
+		</div>
+		<div id="controls">
+			<button id="compare">COMPARE</button>
+		</div>
+		<div id="results">
+
 		</div>
 	</body>
 </html>

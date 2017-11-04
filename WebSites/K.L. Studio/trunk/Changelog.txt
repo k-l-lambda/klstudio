@@ -7,6 +7,7 @@ TODO:
 			mode
 				grpah UI
 	MidiComparer:
+		merge pitch stat table
 		compare every notes by context in the same row, then Dijkstra algorithm
 
 Pending Issues:
@@ -14,6 +15,8 @@ Pending Issues:
 
 
 2017.11.4	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiComparer: genPitchStatTable added.
 
 	+	MidiComparer: parseMidiNotation added.
 

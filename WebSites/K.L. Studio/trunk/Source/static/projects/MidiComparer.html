@@ -353,7 +353,7 @@
 
 				//console.log("middle:", middle_scale, middle_result.value, middle_result.derivation);
 
-				console.assert(middle_result.value >= worse.value, "concave match curve: ", criterion, sample, low, high);
+				//console.assert(middle_result.value >= worse.value, "concave match curve: ", criterion, sample, low, high);
 
 				if (middle_result.derivation > 0)
 					return compareContextsInRange(criterion, sample, { scale: middle_scale, value: middle_result.value }, high);
@@ -391,6 +391,25 @@
 					elem.append(tr);
 				}
 			};
+
+			var genMatchNodes = function () {
+				for (var i in Notations.sample.notes) {
+					var note = Notations.sample.notes[i];
+					note.matches = [{index: -1}];
+
+					var targetList = Notations.criterion.pitchMap[note.pitch];
+					if (targetList) {
+						for (var ii in targetList) {
+							var nc = targetList[ii];
+							var match = compareContextsRegression(nc.context, note.context);
+
+							if (match.value > 0)
+								note.matches.push({index: nc.index, match: match});
+						}
+					}
+				}
+			};
+
 
 			$(function () {
 				$(".midi-file").each(function (i, elem) {
@@ -445,14 +464,20 @@
 							genNotationContext(Notations.criterion);
 							genNotationContext(Notations.sample);
 
-							$("#status").text("...");
+							$("#status").text("generating match nodes...");
 
 							setTimeout(function () {
+								genMatchNodes();
 
-								// TODO:
-							}, 0);
-						}, 0);
-					}, 0);
+								$("#status").text("...");
+
+								setTimeout(function () {
+
+									// TODO:
+								}, 1);
+							}, 1);
+						}, 1);
+					}, 1);
 				});
 
 				if (localStorage.criterion_data) {

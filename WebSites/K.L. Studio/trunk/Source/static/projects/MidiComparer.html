@@ -79,7 +79,16 @@
 			};
 
 			var Config = {
-				ContextSpan: {left: -800, right: 800},
+				ContextSpan: { left: -800, right: 800 },
+				DistanceSigmoidFactor: 0.01,
+				ContextRegressionDiffer: 0.01,
+				ContextRegressionBegin: 10,
+				ContextRegressionEnd: 0.01,
+			};
+
+
+			var sigmoid = function (x) {
+				return (1 - Math.exp(-x)) / (1 + Math.exp(-x));
 			};
 
 			var pickMidiFile = function (file, elem) {
@@ -269,16 +278,19 @@
 					right = i;
 				}
 
-				note.context = {};
+				note.context = [];
 
 				for (var i = left; i <= right; ++i) {
 					if (i != index) {
 						var n = notation.notes[i];
 						var d_pitch = n.pitch - note.pitch;
-						note.context[d_pitch] = {
-							time: n.start - note.start,
-							duration: n.duration,
-						};
+						var d_time = Math.floor(n.start - note.start);
+
+						if (d_time > 0)
+							d_pitch += 1000;
+
+						if(note.context[d_pitch] == null || Math.abs(d_time) < Math.abs(note.context[d_pitch]))
+							note.context[d_pitch] = d_time;
 					}
 				}
 			};
@@ -286,6 +298,80 @@
 			var genNotationContext = function (notation) {
 				for (var i in notation.notes)
 					genNoteContext(notation, i);
+			};
+
+			var compareContexts = function (criterion, sample, scale) {
+				var match = 0;
+
+				for (var pitch in criterion) {
+					var pc = criterion[pitch];
+					var ps1 = sample[pitch];
+					var ps2 = sample[pitch + 1000];
+
+					var distance = null;
+
+					if (ps1 != null)
+						distance = Math.abs(pc - ps1 * scale);
+
+					if (ps2 != null) {
+						var d2 = Math.abs(pc - ps2 * scale);
+						if (distance != null)
+							distance = Math.min(distance, d2);
+						else
+							distance = d2;
+					}
+
+					if (distance != null) {
+						var increase = 1 - sigmoid(distance * Config.DistanceSigmoidFactor);
+						match += increase;
+
+						//console.log(pitch, increase);
+					}
+				}
+
+				return match;
+			};
+
+			var compareContextsDerivation = function (criterion, sample, scale, ds) {
+				var v0 = compareContexts(criterion, sample, scale);
+				var v1 = compareContexts(criterion, sample, scale + Math.min(Config.ContextRegressionDiffer, ds));
+
+				var derivation = (v1 - v0) / Config.ContextRegressionDiffer;
+
+				return { value: v0, derivation: derivation };
+			};
+
+			var compareContextsInRange = function (criterion, sample, low, high) {
+				var better = high.value > low.value ? high : low;
+				var worse = high.value > low.value ? low : high;
+
+				if (Math.abs(high.value - low.value) < Config.ContextRegressionEnd)
+					return better;
+
+				var middle_scale = Math.sqrt(low.scale * high.scale);
+				var middle_result = compareContextsDerivation(criterion, sample, middle_scale, middle_scale - low.scale);
+
+				//console.log("middle:", middle_scale, middle_result.value, middle_result.derivation);
+
+				console.assert(middle_result.value >= worse.value, "concave match curve: ", criterion, sample, low, high);
+
+				if (middle_result.derivation > 0)
+					return compareContextsInRange(criterion, sample, { scale: middle_scale, value: middle_result.value }, high);
+				else
+					return compareContextsInRange(criterion, sample, low, { scale: middle_scale, value: middle_result.value });
+			};
+
+			var compareContextsRegression = function (criterion, sample) {
+				var low = {
+					scale: 1 / Config.ContextRegressionBegin,
+					value: compareContexts(criterion, sample, 1 / Config.ContextRegressionBegin),
+				};
+				var high = {
+					scale: Config.ContextRegressionBegin,
+					value: compareContexts(criterion, sample, Config.ContextRegressionBegin),
+				};
+
+				return compareContextsInRange(criterion, sample, low, high);
 			};
 
 			var genPitchStatTable = function (pitches, pitchMaps, elem) {

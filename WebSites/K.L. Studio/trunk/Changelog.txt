@@ -7,11 +7,15 @@ TODO:
 			mode
 				grpah UI
 	MidiComparer:
-		merge pitch stat table
 		compare every notes by context in the same row, then Dijkstra algorithm
 
 Pending Issues:
 	cube earth sphere tangent space issue
+
+
+2017.11.6	K.L.	<k.l.lambda@gmail.com>
+
+	>	MidiComparer: refined pitch stat table.
 
 
 2017.11.4	K.L.	<k.l.lambda@gmail.com>

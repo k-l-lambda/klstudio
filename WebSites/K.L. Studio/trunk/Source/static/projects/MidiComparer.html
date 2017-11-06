@@ -3,6 +3,13 @@
 	<head>
 		<title>MIDI Comparer</title>
 		<style type="text/css">
+			body
+			{
+				font-family: Verdana, Arial, Helvetica, sans-serif;
+				margin: 0.6em;
+				font-size: 11px;
+			}
+
 			.midi-file.drag-hover
 			{
 				border: 2px solid red;
@@ -21,7 +28,6 @@
 
 			#pitch-stat table
 			{
-				display: inline-block;
 			}
 		</style>
 		<script src="../js/jquery.js" type="text/javascript"></script>
@@ -223,11 +229,21 @@
 				return { channels: channels, notes: notes, pitchMap: pitchMap, pedals: pedals, bars: bars, endTime: time, keyRange: keyRange };
 			};
 
-			var genPitchStatTable = function (pitchMap, elem) {
+			var genPitchStatTable = function (pitches, pitchMaps, elem) {
 				elem.html("");
 
-				for (var pitch in pitchMap) {
-					elem.append("<tr><th>" + pitch + "</th><td>" + pitchMap[pitch].length + "</td></tr>");
+				for (var pitch in pitches) {
+					var tr = "<tr><th>" + pitch + "</th>";
+
+					for(var i in pitchMaps) {
+						var map = pitchMaps[i][pitch];
+						var text = map ? map.length : "";
+
+						tr += "<td>" + text + "</td>";
+					}
+					tr += "</tr>";
+
+					elem.append(tr);
 				}
 			};
 
@@ -267,8 +283,13 @@
 					Notations.criterion = parseMidiNotation(MidiData.criterion);
 					Notations.sample = parseMidiNotation(MidiData.sample);
 
-					genPitchStatTable(Notations.criterion.pitchMap, $("#pitch-stat-1"));
-					genPitchStatTable(Notations.sample.pitchMap, $("#pitch-stat-2"));
+					Notations.pitches = {};
+					for (var pitch in Notations.criterion.pitchMap)
+						Notations.pitches[pitch] = true;
+					for (var pitch in Notations.sample.pitchMap)
+						Notations.pitches[pitch] = true;
+
+					genPitchStatTable(Notations.pitches, [Notations.criterion.pitchMap, Notations.sample.pitchMap], $("#pitch-stat-table"));
 
 					// TODO:
 				});
@@ -295,8 +316,7 @@
 		</div>
 		<div id="results">
 			<div id="pitch-stat">
-				<table id="pitch-stat-1"></table>
-				<table id="pitch-stat-2"></table>
+				<table id="pitch-stat-table"></table>
 			</div>
 		</div>
 	</body>

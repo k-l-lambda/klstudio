@@ -29,6 +29,18 @@
 			#pitch-stat table
 			{
 			}
+
+			#results
+			{
+				padding: 1em;
+			}
+
+			#status
+			{
+				position: fixed;
+				bottom: 0;
+				background: #fffa;
+			}
 		</style>
 		<script src="../js/jquery.js" type="text/javascript"></script>
 		<script src="../js/MIDI/AudioDetect.js" type="text/javascript"></script>
@@ -64,6 +76,10 @@
 				65: "Portamento",
 				66: "Sostenuto",
 				67: "Soft"
+			};
+
+			var Config = {
+				ContextSpan: {left: -800, right: 800},
 			};
 
 			var pickMidiFile = function (file, elem) {
@@ -229,6 +245,49 @@
 				return { channels: channels, notes: notes, pitchMap: pitchMap, pedals: pedals, bars: bars, endTime: time, keyRange: keyRange };
 			};
 
+			var genNoteContext = function (notation, index) {
+				index = Number(index);
+
+				var left = index;
+				var right = index;
+
+				var note = notation.notes[index];
+
+				for (var i = index - 1; i >= 0; --i) {
+					var n = notation.notes[i];
+					if (left < index && n.start - note.start < Config.ContextSpan.left)
+						break;
+
+					left = i;
+				}
+
+				for (var i = index + 1; i < notation.notes.length; ++i) {
+					var n = notation.notes[i];
+					if (right > index && n.start - note.start > Config.ContextSpan.right)
+						break;
+
+					right = i;
+				}
+
+				note.context = {};
+
+				for (var i = left; i <= right; ++i) {
+					if (i != index) {
+						var n = notation.notes[i];
+						var d_pitch = n.pitch - note.pitch;
+						note.context[d_pitch] = {
+							time: n.start - note.start,
+							duration: n.duration,
+						};
+					}
+				}
+			};
+
+			var genNotationContext = function (notation) {
+				for (var i in notation.notes)
+					genNoteContext(notation, i);
+			};
+
 			var genPitchStatTable = function (pitches, pitchMaps, elem) {
 				elem.html("");
 
@@ -280,18 +339,34 @@
 
 					$("#compare").attr("disabled", true);
 
-					Notations.criterion = parseMidiNotation(MidiData.criterion);
-					Notations.sample = parseMidiNotation(MidiData.sample);
+					$("#status").text("parse notation...");
 
-					Notations.pitches = {};
-					for (var pitch in Notations.criterion.pitchMap)
-						Notations.pitches[pitch] = true;
-					for (var pitch in Notations.sample.pitchMap)
-						Notations.pitches[pitch] = true;
+					setTimeout(function () {
+						Notations.criterion = parseMidiNotation(MidiData.criterion);
+						Notations.sample = parseMidiNotation(MidiData.sample);
 
-					genPitchStatTable(Notations.pitches, [Notations.criterion.pitchMap, Notations.sample.pitchMap], $("#pitch-stat-table"));
+						Notations.pitches = {};
+						for (var pitch in Notations.criterion.pitchMap)
+							Notations.pitches[pitch] = true;
+						for (var pitch in Notations.sample.pitchMap)
+							Notations.pitches[pitch] = true;
 
-					// TODO:
+						genPitchStatTable(Notations.pitches, [Notations.criterion.pitchMap, Notations.sample.pitchMap], $("#pitch-stat-table"));
+
+						$("#status").text("generating context...");
+
+						setTimeout(function () {
+							genNotationContext(Notations.criterion);
+							genNotationContext(Notations.sample);
+
+							$("#status").text("...");
+
+							setTimeout(function () {
+
+								// TODO:
+							}, 0);
+						}, 0);
+					}, 0);
 				});
 
 				if (localStorage.criterion_data) {
@@ -318,6 +393,7 @@
 			<div id="pitch-stat">
 				<table id="pitch-stat-table"></table>
 			</div>
+			<div id="status"></div>
 		</div>
 	</body>
 </html>

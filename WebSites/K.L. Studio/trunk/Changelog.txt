@@ -15,6 +15,8 @@ Pending Issues:
 
 2017.11.6	K.L.	<k.l.lambda@gmail.com>
 
+	+	MidiComparer: genNotationContext added.
+
 	>	MidiComparer: refined pitch stat table.
 
 

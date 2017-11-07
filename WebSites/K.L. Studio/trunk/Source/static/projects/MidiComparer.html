@@ -392,22 +392,93 @@
 				}
 			};
 
+
+			var Node = function (c_note, s_note) {
+				this.c_note = c_note;
+				this.s_note = s_note;
+
+				if (this.c_note)
+					this.matching = compareContextsRegression(this.c_note.context, this.s_note.context);
+				else
+					this.matching = {value: 0};
+
+				this.evaluateCost();
+			};
+
+			Node.prototype.totalCost = function () {
+				var cost = this.selfCost;
+
+				if (this.prev)
+					cost += this.prev_cost;
+
+				if (isNaN(cost)) {
+					console.log("Nan cost:", this);
+					throw "NaN";
+				}
+
+				return cost;
+			};
+
+			Node.prototype.evaluateCost = function () {
+				this.selfCost = 1 - sigmoid(this.matching.value);
+			};
+
+			Node.prototype.evaluateConnectionCost = function (prev) {
+				// TODO:
+				return 0;
+			};
+
+			Node.prototype.evaluateConnection = function (prev) {
+				var connect_cost = this.evaluateConnectionCost(prev);
+				var prev_cost = prev.totalCost() + connect_cost;
+
+				if (this.prev == null || this.prev_cost > prev_cost) {
+					this.prev = prev;
+					this.prev_cost = prev_cost;
+				}
+			};
+
+
 			var genMatchNodes = function () {
 				for (var i in Notations.sample.notes) {
 					var note = Notations.sample.notes[i];
-					note.matches = [{index: -1}];
+					note.matches = [];
+
+					note.matches.push(new Node(null, note));
 
 					var targetList = Notations.criterion.pitchMap[note.pitch];
 					if (targetList) {
 						for (var ii in targetList) {
-							var nc = targetList[ii];
+							/*var nc = targetList[ii];
 							var match = compareContextsRegression(nc.context, note.context);
 
 							if (match.value > 0)
-								note.matches.push({index: nc.index, match: match});
+								note.matches.push({index: nc.index, match: match});*/
+							note.matches.push(new Node(targetList[ii], note));
 						}
 					}
 				}
+			};
+
+			var evaluateNode = function (index, match) {
+				index = Number(index);
+				match = Number(match);
+
+				var next_index = index + 1;
+
+				var next_note = Notations.sample.notes[next_index];
+				if (next_note) {
+					var node = Notations.sample.notes[index].matches[match];
+
+					for (var i in next_note.matches)
+						next_note.matches[i].evaluateConnection(node);
+				}
+			};
+
+			var runNavigation = function () {
+				for (var i in Notations.sample.notes)
+					for (var ii in Notations.sample.notes[i].matches)
+						evaluateNode(i, ii);
 			};
 
 
@@ -469,11 +540,10 @@
 							setTimeout(function () {
 								genMatchNodes();
 
-								$("#status").text("...");
+								$("#status").text("navigating...");
 
 								setTimeout(function () {
-
-									// TODO:
+									runNavigation();
 								}, 1);
 							}, 1);
 						}, 1);

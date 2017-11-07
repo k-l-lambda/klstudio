@@ -15,6 +15,8 @@ Pending Issues:
 
 2017.11.7	K.L.	<k.l.lambda@gmail.com>
 
+	+	MidiComparer: MIDI canvas added.
+
 	+	MidiComparer: result path dump added.
 
 	+	MidiComparer: navigation node class added.

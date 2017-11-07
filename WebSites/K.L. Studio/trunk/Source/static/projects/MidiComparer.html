@@ -412,7 +412,7 @@
 					cost += this.prev_cost;
 
 				if (isNaN(cost)) {
-					console.log("Nan cost:", this);
+					console.log("NaN cost:", this);
 					throw "NaN";
 				}
 
@@ -436,6 +436,15 @@
 					this.prev = prev;
 					this.prev_cost = prev_cost;
 				}
+			};
+
+			Node.prototype.path = function () {
+				var indices = this.prev ? this.prev.path() : [];
+
+				if (this.c_note)
+					indices.push(this.c_note.index);
+
+				return indices;
 			};
 
 
@@ -479,6 +488,19 @@
 				for (var i in Notations.sample.notes)
 					for (var ii in Notations.sample.notes[i].matches)
 						evaluateNode(i, ii);
+
+				var last_note = Notations.sample.notes[Notations.sample.notes.length - 1];
+				if (last_note) {
+					var endNode = new Node();
+
+					for (var ii in last_note.matches) {
+						var node = last_note.matches[ii];
+
+						endNode.evaluateConnection(node);
+					}
+
+					console.log("result path:", endNode.prev.path());
+				}
 			};
 
 

@@ -54,6 +54,19 @@
 				stroke: #888;
 				stroke-width: 1px;
 			}
+
+			.note-dot
+			{
+				fill: none;
+				stroke: #333;
+				stroke-width: 1px;
+			}
+
+			.correspondence
+			{
+				stroke: #aaa;
+				stroke-width: 1px;
+			}
 		</style>
 		<script src="../js/jquery.js" type="text/javascript"></script>
 		<script src="../js/jquery.svg.js" type="text/javascript"></script>
@@ -70,8 +83,9 @@
 		<script src="../js/MIDI/inc/midifile.js" type="text/javascript"></script>
 		<script src="../js/MIDI/inc/stream.js" type="text/javascript"></script>
 		<script type="text/javascript">
-			var MidiData = {}
-			var Notations = {}
+			var MidiData = {};
+			var Notations = {};
+			var ResultPath = null;
 
 			var loadMidiFile = function (data, name, filename, onload) {
 				MIDI.Player.loadFile(data, function () {
@@ -83,7 +97,7 @@
 
 				localStorage[name + "_data"] = data;
 				localStorage[name + "_filename"] = filename;
-			}
+			};
 
 			var PedalControllerTypes = {
 				64: "Sustain",
@@ -517,7 +531,9 @@
 						endNode.evaluateConnection(node);
 					}
 
-					console.log("result path:", endNode.prev.path());
+					ResultPath = endNode.prev.path();
+
+					console.log("result path:", ResultPath.toString(), ResultPath);
 				}
 			};
 
@@ -535,15 +551,38 @@
 					var top = note.start * Config.MidiScoreHeightScale;
 					var height = note.duration * Config.MidiScoreHeightScale;
 
-					group.rect(left, top, pitch_width, height, 2, 2, {class: "note"});
+					note.position = { x: left + pitch_width * 0.5, y: top };
+
+					group.rect(left, top, pitch_width, height, 2, 2, { class: "note" });
+					group.circle(note.position.x, note.position.y, 3, { class: "note-dot" });
+				}
+			};
+
+			var paintLine = function (start, end, group, options) {
+				var path = group.createPath();
+				path.move(start.x, start.y);
+				path.line(end.x, end.y);
+				path.close();
+
+				group.path(path, options);
+			};
+
+			var paintCorrespondences = function (group) {
+				for (var i in ResultPath) {
+					var s_note = Notations.sample.notes[i];
+					var c_note = Notations.criterion.notes[ResultPath[i]];
+
+					paintLine(s_note.position, c_note.position, group, { class: "correspondence" });
 				}
 			};
 
 			var paintMidiGraph = function () {
-				$("#midi-canvas").attr("viewBox", "0 0 " + Config.MidiCanvasWidth + " " + (Notations.endTime * Config.MidiScoreHeightScale));
+				$("#midi-canvas").attr("viewBox", "-10 -10 " + (Config.MidiCanvasWidth + 20) + " " + (Notations.endTime * Config.MidiScoreHeightScale));
 
 				paintMidiScore(Notations.criterion, { start: Notations.pitch_low, end: Notations.pitch_high + 1 }, { left: 0, right: Config.MidiScoreWidth }, svg("#score-criterion"));
 				paintMidiScore(Notations.sample, { start: Notations.pitch_low, end: Notations.pitch_high + 1 }, { left: Config.MidiCanvasWidth - Config.MidiScoreWidth, right: Config.MidiCanvasWidth }, svg("#score-sample"));
+
+				paintCorrespondences(svg("#correspondences"));
 			};
 
 

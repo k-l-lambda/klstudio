@@ -7,13 +7,15 @@ TODO:
 			mode
 				grpah UI
 	MidiComparer:
-		MIDI graph
+		evaluateConnectionCost
 
 Pending Issues:
 	cube earth sphere tangent space issue
 
 
 2017.11.7	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiComparer: correspondences in MIDI graph added.
 
 	+	MidiComparer: MIDI canvas added.
 

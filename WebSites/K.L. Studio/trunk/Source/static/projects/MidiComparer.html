@@ -39,7 +39,7 @@
 			{
 				position: fixed;
 				bottom: 0;
-				background: #fffa;
+				background: #fff;
 			}
 
 			#midi-canvas
@@ -86,6 +86,7 @@
 			var MidiData = {};
 			var Notations = {};
 			var ResultPath = null;
+			var NodeCount = 0;
 
 			var loadMidiFile = function (data, name, filename, onload) {
 				MIDI.Player.loadFile(data, function () {
@@ -520,6 +521,8 @@
 
 
 			var genMatchNodes = function () {
+				NodeCount = 0;
+
 				for (var i in Notations.sample.notes) {
 					var note = Notations.sample.notes[i];
 					note.matches = [];
@@ -537,6 +540,8 @@
 							note.matches.push(new Node(targetList[ii], note));
 						}
 					}
+
+					NodeCount += note.matches.length;
 				}
 			};
 
@@ -555,25 +560,61 @@
 				}
 			};
 
-			var runNavigation = function () {
+			var traverseEvaluateNode = function* () {
+				var progress = 0;
+
 				for (var i in Notations.sample.notes)
+					for (var ii in Notations.sample.notes[i].matches) {
+						var percent = Math.floor(progress * 100 / NodeCount);
+						$("#status").text("navigating  " + percent + "%   " + i + ", " + ii + "...");
+
+						yield evaluateNode(i, ii);
+
+						++progress;
+					}
+			};
+
+			var runInFrames = function(it, on_end) {
+				var f;
+				f = function() {
+					var done = it.next().done;
+
+					if (!done)
+						setTimeout(f, 0);
+					else if (on_end)
+						on_end();
+				};
+
+				f();
+			};
+
+			var runNavigation = function (on_end) {
+				/*for (var i in Notations.sample.notes)
 					for (var ii in Notations.sample.notes[i].matches)
-						evaluateNode(i, ii);
+						evaluateNode(i, ii);*/
+				var iterator = traverseEvaluateNode();
+				/*var done = false;
+				while (!done)
+					done = iterator.next().done;*/
+				runInFrames(iterator, function() {
+					var last_note = Notations.sample.notes[Notations.sample.notes.length - 1];
+					if (last_note) {
+						var endNode = new Node();
 
-				var last_note = Notations.sample.notes[Notations.sample.notes.length - 1];
-				if (last_note) {
-					var endNode = new Node();
+						for (var ii in last_note.matches) {
+							var node = last_note.matches[ii];
 
-					for (var ii in last_note.matches) {
-						var node = last_note.matches[ii];
+							endNode.evaluateConnection(node);
+						}
 
-						endNode.evaluateConnection(node);
+						ResultPath = endNode.prev.path();
+
+						console.log("result path:", ResultPath.toString(), ResultPath);
 					}
 
-					ResultPath = endNode.prev.path();
-
-					console.log("result path:", ResultPath.toString(), ResultPath);
-				}
+					if (on_end)
+						on_end();
+				});
 			};
 
 			var svg = function (selector) {
@@ -703,17 +744,17 @@
 								$("#status").text("navigating...");
 
 								setTimeout(function () {
-									runNavigation();
+									runNavigation(function() {
+										$("#status").text("graphing...");
 
-									$("#status").text("graphing...");
+										setTimeout(function () {
+											paintMidiGraph();
 
-									setTimeout(function () {
-										paintMidiGraph();
+											$("#status").text("finished.");
 
-										$("#status").text("finished.");
-
-										$("#compare").attr("disabled", false);
-									}, 1);
+											$("#compare").attr("disabled", false);
+										}, 1);
+									});
 								}, 1);
 							}, 1);
 						}, 1);

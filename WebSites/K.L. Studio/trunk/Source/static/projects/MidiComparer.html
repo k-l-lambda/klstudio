@@ -64,8 +64,8 @@
 
 			.correspondence
 			{
-				stroke: #aaa;
-				stroke-width: 1px;
+				stroke: #000;
+				stroke-width: 0.2px;
 			}
 		</style>
 		<script src="../js/jquery.js" type="text/javascript"></script>
@@ -115,7 +115,7 @@
 
 				MidiCanvasWidth: 2000,
 				MidiScoreWidth: 900,
-				MidiScoreHeightScale: 0.06,
+				MidiScoreHeightScale: 0.03,
 			};
 
 
@@ -455,9 +455,46 @@
 				this.selfCost = 1 - sigmoid(this.matching.value);
 			};
 
+			Node.prototype.lastCNote = function () {
+				if (this.c_note)
+					return this.c_note;
+
+				if (this.prev)
+					return this.prev.lastCNote();
+
+				return -1;
+			};
+
+			Node.prototype.includsCIndex = function (index) {
+				if (this.c_note && this.c_note.index == index)
+					return true;
+
+				if (this.prev)
+					return this.prev.includsCIndex(index);
+
+				return false;
+			};
+
 			Node.prototype.evaluateConnectionCost = function (prev) {
-				// TODO:
-				return 0;
+				var prev_c = prev.lastCNote();
+				var current_c = this.c_note;
+
+				if (!prev_c || !current_c)
+					return 0;
+
+				var cost = 0;
+
+				if (current_c.index < prev_c.index)
+					cost += (prev_c.start - current_c.start) / 400;
+
+				for (var i = prev_c.index + 1; i < current_c.index; ++i) {
+					if (!prev.includsCIndex(i)) {
+						var note = Notations.criterion.notes[i];
+						cost += (current_c.start - note.start) / 400;
+					}
+				}
+
+				return cost;
 			};
 
 			Node.prototype.evaluateConnection = function (prev) {
@@ -475,6 +512,8 @@
 
 				if (this.c_note)
 					indices.push(this.c_note.index);
+				else
+					indices.push(-1);
 
 				return indices;
 			};
@@ -553,8 +592,10 @@
 
 					note.position = { x: left + pitch_width * 0.5, y: top };
 
-					group.rect(left, top, pitch_width, height, 2, 2, { class: "note" });
+					var rect = group.rect(left, top, pitch_width, height, 2, 2, { class: "note" });
 					group.circle(note.position.x, note.position.y, 3, { class: "note-dot" });
+
+					$(rect).append("<title>index: " + i + "</title>");
 				}
 			};
 
@@ -569,10 +610,13 @@
 
 			var paintCorrespondences = function (group) {
 				for (var i in ResultPath) {
-					var s_note = Notations.sample.notes[i];
-					var c_note = Notations.criterion.notes[ResultPath[i]];
+					var ri = ResultPath[i];
+					if (ri >= 0) {
+						var s_note = Notations.sample.notes[i];
+						var c_note = Notations.criterion.notes[ri];
 
-					paintLine(s_note.position, c_note.position, group, { class: "correspondence" });
+						paintLine(s_note.position, c_note.position, group, { class: "correspondence" });
+					}
 				}
 			};
 

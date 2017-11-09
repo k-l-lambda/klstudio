@@ -62,6 +62,21 @@
 				stroke-width: 1px;
 			}
 
+			#score-sample .note, #score-sample .note-dot
+			{
+				fill: #fcc;
+			}
+
+			#score-criterion .note, #score-criterion .note-dot
+			{
+				fill: #ffc;
+			}
+
+			.note.paired, .note-dot.paired
+			{
+				fill: #fff !important;
+			}
+
 			.correspondence
 			{
 				stroke: #000;
@@ -626,8 +641,14 @@
 				return new $.svg._wrapperClass($(selector)[0]);
 			};
 
+			var clearMidiScore = function () {
+				$("#score-criterion").html("");
+				$("#score-sample").html("");
+				$("#correspondences").html("");
+			};
+
 			var paintMidiScore = function (notation, pitch_range, canvas_range, group) {
-				var pitch_width = (canvas_range.right - canvas_range.left) / (pitch_range.end - pitch_range.start);
+					var pitch_width = (canvas_range.right - canvas_range.left) / (pitch_range.end - pitch_range.start);
 
 				for (var i in notation.notes) {
 					var note = notation.notes[i];
@@ -638,10 +659,12 @@
 
 					note.position = { x: left + pitch_width * 0.5, y: top };
 
-					var rect = group.rect(left, top, pitch_width, height, 2, 2, { class: "note" });
-					group.circle(note.position.x, note.position.y, 3, { class: "note-dot" });
+					note.graph = note.graph || {}
 
-					$(rect).append("<title>index: " + i + "</title>");
+					note.graph.rect = group.rect(left, top, pitch_width, height, 2, 2, { class: "note" });
+					note.graph.dot = group.circle(note.position.x, note.position.y, 3, { class: "note-dot" });
+
+					$(note.graph.rect).append("<title>index: " + i + "</title>");
 				}
 			};
 
@@ -662,16 +685,18 @@
 						var c_note = Notations.criterion.notes[ri];
 
 						paintLine(s_note.position, c_note.position, group, { class: "correspondence" });
+
+						$(s_note.graph.rect).addClass("paired");
+						$(s_note.graph.dot).addClass("paired");
+
+						$(c_note.graph.rect).addClass("paired");
+						$(c_note.graph.dot).addClass("paired");
 					}
 				}
 			};
 
 			var paintMidiGraph = function () {
 				$("#midi-canvas").attr("viewBox", "-10 -10 " + (Config.MidiCanvasWidth + 20) + " " + (Notations.endTime * Config.MidiScoreHeightScale));
-
-				$("#score-criterion").html("");
-				$("#score-sample").html("");
-				$("#correspondences").html("");
 
 				paintMidiScore(Notations.criterion, { start: Notations.pitch_low, end: Notations.pitch_high + 1 }, { left: 0, right: Config.MidiScoreWidth }, svg("#score-criterion"));
 				paintMidiScore(Notations.sample, { start: Notations.pitch_low, end: Notations.pitch_high + 1 }, { left: Config.MidiCanvasWidth - Config.MidiScoreWidth, right: Config.MidiCanvasWidth }, svg("#score-sample"));
@@ -712,6 +737,8 @@
 						console.error("sample data is null.");
 						return;
 					}
+
+					clearMidiScore();
 
 					$("#compare").attr("disabled", true);
 

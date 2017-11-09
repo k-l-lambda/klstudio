@@ -139,6 +139,7 @@
 				ContextRegressionBegin: 10,			// context compare regression begin boundary
 				ContextRegressionEnd: 0.01,			// context compare regression cost end condition
 				ConnectionBiasCostBenchmark: 800,	// how many ms bias result in cost = 1
+				//MatchingThreshold: 0.3,				// over than max matching * threshold will stay in node list
 
 				MidiCanvasWidth: 2000,
 				MidiScoreWidth: 900,
@@ -549,7 +550,7 @@
 
 				var prev_total_cost = prev.totalCost();
 
-				var end_limit = this.prev_cost ? this.prev_cost - prev_total_cost : null;
+				var end_limit = this.prev_cost ? this.prev_cost - prev_total_cost : 1;
 				if (end_limit < 0)
 					return;
 
@@ -559,7 +560,11 @@
 				if (this.prev == null || this.prev_cost > prev_cost) {
 					this.prev = prev;
 					this.prev_cost = prev_cost;
+					this.connect_cost = connect_cost;
 				}
+
+				//prev.next_connect_costs = prev.next_connect_costs || [];
+				//prev.next_connect_costs.push(connect_cost);
 			};
 
 			Node.prototype.path = function () {
@@ -583,12 +588,20 @@
 
 					var targetList = Notations.criterion.pitchMap[note.pitch];
 					if (targetList) {
+						var max_matching = 0;
+
 						for (var ii in targetList) {
 							var node = new Node(targetList[ii], note);
+
+							max_matching = Math.max(max_matching, node.matching.value);
 
 							if (node.matching.value > 0)
 								note.matches.push(node);
 						}
+
+						/*note.matches = note.matches.filter(function(m) {
+							return m.matching.value >= max_matching * Config.MatchingThreshold;
+						});*/
 					}
 
 					note.matches.sort(function(m1, m2) {
@@ -630,7 +643,9 @@
 						var percent = Math.floor(progress * 100 / NodeCount);
 						$("#status").text("navigating  " + percent + "%   " + i + ", " + ii + "...");
 
-						yield evaluateNode(i, ii);
+						var node = Notations.sample.notes[i].matches[ii];
+						if (node.connect_cost == null || node.connect_cost < 1)
+							yield evaluateNode(i, ii);
 
 						++progress;
 					}
@@ -703,7 +718,18 @@
 					note.graph.rect = group.rect(left, top, pitch_width, height, 2, 2, { class: "note" });
 					note.graph.dot = group.circle(note.position.x, note.position.y, 3, { class: "note-dot" });
 
-					$(note.graph.rect).append("<title>index: " + i + "</title>");
+					var c_index = ResultPath[i];
+					var node = null;
+					if (c_index >= 0)
+						for (var ii in note.matches)
+							if (note.matches[ii].c_note && note.matches[ii].c_note.index == c_index)
+								node = note.matches[ii];
+
+					var title = "index: " + i;
+					if (node)
+						title += ", matching: " + node.matching.value.toFixed(3) + ", connection: " + node.connect_cost;
+
+					$(note.graph.rect).append("<title>" + title + "</title>");
 				}
 			};
 

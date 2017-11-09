@@ -30,6 +30,16 @@
 			{
 			}
 
+			td
+			{
+				text-align: right;
+			}
+
+			th
+			{
+				text-align: center;
+			}
+
 			#results
 			{
 				padding: 1em;
@@ -69,7 +79,7 @@
 
 			#score-criterion .note, #score-criterion .note-dot
 			{
-				fill: #ffc;
+				fill: #fea;
 			}
 
 			.note.paired, .note-dot.paired
@@ -426,6 +436,8 @@
 			var genPitchStatTable = function (pitches, pitchMaps, elem) {
 				elem.html("");
 
+				elem.append("<tr><th>Pitch</th><th>Criterion</th><th>Sample</th></tr>");
+
 				for (var pitch in pitches) {
 					var tr = "<tr><th>" + pitch + "</th>";
 
@@ -439,6 +451,8 @@
 
 					elem.append(tr);
 				}
+
+				elem.append("<tr><th>total</th><td>" + Notations.criterion.notes.length + "</td><td>" + Notations.sample.notes.length + "</td></tr>");
 			};
 
 
@@ -492,7 +506,7 @@
 				return false;
 			};
 
-			Node.prototype.evaluateConnectionCost = function (prev) {
+			Node.prototype.evaluateConnectionCost = function (prev, end_limit) {
 				var prev_c = prev.lastCNote();
 				var current_c = this.c_note;
 
@@ -506,11 +520,17 @@
 					cost += bias * bias;
 				}
 
+				if(cost > end_limit)
+					return cost;
+
 				for (var i = prev_c.index + 1; i < current_c.index; ++i) {
 					if (!prev.includsCIndex(i)) {
 						var note = Notations.criterion.notes[i];
 						var bias = (current_c.start - note.start) / Config.ConnectionBiasCostBenchmark;
 						cost += bias * bias;
+
+						if(cost > end_limit)
+							return cost;
 					}
 				}
 
@@ -524,8 +544,14 @@
 					return;
 				}*/
 
-				var connect_cost = this.evaluateConnectionCost(prev);
-				var prev_cost = prev.totalCost() + connect_cost;
+				var prev_total_cost = prev.totalCost();
+
+				var end_limit = this.prev_cost ? this.prev_cost - prev_total_cost : null;
+				if (end_limit < 0)
+					return;
+
+				var connect_cost = this.evaluateConnectionCost(prev, end_limit);
+				var prev_cost = prev_total_cost + connect_cost;
 
 				if (this.prev == null || this.prev_cost > prev_cost) {
 					this.prev = prev;

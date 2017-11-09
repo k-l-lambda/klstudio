@@ -578,8 +578,6 @@
 					var note = Notations.sample.notes[i];
 					note.matches = [];
 
-					note.matches.push(new Node(null, note));
-
 					var targetList = Notations.criterion.pitchMap[note.pitch];
 					if (targetList) {
 						for (var ii in targetList) {
@@ -590,8 +588,16 @@
 						}
 					}
 
+					note.matches.sort(function(m1, m2) {
+						return m2.matching.value - m1.matching.value;
+					});
+
+					note.matches.push(new Node(null, note));
+
 					NodeCount += note.matches.length;
 				}
+
+				console.log("node count:", NodeCount);
 			};
 
 			var evaluateNode = function (index, match) {

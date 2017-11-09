@@ -57,7 +57,7 @@
 
 			.note-dot
 			{
-				fill: none;
+				fill: #fff;
 				stroke: #333;
 				stroke-width: 1px;
 			}
@@ -499,6 +499,12 @@
 			};
 
 			Node.prototype.evaluateConnection = function (prev) {
+				/*if (this.c_note && prev.includsCIndex(this.c_note.index)) {
+					//console.log("includes:", this, prev);
+					//throw "includes";
+					return;
+				}*/
+
 				var connect_cost = this.evaluateConnectionCost(prev);
 				var prev_cost = prev.totalCost() + connect_cost;
 
@@ -532,12 +538,10 @@
 					var targetList = Notations.criterion.pitchMap[note.pitch];
 					if (targetList) {
 						for (var ii in targetList) {
-							/*var nc = targetList[ii];
-							var match = compareContextsRegression(nc.context, note.context);
+							var node = new Node(targetList[ii], note);
 
-							if (match.value > 0)
-								note.matches.push({index: nc.index, match: match});*/
-							note.matches.push(new Node(targetList[ii], note));
+							if (node.matching.value > 0)
+								note.matches.push(node);
 						}
 					}
 
@@ -664,10 +668,16 @@
 			var paintMidiGraph = function () {
 				$("#midi-canvas").attr("viewBox", "-10 -10 " + (Config.MidiCanvasWidth + 20) + " " + (Notations.endTime * Config.MidiScoreHeightScale));
 
+				$("#score-criterion").html("");
+				$("#score-sample").html("");
+				$("#correspondences").html("");
+
 				paintMidiScore(Notations.criterion, { start: Notations.pitch_low, end: Notations.pitch_high + 1 }, { left: 0, right: Config.MidiScoreWidth }, svg("#score-criterion"));
 				paintMidiScore(Notations.sample, { start: Notations.pitch_low, end: Notations.pitch_high + 1 }, { left: Config.MidiCanvasWidth - Config.MidiScoreWidth, right: Config.MidiCanvasWidth }, svg("#score-sample"));
 
 				paintCorrespondences(svg("#correspondences"));
+
+				$("#midi-canvas").html($("#midi-canvas").html());
 			};
 
 
@@ -704,6 +714,8 @@
 
 					$("#compare").attr("disabled", true);
 
+					var time0 = new Date().getTime();
+
 					$("#status").text("parse notation...");
 
 					setTimeout(function () {
@@ -730,25 +742,41 @@
 
 						genPitchStatTable(Notations.pitches, [Notations.criterion.pitchMap, Notations.sample.pitchMap], $("#pitch-stat-table"));
 
+						var time1 = new Date().getTime();
+						console.log("parse notation cost:", time1 - time0);
+
 						$("#status").text("generating context...");
 
 						setTimeout(function () {
 							genNotationContext(Notations.criterion);
 							genNotationContext(Notations.sample);
 
+							var time2 = new Date().getTime();
+							console.log("generating context cost:", time2 - time1);
+
 							$("#status").text("generating match nodes...");
 
 							setTimeout(function () {
 								genMatchNodes();
 
+								var time3 = new Date().getTime();
+								console.log("generating match nodes cost:", time3 - time2);
+
 								$("#status").text("navigating...");
 
 								setTimeout(function () {
 									runNavigation(function() {
+										var time4 = new Date().getTime();
+										console.log("navigating cost:", time4 - time3);
+
 										$("#status").text("graphing...");
 
 										setTimeout(function () {
 											paintMidiGraph();
+
+											var time5 = new Date().getTime();
+											console.log("graphing cost:", time5 - time4);
+											console.log("total cost:", time5 - time0);
 
 											$("#status").text("finished.");
 

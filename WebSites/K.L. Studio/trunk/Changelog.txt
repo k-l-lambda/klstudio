@@ -13,6 +13,13 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2017.11.9	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiComparer: added time cost statistics.
+
+	+	MidiComparer: removed zero match nodes.
+
+
 2017.11.8	K.L.	<k.l.lambda@gmail.com>
 
 	+	MidiComparer: run navigation in frames.

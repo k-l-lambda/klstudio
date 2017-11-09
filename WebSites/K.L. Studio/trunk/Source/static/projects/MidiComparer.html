@@ -497,6 +497,9 @@
 			};
 
 			Node.prototype.includsCIndex = function (index) {
+				if (this.path_list)
+					return this.path_list.includes(index);
+
 				if (this.c_note && this.c_note.index == index)
 					return true;
 
@@ -610,8 +613,12 @@
 				if (next_note) {
 					var node = Notations.sample.notes[index].matches[match];
 
-					for (var i in next_note.matches)
+					for (var i in next_note.matches) {
 						next_note.matches[i].evaluateConnection(node);
+
+						next_note.matches[i].path_list = next_note.matches[i].path();
+					}
+
 				}
 			};
 

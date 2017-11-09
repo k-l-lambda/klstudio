@@ -65,7 +65,7 @@
 			.correspondence
 			{
 				stroke: #000;
-				stroke-width: 0.2px;
+				stroke-width: 0.1px;
 			}
 		</style>
 		<script src="../js/jquery.js" type="text/javascript"></script>
@@ -109,10 +109,11 @@
 
 			var Config = {
 				ContextSpan: { left: -800, right: 800 },
-				DistanceSigmoidFactor: 0.01,
-				ContextRegressionDiffer: 0.01,
-				ContextRegressionBegin: 10,
-				ContextRegressionEnd: 0.01,
+				DistanceSigmoidFactor: 0.01,		// context compare time distance, sigmod x units per ms
+				ContextRegressionDiffer: 0.01,		// context compare regression cost derivation default infinitesimal
+				ContextRegressionBegin: 10,			// context compare regression begin boundary
+				ContextRegressionEnd: 0.01,			// context compare regression cost end condition
+				ConnectionBiasCostBenchmark: 800,	// how many ms bias result in cost = 1
 
 				MidiCanvasWidth: 2000,
 				MidiScoreWidth: 900,
@@ -485,13 +486,16 @@
 
 				var cost = 0;
 
-				if (current_c.index < prev_c.index)
-					cost += (prev_c.start - current_c.start) / 400;
+				if (current_c.index < prev_c.index) {
+					var bias = (prev_c.start - current_c.start) / Config.ConnectionBiasCostBenchmark;
+					cost += bias * bias;
+				}
 
 				for (var i = prev_c.index + 1; i < current_c.index; ++i) {
 					if (!prev.includsCIndex(i)) {
 						var note = Notations.criterion.notes[i];
-						cost += (current_c.start - note.start) / 400;
+						var bias = (current_c.start - note.start) / Config.ConnectionBiasCostBenchmark;
+						cost += bias * bias;
 					}
 				}
 
@@ -597,9 +601,6 @@
 					for (var ii in Notations.sample.notes[i].matches)
 						evaluateNode(i, ii);*/
 				var iterator = traverseEvaluateNode();
-				/*var done = false;
-				while (!done)
-					done = iterator.next().done;*/
 				runInFrames(iterator, function() {
 					var last_note = Notations.sample.notes[Notations.sample.notes.length - 1];
 					if (last_note) {

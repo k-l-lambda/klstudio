@@ -14,6 +14,11 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2017.11.10	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiComparer: optimized by last c index.
+
+
 2017.11.9	K.L.	<k.l.lambda@gmail.com>
 
 	+	MidiComparer: optimized by connection cost clip.

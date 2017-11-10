@@ -510,6 +510,17 @@
 				return false;
 			};
 
+			Node.prototype.lastCIndex = function () {
+				if (this.last_c_index)
+					return this.last_c_index;
+
+				var index = this.c_note ? this.c_note.index : -1;
+				if (this.prev)
+					index = Math.max(index, this.prev.lastCIndex());
+
+				return index;
+			};
+
 			Node.prototype.evaluateConnectionCost = function (prev, end_limit) {
 				var prev_c = prev.lastCNote();
 				var current_c = this.c_note;
@@ -527,8 +538,10 @@
 				if(cost > end_limit)
 					return cost;
 
+				var last_c_index = prev.lastCIndex();
+
 				for (var i = prev_c.index + 1; i < current_c.index; ++i) {
-					if (!prev.includsCIndex(i)) {
+					if (i > last_c_index) {
 						var note = Notations.criterion.notes[i];
 						var bias = (current_c.start - note.start) / Config.ConnectionBiasCostBenchmark;
 						cost += bias * bias;
@@ -542,12 +555,6 @@
 			};
 
 			Node.prototype.evaluateConnection = function (prev) {
-				/*if (this.c_note && prev.includsCIndex(this.c_note.index)) {
-					//console.log("includes:", this, prev);
-					//throw "includes";
-					return;
-				}*/
-
 				var prev_total_cost = prev.totalCost();
 
 				var end_limit = this.prev_cost ? this.prev_cost - prev_total_cost : 1;
@@ -626,10 +633,12 @@
 				if (next_note) {
 					var node = Notations.sample.notes[index].matches[match];
 
+					node.last_c_index = node.lastCIndex();
+
 					for (var i in next_note.matches) {
 						next_note.matches[i].evaluateConnection(node);
 
-						next_note.matches[i].path_list = next_note.matches[i].path();
+						//next_note.matches[i].path_list = next_note.matches[i].path();
 					}
 
 				}

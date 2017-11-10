@@ -141,6 +141,7 @@
 				ConnectionBiasCostBenchmark: 800,	// how many ms bias result in cost = 1
 				//MatchingThreshold: 0.3,				// over than max matching * threshold will stay in node list
 				//ConnectionCostClip: 16,
+				ConnectionClipIndex: 4,
 
 				MidiCanvasWidth: 2000,
 				MidiScoreWidth: 900,
@@ -612,11 +613,14 @@
 						});*/
 					}
 
-					note.matches.sort(function(m1, m2) {
+					/*note.matches.sort(function(m1, m2) {
 						return m2.matching.value - m1.matching.value;
-					});
+					});*/
 
 					note.matches.push(new Node(null, note));
+
+					//for(var ii in note.matches)
+					//	note.matches[ii].index = ii;
 
 					NodeCount += note.matches.length;
 				}
@@ -647,20 +651,29 @@
 				var progress = 0;
 				var evaluateCount = 0;
 
-				for (var i in Notations.sample.notes)
-					for (var ii in Notations.sample.notes[i].matches) {
+				for (var i in Notations.sample.notes) {
+					var note = Notations.sample.notes[i];
+
+					note.matches = note.matches.sort(function(n1, n2) {
+						return n1.totalCost() - n2.totalCost();
+					});
+
+					var second_best_node = note.matches[1] || note.matches[0];
+					var second_best_node_cost = second_best_node.totalCost();
+
+					for (var ii in note.matches) {
 						var percent = Math.floor(progress * 100 / NodeCount);
 						$("#status").text("navigating  " + percent + "%   " + i + ", " + ii + "...");
 
-						var node = Notations.sample.notes[i].matches[ii];
-						var clip = 1 / Math.max(node.selfCost, 1e-6);
-						if (node.connect_cost == null || node.connect_cost < clip * clip) {
+						var node = note.matches[ii];
+						if (node.totalCost() - second_best_node_cost < 1 || ii < Config.ConnectionClipIndex) {
 							yield evaluateNode(i, ii);
 							++evaluateCount;
 						}
 
 						++progress;
 					}
+				}
 
 				console.log("evaluated node count:", evaluateCount);
 			};
@@ -697,6 +710,7 @@
 
 						ResultPath = endNode.prev.path();
 
+						console.log("result cost:", endNode.totalCost());
 						console.log("result path:", ResultPath.toString(), ResultPath);
 					}
 
@@ -775,7 +789,7 @@
 			};
 
 			var paintMidiGraph = function () {
-				$("#midi-canvas").attr("viewBox", "-10 -10 " + (Config.MidiCanvasWidth + 20) + " " + (Notations.endTime * Config.MidiScoreHeightScale));
+				$("#midi-canvas").attr("viewBox", "-10 -10 " + (Config.MidiCanvasWidth + 20) + " " + (Notations.endTime * Config.MidiScoreHeightScale + 20));
 
 				paintMidiScore(Notations.criterion, { start: Notations.pitch_low, end: Notations.pitch_high + 1 }, { left: 0, right: Config.MidiScoreWidth }, svg("#score-criterion"));
 				paintMidiScore(Notations.sample, { start: Notations.pitch_low, end: Notations.pitch_high + 1 }, { left: Config.MidiCanvasWidth - Config.MidiScoreWidth, right: Config.MidiCanvasWidth }, svg("#score-sample"));

@@ -7,7 +7,6 @@ TODO:
 			mode
 				grpah UI
 	MidiComparer:
-		try step global connection cost clip.
 		play MIDI with cursor
 		highlight focus note
 
@@ -16,6 +15,8 @@ Pending Issues:
 
 
 2017.11.10	K.L.	<k.l.lambda@gmail.com>
+
+	>	MidiComparer: clip connection evulation by total cost and cost differ.
 
 	>	MidiComparer: clip connection cost by x^2.
 

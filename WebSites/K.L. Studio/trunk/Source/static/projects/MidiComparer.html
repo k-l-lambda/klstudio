@@ -140,6 +140,7 @@
 				ContextRegressionEnd: 0.01,			// context compare regression cost end condition
 				ConnectionBiasCostBenchmark: 800,	// how many ms bias result in cost = 1
 				//MatchingThreshold: 0.3,				// over than max matching * threshold will stay in node list
+				//ConnectionCostClip: 16,
 
 				MidiCanvasWidth: 2000,
 				MidiScoreWidth: 900,
@@ -557,7 +558,7 @@
 			Node.prototype.evaluateConnection = function (prev) {
 				var prev_total_cost = prev.totalCost();
 
-				var end_limit = this.prev_cost ? this.prev_cost - prev_total_cost : 1;
+				var end_limit = this.prev_cost ? this.prev_cost - prev_total_cost : null;
 				if (end_limit < 0)
 					return;
 
@@ -637,8 +638,6 @@
 
 					for (var i in next_note.matches) {
 						next_note.matches[i].evaluateConnection(node);
-
-						//next_note.matches[i].path_list = next_note.matches[i].path();
 					}
 
 				}
@@ -646,6 +645,7 @@
 
 			var traverseEvaluateNode = function* () {
 				var progress = 0;
+				var evaluateCount = 0;
 
 				for (var i in Notations.sample.notes)
 					for (var ii in Notations.sample.notes[i].matches) {
@@ -653,11 +653,16 @@
 						$("#status").text("navigating  " + percent + "%   " + i + ", " + ii + "...");
 
 						var node = Notations.sample.notes[i].matches[ii];
-						if (node.connect_cost == null || node.connect_cost < 1)
+						var clip = 1 / Math.max(node.selfCost, 1e-6);
+						if (node.connect_cost == null || node.connect_cost < clip * clip) {
 							yield evaluateNode(i, ii);
+							++evaluateCount;
+						}
 
 						++progress;
 					}
+
+				console.log("evaluated node count:", evaluateCount);
 			};
 
 			var runInFrames = function(it, on_end) {

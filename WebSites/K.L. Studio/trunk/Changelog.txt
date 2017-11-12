@@ -14,6 +14,11 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2017.11.12	K.L.	<k.l.lambda@gmail.com>
+
+	>	MidiComparer: refined SVG.
+
+
 2017.11.10	K.L.	<k.l.lambda@gmail.com>
 
 	>	MidiComparer: clip connection evulation by total cost and cost differ.

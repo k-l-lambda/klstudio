@@ -58,7 +58,7 @@
 				width: 100%;
 			}
 
-			.note
+			.note-bar
 			{
 				fill: #fff;
 				stroke: #888;
@@ -72,17 +72,17 @@
 				stroke-width: 1px;
 			}
 
-			#score-sample .note, #score-sample .note-dot
+			#score-sample .note-bar, #score-sample .note-dot
 			{
 				fill: #fcc;
 			}
 
-			#score-criterion .note, #score-criterion .note-dot
+			#score-criterion .note-bar, #score-criterion .note-dot
 			{
 				fill: #fea;
 			}
 
-			.note.paired, .note-dot.paired
+			.note-bar.paired, .note-dot.paired
 			{
 				fill: #fff !important;
 			}
@@ -730,7 +730,7 @@
 			};
 
 			var paintMidiScore = function (notation, pitch_range, canvas_range, group) {
-					var pitch_width = (canvas_range.right - canvas_range.left) / (pitch_range.end - pitch_range.start);
+				var pitch_width = (canvas_range.right - canvas_range.left) / (pitch_range.end - pitch_range.start);
 
 				for (var i in notation.notes) {
 					var note = notation.notes[i];
@@ -743,8 +743,11 @@
 
 					note.graph = note.graph || {}
 
-					note.graph.rect = group.rect(left, top, pitch_width, height, 2, 2, { class: "note" });
-					note.graph.dot = group.circle(note.position.x, note.position.y, 3, { class: "note-dot" });
+					var note_elem = group.group({ class: "note", "data-index": i });
+					var note_group = svg(note_elem);
+
+					note.graph.bar = note_group.rect(left, top, pitch_width, height, 2, 2, { class: "note-bar" });
+					note.graph.dot = note_group.circle(note.position.x, note.position.y, 3, { class: "note-dot" });
 
 					var c_index = ResultPath[i];
 					var node = null;
@@ -755,9 +758,9 @@
 
 					var title = "index: " + i;
 					if (node)
-						title += ", matching: " + node.matching.value.toFixed(3) + ", connection: " + node.connect_cost;
+						title += ", matching: " + node.matching.value.toFixed(3) + (node.connect_cost ? ", connection: " + node.connect_cost : "");
 
-					$(note.graph.rect).append("<title>" + title + "</title>");
+					$(note_elem).append("<title>" + title + "</title>");
 				}
 			};
 
@@ -779,10 +782,10 @@
 
 						paintLine(s_note.position, c_note.position, group, { class: "correspondence" });
 
-						$(s_note.graph.rect).addClass("paired");
+						$(s_note.graph.bar).addClass("paired");
 						$(s_note.graph.dot).addClass("paired");
 
-						$(c_note.graph.rect).addClass("paired");
+						$(c_note.graph.bar).addClass("paired");
 						$(c_note.graph.dot).addClass("paired");
 					}
 				}

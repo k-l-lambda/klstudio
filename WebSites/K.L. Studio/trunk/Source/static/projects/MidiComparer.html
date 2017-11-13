@@ -98,6 +98,11 @@
 				stroke: #000;
 				stroke-width: 0.1px;
 			}
+
+			.correspondence.focus
+			{
+				stroke-width: 1px;
+			}
 		</style>
 		<script src="../js/jquery.js" type="text/javascript"></script>
 		<script src="../js/jquery.svg.js" type="text/javascript"></script>
@@ -148,6 +153,7 @@
 				//MatchingThreshold: 0.3,				// over than max matching * threshold will stay in node list
 				//ConnectionCostClip: 16,
 				ConnectionClipIndex: 5,
+				NullConnectionCost: 4,
 
 				MidiCanvasWidth: 2000,
 				MidiScoreWidth: 900,
@@ -544,7 +550,7 @@
 				var current_c = this.c_note;
 
 				if (!current_c)
-					return 1;
+					return Config.NullConnectionCost;
 
 				if (!prev_c)
 					return 0;
@@ -815,7 +821,7 @@
 						var s_note = Notations.sample.notes[i];
 						var c_note = Notations.criterion.notes[ri];
 
-						paintLine(s_note.position, c_note.position, group, { class: "correspondence" });
+						paintLine(s_note.position, c_note.position, group, { class: "correspondence", "data-index": i });
 
 						$(s_note.graph.bar).addClass("paired");
 						$(s_note.graph.dot).addClass("paired");
@@ -842,14 +848,17 @@
 
 				$("#midi-canvas .note").mouseleave(function() {
 					$(".note.focus").removeClass("focus");
+					$(".correspondence.focus").removeClass("focus");
 				});
 
 				$("#score-criterion .note").mouseenter(function() {
 					var c_index = $(this).data("index");
 
 					for (var i in ResultPath) {
-						if (ResultPath[i] == c_index)
+						if (ResultPath[i] == c_index) {
 							$("#score-sample .note[data-index=" + i + "]").addClass("focus");
+							$(".correspondence[data-index=" + i + "]").addClass("focus");
+						}
 					}
 				});
 
@@ -857,6 +866,26 @@
 					var s_index = $(this).data("index");
 
 					$("#score-criterion .note[data-index=" + ResultPath[s_index] + "]").addClass("focus");
+					$(".correspondence[data-index=" + s_index + "]").addClass("focus");
+				});
+
+				$("#midi-canvas .note").click(function() {
+					var cnote = $("#score-criterion .note.focus");
+					console.log("c note:", cnote);
+
+					var snotes = [];
+
+					var c_index = cnote.length ? cnote.data("index") : null;
+
+					$("#score-sample .note.focus").each(function(i, e) {
+						var index = $(e).data("index");
+
+						console.log("s note:", Notations.sample.notes[index]);
+						if (c_index != null)
+							dumpNode(index, c_index);
+
+						snotes.push(Notations.sample.notes[index]);
+					});
 				});
 			};
 

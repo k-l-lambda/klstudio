@@ -674,7 +674,7 @@
 
 			var traverseEvaluateNode = function* () {
 				var progress = 0;
-				ResultStat.evaluateCount = 0;
+				ResultStat.EvaluatedNodeCount = 0;
 
 				for (var i in Notations.sample.notes) {
 					var note = Notations.sample.notes[i];
@@ -693,14 +693,14 @@
 						var node = note.matches[ii];
 						if (node.totalCost() - second_best_node_cost < 1 || ii < Config.ConnectionClipIndex) {
 							yield evaluateNode(i, ii);
-							++ResultStat.evaluateCount;
+							++ResultStat.EvaluatedNodeCount;
 						}
 
 						++progress;
 					}
 				}
 
-				console.log("evaluated node count:", ResultStat.evaluateCount);
+				console.log("evaluated node count:", ResultStat.EvaluatedNodeCount);
 			};
 
 			var runInFrames = function(it, on_end) {

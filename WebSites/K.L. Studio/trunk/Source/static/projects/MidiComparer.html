@@ -373,6 +373,12 @@
 
 				for (var pitch in criterion) {
 					var pc = criterion[pitch];
+
+					pitch = Number(pitch);
+
+					if (pitch > 800)
+						pitch -= 1000;
+
 					var ps1 = sample[pitch];
 					var ps2 = sample[pitch + 1000];
 
@@ -393,7 +399,10 @@
 						var increase = 1 - sigmoid(distance * Config.DistanceSigmoidFactor);
 						match += increase;
 
-						//console.log(pitch, increase);
+						/*if (isNaN(increase)) {
+							console.error("error increase:", criterion, sample, scale, pitch, distance, pc, ps1, ps2);
+							throw "error increase";
+						}*/
 					}
 				}
 
@@ -861,6 +870,21 @@
 
 					table.append(tr);
 				}
+			};
+
+			var dumpNode = function(s_index, c_index) {
+				for (var i in Notations.sample.notes[s_index].matches) {
+					var node = Notations.sample.notes[s_index].matches[i];
+					if (node.c_note && node.c_note.index == c_index) {
+						console.log(node);
+						return;
+					}
+				}
+
+				console.log("s:", Notations.sample.notes[s_index].context);
+				console.log("c:", Notations.criterion.notes[c_index].context);
+
+				console.log("compare:", compareContextsRegression(Notations.criterion.notes[c_index].context, Notations.sample.notes[s_index].context));
 			};
 
 

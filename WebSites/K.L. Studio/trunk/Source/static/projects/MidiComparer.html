@@ -82,6 +82,17 @@
 				fill: #fff !important;
 			}
 
+			.focus .note-bar, .focus .note-dot
+			{
+				fill: #afb !important;
+				stroke: #111;
+			}
+
+			.focus .note-dot
+			{
+				stroke-width: 2px;
+			}
+
 			.correspondence
 			{
 				stroke: #000;
@@ -523,7 +534,10 @@
 				var prev_c = prev.lastCNote();
 				var current_c = this.c_note;
 
-				if (!prev_c || !current_c)
+				if (!current_c)
+					return 1;
+
+				if (!prev_c)
 					return 0;
 
 				var cost = 0;
@@ -812,6 +826,29 @@
 				paintCorrespondences(svg("#correspondences"));
 
 				$("#midi-canvas").html($("#midi-canvas").html());
+
+				$("#midi-canvas .note").mouseenter(function() {
+					$(this).addClass("focus");
+				});
+
+				$("#midi-canvas .note").mouseleave(function() {
+					$(".note.focus").removeClass("focus");
+				});
+
+				$("#score-criterion .note").mouseenter(function() {
+					var c_index = $(this).data("index");
+
+					for (var i in ResultPath) {
+						if (ResultPath[i] == c_index)
+							$("#score-sample .note[data-index=" + i + "]").addClass("focus");
+					}
+				});
+
+				$("#score-sample .note").mouseenter(function() {
+					var s_index = $(this).data("index");
+
+					$("#score-criterion .note[data-index=" + ResultPath[s_index] + "]").addClass("focus");
+				});
 			};
 
 			var genResultStatTable = function () {

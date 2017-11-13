@@ -8,13 +8,15 @@ TODO:
 				grpah UI
 	MidiComparer:
 		play MIDI with cursor
-		highlight focus note
 
 Pending Issues:
 	cube earth sphere tangent space issue
 
 
 2017.11.13	K.L.	<k.l.lambda@gmail.com>
+
+	>	MidiComparer: added connection cost for null node.
+	+	MidiComparer: highlight focus note in SVG.
 
 	+	MidiComparer: added result stat table.
 

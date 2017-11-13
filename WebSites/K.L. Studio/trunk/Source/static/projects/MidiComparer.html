@@ -30,14 +30,9 @@
 			{
 			}
 
-			td
+			td, th
 			{
 				text-align: right;
-			}
-
-			th
-			{
-				text-align: center;
 			}
 
 			#results
@@ -111,7 +106,7 @@
 			var MidiData = {};
 			var Notations = {};
 			var ResultPath = null;
-			var NodeCount = 0;
+			var ResultStat = {};
 
 			var loadMidiFile = function (data, name, filename, onload) {
 				MIDI.Player.loadFile(data, function () {
@@ -464,6 +459,7 @@
 				this.s_note = s_note;
 
 				if (this.c_note)
+					//this.matching = {value: 4}
 					this.matching = compareContextsRegression(this.c_note.context, this.s_note.context);
 				else
 					this.matching = {value: 0};
@@ -589,7 +585,7 @@
 
 
 			var genMatchNodes = function () {
-				NodeCount = 0;
+				ResultStat.NodeCount = 0;
 
 				for (var i in Notations.sample.notes) {
 					var note = Notations.sample.notes[i];
@@ -622,10 +618,10 @@
 					//for(var ii in note.matches)
 					//	note.matches[ii].index = ii;
 
-					NodeCount += note.matches.length;
+					ResultStat.NodeCount += note.matches.length;
 				}
 
-				console.log("node count:", NodeCount);
+				//console.log("node count:", NodeCount);
 			};
 
 			var evaluateNode = function (index, match) {
@@ -649,7 +645,7 @@
 
 			var traverseEvaluateNode = function* () {
 				var progress = 0;
-				var evaluateCount = 0;
+				ResultStat.evaluateCount = 0;
 
 				for (var i in Notations.sample.notes) {
 					var note = Notations.sample.notes[i];
@@ -662,20 +658,20 @@
 					var second_best_node_cost = second_best_node.totalCost();
 
 					for (var ii in note.matches) {
-						var percent = Math.floor(progress * 100 / NodeCount);
+						var percent = Math.floor(progress * 100 / ResultStat.NodeCount);
 						$("#status").text("navigating  " + percent + "%   " + i + ", " + ii + "...");
 
 						var node = note.matches[ii];
 						if (node.totalCost() - second_best_node_cost < 1 || ii < Config.ConnectionClipIndex) {
 							yield evaluateNode(i, ii);
-							++evaluateCount;
+							++ResultStat.evaluateCount;
 						}
 
 						++progress;
 					}
 				}
 
-				console.log("evaluated node count:", evaluateCount);
+				console.log("evaluated node count:", ResultStat.evaluateCount);
 			};
 
 			var runInFrames = function(it, on_end) {
@@ -712,6 +708,19 @@
 
 						console.log("result cost:", endNode.totalCost());
 						console.log("result path:", ResultPath.toString(), ResultPath);
+
+						var paired_count = 0;
+						var c_indices = {};
+						for(var i in ResultPath) {
+							if (ResultPath[i] >= 0) {
+								++paired_count;
+								c_indices[ResultPath[i]] = 1;
+							}
+						}
+
+						ResultStat.ResultCost = endNode.totalCost().toFixed(4);
+						ResultStat.WrongNotes = Notations.sample.notes.length - paired_count;
+						ResultStat.OmitNotes = Notations.criterion.notes.length - Object.keys(c_indices).length;
 					}
 
 					if (on_end)
@@ -723,10 +732,13 @@
 				return new $.svg._wrapperClass($(selector)[0]);
 			};
 
-			var clearMidiScore = function () {
+			var clearResults = function () {
 				$("#score-criterion").html("");
 				$("#score-sample").html("");
 				$("#correspondences").html("");
+
+				$("#result-stat-table").html("");
+				ResultStat = {};
 			};
 
 			var paintMidiScore = function (notation, pitch_range, canvas_range, group) {
@@ -802,6 +814,18 @@
 				$("#midi-canvas").html($("#midi-canvas").html());
 			};
 
+			var genResultStatTable = function () {
+				var table = $("#result-stat-table");
+
+				table.html("");
+
+				for (var name in ResultStat) {
+					var tr = "<tr><th>" + name + "</th><td>" + ResultStat[name] + "</td></tr>";
+
+					table.append(tr);
+				}
+			};
+
 
 			$(function () {
 				$(".midi-file").each(function (i, elem) {
@@ -834,7 +858,7 @@
 						return;
 					}
 
-					clearMidiScore();
+					clearResults();
 
 					$("#compare").attr("disabled", true);
 
@@ -892,6 +916,7 @@
 									runNavigation(function() {
 										var time4 = new Date().getTime();
 										console.log("navigating cost:", time4 - time3);
+										console.log("total computation cost:", time4 - time0);
 
 										$("#status").text("graphing...");
 
@@ -900,11 +925,23 @@
 
 											var time5 = new Date().getTime();
 											console.log("graphing cost:", time5 - time4);
-											console.log("total cost:", time5 - time0);
 
-											$("#status").text("finished.");
+											$("#status").text("statistics...");
 
-											$("#compare").attr("disabled", false);
+											setTimeout(function () {
+												ResultStat.TimeCostNavigating = (time4 - time3) / 1000,
+												ResultStat.TimeCostTotal = (time4 - time0) / 1000,
+
+												genResultStatTable();
+
+												var time6 = new Date().getTime();
+												console.log("statistics cost:", time6 - time5);
+												console.log("total cost:", time6 - time0);
+
+												$("#status").text("finished.");
+
+												$("#compare").attr("disabled", false);
+											}, 1);
 										}, 1);
 									});
 								}, 1);
@@ -943,6 +980,9 @@
 					<g id="score-sample"></g>
 					<g id="correspondences"></g>
 				</svg>
+			</div>
+			<div id="result-stat">
+				<table id="result-stat-table"></table>
 			</div>
 			<div id="status"></div>
 		</div>

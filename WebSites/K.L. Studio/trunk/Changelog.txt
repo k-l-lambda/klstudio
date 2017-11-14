@@ -7,10 +7,17 @@ TODO:
 			mode
 				grpah UI
 	MidiComparer:
+		refine yield times
+		add mending pass
 		play MIDI with cursor
 
 Pending Issues:
 	cube earth sphere tangent space issue
+
+
+2017.11.14	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiComparer: marked duplicated notes.
 
 
 2017.11.13	K.L.	<k.l.lambda@gmail.com>

@@ -82,6 +82,11 @@
 				fill: #fff !important;
 			}
 
+			.duplicated .note-bar, .duplicated .note-dot
+			{
+				fill: #fac !important;
+			}
+
 			.focus .note-bar, .focus .note-dot
 			{
 				fill: #afb !important;
@@ -675,6 +680,7 @@
 			var traverseEvaluateNode = function* () {
 				var progress = 0;
 				ResultStat.EvaluatedNodeCount = 0;
+				ResultStat.DuplicatedNotes = 0;
 
 				for (var i in Notations.sample.notes) {
 					var note = Notations.sample.notes[i];
@@ -787,6 +793,7 @@
 					var note_elem = group.group({ class: "note", "data-index": i });
 					var note_group = svg(note_elem);
 
+					note.graph.group = note_elem;
 					note.graph.bar = note_group.rect(left, top, pitch_width, height, 2, 2, { class: "note-bar" });
 					note.graph.dot = note_group.circle(note.position.x, note.position.y, 3, { class: "note-dot" });
 
@@ -823,11 +830,22 @@
 
 						paintLine(s_note.position, c_note.position, group, { class: "correspondence", "data-index": i });
 
+						var duplicated = $(c_note.graph.group).hasClass("paired");
+
+						$(s_note.graph.group).addClass("paired");
 						$(s_note.graph.bar).addClass("paired");
 						$(s_note.graph.dot).addClass("paired");
 
+						$(c_note.graph.group).addClass("paired");
 						$(c_note.graph.bar).addClass("paired");
 						$(c_note.graph.dot).addClass("paired");
+
+						if (duplicated) {
+							$(s_note.graph.group).addClass("duplicated");
+							$(c_note.graph.group).addClass("duplicated");
+
+							++ResultStat.DuplicatedNotes;
+						}
 					}
 				}
 			};

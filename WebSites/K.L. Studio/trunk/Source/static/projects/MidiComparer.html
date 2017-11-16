@@ -682,6 +682,8 @@
 				ResultStat.EvaluatedNodeCount = 0;
 				ResultStat.DuplicatedNotes = 0;
 
+				var lastYield = new Date().getTime();
+
 				for (var i in Notations.sample.notes) {
 					var note = Notations.sample.notes[i];
 
@@ -693,16 +695,23 @@
 					var second_best_node_cost = second_best_node.totalCost();
 
 					for (var ii in note.matches) {
-						var percent = Math.floor(progress * 100 / ResultStat.NodeCount);
-						$("#status").text("navigating  " + percent + "%   " + i + ", " + ii + "...");
-
 						var node = note.matches[ii];
 						if (node.totalCost() - second_best_node_cost < 1 || ii < Config.ConnectionClipIndex) {
-							yield evaluateNode(i, ii);
+							evaluateNode(i, ii);
 							++ResultStat.EvaluatedNodeCount;
 						}
 
 						++progress;
+					}
+
+					var now = new Date().getTime();
+					if (now - lastYield > 100) {
+						lastYield = now;
+
+						var percent = Math.floor(progress * 100 / ResultStat.NodeCount);
+						$("#status").text("navigating  " + percent + "%   " + i + ", " + ii + "...");
+
+						yield;
 					}
 				}
 

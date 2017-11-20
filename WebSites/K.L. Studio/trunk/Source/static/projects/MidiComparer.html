@@ -163,7 +163,7 @@
 				//MatchingThreshold: 0.3,				// over than max matching * threshold will stay in node list
 				//ConnectionCostClip: 16,
 				ConnectionClipIndex: 5,
-				NullConnectionCost: 4,
+				NullConnectionCost: 1,
 
 				MidiCanvasWidth: 2000,
 				MidiScoreWidth: 900,
@@ -601,6 +601,9 @@
 				var connect_cost = this.evaluateConnectionCost(prev, end_limit);
 				var prev_cost = prev_total_cost + connect_cost;
 
+				if (prev.c_note && prev.c_note.fixed)
+					prev_cost += 1;
+
 				if (this.prev == null || this.prev_cost > prev_cost) {
 					this.prev = prev;
 					this.prev_cost = prev_cost;
@@ -691,6 +694,11 @@
 
 				for (var i in Notations.sample.notes) {
 					var note = Notations.sample.notes[i];
+					if (note.fixed) {
+						progress += note.matches.length;
+
+						continue;
+					}
 
 					note.matches = note.matches.sort(function(n1, n2) {
 						return n1.totalCost() - n2.totalCost();
@@ -753,11 +761,15 @@
 							endNode.evaluateConnection(node);
 						}
 
+						window.endNode = endNode;
+
 						ResultPath = endNode.prev.path();
 
 						console.log("result cost:", endNode.totalCost());
 						console.log("result path:", ResultPath.toString(), ResultPath);
 
+
+						// TODO: move to markNoteCorrespondences
 						var paired_count = 0;
 						var c_indices = {};
 						for(var i in ResultPath) {
@@ -794,6 +806,21 @@
 					if (indices && indices.length > 0) {
 						Notations.criterion.notes[i].fixed = true;
 						Notations.sample.notes[indices[0]].fixed = true;
+					}
+				}
+			};
+
+			var prepareNavigation = function() {
+				for (var i = 0; i < Notations.sample.notes.length - 1; ++i) {
+					var note = Notations.sample.notes[i];
+					if (!note.fixed) {
+						var next_note = Notations.sample.notes[i + 1];
+						for (var ii in next_note.matches) {
+							var node = next_note.matches[ii];
+							node.prev = null;
+							node.prev_cost = null;
+							node.connect_cost = null;
+						}
 					}
 				}
 			};
@@ -1061,36 +1088,41 @@
 								setTimeout(function () {
 									runNavigation(function() {
 										markNoteCorrespondences();
+										prepareNavigation();
 
-										var time4 = new Date().getTime();
-										console.log("navigating cost:", time4 - time3);
-										console.log("total computation cost:", time4 - time0);
+										runNavigation(function(){
+											markNoteCorrespondences();
 
-										$("#status").text("graphing...");
+											var time4 = new Date().getTime();
+											console.log("navigating cost:", time4 - time3);
+											console.log("total computation cost:", time4 - time0);
 
-										setTimeout(function () {
-											paintMidiGraph();
-
-											var time5 = new Date().getTime();
-											console.log("graphing cost:", time5 - time4);
-
-											$("#status").text("statistics...");
+											$("#status").text("graphing...");
 
 											setTimeout(function () {
-												ResultStat.TimeCostNavigating = (time4 - time3) / 1000,
-												ResultStat.TimeCostTotal = (time4 - time0) / 1000,
+												paintMidiGraph();
 
-												genResultStatTable();
+												var time5 = new Date().getTime();
+												console.log("graphing cost:", time5 - time4);
 
-												var time6 = new Date().getTime();
-												console.log("statistics cost:", time6 - time5);
-												console.log("total cost:", time6 - time0);
+												$("#status").text("statistics...");
 
-												$("#status").text("finished.");
+												setTimeout(function () {
+													ResultStat.TimeCostNavigating = (time4 - time3) / 1000,
+													ResultStat.TimeCostTotal = (time4 - time0) / 1000,
 
-												$("#compare").attr("disabled", false);
+													genResultStatTable();
+
+													var time6 = new Date().getTime();
+													console.log("statistics cost:", time6 - time5);
+													console.log("total cost:", time6 - time0);
+
+													$("#status").text("finished.");
+
+													$("#compare").attr("disabled", false);
+												}, 1);
 											}, 1);
-										}, 1);
+										});
 									});
 								}, 1);
 							}, 1);

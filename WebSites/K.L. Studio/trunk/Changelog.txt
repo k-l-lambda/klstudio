@@ -7,7 +7,7 @@ TODO:
 			mode
 				grpah UI
 	MidiComparer:
-		add mending passes
+		refined log & stat
 		play MIDI with cursor
 
 Pending Issues:
@@ -15,6 +15,8 @@ Pending Issues:
 
 
 2017.11.20	K.L.	<k.l.lambda@gmail.com>
+
+	>	MidiComparer: mending pass added.
 
 	>	MidiComparer: markNoteCorrespondences added.
 

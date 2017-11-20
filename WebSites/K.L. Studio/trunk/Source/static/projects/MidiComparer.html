@@ -67,24 +67,29 @@
 				stroke-width: 1px;
 			}
 
-			#score-sample .note-bar, #score-sample .note-dot
+			.note-bar, .note-dot
+			{
+				fill: #fff;
+			}
+
+			#score-sample .pending .note-bar, #score-sample .pending .note-dot
 			{
 				fill: #fcc;
 			}
 
-			#score-criterion .note-bar, #score-criterion .note-dot
+			#score-criterion .pending .note-bar, #score-criterion .pending .note-dot
 			{
 				fill: #fea;
-			}
-
-			.note-bar.paired, .note-dot.paired
-			{
-				fill: #fff !important;
 			}
 
 			.duplicated .note-bar, .duplicated .note-dot
 			{
 				fill: #fac !important;
+			}
+
+			.pending .note-bar, .pending .note-dot
+			{
+				stroke: #f00;
 			}
 
 			.focus .note-bar, .focus .note-dot
@@ -490,8 +495,8 @@
 				this.s_note = s_note;
 
 				if (this.c_note)
-					//this.matching = {value: 4}
-					this.matching = compareContextsRegression(this.c_note.context, this.s_note.context);
+					this.matching = {value: 4}
+					//this.matching = compareContextsRegression(this.c_note.context, this.s_note.context);
 				else
 					this.matching = {value: 0};
 
@@ -772,6 +777,27 @@
 				});
 			};
 
+			var markNoteCorrespondences = function() {
+				var cc = [];
+
+				for (var i in ResultPath) {
+					var index = ResultPath[i];
+					if (index >= 0) {
+						cc[index] = cc[index] || [];
+
+						cc[index].push(i);
+					}
+				}
+
+				for (var i in cc) {
+					var indices = cc[i];
+					if (indices && indices.length > 0) {
+						Notations.criterion.notes[i].fixed = true;
+						Notations.sample.notes[indices[0]].fixed = true;
+					}
+				}
+			};
+
 			var svg = function (selector) {
 				return new $.svg._wrapperClass($(selector)[0]);
 			};
@@ -801,6 +827,9 @@
 
 					var note_elem = group.group({ class: "note", "data-index": i });
 					var note_group = svg(note_elem);
+
+					if (!note.fixed)
+						$(note_elem).addClass("pending");
 
 					note.graph.group = note_elem;
 					note.graph.bar = note_group.rect(left, top, pitch_width, height, 2, 2, { class: "note-bar" });
@@ -842,12 +871,12 @@
 						var duplicated = $(c_note.graph.group).hasClass("paired");
 
 						$(s_note.graph.group).addClass("paired");
-						$(s_note.graph.bar).addClass("paired");
-						$(s_note.graph.dot).addClass("paired");
+						//$(s_note.graph.bar).addClass("paired");
+						//$(s_note.graph.dot).addClass("paired");
 
 						$(c_note.graph.group).addClass("paired");
-						$(c_note.graph.bar).addClass("paired");
-						$(c_note.graph.dot).addClass("paired");
+						//$(c_note.graph.bar).addClass("paired");
+						//$(c_note.graph.dot).addClass("paired");
 
 						if (duplicated) {
 							$(s_note.graph.group).addClass("duplicated");
@@ -1031,6 +1060,8 @@
 
 								setTimeout(function () {
 									runNavigation(function() {
+										markNoteCorrespondences();
+
 										var time4 = new Date().getTime();
 										console.log("navigating cost:", time4 - time3);
 										console.log("total computation cost:", time4 - time0);

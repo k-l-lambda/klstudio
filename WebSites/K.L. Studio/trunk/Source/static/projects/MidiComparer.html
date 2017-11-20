@@ -602,7 +602,7 @@
 				var prev_cost = prev_total_cost + connect_cost;
 
 				if (prev.c_note && prev.c_note.fixed)
-					prev_cost += 1;
+					prev_cost += Config.NullConnectionCost;
 
 				if (this.prev == null || this.prev_cost > prev_cost) {
 					this.prev = prev;

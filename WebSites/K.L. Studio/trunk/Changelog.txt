@@ -7,11 +7,15 @@ TODO:
 			mode
 				grpah UI
 	MidiComparer:
-		refined log & stat
 		play MIDI with cursor
 
 Pending Issues:
 	cube earth sphere tangent space issue
+
+
+2017.11.21	K.L.	<k.l.lambda@gmail.com>
+
+	>	MidiComparer: refined log and statistics.
 
 
 2017.11.20	K.L.	<k.l.lambda@gmail.com>

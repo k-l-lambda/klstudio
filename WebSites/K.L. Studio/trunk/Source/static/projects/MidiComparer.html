@@ -687,8 +687,6 @@
 
 			var traverseEvaluateNode = function* () {
 				var progress = 0;
-				ResultStat.EvaluatedNodeCount = 0;
-				ResultStat.DuplicatedNotes = 0;
 
 				var lastYield = new Date().getTime();
 
@@ -761,27 +759,13 @@
 							endNode.evaluateConnection(node);
 						}
 
-						window.endNode = endNode;
+						endNode = endNode;
 
 						ResultPath = endNode.prev.path();
-
-						console.log("result cost:", endNode.totalCost());
-						console.log("result path:", ResultPath.toString(), ResultPath);
-
-
-						// TODO: move to markNoteCorrespondences
-						var paired_count = 0;
-						var c_indices = {};
-						for(var i in ResultPath) {
-							if (ResultPath[i] >= 0) {
-								++paired_count;
-								c_indices[ResultPath[i]] = 1;
-							}
-						}
-
 						ResultStat.ResultCost = endNode.totalCost().toFixed(4);
-						ResultStat.WrongNotes = Notations.sample.notes.length - paired_count;
-						ResultStat.OmitNotes = Notations.criterion.notes.length - Object.keys(c_indices).length;
+
+						//console.log("result cost:", endNode.totalCost());
+						//console.log("result path:", ResultPath.toString(), ResultPath);
 					}
 
 					if (on_end)
@@ -790,6 +774,7 @@
 			};
 
 			var markNoteCorrespondences = function() {
+				var paired_count = 0;
 				var cc = [];
 
 				for (var i in ResultPath) {
@@ -798,8 +783,13 @@
 						cc[index] = cc[index] || [];
 
 						cc[index].push(i);
+
+						++paired_count;
 					}
 				}
+
+				ResultStat.WrongNotes = Notations.sample.notes.length - paired_count;
+				ResultStat.OmitNotes = Notations.criterion.notes.length - Object.keys(cc).length;
 
 				for (var i in cc) {
 					var indices = cc[i];
@@ -835,7 +825,9 @@
 				$("#correspondences").html("");
 
 				$("#result-stat-table").html("");
+
 				ResultStat = {};
+				ResultStat.EvaluatedNodeCount = 0;
 			};
 
 			var paintMidiScore = function (notation, pitch_range, canvas_range, group) {
@@ -887,6 +879,8 @@
 			};
 
 			var paintCorrespondences = function (group) {
+				ResultStat.DuplicatedNotes = 0;
+
 				for (var i in ResultPath) {
 					var ri = ResultPath[i];
 					if (ri >= 0) {
@@ -1087,8 +1081,12 @@
 
 								setTimeout(function () {
 									runNavigation(function() {
+										var time3_1 = new Date().getTime();
+
 										markNoteCorrespondences();
 										prepareNavigation();
+
+										var time3_2 = new Date().getTime();
 
 										runNavigation(function(){
 											markNoteCorrespondences();
@@ -1109,6 +1107,8 @@
 
 												setTimeout(function () {
 													ResultStat.TimeCostNavigating = (time4 - time3) / 1000,
+													ResultStat.TimeCostNavigating1 = (time3_1 - time3) / 1000,
+													ResultStat.TimeCostNavigating2 = (time4 - time3_2) / 1000,
 													ResultStat.TimeCostTotal = (time4 - time0) / 1000,
 
 													genResultStatTable();

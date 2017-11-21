@@ -133,6 +133,7 @@
 			var Notations = {};
 			var ResultPath = null;
 			var ResultStat = {};
+			var GraphOffsetY = 0;
 
 			var loadMidiFile = function (data, name, filename, onload) {
 				MIDI.Player.loadFile(data, function () {
@@ -875,7 +876,7 @@
 				path.line(end.x, end.y);
 				path.close();
 
-				group.path(path, options);
+				return group.path(path, options);
 			};
 
 			var paintCorrespondences = function (group) {
@@ -887,7 +888,9 @@
 						var s_note = Notations.sample.notes[i];
 						var c_note = Notations.criterion.notes[ri];
 
-						paintLine(s_note.position, c_note.position, group, { class: "correspondence", "data-index": i });
+						var line = paintLine(s_note.position, c_note.position, group, { class: "correspondence", "data-index": i });
+
+						s_note.graph.line = line;
 
 						var duplicated = $(c_note.graph.group).hasClass("paired");
 
@@ -907,6 +910,30 @@
 						}
 					}
 				}
+			};
+
+			var panScore = function(y) {
+				var dy = y - GraphOffsetY;
+				GraphOffsetY = y;
+
+				$("#score-criterion").attr("transform", "translate(0, " + y + ")");
+
+				$("#correspondences path").each(function(i, path) {
+					var $path = $(path);
+					var d = $path.attr("d");
+					var y = Number(d.match(/,(\-?\d+\.*\d*)z/)[1]);
+
+					$path.attr("d", d.replace(/,(\-?\d+\.*\d*)z/, "," + (y + dy) + "z"));
+				});
+			};
+
+			var alignScore = function(s_index) {
+				var sy = Notations.sample.notes[s_index].position.y;
+				var cy = Notations.criterion.notes[ResultPath[s_index]].position.y;
+
+				var dy = sy - cy;
+				if (Math.abs(dy - GraphOffsetY) > 400)
+					panScore(dy);
 			};
 
 			var paintMidiGraph = function () {
@@ -931,12 +958,19 @@
 				$("#score-criterion .note").mouseenter(function() {
 					var c_index = $(this).data("index");
 
+					var s_index = null;
+
 					for (var i in ResultPath) {
 						if (ResultPath[i] == c_index) {
 							$("#score-sample .note[data-index=" + i + "]").addClass("focus");
 							$(".correspondence[data-index=" + i + "]").addClass("focus");
+
+							s_index = s_index || i;
 						}
 					}
+
+					if (s_index != null)
+						alignScore(s_index);
 				});
 
 				$("#score-sample .note").mouseenter(function() {
@@ -944,6 +978,9 @@
 
 					$("#score-criterion .note[data-index=" + ResultPath[s_index] + "]").addClass("focus");
 					$(".correspondence[data-index=" + s_index + "]").addClass("focus");
+
+					if (ResultPath[s_index] >= 0)
+						alignScore(s_index);
 				});
 
 				$("#midi-canvas .note").click(function() {

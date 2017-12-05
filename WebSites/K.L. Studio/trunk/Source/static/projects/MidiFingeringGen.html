@@ -369,11 +369,44 @@
 					var note_elem = group.group({ class: "note " + (is_white ? "white" : "black") + " step-" + step, "data-index": i });
 					var note_group = svg(note_elem);
 
-					var cornorRadius = is_white ? 3 : 0;
+					var cornorRadius = is_white ? 5 : 0;
 
 					note.graph.group = note_elem;
 					note.graph.bar = note_group.rect(left, top, width, height, cornorRadius, cornorRadius, { class: "note-bar" });
 				}
+			};
+
+			var runInFrames = function (it, on_end) {
+				var f;
+				f = function () {
+					var done = it.next().done;
+
+					if (!done)
+						setTimeout(f, 0);
+					else if (on_end)
+						on_end();
+				};
+
+				f();
+			};
+
+			var navigationIsRunning = false;
+
+			var navigationThread = function () {
+				// waiting for last thread
+				while (navigationIsRunning)
+					yield;
+
+				navigationIsRunning = true;
+
+				navigationIsRunning = false;
+			};
+
+			var runNavigation = function () {
+				var iterator = navigationThread();
+				runInFrames(iterator, function () {
+					console.log("Navigation end.");
+				});
 			};
 
 			$(function () {

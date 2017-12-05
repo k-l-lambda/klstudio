@@ -941,11 +941,51 @@
 					panScore(dy);
 			};
 
+			var cursorTime = 0;
+			var cursorNotation = null;
+
+			var onCursorMove = function(time) {
+				if (!cursorNotation)
+					return;
+
+				var inverse = time < cursorTime;
+
+				var start = Math.min(cursorTime, time);
+				var end = Math.max(cursorTime, time);
+
+				for (var i in cursorNotation.notes) {
+					var note = cursorNotation.notes[i];
+
+					if (note.start > end)
+						break;
+
+					var note_end = note.start + note.duration;
+					var start_in = note.start >= start && note.start < end;
+					var end_in = note_end >= start && note_end < end;
+
+					if (inverse ? end_in : start_in) {
+						note.graph.group.addClass("on");
+						MIDI.noteOn(0, note.pitch, note.velocity);
+					}
+
+					if (inverse ? start_in : end_in) {
+						note.graph.group.removeClass("on");
+						MIDI.noteOff(0, note.pitch);
+					}
+				}
+
+				cursorTime = time;
+			};
+
 			var pressNotes = function(notation, time, on) {
 				var notes = [];
 
 				for (var i in notation.notes) {
 					var note = notation.notes[i];
+
+					if (note.start > time)
+						break;
+
 					if (note.start <= time && note.start + note.duration > time)
 						notes.push(note);
 				}
@@ -966,6 +1006,9 @@
 						MIDI.noteOff(0, note.pitch);
 					}
 				}
+
+				cursorTime = time;
+				cursorNotation = notation;
 			};
 
 			var releaseNotes = function() {
@@ -1063,7 +1106,8 @@
 				});
 
 				$("#midi-canvas").mousemove(function() {
-					//console.log(event);
+					if (event.buttons == 1)
+						onCursorMove(yToTime(event.offsetY));
 				});
 
 				$("#midi-canvas").mousedown(function() {
@@ -1076,12 +1120,6 @@
 				});
 
 				$("#midi-canvas").mouseup(function() {
-					/*var x = event.offsetX / $("#midi-canvas").width();
-					var notation = x > 0.5 ? Notations.sample : Notations.criterion;
-
-					var time = yToTime(event.offsetY);
-
-					pressNotes(notation, time, false);*/
 					releaseNotes();
 				});
 			};

@@ -103,6 +103,11 @@
 				stroke-width: 2px;
 			}
 
+			.on .note-bar
+			{
+				fill: #0df;
+			}
+
 			.correspondence
 			{
 				stroke: #000;
@@ -936,6 +941,50 @@
 					panScore(dy);
 			};
 
+			var pressNotes = function(notation, time, on) {
+				var notes = [];
+
+				for (var i in notation.notes) {
+					var note = notation.notes[i];
+					if (note.start <= time && note.start + note.duration > time)
+						notes.push(note);
+				}
+
+				for (var i in notes) {
+					var note = notes[i];
+
+					if (on) {
+						note.graph.group.addClass("on");
+
+						note.graph.group.data("pitch", note.pitch);
+
+						MIDI.noteOn(0, note.pitch, note.velocity);
+					}
+					else {
+						note.graph.group.removeClass("on");
+
+						MIDI.noteOff(0, note.pitch);
+					}
+				}
+			};
+
+			var releaseNotes = function() {
+				$(".note.on").each(function(i, note) {
+					$(note).removeClass("on");
+
+					var pitch = $(note).data("pitch");
+
+					MIDI.noteOff(0, pitch);
+				});
+			};
+
+			var yToTime = function(y) {
+				var ratio = (Config.MidiCanvasWidth + 20) / $("#midi-canvas").width();
+				var time = (y - 10) * ratio / Config.MidiScoreHeightScale;
+
+				return time;
+			};
+
 			var paintMidiGraph = function () {
 				$("#midi-canvas").attr("viewBox", "-10 -10 " + (Config.MidiCanvasWidth + 20) + " " + (Notations.endTime * Config.MidiScoreHeightScale + 20));
 
@@ -945,6 +994,17 @@
 				paintCorrespondences(svg("#correspondences"));
 
 				$("#midi-canvas").html($("#midi-canvas").html());
+
+				// redirect graph elements
+				for (var i in Notations.criterion.notes) {
+					var note = Notations.criterion.notes[i];
+					note.graph.group = $("#score-criterion .note[data-index=" + note.index + "]");
+				}
+
+				for (var i in Notations.sample.notes) {
+					var note = Notations.sample.notes[i];
+					note.graph.group = $("#score-sample .note[data-index=" + note.index + "]");
+				}
 
 				$("#midi-canvas .note").mouseenter(function() {
 					$(this).addClass("focus");
@@ -1001,6 +1061,29 @@
 						snotes.push(Notations.sample.notes[index]);
 					});
 				});
+
+				$("#midi-canvas").mousemove(function() {
+					//console.log(event);
+				});
+
+				$("#midi-canvas").mousedown(function() {
+					var x = event.offsetX / $("#midi-canvas").width();
+					var notation = x > 0.5 ? Notations.sample : Notations.criterion;
+
+					var time = yToTime(event.offsetY);
+
+					pressNotes(notation, time, true);
+				});
+
+				$("#midi-canvas").mouseup(function() {
+					/*var x = event.offsetX / $("#midi-canvas").width();
+					var notation = x > 0.5 ? Notations.sample : Notations.criterion;
+
+					var time = yToTime(event.offsetY);
+
+					pressNotes(notation, time, false);*/
+					releaseNotes();
+				});
 			};
 
 			var genResultStatTable = function () {
@@ -1032,6 +1115,14 @@
 
 
 			$(function () {
+				MIDI.loadPlugin({
+					soundfontUrl: "../soundfont/",
+					instrument: "acoustic_grand_piano",
+					callback: function () {
+						console.log("MIDI plugin loaded.");
+					}
+				});
+
 				$(".midi-file").each(function (i, elem) {
 					elem.ondragover = function (e) {
 						$(elem).addClass("drag-hover");

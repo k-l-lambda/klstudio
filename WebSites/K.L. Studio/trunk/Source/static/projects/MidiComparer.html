@@ -173,7 +173,7 @@
 
 				MidiCanvasWidth: 2000,
 				MidiScoreWidth: 900,
-				MidiScoreHeightScale: 0.03,
+				MidiScoreHeightScale: 0.04,
 			};
 
 
@@ -500,13 +500,14 @@
 				this.c_note = c_note;
 				this.s_note = s_note;
 
-				if (this.c_note)
+				/*if (this.c_note)
 					this.matching = {value: 4}
 					//this.matching = compareContextsRegression(this.c_note.context, this.s_note.context);
 				else
 					this.matching = {value: 0};
 
-				this.evaluateCost();
+				this.evaluateCost();*/
+				this.selfCost = 0;
 			};
 
 			Node.prototype.totalCost = function () {
@@ -523,7 +524,12 @@
 				return cost;
 			};
 
-			Node.prototype.evaluateCost = function () {
+			Node.prototype.evaluateMatchingCost = function () {
+				if (this.c_note)
+					this.matching = compareContextsRegression(this.c_note.context, this.s_note.context);
+				else
+					this.matching = {value: 0};
+
 				this.selfCost = 1 - sigmoid(this.matching.value);
 			};
 
@@ -607,8 +613,8 @@
 				var connect_cost = this.evaluateConnectionCost(prev, end_limit);
 				var prev_cost = prev_total_cost + connect_cost;
 
-				if (prev.c_note && prev.c_note.fixed)
-					prev_cost += Config.NullConnectionCost;
+				//if (prev.c_note && prev.c_note.fixed)
+				//	prev_cost += Config.NullConnectionCost;
 
 				if (this.prev == null || this.prev_cost > prev_cost) {
 					this.prev = prev;
@@ -641,14 +647,14 @@
 
 					var targetList = Notations.criterion.pitchMap[note.pitch];
 					if (targetList) {
-						var max_matching = 0;
+						//var max_matching = 0;
 
 						for (var ii in targetList) {
 							var node = new Node(targetList[ii], note);
 
-							max_matching = Math.max(max_matching, node.matching.value);
+							//max_matching = Math.max(max_matching, node.matching.value);
 
-							if (node.matching.value > 0)
+							//if (node.matching.value > 0)
 								note.matches.push(node);
 						}
 
@@ -686,8 +692,14 @@
 
 					for (var i in next_note.matches) {
 						next_note.matches[i].evaluateConnection(node);
+
+						if (node.c_note) {
+							node.c_note.nodes = node.c_note.nodes || [];
+							node.c_note.nodes.push(node);
+						}
 					}
 
+					node.evaluated = true;
 				}
 			};
 
@@ -779,7 +791,7 @@
 				});
 			};
 
-			var markNoteCorrespondences = function() {
+			var markNoteCorrespondences = function(reevaluateOmitNotes) {
 				var paired_count = 0;
 				var cc = [];
 
@@ -799,11 +811,74 @@
 
 				for (var i in cc) {
 					var indices = cc[i];
-					if (indices && indices.length > 0) {
+					//if (indices && indices.length > 0) {
+					if (indices && indices.length == 1) {
 						Notations.criterion.notes[i].fixed = true;
 						Notations.sample.notes[indices[0]].fixed = true;
 					}
+					else if(indices && indices.length > 1) {
+						var minCost = null;
+
+						for (var ii in indices) {
+							var note = Notations.sample.notes[indices[ii]];
+							for (var iii in note.matches) {
+								var node = note.matches[iii];
+								//if (node.evaluated)
+									node.evaluateMatchingCost();
+
+								if (node.c_note && node.c_note.index == i) {
+									note.selfCost = node.selfCost;
+
+									if (minCost == null)
+										minCost = node.selfCost;
+									else
+										minCost = Math.min(minCost, node.selfCost);
+								}
+							}
+						}
+
+						for (var ii in indices) {
+							var note = Notations.sample.notes[indices[ii]];
+							if (note.selfCost > minCost)
+								note.duplicated = true;
+							else
+								note.fixed = true;
+						}
+					}
 				}
+
+				// re-evaluate omit notes
+				var s_indices = [];
+				for (var i in Notations.criterion.notes) {
+					if(!cc[i]) {
+						var c_note = Notations.criterion.notes[i];
+						if (c_note && c_note.nodes)
+							c_note.fixed = false;
+
+						if (reevaluateOmitNotes) {
+							for (var ii in c_note.nodes) {
+								var node = c_note.nodes[ii];
+
+								node.evaluateMatchingCost();
+
+								s_indices[node.s_note.index] = node.selfCost;
+							}
+						}
+					}
+				}
+
+				for (var i in s_indices) {
+					var note = Notations.sample.notes[i];
+					note.fixed = false;
+
+					for (var ii in note.matches) {
+						var node = note.matches[ii];
+						if (node.selfCost == 0)
+							node.evaluateMatchingCost();
+					}
+				}
+
+				Notations.cc = cc;
 			};
 
 			var prepareNavigation = function() {
@@ -816,8 +891,15 @@
 							node.prev = null;
 							node.prev_cost = null;
 							node.connect_cost = null;
+							node.evaluated = null;
 						}
+
+						note.duplicated = null;
 					}
+				}
+
+				for (var i in Notations.criterion.notes) {
+					Notations.criterion.notes[i].nodes = [];
 				}
 			};
 
@@ -834,6 +916,8 @@
 
 				ResultStat = {};
 				ResultStat.EvaluatedNodeCount = 0;
+
+				GraphOffsetY = 0;
 			};
 
 			var paintMidiScore = function (notation, pitch_range, canvas_range, group) {
@@ -845,6 +929,9 @@
 					var left = (note.pitch - Notations.pitch_low) * pitch_width + canvas_range.left;
 					var top = note.start * Config.MidiScoreHeightScale;
 					var height = note.duration * Config.MidiScoreHeightScale;
+
+					//if (Number.isNaN(left))
+					//	console.log("NAN:", i);
 
 					note.position = { x: left + pitch_width * 0.5, y: top };
 
@@ -868,8 +955,13 @@
 								node = note.matches[ii];
 
 					var title = "index: " + i;
-					if (node)
-						title += ", matching: " + node.matching.value.toFixed(3) + (node.connect_cost ? ", connection: " + node.connect_cost : "");
+					if (node) {
+						if (node.matching)
+							title += ", matching: " + node.matching.value.toFixed(3);
+
+						if (node.connect_cost)
+							title += ", connection: " + node.connect_cost;
+					}
 
 					$(note_elem).append("<title>" + title + "</title>");
 				}
@@ -897,17 +989,13 @@
 
 						s_note.graph.line = line;
 
-						var duplicated = $(c_note.graph.group).hasClass("paired");
+						//var duplicated = $(c_note.graph.group).hasClass("paired");
 
 						$(s_note.graph.group).addClass("paired");
-						//$(s_note.graph.bar).addClass("paired");
-						//$(s_note.graph.dot).addClass("paired");
 
 						$(c_note.graph.group).addClass("paired");
-						//$(c_note.graph.bar).addClass("paired");
-						//$(c_note.graph.dot).addClass("paired");
 
-						if (duplicated) {
+						if (s_note.duplicated) {
 							$(s_note.graph.group).addClass("duplicated");
 							$(c_note.graph.group).addClass("duplicated");
 
@@ -1146,8 +1234,8 @@
 				for (var i in Notations.sample.notes[s_index].matches) {
 					var node = Notations.sample.notes[s_index].matches[i];
 					if (node.c_note && node.c_note.index == c_index) {
-						console.log(node);
-						return;
+						//console.log(node);
+						return node;
 					}
 				}
 
@@ -1255,7 +1343,8 @@
 									runNavigation(function() {
 										var time3_1 = new Date().getTime();
 
-										markNoteCorrespondences();
+										//var time3_2 = time3_1;
+										markNoteCorrespondences(true);
 										prepareNavigation();
 
 										var time3_2 = new Date().getTime();

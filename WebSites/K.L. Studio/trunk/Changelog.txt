@@ -7,12 +7,15 @@ TODO:
 			mode
 				grpah UI
 	MidiComparer:
+		added time statistics for markNoteCorrespondences.
 
 Pending Issues:
 	cube earth sphere tangent space issue
 
 
 2017.12.6	K.L.	<k.l.lambda@gmail.com>
+
+	>	MidiComparer: refined markNoteCorrespondences.
 
 	>	MidiComparer: added graph offset for notes play.
 

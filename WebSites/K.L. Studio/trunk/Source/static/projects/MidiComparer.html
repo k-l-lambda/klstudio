@@ -105,7 +105,7 @@
 
 			.on .note-bar
 			{
-				fill: #0df;
+				fill: #0df !important;
 			}
 
 			.correspondence
@@ -1021,9 +1021,9 @@
 				});
 			};
 
-			var yToTime = function(y) {
+			var yToTime = function(y, isCriterion) {
 				var ratio = (Config.MidiCanvasWidth + 20) / $("#midi-canvas").width();
-				var time = (y - 10) * ratio / Config.MidiScoreHeightScale;
+				var time = ((y - 10) * ratio - (isCriterion ? GraphOffsetY : 0)) / Config.MidiScoreHeightScale;
 
 				return time;
 			};
@@ -1107,14 +1107,20 @@
 
 				$("#midi-canvas").mousemove(function() {
 					if (event.buttons == 1)
-						onCursorMove(yToTime(event.offsetY));
+						onCursorMove(yToTime(event.offsetY, cursorNotation === Notations.criterion));
 				});
+
+				// TODO: need smooth scroll
+				/*$("#midi-canvas")[0].addEventListener("mousewheel", function() {
+					if (event.buttons == 1)
+						onCursorMove(yToTime(event.offsetY, cursorNotation === Notations.criterion));
+				}, false);*/
 
 				$("#midi-canvas").mousedown(function() {
 					var x = event.offsetX / $("#midi-canvas").width();
 					var notation = x > 0.5 ? Notations.sample : Notations.criterion;
 
-					var time = yToTime(event.offsetY);
+					var time = yToTime(event.offsetY, x <= 0.5);
 
 					pressNotes(notation, time, true);
 				});

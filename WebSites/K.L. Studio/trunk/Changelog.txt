@@ -13,6 +13,11 @@ Pending Issues:
 	cube earth sphere tangent space issue
 
 
+2018.1.4	K.L.	<k.l.lambda@gmail.com>
+
+	>	Fixed midi MIME type issue on linux Chrome.
+
+
 2017.12.6	K.L.	<k.l.lambda@gmail.com>
 
 	>	MidiComparer: refined markNoteCorrespondences.

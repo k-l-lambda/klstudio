@@ -874,7 +874,7 @@
 			};
 
 			var pickFile = function (file) {
-				if (file.type == "audio/mid") {
+				if (file.type == "audio/mid" || file.type == "audio/midi") {
 					var playing = $("#player-source").attr("disabled");
 					if (playing)
 						$("#player-stop").click();
@@ -1239,7 +1239,7 @@
 				</select>
 			</p>
 			<p id="player">
-				<span id="player-progress"><label id="player-source-tips">Drag and drop MIDI file here.</label><input type="text" id="player-source" /><span id="player-progress-cursor"></span></span> <span><input id="player-play" type="image" src="/res/images/play.png" class="player-button" /> <input id="player-stop" type="image" src="/res/images/stop.png" class="player-button" /><input id="player-source-file" type="file" accept="audio/mid" /></span>
+				<span id="player-progress"><label id="player-source-tips">Drag and drop MIDI file here.</label><input type="text" id="player-source" /><span id="player-progress-cursor"></span></span> <span><input id="player-play" type="image" src="/res/images/play.png" class="player-button" /> <input id="player-stop" type="image" src="/res/images/stop.png" class="player-button" /><input id="player-source-file" type="file" accept="audio/mid,audio/midi" /></span>
 			</p>
 		</div>
 		<div id="loading"></div>

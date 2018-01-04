@@ -309,7 +309,7 @@
 			var pickMidiFile = function (file) {
 				var elem = $("#file-button");
 
-				if (file && file.type == "audio/mid") {
+				if (file && (file.type == "audio/mid" || file.type == "audio/midi")) {
 					var fr = new FileReader();
 					fr.onloadend = function (e) {
 						elem.text(file.name);
@@ -451,7 +451,7 @@
 	<body>
 		<div id="input">
 			<button id="file-button" class="midi-file">...</button>
-			<input id="file" type="file" accept="audio/mid" />
+			<input id="file" type="file" accept="audio/mid,audio/midi" />
 		</div>
 		<div id="viewer">
 			<svg id="canvas" preserveAspectRatio="none">

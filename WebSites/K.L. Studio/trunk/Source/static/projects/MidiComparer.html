@@ -182,7 +182,7 @@
 			};
 
 			var pickMidiFile = function (file, elem) {
-				if (file && file.type == "audio/mid") {
+				if (file && (file.type == "audio/mid" || file.type == "audio/midi")) {
 					var fr = new FileReader();
 					fr.onloadend = function (e) {
 						elem.text(file.name);

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>follower</title>
+        <style type="text/css">
+            body
+            {
+                font-family: Verdana, Arial, Helvetica, sans-serif;
+                margin: 0;
+                font-size: 12px;
+            }
+
+            #controllers
+            {
+                background-color: #eef;
+                padding: 0.6em;
+                font-size: 200%;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+            }
+
+            #viewer
+            {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                padding-top: 78px;
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            #viewer > div
+            {
+                height: 100%;
+            }
+
+            .midi-file
+            {
+                min-width: 6em;
+                height: 3em;
+            }
+
+            #criterion-file-input
+            {
+                display: none;
+            }
+
+            .midi-file.drag-hover
+            {
+            	border: 2px solid red;
+            }
+
+            .midi-file.loading
+            {
+            	color: #ccc;
+            	background-color: #ff8;
+            }
+        </style>
+        <script src="../js/jquery.js" type="text/javascript"></script>
+		<script src="../js/jquery.svg.js" typem.js" type="text/ja="text/javascript"></script>
+		<script src="../js/MIDI/AudioDetect.js" type="text/javascript"></script>
+		<script src="../js/MIDI/LoadPlugin.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Plugin.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Player.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Window/DOMLoader.XMLHttp.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Window/DOMLoader.script.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/WebMIDIAPI.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/Base64.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/base64binary.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/replayer.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/midifile.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/stream.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            var criterionMidiData = null;
+
+
+            var loadMidiFile = function (data, name, filename, onload) {
+                //MIDI.Player.timeWarp = timewarp[name];
+
+                MIDI.Player.loadFile(data, function () {
+                    criterionMidiData = MIDI.Player.data;
+
+                    if (onload)
+                        onload();
+                });
+
+                localStorage[name + "_data"] = data;
+                localStorage[name + "_filename"] = filename;
+            };
+
+            var pickMidiFile = function (file, elem) {
+                if (file && (file.type == "audio/mid" || file.type == "audio/midi")) {
+                    var fr = new FileReader();
+                    fr.onloadend = function (e) {
+                        elem.text(file.name);
+                        elem.addClass("loading");
+
+                        loadMidiFile(e.currentTarget.result, elem.data("name"), file.name, function () {
+                            elem.removeClass("loading");
+
+                            console.log(name + " MIDI file loaded:", file.name);
+                        });
+                    };
+                    fr.readAsDataURL(file);
+                }
+            };
+
+            $(function(){
+                $(".midi-file").each(function (i, elem) {
+                	elem.ondragover = function (e) {
+                		$(elem).addClass("drag-hover");
+                		e.preventDefault();
+                	};
+                	elem.ondragleave = function () {
+                		$(elem).removeClass("drag-hover");
+                	};
+
+                	elem.ondrop = function (e) {
+                		$(elem).removeClass("drag-hover");
+
+                		pickMidiFile(e.dataTransfer.files[0], $(elem));
+
+                		e.preventDefault();
+                		return false;
+                	};
+                });
+
+                $("#criterion-file").click(function () {
+                	$("#criterion-file-input").click();
+                });
+
+                $("#criterion-file-input").change(function () {
+                	if (event.target.files[0])
+                		pickMidiFile(event.target.files[0], $("#criterion-file"));
+                });
+
+
+                if (localStorage.criterion_data) {
+                	loadMidiFile(localStorage.criterion_data, "criterion", localStorage.criterion_filename);
+                	$("#criterion-file").text(localStorage.criterion_filename);
+                }
+            });
+        </script>
+    </head>
+    <body>
+        <div id="controllers">
+            Criterion: <button id="criterion-file" class="midi-file" data-name="criterion">...</button> <input id="criterion-file-input" type="file" accept="audio/mid,audio/midi" />
+        </div>
+        <div id="viewer">
+            <div id="criterion-area"></div>
+            <div id="sample-area"></div>
+        </div>
+    </body>
+</html>

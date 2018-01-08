@@ -190,6 +190,11 @@
             {
             	fill: #335;
             }
+
+            .keyboard .black-key.active
+            {
+            	fill: #22d !important;
+            }
         </style>
         <script src="../js/jquery.js" type="text/javascript"></script>
 		<script src="../js/jquery.svg.js" type="text/javascript"></script>
@@ -240,6 +245,65 @@
 				66: "Sostenuto",
 				67: "Soft"
 			};
+
+
+            var KeyMap = $.parseJSON(localStorage.KeyMap || null) || {
+            	// number keys
+            	49: 60,
+            	50: 62,
+            	51: 64,
+            	52: 65,
+            	53: 67,
+            	54: 69,
+            	55: 71,
+            	56: 72,
+            	57: 74,
+            	48: 76,
+            	189: 77,
+            	187: 79,
+
+            	// up letters
+            	81: 76,
+            	87: 77,
+            	69: 79,
+            	82: 81,
+            	84: 83,
+            	89: 84,
+            	85: 86,
+            	73: 88,
+            	79: 89,
+            	80: 91,
+            	219: 93,
+            	221: 95,
+
+            	// middle letters
+            	65: 60,
+            	83: 62,
+            	68: 64,
+            	70: 65,
+            	71: 67,
+            	72: 69,
+            	74: 71,
+            	75: 72,
+            	76: 74,
+            	186: 76,
+            	222: 77,
+            	220: 79,
+
+            	// bottom letters
+            	90: 48,
+            	88: 50,
+            	67: 52,
+            	86: 53,
+            	66: 55,
+            	78: 57,
+            	77: 59,
+            	188: 60,
+            	190: 62,
+            	191: 64
+            };
+
+            var KeyStatus = {};
 
 
             var loadMidiFile = function (data, name, filename, onload) {
@@ -430,6 +494,27 @@
             };
 
 
+            var noteOn = function (data) {
+            	MIDI.noteOn(data.channel, data.note, data.velocity);
+
+            	$(".keyboard .key[data-note='" + data.note + "']").addClass("active");
+
+            	/*var bar = $(".note-bar[data-note='" + data.note + "']");
+            	bar.addClass("active");
+            	bar.css("opacity", velocityToOpacity(data.velocity));*/
+            };
+
+            var noteOff = function (data) {
+            	MIDI.noteOff(data.channel, data.note);
+
+            	$(".keyboard .key[data-note='" + data.note + "']").removeClass("active");
+
+            	/*var bar = $(".note-bar[data-note='" + data.note + "']");
+            	barremoveClass("active");
+            	bar.css("opacity", "");*/
+            };
+
+
             var pitchToX = function (pitch) {
             	var group = Musical.noteGroup(pitch);
             	var step = Musical.notePitch(pitch);
@@ -460,22 +545,22 @@
 				}
 
 
-				/*$("#keyboard .key").mousedown(function () {
+				$(".keyboard .key").mousedown(function () {
 					noteOn({channel: 0, note: $(this).data("note"), velocity: 100});
 
 					return false;
 				});
-				$("#keyboard .key").mouseup(function () {
+				$(".keyboard .key").mouseup(function () {
 					noteOff({ channel: 0, note: $(this).data("note") });
 				});
-				$("#keyboard .key").mouseenter(function () {
+				$(".keyboard .key").mouseenter(function () {
 					if (event.which == 1)
 						noteOn({ channel: 0, note: $(this).data("note"), velocity: 100 });
 				});
-				$("#keyboard .key").mouseleave(function () {
+				$(".keyboard .key").mouseleave(function () {
 					if (event.which == 1)
 						noteOff({ channel: 0, note: $(this).data("note") });
-				});*/
+				});
 			};
 
 
@@ -515,6 +600,14 @@
 
 
             $(function(){
+                MIDI.loadPlugin({
+					soundfontUrl: "../soundfont/",
+					instrument: "acoustic_grand_piano",
+					callback: function () {
+						console.log("Sound font loaded.");
+					}
+				});
+
                 $(".midi-file").each(function (i, elem) {
                 	elem.ondragover = function (e) {
                 		$(elem).addClass("drag-hover");
@@ -554,6 +647,28 @@
                     });
                 	$("#criterion-file").text(localStorage.criterion_filename);
                 }
+
+
+                // keyboard play
+                $(document).keydown(function () {
+                	if (!event.ctrlKey && KeyMap[event.keyCode]) {
+                		if (!KeyStatus[event.keyCode]) {	// to avoid auto-repeat
+                			noteOn({ channel: 0, note: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0), velocity: 100 });
+
+                			KeyStatus[event.keyCode] = true;
+
+                			event.preventDefault();
+                		}
+                	}
+                });
+
+                $(document).keyup(function () {
+                	if (!event.ctrlKey && KeyMap[event.keyCode]) {
+                		noteOff({ channel: 0, note: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0) });
+
+                		KeyStatus[event.keyCode] = false;
+                	}
+                });
             });
         </script>
     </head>

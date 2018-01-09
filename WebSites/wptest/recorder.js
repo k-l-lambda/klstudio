@@ -1,15 +1,47 @@
 
+Date.prototype.format = function (format) {
+    /*
+    * eg:format="yyyy-MM-dd hh:mm:ss";
+    */
+    var o = {
+        "M+": this.getMonth() + 1,  //month
+        "d+": this.getDate(),     //day
+        "h+": this.getHours(),    //hour
+        "m+": this.getMinutes(),  //minute
+        "s+": this.getSeconds(), //second
+        "q+": Math.floor((this.getMonth() + 3) / 3),  //quarter
+        "S": this.getMilliseconds() //millisecond
+    };
+
+    if (/(y+)/.test(format)) {
+        format = format.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+    }
+
+    for (var k in o) {
+        if (new RegExp("(" + k + ")").test(format)) {
+            format = format.replace(RegExp.$1, RegExp.$1.length == 1 ? o[k] : ("00" + o[k]).substr(("" + o[k]).length));
+        }
+    }
+    return format;
+};
+
+
+var MidiTimeStampOffset = 0;
+
 var Recorder = function (options) {
     options = options || {};
 
     this.Recording = false;
     this.Waiting = false;
     this.ButtonFlickerHandle = null;
-    this.AnimationHandle = null;
+    //this.AnimationHandle = null;
     this.BeginTime = Date.now();
     this.Data = null;
 
     this.onNoteCreated = options.onNoteCreated;
+
+    if (options.on)
+        this.toggleRecord();
 };
 
 
@@ -36,9 +68,9 @@ Recorder.prototype.prepareRecord = function (note) {
     MIDI.Player.stop();
     MIDI.Player.clearAnimation();
 
-    updatePlayButton();
+    /*updatePlayButton();
 
-    /*$("#playback").addClass("recording");
+    $("#playback").addClass("recording");
     $("#score-music").empty();
     $("#playback-source").empty();*/
 
@@ -56,10 +88,10 @@ Recorder.prototype.prepareRecord = function (note) {
 
     //resetRangeMask();
 
-    this.SvgScore = svg("#score-music");
+    //this.SvgScore = svg("#score-music");
     //this.SvgChannel = svg(this.SvgScore.group({ class: "channel-container" }));
-    this.SvgChannels = {};
-    this.SvgPedals = svg(this.SvgScore.group({ class: "pedals" }));
+    //this.SvgChannels = {};
+    //this.SvgPedals = svg(this.SvgScore.group({ class: "pedals" }));
 
     this.ChannelStatus = [];
     this.PedalStatus = {};
@@ -83,8 +115,8 @@ Recorder.prototype.beginRecord = function (timeStamp) {
 
     this.BeginTime = timeStamp ? (timeStamp * 1000 + MidiTimeStampOffset) : Date.now();
 
-    var self = this;
-    this.AnimationHandle = setInterval(function () { self.onAnimation(); }, 30);
+    //var self = this;
+    //this.AnimationHandle = setInterval(function () { self.onAnimation(); }, 30);
 
     this.Data = [];
 };
@@ -99,10 +131,10 @@ Recorder.prototype.endRecord = function () {
         this.ButtonFlickerHandle = null;
     }*/
 
-    if (this.AnimationHandle) {
+    /*if (this.AnimationHandle) {
         clearInterval(this.AnimationHandle);
         this.AnimationHandle = null;
-    }
+    }*/
 
     this.saveData();
 
@@ -151,14 +183,14 @@ Recorder.prototype.getTimeStamp = function (time) {
     return (time && MidiTimeStampOffset) ? (time * 1000 + MidiTimeStampOffset - this.BeginTime) : this.elapsedTime();
 }
 
-Recorder.prototype.getChannel = function (channel) {
+/*Recorder.prototype.getChannel = function (channel) {
     if (this.SvgChannels[channel])
         return this.SvgChannels[channel];
 
     this.SvgChannels[channel] = svg(this.SvgScore.group({ class: "channel", "data-channel": channel }));
 
     return this.SvgChannels[channel];
-};
+};*/
 
 Recorder.prototype.onNoteOn = function (data) {
     if (this.Recording) {
@@ -168,7 +200,7 @@ Recorder.prototype.onNoteOn = function (data) {
         var now = this.getTimeStamp(data.timeStamp);
 
         this.ChannelStatus[data.channel] = this.ChannelStatus[data.channel] || [];
-        this.ChannelStatus[data.channel][data.note] = { start: now, velocity: data.velocity };
+        this.ChannelStatus[data.channel][data.pitch] = { start: now, velocity: data.velocity };
 
         if (now < 0) {
             console.warn("minus time stamp:", now, this.elapsedTime());
@@ -180,7 +212,7 @@ Recorder.prototype.onNoteOn = function (data) {
             type: "channel",
             subtype: "noteOn",
             channel: data.channel,
-            noteNumber: data.note,
+            noteNumber: data.pitch,
             velocity: data.velocity
         });
     }
@@ -188,13 +220,13 @@ Recorder.prototype.onNoteOn = function (data) {
 
 Recorder.prototype.onNoteOff = function (data) {
     if (this.Recording) {
-        if (this.ChannelStatus[data.channel] && this.ChannelStatus[data.channel][data.note]) {
-            var status = this.ChannelStatus[data.channel][data.note];
+        if (this.ChannelStatus[data.channel] && this.ChannelStatus[data.channel][data.pitch]) {
+            var status = this.ChannelStatus[data.channel][data.pitch];
             var now = this.getTimeStamp(data.timeStamp);
 
-            var note = { note: data.note, start: status.start, duration: now - status.start, velocity: status.velocity };
+            var note = { pitch: data.pitch, start: status.start, duration: now - status.start, velocity: status.velocity };
 
-            var channel = this.getChannel(data.channel);
+            //var channel = this.getChannel(data.channel);
             //paintNote(note, channel);
             if (this.onNoteCreated)
                 this.onNoteCreated(note);
@@ -209,7 +241,7 @@ Recorder.prototype.onNoteOff = function (data) {
                 type: "channel",
                 subtype: "noteOff",
                 channel: data.channel,
-                noteNumber: data.note,
+                noteNumber: data.pitch,
                 velocity: 0
             });
         }
@@ -277,8 +309,8 @@ Recorder.prototype.onPedalOff = function (data) {
     }
 };
 
-Recorder.prototype.onAnimation = function () {
+/*Recorder.prototype.onAnimation = function () {
     //$("#playback-time-text").text(toMinutesSeconds(this.elapsedTime()));
 
     updateScorePosition(this.elapsedTime());
-};
+};*/

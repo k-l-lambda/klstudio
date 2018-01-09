@@ -308,6 +308,9 @@
             var KeyStatus = {};
 
 
+            var Rec;
+
+
             var loadMidiFile = function (data, name, filename, onload) {
                 //MIDI.Player.timeWarp = timewarp[name];
 
@@ -497,23 +500,27 @@
 
 
             var noteOn = function (data) {
-            	MIDI.noteOn(data.channel, data.note, data.velocity);
+            	MIDI.noteOn(data.channel, data.pitch, data.velocity);
 
-            	$(".keyboard .key[data-note='" + data.note + "']").addClass("active");
+            	$(".keyboard .key[data-note='" + data.pitch + "']").addClass("active");
 
-            	/*var bar = $(".note-bar[data-note='" + data.note + "']");
+            	/*var bar = $(".note-bar[data-note='" + data.pitch + "']");
             	bar.addClass("active");
             	bar.css("opacity", velocityToOpacity(data.velocity));*/
+
+                Rec.onNoteOn(data);
             };
 
             var noteOff = function (data) {
-            	MIDI.noteOff(data.channel, data.note);
+            	MIDI.noteOff(data.channel, data.pitch);
 
-            	$(".keyboard .key[data-note='" + data.note + "']").removeClass("active");
+            	$(".keyboard .key[data-note='" + data.pitch + "']").removeClass("active");
 
-            	/*var bar = $(".note-bar[data-note='" + data.note + "']");
+            	/*var bar = $(".note-bar[data-note='" + data.pitch + "']");
             	barremoveClass("active");
             	bar.css("opacity", "");*/
+
+                Rec.onNoteOff(data);
             };
 
 
@@ -548,39 +555,45 @@
 
 
 				$(".keyboard .key").mousedown(function () {
-					noteOn({channel: 0, note: $(this).data("note"), velocity: 100});
+					noteOn({channel: 0, pitch: $(this).data("note"), velocity: 100});
 
 					return false;
 				});
 				$(".keyboard .key").mouseup(function () {
-					noteOff({ channel: 0, note: $(this).data("note") });
+					noteOff({ channel: 0, pitch: $(this).data("note") });
 				});
 				$(".keyboard .key").mouseenter(function () {
 					if (event.which == 1)
-						noteOn({ channel: 0, note: $(this).data("note"), velocity: 100 });
+						noteOn({ channel: 0, pitch: $(this).data("note"), velocity: 100 });
 				});
 				$(".keyboard .key").mouseleave(function () {
 					if (event.which == 1)
-						noteOff({ channel: 0, note: $(this).data("note") });
+						noteOff({ channel: 0, pitch: $(this).data("note") });
 				});
 			};
 
 
-            var paintNote = function (note, group, index) {
+            var paintNote = function (note, group, options) {
+                options = options || {};
+
                 var step = Musical.notePitch(note.pitch);
                 var is_white = PianoConfig.KeySerials.White.indexOf(step) >= 0;
 
                 var width = is_white ? (Config.KeyWidth - 2) : Config.KeyWidth * 0.6;
 
+                var start = note.start;
+                if (options.timeOffset)
+                    start += options.timeOffset;
+
                 var left = pitchToX(note.pitch) * Config.KeyWidth - (is_white ? -1 : width / 2);
-                var top = note.start * Config.ScoreHeightScale;
+                var top = start * Config.ScoreHeightScale;
                 var height = note.duration * Config.ScoreHeightScale;
 
                 note.position = { x: left + Config.KeyWidth * 0.5, y: top };
 
                 note.graph = note.graph || {}
 
-                var note_elem = group.group({ class: "note " + (is_white ? "white" : "black") + " step-" + step, "data-index": index });
+                var note_elem = group.group({ class: "note " + (is_white ? "white" : "black") + " step-" + step, "data-index": options.index });
                 var note_group = svg(note_elem);
 
                 var cornorRadius = is_white ? 5 : 0;
@@ -601,7 +614,7 @@
 				for (var i in notations.notes) {
 					var note = notations.notes[i];
 
-                    paintNote(note, group, i);
+                    paintNote(note, group, {index: i});
 				}
 			};
 
@@ -611,6 +624,18 @@
 
                 var offsetY = now % Config.SampleCanvasLength + 1200 / Config.ScoreHeightScale;
                 $("#sample-canvas").css("top", -offsetY * Config.ScoreHeightScale);
+            };
+
+            var onNoteRecord = function(note) {
+                //console.log("onNoteRecord:", note);
+                var score = svg("#sample-score");
+
+                var time = ((Rec.BeginTime + note.start) % Config.SampleCanvasLength + 1200 / Config.ScoreHeightScale) % Config.SampleCanvasLength;
+                paintNote(note, score, {timeOffset: time - note.start});
+
+                setTimeout(function() {
+                    $(note.graph.group).remove();
+                }, 2000 / Config.ScoreHeightScale);
             };
 
 
@@ -660,6 +685,8 @@
                 $("#sample-canvas").attr("height", canvasHeight + 2);
                 setInterval(scrollSampleCanvas, 30);
 
+                Rec = new Recorder({on: true, onNoteCreated: onNoteRecord});
+
 
                 if (localStorage.criterion_data) {
                 	loadMidiFile(localStorage.criterion_data, "criterion", localStorage.criterion_filename, function() {
@@ -674,7 +701,7 @@
                 $(document).keydown(function () {
                 	if (!event.ctrlKey && KeyMap[event.keyCode]) {
                 		if (!KeyStatus[event.keyCode]) {	// to avoid auto-repeat
-                			noteOn({ channel: 0, note: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0), velocity: 100 });
+                			noteOn({ channel: 0, pitch: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0), velocity: 100 });
 
                 			KeyStatus[event.keyCode] = true;
 
@@ -685,7 +712,7 @@
 
                 $(document).keyup(function () {
                 	if (!event.ctrlKey && KeyMap[event.keyCode]) {
-                		noteOff({ channel: 0, note: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0) });
+                		noteOff({ channel: 0, pitch: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0) });
 
                 		KeyStatus[event.keyCode] = false;
                 	}
@@ -712,6 +739,7 @@
             <div id="sample-area">
                 <div class="middle-wrapper">
                     <svg id="sample-canvas" preserveAspectRatio="none">
+                        <g id="sample-score"></g>
                     </svg>
                 </div>
                 <svg class="keyboard">

@@ -137,9 +137,7 @@ Recorder.prototype.endRecord = function () {
         this.AnimationHandle = null;
     }*/
 
-    this.saveData();
-
-    Fll.start();
+    //this.saveData();
 };
 
 Recorder.prototype.saveData = function () {

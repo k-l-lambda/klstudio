@@ -230,7 +230,15 @@
             	ScoreHeightScale: 0.1,
                 SampleCanvasLength: 10000000,
                 PendingLatency: 800,
+                SequenceResetInterval: 4000,
                 ContextSpan: { left: -800, right: 800 },
+                DistanceSigmoidFactor: 0.01,		// context compare time distance, sigmod x units per ms
+				ContextRegressionDiffer: 0.01,		// context compare regression cost derivation default infinitesimal
+				ContextRegressionBegin: 10,			// context compare regression begin boundary
+				ContextRegressionEnd: 0.01,			// context compare regression cost end condition
+				ConnectionBiasCostBenchmark: 800,	// how many ms bias result in cost = 1
+				ConnectionClipIndex: 5,
+				NullConnectionCost: 1,
             };
 
             var PianoConfig = {
@@ -642,8 +650,55 @@
             var workingIndex = 0;
 
 
+            var matchNote = function(index) {
+                var note = WorkSequence[index];
+                if (!note)
+                    return;
+
+                MidiMatch.genNoteContext(WorkSequence, index);
+
+                var second_best_node = note.matches[1] || note.matches[0];
+                var second_best_node_cost = second_best_node.totalCost();
+
+                var endNode = new MidiMatch.Node();
+
+                for (var ii in note.matches) {
+                	var node = note.matches[ii];
+                	if (node.totalCost() - second_best_node_cost < 1 || ii < Config.ConnectionClipIndex) {
+                		if (WorkSequence.length > index + 1) {
+                             var next_note = WorkSequence[index + 1];
+                             for (var i in next_note.matches)
+         						next_note.matches[i].evaluateConnection(node);
+
+                            next_note.matches = next_note.matches.sort(function(n1, n2) {
+                                return n1.totalCost() - n2.totalCost();
+                            });
+
+                            endNode = next_note.matches[0];
+                        }
+                        else {
+                            endNode.evaluateConnection(node);
+                        }
+                	}
+                }
+
+                var c_index = endNode.prev.c_note ? endNode.prev.c_note.index : -1;
+                console.log("match:", index, c_index);
+
+                note.matched = true;
+
+                if (note.graph)
+                    $(note.graph.group).addClass("matched");
+            };
+
+
             var onNoteRecord = function(note) {
+                MidiMatch.makeMatchNodes(note, criterionNotations);
                 WorkSequence.push(note);
+
+                var lastNote = WorkSequence[WorkSequence.length - 2];
+                if (lastNote && lastNote.mathced)
+                    matchNote(WorkSequence.length - 2);
             };
 
             var onNoteFinished = function(note) {
@@ -660,17 +715,6 @@
             };
 
 
-            var matchNote = function() {
-                var note = WorkSequence[workingIndex];
-                if (!note)
-                    return;
-
-                note.matched = true;
-
-                if (note.graph)
-                    $(note.graph.group).addClass("matched");
-            };
-
             var updateSequence = function() {
                 var now = new Date().getTime();
 
@@ -678,11 +722,17 @@
                     var note = WorkSequence[workingIndex];
 
                     if (now - (note.start + Rec.BeginTime) > Config.PendingLatency) {
-                        matchNote();
+                        matchNote(workingIndex);
                         workingIndex++;
                     }
                     else
                         break;
+                }
+
+                var tail = WorkSequence[WorkSequence.length - 1];
+                if (tail && now - (tail.start + Rec.BeginTime) > Config.SequenceResetInterval) {
+                    WorkSequence = [];
+                    workingIndex = 0;
                 }
             };
 
@@ -731,11 +781,29 @@
                 var canvasHeight = Config.SampleCanvasLength * Config.ScoreHeightScale + 2400;
                 $("#sample-canvas").attr("viewBox", "0 0 " + (canvasWidth) + " " + (canvasHeight));
                 $("#sample-canvas").attr("height", canvasHeight + 2);
-                setInterval(scrollSampleCanvas, 30);
+                var scrollHandle = setInterval(scrollSampleCanvas, 30);
 
                 Rec = new Recorder({on: true, onNoteCreated: onNoteRecord, onNoteFinished: onNoteFinished});
 
-                setInterval(updateSequence, 50);
+                var updateHandle = setInterval(updateSequence, 50);
+
+                $("#pause").click(function() {
+                    Rec.toggleRecord();
+
+                    var paused = !Rec.isRecording();
+                    if (paused) {
+                        $("#pause").removeClass("paused");
+                        clearInterval(updateHandle);
+                        clearInterval(scrollHandle);
+                    }
+                    else {
+                        $("#pause").addClass("paused");
+                        updateHandle = setInterval(updateSequence, 50);
+                        scrollHandle = setInterval(scrollSampleCanvas, 30);
+                    }
+
+                    $("#pause").text(paused ? "RESTART" : "PAUSE");
+                });
 
 
                 if (localStorage.criterion_data) {
@@ -775,6 +843,7 @@
     <body>
         <div id="controllers">
             Criterion: <button id="criterion-file" class="midi-file" data-name="criterion">...</button> <input id="criterion-file-input" type="file" accept="audio/mid,audio/midi" />
+            <button id="pause">PAUSE</button>
         </div>
         <div id="viewer">
             <div id="criterion-area">

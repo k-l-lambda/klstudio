@@ -96,7 +96,7 @@
                 border-top: 1px #333 dashed;
             }
 
-            #criterion-canvas
+            #criterion-canvas, #sample-canvas
             {
                 position: relative;
                 width: 100%;
@@ -220,7 +220,7 @@
             	KeyWidth: 40,
                 KeyHeight: 120,
             	ScoreHeightScale: 0.1,
-                SampleCanvasHeight: 1000000,
+                SampleCanvasLength: 10000000,
             };
 
             var PianoConfig = {
@@ -565,37 +565,42 @@
 			};
 
 
+            var paintNote = function (note, group, index) {
+                var step = Musical.notePitch(note.pitch);
+                var is_white = PianoConfig.KeySerials.White.indexOf(step) >= 0;
+
+                var width = is_white ? (Config.KeyWidth - 2) : Config.KeyWidth * 0.6;
+
+                var left = pitchToX(note.pitch) * Config.KeyWidth - (is_white ? -1 : width / 2);
+                var top = note.start * Config.ScoreHeightScale;
+                var height = note.duration * Config.ScoreHeightScale;
+
+                note.position = { x: left + Config.KeyWidth * 0.5, y: top };
+
+                note.graph = note.graph || {}
+
+                var note_elem = group.group({ class: "note " + (is_white ? "white" : "black") + " step-" + step, "data-index": index });
+                var note_group = svg(note_elem);
+
+                var cornorRadius = is_white ? 5 : 0;
+
+                note.graph.group = note_elem;
+                note.graph.bar = note_group.rect(left, top, width, height, cornorRadius, cornorRadius, { class: "note-bar" });
+            };
+
             var paintScore = function (group_name, notations) {
 				$(group_name).html("");
 
 				var canvasWidth = Config.KeyWidth * (pitchToX(PianoConfig.PitchEnd) + 1);
 				$(group_name).parent().attr("viewBox", "0 0 " + (canvasWidth) + " " + (notations.endTime * Config.ScoreHeightScale));
+                $(group_name).parent().attr("height", notations.endTime * Config.ScoreHeightScale + 2);
 
 				var group = svg(group_name);
 
 				for (var i in notations.notes) {
 					var note = notations.notes[i];
 
-					var step = Musical.notePitch(note.pitch);
-					var is_white = PianoConfig.KeySerials.White.indexOf(step) >= 0;
-
-					var width = is_white ? (Config.KeyWidth - 2) : Config.KeyWidth * 0.6;
-
-					var left = pitchToX(note.pitch) * Config.KeyWidth - (is_white ? -1 : width / 2);
-					var top = note.start * Config.ScoreHeightScale;
-					var height = note.duration * Config.ScoreHeightScale;
-
-					note.position = { x: left + Config.KeyWidth * 0.5, y: top };
-
-					note.graph = note.graph || {}
-
-					var note_elem = group.group({ class: "note " + (is_white ? "white" : "black") + " step-" + step, "data-index": i });
-					var note_group = svg(note_elem);
-
-					var cornorRadius = is_white ? 5 : 0;
-
-					note.graph.group = note_elem;
-					note.graph.bar = note_group.rect(left, top, width, height, cornorRadius, cornorRadius, { class: "note-bar" });
+                    paintNote(note, group, i);
 				}
 			};
 
@@ -603,7 +608,8 @@
             var scrollSampleCanvas = function() {
                 var now = new Date().getTime();
 
-                // TODO:
+                var offsetY = now % Config.SampleCanvasLength + 1200 / Config.ScoreHeightScale;
+                $("#sample-canvas").css("top", -offsetY * Config.ScoreHeightScale);
             };
 
 
@@ -648,7 +654,9 @@
                 initializeKeyboard($("#sample-area .keyboard"));
 
                 var canvasWidth = Config.KeyWidth * (pitchToX(PianoConfig.PitchEnd) + 1);
-                $("#sample-canvas").attr("viewBox", "0 0 " + (canvasWidth) + " " + (Config.SampleCanvasHeight * Config.ScoreHeightScale));
+                var canvasHeight = Config.SampleCanvasLength * Config.ScoreHeightScale + 2400;
+                $("#sample-canvas").attr("viewBox", "0 0 " + (canvasWidth) + " " + (canvasHeight));
+                $("#sample-canvas").attr("height", canvasHeight + 2);
                 setInterval(scrollSampleCanvas, 30);
 
 

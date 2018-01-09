@@ -102,6 +102,12 @@
                 width: 100%;
             }
 
+            #criterion-canvas
+            {
+                transition-property: top;
+                transition-duration: .6s;
+            }
+
 
             .matched .note-bar
             {
@@ -509,6 +515,7 @@
 
                             criterionNotations = parseMidiNotation(criterionMidiData);
                             paintScore("#criterion-score", criterionNotations);
+                            updateCriterionPosition(0);
 
                             MidiMatch.genNotationContext(criterionNotations);
                         });
@@ -646,6 +653,11 @@
             };
 
 
+            var updateCriterionPosition = function(y) {
+                $("#criterion-canvas").css("top", -y * Config.ScoreHeightScale);
+            };
+
+
             var WorkSequence = [];
             var workingIndex = 0;
 
@@ -685,6 +697,11 @@
                 var c_index = endNode.prev.c_note ? endNode.prev.c_note.index : -1;
                 console.log("match:", index, c_index);
 
+                if (endNode.prev.c_note) {
+                    var elapsed = Date.now() - (note.start + Rec.BeginTime);
+                    updateCriterionPosition(endNode.prev.c_note.start + elapsed);
+                }
+
                 note.matched = true;
 
                 if (note.graph)
@@ -709,8 +726,10 @@
                 paintNote(note, score, {timeOffset: time - note.start});
 
                 setTimeout(function() {
-                    $(note.graph.group).remove();
-                    note.graph = null;
+                    if (note.graph) {
+                        $(note.graph.group).remove();
+                        note.graph = null;
+                    }
                 }, 2000 / Config.ScoreHeightScale);
             };
 

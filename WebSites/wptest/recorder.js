@@ -39,6 +39,7 @@ var Recorder = function (options) {
     this.Data = null;
 
     this.onNoteCreated = options.onNoteCreated;
+    this.onNoteFinished = options.onNoteFinished;
 
     if (options.on)
         this.toggleRecord();
@@ -200,7 +201,10 @@ Recorder.prototype.onNoteOn = function (data) {
         var now = this.getTimeStamp(data.timeStamp);
 
         this.ChannelStatus[data.channel] = this.ChannelStatus[data.channel] || [];
-        this.ChannelStatus[data.channel][data.pitch] = { start: now, velocity: data.velocity };
+        this.ChannelStatus[data.channel][data.pitch] = { start: now, velocity: data.velocity, pitch: data.pitch };
+
+        if (this.onNoteCreated)
+            this.onNoteCreated(this.ChannelStatus[data.channel][data.pitch]);
 
         if (now < 0) {
             console.warn("minus time stamp:", now, this.elapsedTime());
@@ -224,12 +228,13 @@ Recorder.prototype.onNoteOff = function (data) {
             var status = this.ChannelStatus[data.channel][data.pitch];
             var now = this.getTimeStamp(data.timeStamp);
 
-            var note = { pitch: data.pitch, start: status.start, duration: now - status.start, velocity: status.velocity };
+            var note = status;
+            note.duration = now - status.start;
 
             //var channel = this.getChannel(data.channel);
             //paintNote(note, channel);
-            if (this.onNoteCreated)
-                this.onNoteCreated(note);
+            if (this.onNoteFinished)
+                this.onNoteFinished(note);
 
             if (now < 0) {
                 console.warn("minus time stamp:", now, this.elapsedTime());

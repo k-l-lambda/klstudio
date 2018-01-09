@@ -196,6 +196,8 @@ Recorder.prototype.onNoteOff = function (data) {
 
             var channel = this.getChannel(data.channel);
             //paintNote(note, channel);
+            if (this.onNoteCreated)
+                this.onNoteCreated(note);
 
             if (now < 0) {
                 console.warn("minus time stamp:", now, this.elapsedTime());

@@ -140,13 +140,14 @@ MidiMatch.compareContextsRegression = function (criterion, sample) {
 };
 
 
-MidiMatch.Node = function (c_note, s_note, criterion) {
+MidiMatch.Node = function (c_note, s_note, criterion, adviceIndex) {
 	this.c_note = c_note;
 	this.s_note = s_note;
 
 	this.selfCost = 0;
 
     this.criterion = criterion;
+    this.adviceIndex = adviceIndex;
 };
 
 MidiMatch.Node.prototype.totalCost = function () {
@@ -154,6 +155,11 @@ MidiMatch.Node.prototype.totalCost = function () {
 
 	if (this.prev)
 		cost += this.prev_cost;
+    else {
+        if (this.adviceIndex >= 0 && this.c_note) {
+            cost += sigmoid(Math.abs(this.c_note.index - this.adviceIndex) * 0.2);
+        }
+    }
 
 	if (isNaN(cost)) {
 		console.log("NaN cost:", this);
@@ -165,7 +171,7 @@ MidiMatch.Node.prototype.totalCost = function () {
 
 MidiMatch.Node.prototype.evaluateMatchingCost = function () {
 	if (this.c_note)
-		this.matching = compareContextsRegression(this.c_note.context, this.s_note.context);
+		this.matching = MidiMatch.compareContextsRegression(this.c_note.context, this.s_note.context);
 	else
 		this.matching = {value: 0};
 
@@ -277,7 +283,7 @@ MidiMatch.Node.prototype.path = function () {
 };
 
 
-MidiMatch.makeMatchNodes = function (note, criterion) {
+MidiMatch.makeMatchNodes = function (note, criterion, adviceIndex) {
     note.matches = [];
 
 	var targetList = criterion.pitchMap[note.pitch];
@@ -285,7 +291,7 @@ MidiMatch.makeMatchNodes = function (note, criterion) {
 		//var max_matching = 0;
 
 		for (var ii in targetList) {
-			var node = new MidiMatch.Node(targetList[ii], note, criterion);
+			var node = new MidiMatch.Node(targetList[ii], note, criterion, adviceIndex);
 
 			//max_matching = Math.max(max_matching, node.matching.value);
 

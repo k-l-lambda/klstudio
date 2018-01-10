@@ -103,7 +103,7 @@
             {
                 overflow: visible;
                 position: relative;
-                top: 50%;
+                top: 60%;
                 border-top: 1px #333 dashed;
             }
 
@@ -684,9 +684,16 @@
                 $("#criterion-canvas").css("top", -y * Config.ScoreHeightScale);
             };
 
+            var updateCriterionPositionByIndex = function(index) {
+                var note = criterionNotations.notes[index];
+                updateCriterionPosition(note.start);
+            };
+
 
             var WorkSequence = [];
             var workingIndex = 0;
+
+            var workingCeriterionIndex = 0;
 
 
             var matchNote = function(index) {
@@ -704,6 +711,8 @@
                 for (var ii in note.matches) {
                 	var node = note.matches[ii];
                 	if (node.totalCost() - second_best_node_cost < 1 || ii < Config.ConnectionClipIndex) {
+                        node.evaluateMatchingCost();
+
                 		if (WorkSequence.length > index + 1) {
                              var next_note = WorkSequence[index + 1];
                              for (var i in next_note.matches)
@@ -724,6 +733,9 @@
                 var c_index = endNode.prev.c_note ? endNode.prev.c_note.index : -1;
                 console.log("match:", index, c_index);
 
+                if (c_index >= 0)
+                    workingCeriterionIndex = c_index + 1;
+
                 if (endNode.prev.c_note) {
                     var elapsed = Date.now() - (note.start + Rec.BeginTime);
                     updateCriterionPosition(endNode.prev.c_note.start + elapsed);
@@ -737,11 +749,11 @@
 
 
             var onNoteRecord = function(note) {
-                MidiMatch.makeMatchNodes(note, criterionNotations);
+                MidiMatch.makeMatchNodes(note, criterionNotations, workingCeriterionIndex);
                 WorkSequence.push(note);
 
                 var lastNote = WorkSequence[WorkSequence.length - 2];
-                if (lastNote && lastNote.mathced)
+                if (lastNote && lastNote.matched)
                     matchNote(WorkSequence.length - 2);
             };
 
@@ -779,6 +791,8 @@
                 if (tail && now - (tail.start + Rec.BeginTime) > Config.SequenceResetInterval) {
                     WorkSequence = [];
                     workingIndex = 0;
+
+                    console.log("Sequence reset.");
                 }
             };
 
@@ -788,47 +802,26 @@
             var samplePaused = false;
 
             var playSample = function(data) {
-                /*var time = 0;
-
-            	for (var n = 0; n < data.length; ++n) {
-            		time += data[n][1];
-
-            		var event = data[n][0].event;
-            		switch (event.type) {
-            			case "channel":
-            				switch (event.subtype) {
-            					case "noteOn":
-            						pitch = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
-            						//channelStatus[event.channel][pitch] = { startTick: ticks, start: time, velocity: event.velocity };
-
-            						break;
-            					case "noteOff":
-            						pitch = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
-
-            						//channels[event.channel].push({ startTick: status.startTick, endTick: ticks, pitch: pitch, start: status.start, duration: time - status.start, velocity: status.velocity });
-
-            						break;
-            				}
-
-            				break;
-            		}
-            	}*/
                 var step;
                 step = function() {
+                    if (sampleCursorIndex >= data.length) {
+                        samplePlaying = false;
+                        return;
+                    }
+
                     var event = data[sampleCursorIndex][0].event;
                     switch (event.type) {
             			case "channel":
             				switch (event.subtype) {
             					case "noteOn":
             						pitch = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
-            						//channelStatus[event.channel][pitch] = { startTick: ticks, start: time, velocity: event.velocity };
+
                                     noteOn({ channel: 0, pitch: pitch, velocity: event.velocity });
 
             						break;
             					case "noteOff":
             						pitch = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
 
-            						//channels[event.channel].push({ startTick: status.startTick, endTick: ticks, pitch: pitch, start: status.start, duration: time - status.start, velocity: status.velocity });
                                     noteOff({ channel: 0, pitch: pitch });
 
             						break;
@@ -838,6 +831,11 @@
             		}
 
                     ++sampleCursorIndex;
+
+                    if (sampleCursorIndex >= data.length) {
+                        samplePlaying = false;
+                        return;
+                    }
 
                     var deltaTime = data[sampleCursorIndex][1];
                     if (deltaTime > 0) {

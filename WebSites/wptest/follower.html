@@ -120,13 +120,28 @@
             }
 
 
+            .note-bar
+            {
+                fill: #fff;
+            }
+
+            .paired .note-bar
+            {
+                fill: #8d8;
+            }
+
+            .unpaired .note-bar
+            {
+                fill: #f44;
+            }
+
             .matched .note-bar
             {
                 stroke: #ff6;
-                stroke-width: 2px;
+                stroke-width: 3px;
             }
 
-            .step-0 .note-bar
+            /*.step-0 .note-bar
             {
             	fill: #ff0000;
             }
@@ -184,7 +199,7 @@
             .step-11 .note-bar
             {
             	fill: #f600ff;
-            }
+            }*/
 
 
             .keyboard .white-key
@@ -258,7 +273,7 @@
 				ContextRegressionEnd: 0.01,			// context compare regression cost end condition
 				ConnectionBiasCostBenchmark: 800,	// how many ms bias result in cost = 1
 				ConnectionClipIndex: 5,
-				NullConnectionCost: 1,
+				NullConnectionCost: 2,
             };
 
             var PianoConfig = {
@@ -646,13 +661,21 @@
 
                 note.graph = note.graph || {}
 
-                var note_elem = group.group({ class: "note " + (is_white ? "white" : "black") + " step-" + step + (note.matched ? " matched" : ""), "data-index": options.index });
+                var classStr = "note " + (is_white ? "white" : "black") + " step-" + step;
+                if (note.matched)
+                    classStr += " matched";
+                if (note.c_index != null)
+                    classStr += note.c_index >= 0 ? " paired" : "unpaired";
+                var note_elem = group.group({ class: classStr, "data-index": options.index });
                 var note_group = svg(note_elem);
 
                 var cornorRadius = is_white ? 5 : 0;
 
                 note.graph.group = note_elem;
                 note.graph.bar = note_group.rect(left, top, width, height, cornorRadius, cornorRadius, { class: "note-bar" });
+
+                if (note.index != null)
+                    $(note_elem).append("<title>" + note.index + "</title>");
             };
 
             var paintScore = function (group_name, notations) {
@@ -669,6 +692,8 @@
 
                     paintNote(note, group, {index: i});
 				}
+
+                $(group_name).html($(group_name).html());
 			};
 
 
@@ -733,8 +758,11 @@
                 var c_index = endNode.prev.c_note ? endNode.prev.c_note.index : -1;
                 console.log("match:", index, c_index);
 
-                if (c_index >= 0)
+                if (c_index >= 0) {
+                    $("#criterion-score .note[data-index=" + c_index + "]").addClass("paired");
+
                     workingCeriterionIndex = c_index + 1;
+                }
 
                 if (endNode.prev.c_note) {
                     var elapsed = Date.now() - (note.start + Rec.BeginTime);
@@ -742,9 +770,13 @@
                 }
 
                 note.matched = true;
+                note.c_index = c_index;
 
-                if (note.graph)
+                if (note.graph) {
                     $(note.graph.group).addClass("matched");
+
+                    $(note.graph.group).addClass(c_index >= 0 ? "paired" : "unpaired");
+                }
             };
 
 
@@ -773,6 +805,13 @@
             };
 
 
+            var clearWorkSequence = function() {
+                WorkSequence = [];
+                workingIndex = 0;
+
+                $("#criterion-score .paired").removeClass("paired");
+            };
+
             var updateSequence = function() {
                 var now = new Date().getTime();
 
@@ -789,8 +828,7 @@
 
                 var tail = WorkSequence[WorkSequence.length - 1];
                 if (tail && now - (tail.start + Rec.BeginTime) > Config.SequenceResetInterval) {
-                    WorkSequence = [];
-                    workingIndex = 0;
+                    clearWorkSequence();
 
                     console.log("Sequence reset.");
                 }
@@ -1003,7 +1041,12 @@
                             $("#pause").click();
 
                             break;
+                        case 36:    // home
+                            updateCriterionPositionByIndex(0);
+
+                            break;
                         default:
+                            console.log(event.keyCode);
                             unhandled = true;
                     }
 

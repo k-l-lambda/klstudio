@@ -28,6 +28,18 @@
                 z-index: 100;
             }
 
+            #controllers .section
+            {
+                display: inline-block;
+                margin: 0 2em;
+            }
+
+            #controllers button
+            {
+                height: 3em;
+                padding: 0 1em;
+            }
+
             #viewer
             {
                 position: relative;
@@ -69,10 +81,9 @@
             .midi-file
             {
                 min-width: 6em;
-                height: 3em;
             }
 
-            #criterion-file-input
+            #criterion-file-input, #sample-file-input
             {
                 display: none;
             }
@@ -229,6 +240,9 @@
             var criterionMidiData = null;
             var criterionNotations = null;
 
+            var sampleMidiData = null;
+            var sampleNotations = null;
+
 
             var Config = {
             	KeyWidth: 40,
@@ -338,7 +352,10 @@
                 //MIDI.Player.timeWarp = timewarp[name];
 
                 MIDI.Player.loadFile(data, function () {
-                    criterionMidiData = MIDI.Player.data;
+                    if (name == "criterion")
+                        criterionMidiData = MIDI.Player.data;
+                    else if (name == "sample")
+                        sampleMidiData = MIDI.Player.data;
 
                     if (onload)
                         onload();
@@ -501,6 +518,15 @@
             };
 
 
+            var loadCriterion = function() {
+                criterionNotations = parseMidiNotation(criterionMidiData);
+                paintScore("#criterion-score", criterionNotations);
+                updateCriterionPosition(0);
+
+                MidiMatch.genNotationContext(criterionNotations);
+            };
+
+
             var pickMidiFile = function (file, elem) {
                 if (file && (file.type == "audio/mid" || file.type == "audio/midi")) {
                     var fr = new FileReader();
@@ -508,16 +534,17 @@
                         elem.text(file.name);
                         elem.addClass("loading");
 
-                        loadMidiFile(e.currentTarget.result, elem.data("name"), file.name, function () {
+                        var name = elem.data("name");
+
+                        loadMidiFile(e.currentTarget.result, name, file.name, function () {
                             elem.removeClass("loading");
 
                             console.log(name + " MIDI file loaded:", file.name);
 
-                            criterionNotations = parseMidiNotation(criterionMidiData);
-                            paintScore("#criterion-score", criterionNotations);
-                            updateCriterionPosition(0);
-
-                            MidiMatch.genNotationContext(criterionNotations);
+                            if (name == "criterion")
+                                loadCriterion();
+                            else if (name == "sample")
+                                restartSamplePlay();
                         });
                     };
                     fr.readAsDataURL(file);
@@ -756,6 +783,94 @@
             };
 
 
+            var sampleCursorIndex = 0;
+            var samplePlaying = false;
+            var samplePaused = false;
+
+            var playSample = function(data) {
+                /*var time = 0;
+
+            	for (var n = 0; n < data.length; ++n) {
+            		time += data[n][1];
+
+            		var event = data[n][0].event;
+            		switch (event.type) {
+            			case "channel":
+            				switch (event.subtype) {
+            					case "noteOn":
+            						pitch = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
+            						//channelStatus[event.channel][pitch] = { startTick: ticks, start: time, velocity: event.velocity };
+
+            						break;
+            					case "noteOff":
+            						pitch = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
+
+            						//channels[event.channel].push({ startTick: status.startTick, endTick: ticks, pitch: pitch, start: status.start, duration: time - status.start, velocity: status.velocity });
+
+            						break;
+            				}
+
+            				break;
+            		}
+            	}*/
+                var step;
+                step = function() {
+                    var event = data[sampleCursorIndex][0].event;
+                    switch (event.type) {
+            			case "channel":
+            				switch (event.subtype) {
+            					case "noteOn":
+            						pitch = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
+            						//channelStatus[event.channel][pitch] = { startTick: ticks, start: time, velocity: event.velocity };
+                                    noteOn({ channel: 0, pitch: pitch, velocity: event.velocity });
+
+            						break;
+            					case "noteOff":
+            						pitch = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
+
+            						//channels[event.channel].push({ startTick: status.startTick, endTick: ticks, pitch: pitch, start: status.start, duration: time - status.start, velocity: status.velocity });
+                                    noteOff({ channel: 0, pitch: pitch });
+
+            						break;
+            				}
+
+            				break;
+            		}
+
+                    ++sampleCursorIndex;
+
+                    var deltaTime = data[sampleCursorIndex][1];
+                    if (deltaTime > 0) {
+                        if (samplePlaying)
+                            setTimeout(step, deltaTime);
+                    }
+                    else {
+                        step();
+                    }
+                };
+
+                samplePlaying = true;
+
+                setTimeout(step, data[sampleCursorIndex][1]);
+            };
+
+            var restartSamplePlay = function() {
+                sampleCursorIndex = 0;
+
+                playSample(sampleMidiData);
+            };
+
+            var pauseSamplePlay = function() {
+                samplePlaying = false;
+            };
+
+            var endSamplePlay = function() {
+                samplePlaying = false;
+                sampleCursorIndex = 0;
+                samplePaused = false;
+            };
+
+
             $(function(){
                 MIDI.loadPlugin({
 					soundfontUrl: "../soundfont/",
@@ -793,6 +908,15 @@
                 		pickMidiFile(event.target.files[0], $("#criterion-file"));
                 });
 
+                $("#sample-file").click(function () {
+                	$("#sample-file-input").click();
+                });
+
+                $("#sample-file-input").change(function () {
+                	if (event.target.files[0])
+                		pickMidiFile(event.target.files[0], $("#sample-file"));
+                });
+
                 initializeKeyboard($("#criterion-area .keyboard"));
                 initializeKeyboard($("#sample-area .keyboard"));
 
@@ -814,25 +938,41 @@
                         $("#pause").removeClass("paused");
                         clearInterval(updateHandle);
                         clearInterval(scrollHandle);
+
+                        pauseSamplePlay();
+                        samplePaused = true;
                     }
                     else {
                         $("#pause").addClass("paused");
                         updateHandle = setInterval(updateSequence, 50);
                         scrollHandle = setInterval(scrollSampleCanvas, 30);
+
+                        samplePaused = false;
+                        playSample(sampleMidiData);
                     }
 
                     $("#pause").text(paused ? "RESTART" : "PAUSE");
                 });
 
+                $("#sample-restart").click(function() {
+                    restartSamplePlay();
+                });
+
+                $("#sample-end").click(function() {
+                    endSamplePlay();
+                });
+
 
                 if (localStorage.criterion_data) {
                 	loadMidiFile(localStorage.criterion_data, "criterion", localStorage.criterion_filename, function() {
-                        criterionNotations = parseMidiNotation(criterionMidiData);
-                        paintScore("#criterion-score", criterionNotations);
-
-                        MidiMatch.genNotationContext(criterionNotations);
+                        loadCriterion();
                     });
                 	$("#criterion-file").text(localStorage.criterion_filename);
+                }
+
+                if (localStorage.sample_data) {
+                    loadMidiFile(localStorage.sample_data, "sample", localStorage.sample_filename);
+                    $("#sample-file").text(localStorage.sample_filename);
                 }
 
 
@@ -856,13 +996,38 @@
                 		KeyStatus[event.keyCode] = false;
                 	}
                 });
+
+                $(document).keydown(function () {
+                    //console.log(event.keyCode);
+                    var unhandled = false;
+                    switch (event.keyCode) {
+                        case 32: // Space
+                            $("#pause").click();
+
+                            break;
+                        default:
+                            unhandled = true;
+                    }
+
+                    if (!unhandled)
+                        event.preventDefault();
+                });
             });
         </script>
     </head>
     <body>
         <div id="controllers">
-            Criterion: <button id="criterion-file" class="midi-file" data-name="criterion">...</button> <input id="criterion-file-input" type="file" accept="audio/mid,audio/midi" />
-            <button id="pause">PAUSE</button>
+            <span class="section">
+                Criterion: <button id="criterion-file" class="midi-file" data-name="criterion">...</button> <input id="criterion-file-input" type="file" accept="audio/mid,audio/midi" />
+            </span>
+            <span class="section">
+                <button id="pause">PAUSE</button>
+            </span>
+            <span class="section">
+                Sample: <button id="sample-file" class="midi-file" data-name="sample">...</button> <input id="sample-file-input" type="file" accept="audio/mid,audio/midi" />
+                <button id="sample-restart">RESTART</button>
+                <button id="sample-end">END</button>
+            </span>
         </div>
         <div id="viewer">
             <div id="criterion-area">

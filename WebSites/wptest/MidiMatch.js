@@ -171,8 +171,8 @@ MidiMatch.Node.prototype.totalCost = function () {
 
 MidiMatch.Node.prototype.evaluateMatchingCost = function () {
 	if (this.c_note)
-        //this.matching = MidiMatch.compareContextsRegression(this.c_note.context, this.s_note.context);
-        this.matching = {value: 10};
+        this.matching = MidiMatch.compareContextsRegression(this.c_note.context, this.s_note.context);
+        //this.matching = {value: 10};
 	else
 		this.matching = {value: 0};
 

@@ -58,7 +58,7 @@
                 width: 50%;
                 height: 100%;
                 padding-top: 78px;
-                border-left: 2px solid #343;
+                border-left: 2px solid #333;
             }
 
             #criterion-area
@@ -274,6 +274,8 @@
 				ConnectionBiasCostBenchmark: 800,	// how many ms bias result in cost = 1
 				ConnectionClipIndex: 5,
 				NullConnectionCost: 2,
+                RepeatConnectionCost: 1,
+                StartPositionOffsetCost: 4,
             };
 
             var PianoConfig = {
@@ -709,17 +711,19 @@
                 $("#criterion-canvas").css("top", -y * Config.ScoreHeightScale);
             };
 
-            var updateCriterionPositionByIndex = function(index) {
-                var note = criterionNotations.notes[index];
-                updateCriterionPosition(note.start);
-            };
-
 
             var WorkSequence = [];
             var workingIndex = 0;
 
             var workingCeriterionIndex = 0;
 
+
+            var updateCriterionPositionByIndex = function(index) {
+                var note = criterionNotations.notes[index];
+                updateCriterionPosition(note.start);
+
+                workingCeriterionIndex = index;
+            };
 
             var matchNote = function(index) {
                 var note = WorkSequence[index];
@@ -832,6 +836,62 @@
 
                     console.log("Sequence reset.");
                 }
+            };
+
+            var dumpSampleNote = function(index) {
+                var note = WorkSequence[index];
+                if (note) {
+                    for (var i in note.matches) {
+                        var node = note.matches[i];
+                        var c_index = node.c_note ? node.c_note.index : -1;
+
+                        console.log(c_index, node.totalCost(), node);
+                    }
+                }
+            };
+
+
+            var debugMatchNote = function(index) {
+                var note = WorkSequence[index];
+                if (!note)
+                    return;
+
+                MidiMatch.genNoteContext(WorkSequence, index);
+
+                var second_best_node = note.matches[1] || note.matches[0];
+                var second_best_node_cost = second_best_node.totalCost();
+
+                var next_note = WorkSequence[index + 1];
+                var next_c_index = next_note.matches[0].c_note ? next_note.matches[0].c_note.index : -1;
+
+                MidiMatch.makeMatchNodes(next_note, criterionNotations, next_note.matches[0].adviceIndex);
+
+                var next_node = null;
+                for (var i in next_note.matches) {
+                    var ci = next_note.matches[i].c_note ? next_note.matches[i].c_note.index : -1;
+                    if (ci == next_c_index) {
+                        next_node = next_note.matches[i];
+                        break;
+                    }
+                }
+
+                for (var ii in note.matches) {
+                	var node = note.matches[ii];
+                	if (node.totalCost() - second_best_node_cost < 1 || ii < Config.ConnectionClipIndex) {
+                        node.evaluateMatchingCost();
+
+                        var cc = next_node.evaluateConnectionCost(node, null, true);
+
+            			next_note.matches[i].evaluateConnection(node);
+
+                        console.log("match cost:", ii, cc, node, next_node);
+                	}
+                }
+
+                var c_index = next_note.matches[0].prev.c_note ? next_note.matches[0].prev.c_note.index : -1;
+                console.log("match:", index, c_index);
+
+                window.next_node = next_node;
             };
 
 

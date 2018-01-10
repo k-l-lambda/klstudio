@@ -157,7 +157,7 @@ MidiMatch.Node.prototype.totalCost = function () {
 		cost += this.prev_cost;
     else {
         if (this.adviceIndex >= 0 && this.c_note) {
-            cost += sigmoid(Math.abs(this.c_note.index - this.adviceIndex) * 0.2);
+            cost += sigmoid(Math.abs(this.c_note.index - this.adviceIndex) * 0.2) * Config.StartPositionOffsetCost;
         }
     }
 
@@ -171,7 +171,8 @@ MidiMatch.Node.prototype.totalCost = function () {
 
 MidiMatch.Node.prototype.evaluateMatchingCost = function () {
 	if (this.c_note)
-		this.matching = MidiMatch.compareContextsRegression(this.c_note.context, this.s_note.context);
+        //this.matching = MidiMatch.compareContextsRegression(this.c_note.context, this.s_note.context);
+        this.matching = {value: 10};
 	else
 		this.matching = {value: 0};
 
@@ -212,25 +213,47 @@ MidiMatch.Node.prototype.lastCIndex = function () {
 	return index;
 };
 
-MidiMatch.Node.prototype.evaluateConnectionCost = function (prev, end_limit) {
+MidiMatch.Node.prototype.evaluateConnectionCost = function (prev, end_limit, debug) {
 	var prev_c = prev.lastCNote();
 	var current_c = this.c_note;
+
+    //if (debug)
+    //    console.log("evaluateConnectionCost.1");
 
 	if (!current_c)
 		return Config.NullConnectionCost;
 
+    //if (debug)
+    //    console.log("evaluateConnectionCost.2", current_c.index);
+
 	if (!prev_c)
 		return 0;
+
+    //if (debug)
+    //    console.log("evaluateConnectionCost.3");
 
 	var cost = 0;
 
 	if (current_c.index < prev_c.index) {
 		var bias = (prev_c.start - current_c.start) / Config.ConnectionBiasCostBenchmark;
 		cost += bias * bias;
+
+        //if (debug)
+        //    console.log("evaluateConnectionCost.4");
 	}
 
 	if(cost > end_limit)
 		return cost;
+
+    //if (debug)
+    //    console.log("evaluateConnectionCost.5", prev.includsCIndex(current_c.index));
+
+    if (prev && prev.includsCIndex(current_c.index)) {
+        cost += Config.RepeatConnectionCost;
+
+        //if (debug)
+        //    console.log("evaluateConnectionCost.6");
+    }
 
 	var last_c_index = prev.lastCIndex();
 
@@ -240,10 +263,16 @@ MidiMatch.Node.prototype.evaluateConnectionCost = function (prev, end_limit) {
 			var bias = (current_c.start - note.start) / Config.ConnectionBiasCostBenchmark;
 			cost += bias * bias;
 
+            //if (debug)
+            //    console.log("evaluateConnectionCost.7");
+
 			if(cost > end_limit)
 				return cost;
 		}
 	}
+
+    //if (debug)
+    //    console.log("evaluateConnectionCost.8");
 
 	return cost;
 };

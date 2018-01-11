@@ -845,7 +845,7 @@
                 paintNote(note, score, {timeOffset: time - note.start});
 
                 setTimeout(function() {
-                    if (note.graph) {
+                    if (note.graph && samplePlaying) {
                         $(note.graph.group).remove();
                         note.graph = null;
                     }
@@ -909,7 +909,8 @@
                 var second_best_node_cost = second_best_node.totalCost();
 
                 var next_note = WorkSequence[index + 1];
-                var next_c_index = next_note.matches[0].c_note ? next_note.matches[0].c_note.index : -1;
+                //var next_c_index = next_note.matches[0].c_note ? next_note.matches[0].c_note.index : -1;
+                var next_c_index = workPath[index + 1];
 
                 MidiMatch.makeMatchNodes(next_note, criterionNotations, next_note.matches[0].adviceIndex);
 

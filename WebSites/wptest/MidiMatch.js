@@ -215,6 +215,9 @@ MidiMatch.Node.prototype.lastCIndex = function () {
 };
 
 MidiMatch.Node.prototype.evaluateConnectionCost = function (prev, end_limit, debug) {
+    if (end_limit == null)
+        end_limit = Infinity;
+
 	var prev_c = prev.lastCNote();
 	var current_c = this.c_note;
 
@@ -240,7 +243,7 @@ MidiMatch.Node.prototype.evaluateConnectionCost = function (prev, end_limit, deb
 		cost += bias * bias;
 
         //if (debug)
-        //    console.log("evaluateConnectionCost.4");
+        //    console.log("evaluateConnectionCost.4", cost);
 	}
 
 	if(cost > end_limit)
@@ -253,7 +256,7 @@ MidiMatch.Node.prototype.evaluateConnectionCost = function (prev, end_limit, deb
         cost += Config.RepeatConnectionCost;
 
         //if (debug)
-        //    console.log("evaluateConnectionCost.6");
+        //    console.log("evaluateConnectionCost.6", cost);
     }
 
 	var last_c_index = prev.lastCIndex();
@@ -265,7 +268,7 @@ MidiMatch.Node.prototype.evaluateConnectionCost = function (prev, end_limit, deb
 			cost += bias * bias;
 
             //if (debug)
-            //    console.log("evaluateConnectionCost.7");
+            //    console.log("evaluateConnectionCost.7", cost);
 
 			if(cost > end_limit)
 				return cost;
@@ -273,7 +276,7 @@ MidiMatch.Node.prototype.evaluateConnectionCost = function (prev, end_limit, deb
 	}
 
     //if (debug)
-    //    console.log("evaluateConnectionCost.8");
+    //    console.log("evaluateConnectionCost.8", cost);
 
 	return cost;
 };

@@ -881,6 +881,10 @@
 
                 var tail = WorkSequence[WorkSequence.length - 1];
                 if (tail && now - (tail.start + Rec.BeginTime) > Config.SequenceResetInterval) {
+                    var tail_g = $("#criterion-score .note[data-index=" + (criterionNotations.notes.length - 1) + "]");
+                    if (tail_g.data("sindex") != null)
+                        updateCriterionPositionByIndex(0);
+
                     clearWorkSequence();
                 }
             };

@@ -948,6 +948,7 @@
             var sampleCursorIndex = 0;
             var samplePlaying = false;
             var samplePaused = false;
+            var samplePlayHandle = null;
 
             var playSample = function(data) {
                 var step;
@@ -988,7 +989,7 @@
                     var deltaTime = data[sampleCursorIndex][1];
                     if (deltaTime > 0) {
                         if (samplePlaying)
-                            setTimeout(step, deltaTime);
+                            samplePlayHandle = setTimeout(step, deltaTime);
                     }
                     else {
                         step();
@@ -997,7 +998,9 @@
 
                 samplePlaying = true;
 
-                setTimeout(step, data[sampleCursorIndex][1]);
+                if (samplePlayHandle)
+                    clearTimeout(samplePlayHandle);
+                samplePlayHandle = setTimeout(step, data[sampleCursorIndex][1]);
             };
 
             var restartSamplePlay = function() {
@@ -1151,13 +1154,17 @@
                             $("#pause").click();
 
                             break;
-                        case 36:    // home
+                        case 36:    // Home
                             updateCriterionPositionByIndex(0);
                             clearWorkSequence();
 
                             break;
+                        case 35:    // End
+                            $("#sample-end").click();
+
+                            break;
                         default:
-                            //console.log("unhandled key:", event.keyCode);
+                            console.log("unhandled key:", event.keyCode);
                             unhandled = true;
                     }
 

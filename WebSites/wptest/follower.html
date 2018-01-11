@@ -280,7 +280,7 @@
 				ConnectionClipIndex: 5,
 				NullConnectionCost: 2,
                 RepeatConnectionCost: 1,
-                StartPositionOffsetCost: 4,
+                StartPositionOffsetCost: 1,
             };
 
             var PianoConfig = {
@@ -719,6 +719,7 @@
 
             var WorkSequence = [];
             var workingIndex = 0;
+            var workPath = [];
 
             var workingCeriterionIndex = 0;
 
@@ -728,6 +729,22 @@
                 updateCriterionPosition(note.start);
 
                 workingCeriterionIndex = index;
+            };
+
+            var markNotePair = function(c_index, s_index) {
+                var cnote_g = $("#criterion-score .note[data-index=" + c_index + "]");
+                if (cnote_g.hasClass("paired")) {
+                    var old_sindex = cnote_g.data("sindex");
+
+                    duplicated = old_sindex != s_index;
+                    if (duplicated) {
+                        cnote_g.addClass("duplicated");
+                    }
+                }
+                else
+                    cnote_g.addClass("paired");
+
+                cnote_g.data("sindex", s_index);
             };
 
             var matchNote = function(index) {
@@ -770,19 +787,7 @@
                 var duplicated = false;
 
                 if (c_index >= 0) {
-                    var cnote_g = $("#criterion-score .note[data-index=" + c_index + "]");
-                    if (cnote_g.hasClass("paired")) {
-                        var old_sindex = cnote_g.data("sindex");
-
-                        duplicated = old_sindex != index;
-                        if (duplicated) {
-                            cnote_g.addClass("duplicated");
-                        }
-                    }
-                    else
-                        cnote_g.addClass("paired");
-
-                    cnote_g.data("sindex", index);
+                    markNotePair(c_index, index);
 
                     workingCeriterionIndex = c_index + 1;
                 }
@@ -800,6 +805,26 @@
 
                     $(note.graph.group).addClass(c_index >= 0 ? (duplicated ? "duplicated" : "paired") : "unpaired");
                 }
+
+
+                var path = endNode.prev.path();
+                for (var i = workPath.length - 1; i >= 0; --i) {
+                    if (workPath[i] == path[i])
+                        break;
+
+                    //console.log("path change:", i, path[i]);
+
+                    var old_g = $("#criterion-score .note[data-index=" + workPath[i] + "]");
+                    if (old_g.hasClass("duplicated"))
+                        old_g.removeClass("duplicated");
+                    if (old_g.hasClass("paired"))
+                        old_g.removeClass("paired");
+                    old_g.data("sindex", null);
+
+                    markNotePair(path[i], i);
+                }
+
+                workPath = path;
             };
 
 
@@ -831,6 +856,7 @@
             var clearWorkSequence = function() {
                 WorkSequence = [];
                 workingIndex = 0;
+                workPath = [];
 
                 $("#criterion-score .paired").data("sindex", null);
                 $("#criterion-score .paired").removeClass("paired");

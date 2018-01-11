@@ -156,8 +156,9 @@ MidiMatch.Node.prototype.totalCost = function () {
 	if (this.prev)
 		cost += this.prev_cost;
     else {
-        if (this.adviceIndex >= 0 && this.c_note) {
-            cost += sigmoid(Math.abs(this.c_note.index - this.adviceIndex) * 0.2) * Config.StartPositionOffsetCost;
+        if (this.adviceIndex >= 0) {
+            var offset = this.c_note ? sigmoid(Math.abs(this.c_note.index - this.adviceIndex) * 0.2) : 1;
+            cost += offset * Config.StartPositionOffsetCost;
         }
     }
 
@@ -337,5 +338,5 @@ MidiMatch.makeMatchNodes = function (note, criterion, adviceIndex) {
 		return m2.matching.value - m1.matching.value;
 	});*/
 
-	note.matches.push(new MidiMatch.Node(null, note));
+	note.matches.push(new MidiMatch.Node(null, note, criterion, adviceIndex));
 };

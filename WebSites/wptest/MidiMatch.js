@@ -372,9 +372,12 @@ MidiMatch.Follower = function(options) {
     this.markNotePair = options.markNotePair;
     this.unmarkNotePair = options.unmarkNotePair;
     this.clearNoteMarks = options.clearNoteMarks;
+    this.markNotePressed = options.markNotePressed;
     this.onUpdateCriterionPositionByIndex = options.onUpdateCriterionPositionByIndex;
 
     this.setActive(true);
+
+    this.PressedIndices = [];
 };
 
 
@@ -449,6 +452,11 @@ MidiMatch.Follower.prototype.matchNote = function(index) {
         var elapsed = Date.now() - (note.start + this.noteStartTimeOffset());
         if (this.onUpdateCriterionPositionByIndex)
             this.onUpdateCriterionPositionByIndex(c_index, elapsed);
+
+        // trim PressedIndices
+        var press_index = this.PressedIndices.indexOf(c_index);
+        if (press_index >= 0)
+            this.PressedIndices.splice(0, press_index + 1);
     }
 
     note.matched = true;
@@ -472,6 +480,8 @@ MidiMatch.Follower.prototype.matchNote = function(index) {
             this.unmarkNotePair(this.Path[i]);
         if (this.markNotePair)
             this.markNotePair(path[i], i);
+
+        this.PressedIndices = [];
     }
 
     this.Path = path;
@@ -485,6 +495,25 @@ MidiMatch.Follower.prototype.onNoteRecord = function(note) {
     var lastNote = this.Sequence[this.Sequence.length - 2];
     if (lastNote && lastNote.matched)
         this.matchNote(this.Sequence.length - 2);
+
+    // find pressed note
+    if (this.markNotePressed) {
+        var plist = this.criterionNotations.pitchMap[note.pitch];
+        var pressed = null;
+        for (var i in plist) {
+            var n = plist[i];
+            if (n.index >= this.CeriterionIndex && this.PressedIndices.indexOf(n.index) < 0) {
+                pressed = n.index;
+                break;
+            }
+        }
+
+        if (pressed != null) {
+            this.PressedIndices.push(pressed);
+
+            this.markNotePressed(pressed);
+        }
+    }
 };
 
 
@@ -492,6 +521,7 @@ MidiMatch.Follower.prototype.clearWorkSequence = function() {
     this.Sequence = [];
     this.WorkingIndex = 0;
     this.Path = [];
+    this.PressedIndices = [];
 
     if (this.clearNoteMarks)
         this.clearNoteMarks();

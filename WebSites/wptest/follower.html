@@ -146,6 +146,11 @@
                 stroke-width: 3px;
             }
 
+            .pressed .note-bar
+            {
+                fill: #87f;
+            }
+
             /*.step-0 .note-bar
             {
             	fill: #ff0000;
@@ -756,6 +761,28 @@
                 $("#criterion-score .paired").data("sindex", null);
                 $("#criterion-score .paired").removeClass("paired");
                 $("#criterion-score .duplicated").removeClass("duplicated");
+                $("#criterion-score .pressed").removeClass("pressed");
+            };
+
+
+            var pressedMap = {};
+
+            var setPressedMark = function(c_index, on) {
+                var g = $("#criterion-score .note[data-index=" + c_index + "]");
+                if (on)
+                    g.addClass("pressed");
+                else
+                    g.removeClass("pressed");
+            };
+
+            var markNotePressed = function(c_index) {
+                var note = criterionNotations.notes[c_index];
+
+                if (pressedMap[note.pitch] != null)
+                    setPressedMark(pressedMap[note.pitch], false);
+
+                pressedMap[note.pitch] = c_index;
+                setPressedMark(c_index, true);
             };
 
 
@@ -776,6 +803,10 @@
                         note.graph = null;
                     }
                 }, 2000 / Config.ScoreHeightScale);
+
+                // clear pressed mark
+                if (pressedMap[note.pitch] != null)
+                    setPressedMark(pressedMap[note.pitch], false);
             };
 
 
@@ -918,6 +949,7 @@
                     markNotePair: markNotePair,
                     unmarkNotePair: unmarkNotePair,
                     clearNoteMarks: clearNoteMarks,
+                    markNotePressed: markNotePressed,
                     onUpdateCriterionPositionByIndex: updateCriterionPositionByIndex,
                 });
 
@@ -927,7 +959,7 @@
                     var paused = !Rec.isRecording();
                     if (paused) {
                         $("#pause").removeClass("paused");
-                        clearInterval(updateHandle);
+                        //clearInterval(updateHandle);
                         clearInterval(scrollHandle);
 
                         pauseSamplePlay();
@@ -935,7 +967,7 @@
                     }
                     else {
                         $("#pause").addClass("paused");
-                        updateHandle = setInterval(updateSequence, 50);
+                        //updateHandle = setInterval(updateSequence, 50);
                         scrollHandle = setInterval(scrollSampleCanvas, 30);
 
                         samplePaused = false;

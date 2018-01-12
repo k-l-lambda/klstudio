@@ -343,3 +343,249 @@ MidiMatch.makeMatchNodes = function (note, criterion, adviceIndex) {
 
 	note.matches.push(new MidiMatch.Node(null, note, criterion, adviceIndex));
 };
+
+
+
+MidiMatch.pathToCorrespondence = function(path) {
+    var result = [];
+
+    for (var i in path) {
+        var ci = path[i];
+        if (ci >= 0)
+            result[ci] = Math.max(i, result[ci] || i);
+    };
+
+    return result;
+};
+
+
+
+MidiMatch.Follower = function(options) {
+    options = options || {};
+
+    this.criterionNotations = options.criterionNotations;
+
+    this.noteStartTimeOffset = options.noteStartTimeOffset || function() {return 0;};
+
+    this.updateInterval = options.updateInterval || 50;
+
+    this.markNotePair = options.markNotePair;
+    this.unmarkNotePair = options.unmarkNotePair;
+    this.clearNoteMarks = options.clearNoteMarks;
+    this.onUpdateCriterionPositionByIndex = options.onUpdateCriterionPositionByIndex;
+
+    this.setActive(true);
+};
+
+
+MidiMatch.Follower.prototype.Sequence = [];
+MidiMatch.Follower.prototype.WorkingIndex = 0;
+MidiMatch.Follower.prototype.Path = [];
+MidiMatch.Follower.prototype.CeriterionIndex = 0;
+
+
+MidiMatch.Follower.prototype.setActive = function(active) {
+    this.active = active;
+
+    if (this.updateHandle) {
+        clearInterval(this.updateHandle);
+        this.updateHandle = null;
+    }
+
+    var self = this;
+
+    if (this.active)
+        this.updateHandle = setInterval(function() {
+            self.updateSequence();
+        }, this.updateInterval);
+};
+
+
+MidiMatch.Follower.prototype.matchNote = function(index) {
+    var note = this.Sequence[index];
+    if (!note)
+        return;
+
+    MidiMatch.genNoteContext(this.Sequence, index);
+
+    var second_best_node = note.matches[1] || note.matches[0];
+    var second_best_node_cost = second_best_node.totalCost();
+
+    var endNode = new MidiMatch.Node();
+
+    for (var ii in note.matches) {
+        var node = note.matches[ii];
+        if (node.totalCost() - second_best_node_cost < 1 || ii < Config.ConnectionClipIndex) {
+            node.evaluateMatchingCost();
+
+            if (this.Sequence.length > index + 1) {
+                 var next_note = this.Sequence[index + 1];
+                 for (var i in next_note.matches)
+                    next_note.matches[i].evaluateConnection(node);
+
+                next_note.matches = next_note.matches.sort(function(n1, n2) {
+                    return n1.totalCost() - n2.totalCost();
+                });
+
+                endNode = next_note.matches[0];
+            }
+            else {
+                endNode.evaluateConnection(node);
+            }
+        }
+    }
+
+    var c_index = endNode.prev.c_note ? endNode.prev.c_note.index : -1;
+    console.log("match:", index, c_index);
+
+    var duplicated = false;
+
+    if (c_index >= 0) {
+        if (this.markNotePair)
+            this.markNotePair(c_index, index);
+
+        this.CeriterionIndex = c_index + 1;
+    }
+
+    if (endNode.prev.c_note) {
+        var elapsed = Date.now() - (note.start + this.noteStartTimeOffset());
+        updateCriterionPosition(endNode.prev.c_note.start + elapsed);
+    }
+
+    note.matched = true;
+    note.c_index = c_index;
+
+    if (note.graph) {
+        $(note.graph.group).addClass("matched");
+
+        $(note.graph.group).addClass(c_index >= 0 ? (duplicated ? "duplicated" : "paired") : "unpaired");
+    }
+
+
+    var path = endNode.prev.path();
+    for (var i = this.Path.length - 1; i >= 0; --i) {
+        if (this.Path[i] == path[i])
+            break;
+
+        //console.log("path change:", i, path[i]);
+
+        if (this.unmarkNotePair)
+            this.unmarkNotePair(this.Path[i]);
+        if (this.markNotePair)
+            this.markNotePair(path[i], i);
+    }
+
+    this.Path = path;
+};
+
+
+MidiMatch.Follower.prototype.onNoteRecord = function(note) {
+    MidiMatch.makeMatchNodes(note, this.criterionNotations, this.CeriterionIndex);
+    this.Sequence.push(note);
+
+    var lastNote = this.Sequence[this.Sequence.length - 2];
+    if (lastNote && lastNote.matched)
+        this.matchNote(this.Sequence.length - 2);
+};
+
+
+MidiMatch.Follower.prototype.clearWorkSequence = function() {
+    this.Sequence = [];
+    this.WorkingIndex = 0;
+    this.Path = [];
+
+    if (this.clearNoteMarks)
+        this.clearNoteMarks();
+
+    console.log("Sequence reset.");
+};
+
+
+MidiMatch.Follower.prototype.updateSequence = function() {
+    var now = new Date().getTime();
+
+    while (this.Sequence.length > this.WorkingIndex) {
+        var note = this.Sequence[this.WorkingIndex];
+
+        if (now - (note.start + this.noteStartTimeOffset()) > Config.PendingLatency) {
+            this.matchNote(this.WorkingIndex);
+            this.WorkingIndex++;
+        }
+        else
+            break;
+    }
+
+    var tail = this.Sequence[this.Sequence.length - 1];
+    if (tail && now - (tail.start + this.noteStartTimeOffset()) > Config.SequenceResetInterval) {
+        /*var tail_g = $("#criterion-score .note[data-index=" + (this.criterionNotations.notes.length - 1) + "]");
+        if (tail_g.data("sindex") != null)
+            if (this.onUpdateCriterionPositionByIndex)
+                this.onUpdateCriterionPositionByIndex(0);*/
+        this.Correspondence = MidiMatch.pathToCorrespondence();
+        if (this.Correspondence[this.criterionNotations.notes.length - 1] != null)
+            if (this.onUpdateCriterionPositionByIndex)
+                this.onUpdateCriterionPositionByIndex(0);
+
+        this.clearWorkSequence();
+    }
+};
+
+
+MidiMatch.Follower.prototype.dumpSampleNote = function(index) {
+    var note = this.Sequence[index];
+    if (note) {
+        for (var i in note.matches) {
+            var node = note.matches[i];
+            var c_index = node.c_note ? node.c_note.index : -1;
+
+            console.log(c_index, node.totalCost(), node);
+        }
+    }
+};
+
+
+MidiMatch.Follower.prototype.debugMatchNote = function(index) {
+    var note = this.Sequence[index];
+    if (!note)
+        return;
+
+    MidiMatch.genNoteContext(this.Sequence, index);
+
+    var second_best_node = note.matches[1] || note.matches[0];
+    var second_best_node_cost = second_best_node.totalCost();
+
+    var next_note = this.Sequence[index + 1];
+    //var next_c_index = next_note.matches[0].c_note ? next_note.matches[0].c_note.index : -1;
+    var next_c_index = this.Path[index + 1];
+
+    MidiMatch.makeMatchNodes(next_note, this.criterionNotations, next_note.matches[0].adviceIndex);
+
+    var next_node = null;
+    for (var i in next_note.matches) {
+        var ci = next_note.matches[i].c_note ? next_note.matches[i].c_note.index : -1;
+        if (ci == next_c_index) {
+            next_node = next_note.matches[i];
+            break;
+        }
+    }
+
+    for (var ii in note.matches) {
+    	var node = note.matches[ii];
+    	if (node.totalCost() - second_best_node_cost < 1 || ii < Config.ConnectionClipIndex) {
+            node.evaluateMatchingCost();
+
+            var cc = next_node.evaluateConnectionCost(node, null, true);
+
+			next_note.matches[i].evaluateConnection(node);
+
+            console.log("match cost:", ii, cc, node, next_node);
+    	}
+    }
+
+    if (next_note.matches[0].prev) {
+        var c_index = next_note.matches[0].prev.c_note ? next_note.matches[0].prev.c_note.index : -1;
+        console.log("match:", index, c_index);
+    }
+
+    window.next_node = next_node;
+};

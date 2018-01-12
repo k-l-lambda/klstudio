@@ -368,6 +368,7 @@
 
 
             var Rec;
+            var Follower;
 
 
             var loadMidiFile = function (data, name, filename, onload) {
@@ -546,6 +547,8 @@
                 updateCriterionPosition(0);
 
                 MidiMatch.genNotationContext(criterionNotations);
+
+                Follower.criterionNotations = criterionNotations;
             };
 
 
@@ -747,6 +750,21 @@
                 cnote_g.data("sindex", s_index);
             };
 
+            var unmarkNotePair = function(c_index) {
+                var g = $("#criterion-score .note[data-index=" + this.Path[c_index] + "]");
+                if (g.hasClass("duplicated"))
+                    g.removeClass("duplicated");
+                if (g.hasClass("paired"))
+                    g.removeClass("paired");
+                g.data("sindex", null);
+            };
+
+            var clearNoteMarks = function() {
+                $("#criterion-score .paired").data("sindex", null);
+                $("#criterion-score .paired").removeClass("paired");
+                $("#criterion-score .duplicated").removeClass("duplicated");
+            };
+
             var matchNote = function(index) {
                 var note = WorkSequence[index];
                 if (!note)
@@ -829,12 +847,13 @@
 
 
             var onNoteRecord = function(note) {
-                MidiMatch.makeMatchNodes(note, criterionNotations, workingCeriterionIndex);
+                /*MidiMatch.makeMatchNodes(note, criterionNotations, workingCeriterionIndex);
                 WorkSequence.push(note);
 
                 var lastNote = WorkSequence[WorkSequence.length - 2];
                 if (lastNote && lastNote.matched)
-                    matchNote(WorkSequence.length - 2);
+                    matchNote(WorkSequence.length - 2);*/
+                Follower.onNoteRecord(note);
             };
 
             var onNoteFinished = function(note) {
@@ -1081,7 +1100,15 @@
 
                 Rec = new Recorder({on: true, onNoteCreated: onNoteRecord, onNoteFinished: onNoteFinished});
 
-                var updateHandle = setInterval(updateSequence, 50);
+                //var updateHandle = setInterval(updateSequence, 50);
+                Follower = new MidiMatch.Follower({
+                    criterionNotations: criterionNotations,
+                    noteStartTimeOffset: function() {return Rec.BeginTime;},
+                    markNotePair: markNotePair,
+                    unmarkNotePair: unmarkNotePair,
+                    clearNoteMarks: clearNoteMarks,
+                    onUpdateCriterionPositionByIndex: updateCriterionPositionByIndex,
+                });
 
                 $("#pause").click(function() {
                     Rec.toggleRecord();
@@ -1168,7 +1195,7 @@
 
                             break;
                         default:
-                            console.log("unhandled key:", event.keyCode);
+                            //console.log("unhandled key:", event.keyCode);
                             unhandled = true;
                     }
 

@@ -297,6 +297,8 @@ var samplePlaying = false;
 var samplePaused = false;
 var samplePlayHandle = null;
 
+var pressedMap = {};
+
 
 var noteOn = function (data) {
 	MIDI.noteOn(data.channel, data.pitch, data.velocity);
@@ -333,6 +335,10 @@ var noteOff = function (data) {
             note.graph = null;
         }
     }, 2000 / Config.ScoreHeightScale);
+
+    // clear pressed mark
+    if (pressedMap[note.pitch] != null)
+        setPressedMark(pressedMap[note.pitch], false);
 };
 
 
@@ -493,6 +499,29 @@ var clearNoteMarks = function() {
     $(".note.paired").data("sindex", null);
     $(".note.paired").removeClass("paired");
     $(".note.duplicated").removeClass("duplicated");
+    $(".note.pressed").removeClass("pressed");
+};
+
+
+var setPressedMark = function(c_index, on) {
+    var c_note = criterionNotations.notes[c_index];
+    if (c_note.id) {
+        var g = $("#" + c_note.id);
+        if (on)
+            g.addClass("pressed");
+        else
+            g.removeClass("pressed");
+    }
+};
+
+var markNotePressed = function(c_index) {
+    var note = criterionNotations.notes[c_index];
+
+    if (pressedMap[note.pitch] != null)
+        setPressedMark(pressedMap[note.pitch], false);
+
+    pressedMap[note.pitch] = c_index;
+    setPressedMark(c_index, true);
 };
 
 
@@ -516,6 +545,7 @@ $(function() {
             unmarkNotePair: unmarkNotePair,
             clearNoteMarks: clearNoteMarks,
             //onUpdateCriterionPositionByIndex: updateCriterionPositionByIndex,
+            markNotePressed: markNotePressed,
         });
     });
 

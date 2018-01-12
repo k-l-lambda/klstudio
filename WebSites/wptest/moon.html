@@ -7699,7 +7699,7 @@ checkParams();
         right: 0;
         top: 0;
         bottom: 0;
-        width: 1000px;
+        width: 1600px;
     }
 
 
@@ -7719,17 +7719,56 @@ checkParams();
     {
         right: 0;
     }
+
+    .middle-wrapper
+    {
+        overflow: visible;
+        position: relative;
+        top: 90%;
+        border-top: 1px #eee dashed;
+    }
+
+    #criterion-canvas, #sample-canvas
+    {
+        position: relative;
+        width: 100%;
+    }
+
+    #criterion-canvas
+    {
+        transition-property: top;
+        transition-duration: .6s;
+    }
+
+
+    .note-bar
+    {
+        fill: #fff;
+        stroke: #ccc;
+        stroke-width: 1px;
+    }
+
+    .paired .note-bar
+    {
+        fill: #8d8;
+    }
+
+    .unpaired .note-bar
+    {
+        fill: #f44;
+    }
+
+    .duplicated .note-bar
+    {
+        fill: #d80;
+    }
+
+    .matched .note-bar
+    {
+        stroke: #ff6;
+        stroke-width: 3px;
+    }
 </style>
-<div id="controllers">
-    <span class="section">
-        <button id="pause">PAUSE</button>
-    </span>
-    <span class="section">
-        <button id="sample-file" class="midi-file" data-name="sample">...</button> <input id="sample-file-input" type="file" accept="audio/mid,audio/midi" />
-        <button id="sample-restart">RESTART</button>
-        <button id="sample-end">END</button>
-    </span>
-</div>
 <div id="viewer">
     <div id="criterion-area">
         <div class="middle-wrapper">
@@ -7745,5 +7784,15 @@ checkParams();
             </svg>
         </div>
     </div>
+</div>
+<div id="controllers">
+    <span class="section">
+        <button id="pause">PAUSE</button>
+    </span>
+    <span class="section">
+        <button id="sample-file" class="midi-file" data-name="sample">...</button> <input id="sample-file-input" type="file" accept="audio/mid,audio/midi" />
+        <button id="sample-restart">RESTART</button>
+        <button id="sample-end">END</button>
+    </span>
 </div>
 </body></html>

@@ -122,10 +122,470 @@ var parseJsonNotations = function(json) {
 };
 
 
+var criterionNotations = null;
+
+var sampleMidiData = null;
+var sampleNotations = null;
+
+
+var Config = {
+    KeyWidth: 40,
+    KeyHeight: 120,
+    ScoreHeightScale: 0.04,
+    SampleCanvasLength: 10000000,
+    PendingLatency: 800,
+    SequenceResetInterval: 4000,
+    ContextSpan: { left: -800, right: 800 },
+    DistanceSigmoidFactor: 0.01,		// context compare time distance, sigmod x units per ms
+    ContextRegressionDiffer: 0.01,		// context compare regression cost derivation default infinitesimal
+    ContextRegressionBegin: 10,			// context compare regression begin boundary
+    ContextRegressionEnd: 0.01,			// context compare regression cost end condition
+    ConnectionBiasCostBenchmark: 800,	// how many ms bias result in cost = 1
+    ConnectionClipIndex: 5,
+    NullConnectionCost: 2,
+    RepeatConnectionCost: 1,
+    StartPositionOffsetCost: 1,
+};
+
+var PianoConfig = {
+    PitchStart: 21,
+    PitchEnd: 108,
+    MiddleC: 60,
+    KeySerials: {
+        White: [0, 2, 4, 5, 7, 9, 11],
+        BlackPosition: {
+            1: 0.94,
+            3: 2.06,
+            6: 3.92,
+            8: 5,
+            10: 6.08
+        }
+    },
+};
+
+
+var PedalControllerTypes = {
+    64: "Sustain",
+    65: "Portamento",
+    66: "Sostenuto",
+    67: "Soft"
+};
+
+
+var KeyMap = $.parseJSON(localStorage.KeyMap || null) || {
+    // number keys
+    49: 60,
+    50: 62,
+    51: 64,
+    52: 65,
+    53: 67,
+    54: 69,
+    55: 71,
+    56: 72,
+    57: 74,
+    48: 76,
+    189: 77,
+    187: 79,
+
+    // up letters
+    81: 76,
+    87: 77,
+    69: 79,
+    82: 81,
+    84: 83,
+    89: 84,
+    85: 86,
+    73: 88,
+    79: 89,
+    80: 91,
+    219: 93,
+    221: 95,
+
+    // middle letters
+    65: 60,
+    83: 62,
+    68: 64,
+    70: 65,
+    71: 67,
+    72: 69,
+    74: 71,
+    75: 72,
+    76: 74,
+    186: 76,
+    222: 77,
+    220: 79,
+
+    // bottom letters
+    90: 48,
+    88: 50,
+    67: 52,
+    86: 53,
+    66: 55,
+    78: 57,
+    77: 59,
+    188: 60,
+    190: 62,
+    191: 64
+};
+
+var KeyStatus = {};
+
+
+var Follower;
+
+
+var loadMidiFile = function (data, name, filename, onload) {
+    //MIDI.Player.timeWarp = timewarp[name];
+
+    MIDI.Player.loadFile(data, function () {
+        if (name == "criterion")
+            criterionMidiData = MIDI.Player.data;
+        else if (name == "sample")
+            sampleMidiData = MIDI.Player.data;
+
+        if (onload)
+            onload();
+    });
+
+    localStorage[name + "_data"] = data;
+    localStorage[name + "_filename"] = filename;
+};
+
+
+var svg = function (selector) {
+    return new $.svg._wrapperClass($(selector)[0]);
+};
+
+
+var scrollSampleCanvas = function() {
+    var now = new Date().getTime();
+
+    var offsetY = now % Config.SampleCanvasLength + 1200 / Config.ScoreHeightScale;
+    $("#sample-canvas").css("top", -offsetY * Config.ScoreHeightScale);
+};
+
+
+var pickMidiFile = function (file, elem) {
+    if (file && (file.type == "audio/mid" || file.type == "audio/midi")) {
+        var fr = new FileReader();
+        fr.onloadend = function (e) {
+            elem.text(file.name);
+            elem.addClass("loading");
+
+            var name = elem.data("name");
+
+            loadMidiFile(e.currentTarget.result, name, file.name, function () {
+                elem.removeClass("loading");
+
+                console.log(name + " MIDI file loaded:", file.name);
+
+                if (name == "criterion")
+                    loadCriterion();
+                else if (name == "sample")
+                    restartSamplePlay();
+            });
+        };
+        fr.readAsDataURL(file);
+    }
+};
+
+
+var ChannelStatus = [];
+
+var sampleCursorIndex = 0;
+var samplePlaying = false;
+var samplePaused = false;
+var samplePlayHandle = null;
+
+
+var noteOn = function (data) {
+	MIDI.noteOn(data.channel, data.pitch, data.velocity);
+
+	//$(".keyboard .key[data-note='" + data.pitch + "']").addClass("active");
+
+    var now = Date.now();
+
+    ChannelStatus[data.channel] = ChannelStatus[data.channel] || [];
+    ChannelStatus[data.channel][data.pitch] = { start: now, velocity: data.velocity, pitch: data.pitch };
+};
+
+var noteOff = function (data) {
+	MIDI.noteOff(data.channel, data.pitch);
+
+	//$(".keyboard .key[data-note='" + data.pitch + "']").removeClass("active");
+
+    var now = Date.now();
+    var status = ChannelStatus[data.channel][data.pitch];
+
+    var note = status;
+    note.duration = now - status.start;
+
+    var score = svg("#sample-score");
+
+    var time = (note.start % Config.SampleCanvasLength + 1200 / Config.ScoreHeightScale) % Config.SampleCanvasLength;
+    paintNote(note, score, {timeOffset: time - note.start});
+
+    setTimeout(function() {
+        if (note.graph && !$("#pause").hasClass("paused")) {
+            $(note.graph.group).remove();
+            note.graph = null;
+        }
+    }, 2000 / Config.ScoreHeightScale);
+};
+
+
+var pitchToX = function (pitch) {
+	var group = Musical.noteGroup(pitch);
+	var step = Musical.notePitch(pitch);
+	var pos = PianoConfig.KeySerials.White.indexOf(step);
+	if (pos < 0)
+		pos = PianoConfig.KeySerials.BlackPosition[step];
+
+	return group * PianoConfig.KeySerials.White.length + pos - 12;
+};
+
+
+var paintNote = function (note, group, options) {
+    options = options || {};
+
+    var step = Musical.notePitch(note.pitch);
+    var is_white = PianoConfig.KeySerials.White.indexOf(step) >= 0;
+
+    var width = is_white ? (Config.KeyWidth - 2) : Config.KeyWidth * 0.6;
+
+    var start = note.start;
+    if (options.timeOffset)
+        start += options.timeOffset;
+
+    var left = pitchToX(note.pitch) * Config.KeyWidth - (is_white ? -1 : width / 2);
+    var top = start * Config.ScoreHeightScale;
+    var height = note.duration * Config.ScoreHeightScale;
+
+    note.position = { x: left + Config.KeyWidth * 0.5, y: top };
+
+    note.graph = note.graph || {}
+
+    var classStr = "note " + (is_white ? "white" : "black") + " step-" + step;
+    if (note.matched)
+        classStr += " matched";
+    if (note.c_index != null)
+        classStr += note.c_index >= 0 ? " paired" : "unpaired";
+    var note_elem = group.group({ class: classStr, "data-index": options.index });
+    var note_group = svg(note_elem);
+
+    var cornorRadius = is_white ? 5 : 0;
+
+    note.graph.group = note_elem;
+    note.graph.bar = note_group.rect(left, top, width, height, cornorRadius, cornorRadius, { class: "note-bar" });
+
+    if (note.index != null)
+        $(note_elem).append("<title>" + note.index + "</title>");
+};
+
+
+var playSample = function(data) {
+    var step;
+    step = function() {
+        if (sampleCursorIndex >= data.length) {
+            samplePlaying = false;
+            return;
+        }
+
+        var event = data[sampleCursorIndex][0].event;
+        switch (event.type) {
+            case "channel":
+                switch (event.subtype) {
+                    case "noteOn":
+                        pitch = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
+
+                        noteOn({ channel: 0, pitch: pitch, velocity: event.velocity });
+
+                        break;
+                    case "noteOff":
+                        pitch = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
+
+                        noteOff({ channel: 0, pitch: pitch });
+
+                        break;
+                }
+
+                break;
+        }
+
+        ++sampleCursorIndex;
+
+        if (sampleCursorIndex >= data.length) {
+            samplePlaying = false;
+            return;
+        }
+
+        var deltaTime = data[sampleCursorIndex][1];
+        if (deltaTime > 0) {
+            if (samplePlaying)
+                samplePlayHandle = setTimeout(step, deltaTime);
+        }
+        else {
+            step();
+        }
+    };
+
+    samplePlaying = true;
+
+    if (samplePlayHandle)
+        clearTimeout(samplePlayHandle);
+    samplePlayHandle = setTimeout(step, data[sampleCursorIndex][1]);
+};
+
+var restartSamplePlay = function() {
+    sampleCursorIndex = 0;
+
+    playSample(sampleMidiData);
+};
+
+var pauseSamplePlay = function() {
+    samplePlaying = false;
+};
+
+var endSamplePlay = function() {
+    samplePlaying = false;
+    sampleCursorIndex = 0;
+    samplePaused = false;
+};
+
+
 $(function() {
+    MIDI.loadPlugin({
+        soundfontUrl: "../soundfont/",
+        instrument: "acoustic_grand_piano",
+        callback: function () {
+            console.log("Sound font loaded.");
+        }
+    });
+
     $.getJSON(jsonUrl, function(json) {
         //console.log(json);
-        var notation = parseJsonNotations(json);
-        console.log("notation:", notation);
+        criterionNotations = parseJsonNotations(json);
+        //console.log("notation:", notation);
+    });
+
+
+    $(".midi-file").each(function (i, elem) {
+        elem.ondragover = function (e) {
+            $(elem).addClass("drag-hover");
+            e.preventDefault();
+        };
+        elem.ondragleave = function () {
+            $(elem).removeClass("drag-hover");
+        };
+
+        elem.ondrop = function (e) {
+            $(elem).removeClass("drag-hover");
+
+            pickMidiFile(e.dataTransfer.files[0], $(elem));
+
+            e.preventDefault();
+            return false;
+        };
+    });
+
+
+    $("#sample-file").click(function () {
+    	$("#sample-file-input").click();
+    });
+
+    $("#sample-file-input").change(function () {
+    	if (event.target.files[0])
+    		pickMidiFile(event.target.files[0], $("#sample-file"));
+    });
+
+    var canvasWidth = Config.KeyWidth * (pitchToX(PianoConfig.PitchEnd) + 1);
+    var canvasHeight = Config.SampleCanvasLength * Config.ScoreHeightScale + 2400;
+    $("#sample-canvas").attr("viewBox", "0 0 " + (canvasWidth) + " " + (canvasHeight));
+    $("#sample-canvas").attr("height", canvasHeight + 2);
+    var scrollHandle = setInterval(scrollSampleCanvas, 30);
+
+
+    $("#pause").click(function() {
+        var paused = $("#pause").hasClass("paused");
+        if (!paused) {
+            $("#pause").addClass("paused");
+            //clearInterval(updateHandle);
+            clearInterval(scrollHandle);
+
+            pauseSamplePlay();
+            samplePaused = true;
+        }
+        else {
+            $("#pause").removeClass("paused");
+            //updateHandle = setInterval(updateSequence, 50);
+            scrollHandle = setInterval(scrollSampleCanvas, 30);
+
+            samplePaused = false;
+            playSample(sampleMidiData);
+        }
+
+        $("#pause").text(paused ? "RESTART" : "PAUSE");
+    });
+
+    $("#sample-restart").click(function() {
+        restartSamplePlay();
+    });
+
+    $("#sample-end").click(function() {
+        endSamplePlay();
+    });
+
+
+    if (localStorage.sample_data) {
+        loadMidiFile(localStorage.sample_data, "sample", localStorage.sample_filename);
+        $("#sample-file").text(localStorage.sample_filename);
+    }
+
+
+    // keyboard play
+    $(document).keydown(function () {
+    	if (!event.ctrlKey && KeyMap[event.keyCode]) {
+    		if (!KeyStatus[event.keyCode]) {	// to avoid auto-repeat
+    			noteOn({ channel: 0, pitch: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0), velocity: 100 });
+
+    			KeyStatus[event.keyCode] = true;
+
+    			event.preventDefault();
+    		}
+    	}
+    });
+
+    $(document).keyup(function () {
+    	if (!event.ctrlKey && KeyMap[event.keyCode]) {
+    		noteOff({ channel: 0, pitch: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0) });
+
+    		KeyStatus[event.keyCode] = false;
+    	}
+    });
+
+    $(document).keydown(function () {
+        //console.log(event.keyCode);
+        var unhandled = false;
+        switch (event.keyCode) {
+            case 32: // Space
+                $("#pause").click();
+
+                break;
+            case 36:    // Home
+                //updateCriterionPositionByIndex(0);
+                //Follower.clearWorkSequence();
+
+                break;
+            case 35:    // End
+                $("#sample-end").click();
+
+                break;
+            default:
+                //console.log("unhandled key:", event.keyCode);
+                unhandled = true;
+        }
+
+        if (!unhandled)
+            event.preventDefault();
     });
 });

@@ -546,10 +546,6 @@ MidiMatch.Follower.prototype.updateSequence = function() {
 
     var tail = this.Sequence[this.Sequence.length - 1];
     if (tail && now - (tail.start + this.noteStartTimeOffset()) > Config.SequenceResetInterval) {
-        /*var tail_g = $("#criterion-score .note[data-index=" + (this.criterionNotations.notes.length - 1) + "]");
-        if (tail_g.data("sindex") != null)
-            if (this.onUpdateCriterionPositionByIndex)
-                this.onUpdateCriterionPositionByIndex(0);*/
         this.Correspondence = MidiMatch.pathToCorrespondence(this.Path);
         //console.log("Correspondence:", this.Correspondence);
         if (this.Correspondence[this.criterionNotations.notes.length - 1] != null) {

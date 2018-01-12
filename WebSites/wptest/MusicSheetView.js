@@ -307,6 +307,8 @@ var noteOn = function (data) {
 
     ChannelStatus[data.channel] = ChannelStatus[data.channel] || [];
     ChannelStatus[data.channel][data.pitch] = { start: now, velocity: data.velocity, pitch: data.pitch };
+
+    Follower.onNoteRecord(ChannelStatus[data.channel][data.pitch]);
 };
 
 var noteOff = function (data) {
@@ -453,6 +455,47 @@ var endSamplePlay = function() {
 };
 
 
+
+var Follower;
+
+var markNotePair = function(c_index, s_index) {
+    var c_note = criterionNotations.notes[c_index];
+    if (c_note.id) {
+        var cnote_g = $("#" + c_note.id);
+        if (cnote_g.hasClass("paired")) {
+            var old_sindex = cnote_g.data("sindex");
+
+            duplicated = old_sindex != s_index;
+            if (duplicated) {
+                cnote_g.addClass("duplicated");
+            }
+        }
+        else
+            cnote_g.addClass("paired");
+
+        cnote_g.data("sindex", s_index);
+    }
+};
+
+var unmarkNotePair = function(c_index) {
+    var c_note = criterionNotations.notes[c_index];
+    if (c_note.id) {
+        var g = $("#" + c_note.id);
+        if (g.hasClass("duplicated"))
+            g.removeClass("duplicated");
+        if (g.hasClass("paired"))
+            g.removeClass("paired");
+        g.data("sindex", null);
+    }
+};
+
+var clearNoteMarks = function() {
+    $(".note.paired").data("sindex", null);
+    $(".note.paired").removeClass("paired");
+    $(".note.duplicated").removeClass("duplicated");
+};
+
+
 $(function() {
     MIDI.loadPlugin({
         soundfontUrl: "../soundfont/",
@@ -466,6 +509,14 @@ $(function() {
         //console.log(json);
         criterionNotations = parseJsonNotations(json);
         //console.log("notation:", notation);
+
+        Follower = new MidiMatch.Follower({
+            criterionNotations: criterionNotations,
+            markNotePair: markNotePair,
+            unmarkNotePair: unmarkNotePair,
+            clearNoteMarks: clearNoteMarks,
+            //onUpdateCriterionPositionByIndex: updateCriterionPositionByIndex,
+        });
     });
 
 
@@ -573,7 +624,7 @@ $(function() {
                 break;
             case 36:    // Home
                 //updateCriterionPositionByIndex(0);
-                //Follower.clearWorkSequence();
+                Follower.clearWorkSequence();
 
                 break;
             case 35:    // End

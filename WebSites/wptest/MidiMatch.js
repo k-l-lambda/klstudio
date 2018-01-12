@@ -468,7 +468,7 @@ MidiMatch.Follower.prototype.matchNote = function(index) {
 
         //console.log("path change:", i, path[i]);
 
-        if (this.unmarkNotePair)
+        if (this.Path[i] >= 0 && this.unmarkNotePair)
             this.unmarkNotePair(this.Path[i]);
         if (this.markNotePair)
             this.markNotePair(path[i], i);

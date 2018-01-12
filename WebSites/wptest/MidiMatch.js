@@ -445,11 +445,10 @@ MidiMatch.Follower.prototype.matchNote = function(index) {
             this.markNotePair(c_index, index);
 
         this.CeriterionIndex = c_index + 1;
-    }
 
-    if (endNode.prev.c_note) {
         var elapsed = Date.now() - (note.start + this.noteStartTimeOffset());
-        updateCriterionPosition(endNode.prev.c_note.start + elapsed);
+        if (this.onUpdateCriterionPositionByIndex)
+            this.onUpdateCriterionPositionByIndex(c_index, elapsed);
     }
 
     note.matched = true;
@@ -521,10 +520,13 @@ MidiMatch.Follower.prototype.updateSequence = function() {
         if (tail_g.data("sindex") != null)
             if (this.onUpdateCriterionPositionByIndex)
                 this.onUpdateCriterionPositionByIndex(0);*/
-        this.Correspondence = MidiMatch.pathToCorrespondence();
-        if (this.Correspondence[this.criterionNotations.notes.length - 1] != null)
+        this.Correspondence = MidiMatch.pathToCorrespondence(this.Path);
+        //console.log("Correspondence:", this.Correspondence);
+        if (this.Correspondence[this.criterionNotations.notes.length - 1] != null) {
+            this.CeriterionIndex = 0;
             if (this.onUpdateCriterionPositionByIndex)
                 this.onUpdateCriterionPositionByIndex(0);
+        }
 
         this.clearWorkSequence();
     }

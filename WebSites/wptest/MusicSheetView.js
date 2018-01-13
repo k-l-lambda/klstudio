@@ -327,7 +327,8 @@ var noteOff = function (data) {
     var score = svg("#sample-score");
 
     var time = (note.start % Config.SampleCanvasLength + 1200 / Config.ScoreHeightScale) % Config.SampleCanvasLength;
-    paintNote(note, score, {timeOffset: time - note.start});
+    if ($("#show-sample-roll")[0].checked)
+        paintNote(note, score, {timeOffset: time - note.start});
 
     setTimeout(function() {
         if (note.graph && !$("#pause").hasClass("paused")) {
@@ -388,6 +389,25 @@ var paintNote = function (note, group, options) {
 
     if (note.index != null)
         $(note_elem).append("<title>" + note.index + "</title>");
+};
+
+
+var paintScore = function (group_name, notations) {
+	$(group_name).html("");
+
+	var canvasWidth = Config.KeyWidth * (pitchToX(PianoConfig.PitchEnd) + 1);
+	$(group_name).parent().attr("viewBox", "0 0 " + (canvasWidth) + " " + (notations.endTime * Config.ScoreHeightScale));
+    $(group_name).parent().attr("height", notations.endTime * Config.ScoreHeightScale + 2);
+
+	var group = svg(group_name);
+
+	for (var i in notations.notes) {
+		var note = notations.notes[i];
+
+        paintNote(note, group, {index: i});
+	}
+
+    $(group_name).html($(group_name).html());
 };
 
 
@@ -481,12 +501,37 @@ var markNotePair = function(c_index, s_index) {
 
         cnote_g.data("sindex", s_index);
     }
+
+    {
+        var cnote_g = $("#criterion-score .note[data-index=" + c_index + "]");
+        if (cnote_g.hasClass("paired")) {
+            var old_sindex = cnote_g.data("sindex");
+
+            duplicated = old_sindex != s_index;
+            if (duplicated) {
+                cnote_g.addClass("duplicated");
+            }
+        }
+        else
+            cnote_g.addClass("paired");
+
+        cnote_g.data("sindex", s_index);
+    }
 };
 
 var unmarkNotePair = function(c_index) {
     var c_note = criterionNotations.notes[c_index];
     if (c_note.id) {
         var g = $("#" + c_note.id);
+        if (g.hasClass("duplicated"))
+            g.removeClass("duplicated");
+        if (g.hasClass("paired"))
+            g.removeClass("paired");
+        g.data("sindex", null);
+    }
+
+    {
+        var g = $("#criterion-score .note[data-index=" + this.Path[c_index] + "]");
         if (g.hasClass("duplicated"))
             g.removeClass("duplicated");
         if (g.hasClass("paired"))
@@ -500,6 +545,13 @@ var clearNoteMarks = function() {
     $(".note.paired").removeClass("paired");
     $(".note.duplicated").removeClass("duplicated");
     $(".note.pressed").removeClass("pressed");
+
+    {
+        $("#criterion-score .paired").data("sindex", null);
+        $("#criterion-score .paired").removeClass("paired");
+        $("#criterion-score .duplicated").removeClass("duplicated");
+        $("#criterion-score .pressed").removeClass("pressed");
+    }
 };
 
 
@@ -507,6 +559,14 @@ var setPressedMark = function(c_index, on) {
     var c_note = criterionNotations.notes[c_index];
     if (c_note.id) {
         var g = $("#" + c_note.id);
+        if (on)
+            g.addClass("pressed");
+        else
+            g.removeClass("pressed");
+    }
+
+    {
+        var g = $("#criterion-score .note[data-index=" + c_index + "]");
         if (on)
             g.addClass("pressed");
         else
@@ -525,6 +585,19 @@ var markNotePressed = function(c_index) {
 };
 
 
+var updateCriterionPosition = function(y) {
+    $("#criterion-canvas").css("top", -y * Config.ScoreHeightScale);
+};
+
+
+var updateCriterionPositionByIndex = function(index, elapsed) {
+    elapsed = elapsed || 0;
+
+    var note = criterionNotations.notes[index];
+    updateCriterionPosition(note.start + elapsed);
+};
+
+
 $(function() {
     MIDI.loadPlugin({
         soundfontUrl: "../soundfont/",
@@ -539,12 +612,14 @@ $(function() {
         criterionNotations = parseJsonNotations(json);
         //console.log("notation:", notation);
 
+        paintScore("#criterion-score", criterionNotations);
+
         Follower = new MidiMatch.Follower({
             criterionNotations: criterionNotations,
             markNotePair: markNotePair,
             unmarkNotePair: unmarkNotePair,
             clearNoteMarks: clearNoteMarks,
-            //onUpdateCriterionPositionByIndex: updateCriterionPositionByIndex,
+            onUpdateCriterionPositionByIndex: updateCriterionPositionByIndex,
             markNotePressed: markNotePressed,
         });
     });
@@ -623,6 +698,21 @@ $(function() {
     }
 
 
+    $("#show-criterion-roll").change(function(event) {
+        if (event.currentTarget.checked)
+            $("#criterion-canvas").show();
+        else
+            $("#criterion-canvas").hide();
+    });
+
+    $("#show-sample-roll").change(function(event) {
+        if (event.currentTarget.checked)
+            $("#sample-canvas").show();
+        else
+            $("#sample-canvas").hide();
+    });
+
+
     // keyboard play
     $(document).keydown(function () {
     	if (!event.ctrlKey && KeyMap[event.keyCode]) {
@@ -653,7 +743,7 @@ $(function() {
 
                 break;
             case 36:    // Home
-                //updateCriterionPositionByIndex(0);
+                updateCriterionPositionByIndex(0);
                 Follower.clearWorkSequence();
 
                 break;

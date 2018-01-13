@@ -7763,20 +7763,27 @@ checkParams();
         fill: #d80;
     }
 
+    .pressed .note-bar
+    {
+        fill: #b2f;
+    }
+
 
     .note.paired
     {
-        fill: #8d8;
+        fill: #0a0;
     }
 
-    .note.duplicated
+    /*.note.duplicated
     {
         fill: #d80;
-    }
+    }*/
 
     .note.pressed
     {
-        fill: #baf;
+        fill: #b2f;
+        stroke: #b2f;
+        stroke-width: 40px;
     }
 </style>
 <div id="viewer">
@@ -7803,6 +7810,10 @@ checkParams();
         <button id="sample-file" class="midi-file" data-name="sample">...</button> <input id="sample-file-input" type="file" accept="audio/mid,audio/midi" />
         <button id="sample-restart">RESTART</button>
         <button id="sample-end">END</button>
+    </span>
+    <span>
+        <input id="show-criterion-roll" type="checkbox" checked="checked" />
+        <input id="show-sample-roll" type="checkbox" checked="checked" />
     </span>
 </div>
 </body></html>

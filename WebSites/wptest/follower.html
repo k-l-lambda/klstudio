@@ -415,6 +415,7 @@
 
             	for (var n = 0; n < data.length; ++n) {
             		ticks += data[n][0].ticksToEvent;
+                    beats = ticks / 480;
 
             		if (data[n][1] > 0) {
             			var deltaBeats = data[n][1] / millisecondsPerBeat;
@@ -425,7 +426,7 @@
             				++tempoIndex;
             			}
 
-            			beats += deltaBeats;
+            			//beats += deltaBeats;
             		}
 
             		time += data[n][1];
@@ -440,7 +441,7 @@
             						pitch = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
             						if (channelStatus[event.channel][pitch])
             							console.warn("unexpected noteOn: ", n, time, event);
-            						channelStatus[event.channel][pitch] = { startTick: ticks, start: time, velocity: event.velocity };
+            						channelStatus[event.channel][pitch] = { startTick: ticks, start: time, velocity: event.velocity, beats: beats };
 
             						keyRange.low = Math.min(keyRange.low || pitch, pitch);
 
@@ -454,7 +455,7 @@
             						if (!status)
             							console.warn("unexpected noteOff: ", n, time, event);
             						else {
-            							channels[event.channel].push({ startTick: status.startTick, endTick: ticks, pitch: pitch, start: status.start, duration: time - status.start, velocity: status.velocity });
+            							channels[event.channel].push({ startTick: status.startTick, endTick: ticks, pitch: pitch, start: status.start, duration: time - status.start, velocity: status.velocity, beats: status.beats });
             							channelStatus[event.channel][pitch] = null;
             						}
 
@@ -690,7 +691,7 @@
                 note.graph.bar = note_group.rect(left, top, width, height, cornorRadius, cornorRadius, { class: "note-bar" });
 
                 if (note.index != null)
-                    $(note_elem).append("<title>" + note.index + "</title>");
+                    $(note_elem).append("<title>" + note.index + ", beats: " + note.beats + "</title>");
             };
 
             var paintScore = function (group_name, notations) {

@@ -30,16 +30,16 @@ var parseJsonNotations = function(json) {
         channelStatus[channel] = channelStatus[channel] || [];
 
         switch (event[0] & 0xf0) {
-            case 0x90:
+            case 0x90:  // noteOn
                 pitch = event[1];
                 if (channelStatus[channel][pitch])
                     console.warn("unexpected noteOn: ", n, time, event);
-                channelStatus[channel][pitch] = { start: time, velocity: event[2], id: ev.id };
+                channelStatus[channel][pitch] = { start: time, velocity: event[2], id: ev.id, beats: ev.tick / ticksPerBeat };
 
                 keyRange.low = Math.min(keyRange.low || pitch, pitch);
 
                 break;
-            case 0x80:
+            case 0x80:  // noteOff
                 pitch = event[1];
 
                 channels[channel] = channels[channel] || [];
@@ -48,7 +48,7 @@ var parseJsonNotations = function(json) {
                 if (!status)
                     console.warn("unexpected noteOff: ", n, time, event);
                 else {
-                    channels[channel].push({ pitch: pitch, start: status.start, duration: time - status.start, velocity: status.velocity, id: status.id });
+                    channels[channel].push({ pitch: pitch, start: status.start, duration: time - status.start, velocity: status.velocity, id: status.id, beats: status.beats });
                     channelStatus[channel][pitch] = null;
                 }
 
@@ -610,7 +610,7 @@ $(function() {
     $.getJSON(jsonUrl, function(json) {
         //console.log(json);
         criterionNotations = parseJsonNotations(json);
-        //console.log("notation:", notation);
+        //console.log("notation:", criterionNotations);
 
         paintScore("#criterion-score", criterionNotations);
 

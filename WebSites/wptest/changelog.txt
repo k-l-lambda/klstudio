@@ -1,0 +1,4 @@
+
+TODO:
+    sequence evaluation
+    smart follower based on state machine

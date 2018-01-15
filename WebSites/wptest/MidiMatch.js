@@ -110,7 +110,7 @@ MidiMatch.compareContextsInRange = function (criterion, sample, low, high) {
     var better = high.value > low.value ? high : low;
     var worse = high.value > low.value ? low : high;
 
-    if (Math.abs(high.value - low.value) < Config.ContextRegressionEnd)
+    if (Math.abs(high.value - low.value) < Config.ContextRegressionEnd && Math.abs(high.scale - low.scale) < 0.1)
         return better;
 
     var middle_scale = Math.sqrt(low.scale * high.scale);

@@ -618,6 +618,8 @@ $(function() {
         criterionNotations = parseJsonNotations(json);
         //console.log("notation:", criterionNotations);
 
+        MidiMatch.genNotationContext(criterionNotations);
+
         paintScore("#criterion-score", criterionNotations);
 
         Follower = new MidiMatch.Follower({
@@ -688,6 +690,8 @@ $(function() {
             samplePaused = false;
             playSample(sampleMidiData);
         }
+
+        Follower.setActive(!paused);
 
         $("#pause").text(paused ? "RESTART" : "PAUSE");
     });

@@ -385,6 +385,8 @@ var paintNote = function (note, group, options) {
     var cornorRadius = is_white ? 5 : 0;
 
     note.graph.group = note_elem;
+    width = Math.max(width, 0);
+    height = Math.max(height, 0);
     note.graph.bar = note_group.rect(left, top, width, height, cornorRadius, cornorRadius, { class: "note-bar" });
 
     if (note.index != null)
@@ -486,6 +488,8 @@ var Follower;
 
 var markNotePair = function(c_index, s_index) {
     var c_note = criterionNotations.notes[c_index];
+    //if (!c_note)
+    //    console.log("c note not found:", c_index);
     if (c_note.id) {
         var cnote_g = $("#" + c_note.id);
         if (cnote_g.hasClass("paired")) {
@@ -621,6 +625,9 @@ $(function() {
             clearNoteMarks: clearNoteMarks,
             onUpdateCriterionPositionByIndex: updateCriterionPositionByIndex,
             markNotePressed: markNotePressed,
+            onSequenceFinished: function(sequence, path) {
+                evaluateNotations(criterionNotations, {notes: sequence}, path);
+            },
         });
     });
 

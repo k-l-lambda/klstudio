@@ -1,0 +1,104 @@
+#controllers
+{
+    position: fixed;
+    bottom: 0;
+    right: 0;
+}
+
+#pause, #sample-file-input
+{
+    display: none;
+}
+
+#viewer
+{
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 1600px;
+}
+
+
+#viewer > div
+{
+    position: absolute;
+    width: 50%;
+    height: 100%;
+}
+
+#criterion-area
+{
+    left: 0;
+}
+
+#sample-area
+{
+    right: 0;
+}
+
+.middle-wrapper
+{
+    overflow: visible;
+    position: relative;
+    top: 90%;
+    border-top: 1px #eee dashed;
+}
+
+#criterion-canvas, #sample-canvas
+{
+    position: relative;
+    width: 100%;
+}
+
+#criterion-canvas
+{
+    transition-property: top;
+    transition-duration: .6s;
+}
+
+
+.note-bar
+{
+    fill: #fff;
+    stroke: #ccc;
+    stroke-width: 1px;
+}
+
+.paired .note-bar
+{
+    fill: #8d8;
+}
+
+.unpaired .note-bar
+{
+    fill: #f44;
+}
+
+.duplicated .note-bar
+{
+    fill: #d80;
+}
+
+.pressed .note-bar
+{
+    fill: #b2f;
+}
+
+
+.note.paired
+{
+    fill: #0a0;
+}
+
+/*.note.duplicated
+{
+    fill: #d80;
+}*/
+
+.note.pressed
+{
+    fill: #b2f;
+    stroke: #b2f;
+    stroke-width: 40px;
+}

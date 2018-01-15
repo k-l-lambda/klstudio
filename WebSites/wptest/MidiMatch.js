@@ -374,6 +374,7 @@ MidiMatch.Follower = function(options) {
     this.clearNoteMarks = options.clearNoteMarks;
     this.markNotePressed = options.markNotePressed;
     this.onUpdateCriterionPositionByIndex = options.onUpdateCriterionPositionByIndex;
+    this.onSequenceFinished = options.onSequenceFinished
 
     this.setActive(true);
 
@@ -478,7 +479,7 @@ MidiMatch.Follower.prototype.matchNote = function(index) {
 
         if (this.Path[i] >= 0 && this.unmarkNotePair)
             this.unmarkNotePair(this.Path[i]);
-        if (this.markNotePair)
+        if (path[i] >= 0 && this.markNotePair)
             this.markNotePair(path[i], i);
 
         this.PressedIndices = [];
@@ -518,6 +519,11 @@ MidiMatch.Follower.prototype.onNoteRecord = function(note) {
 
 
 MidiMatch.Follower.prototype.clearWorkSequence = function() {
+    if (this.Sequence.length > 0) {
+        if (this.onSequenceFinished)
+            this.onSequenceFinished(this.Sequence, this.Path);
+    }
+
     this.Sequence = [];
     this.WorkingIndex = 0;
     this.Path = [];

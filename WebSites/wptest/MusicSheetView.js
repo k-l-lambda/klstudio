@@ -141,10 +141,12 @@ var Config = {
     ContextRegressionBegin: 10,			// context compare regression begin boundary
     ContextRegressionEnd: 0.01,			// context compare regression cost end condition
     ConnectionBiasCostBenchmark: 800,	// how many ms bias result in cost = 1
+    HesitateIntervalBenchmark: 1200, 	// how many ms hesitate, coeffient equal 1/e
     ConnectionClipIndex: 5,
     NullConnectionCost: 2,
     RepeatConnectionCost: 1,
     StartPositionOffsetCost: 1,
+    StepDecay: 0.96,
 };
 
 var PianoConfig = {

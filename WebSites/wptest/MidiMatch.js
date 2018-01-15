@@ -148,13 +148,15 @@ MidiMatch.Node = function (c_note, s_note, criterion, adviceIndex) {
 
     this.criterion = criterion;
     this.adviceIndex = adviceIndex;
+
+    this.hesitate = 1;
 };
 
 MidiMatch.Node.prototype.totalCost = function () {
 	var cost = this.selfCost;
 
 	if (this.prev)
-		cost += this.prev_cost;
+		cost += this.prev_cost * Config.StepDecay;
     else {
         if (this.adviceIndex >= 0) {
             var offset = this.c_note ? sigmoid(Math.abs(this.c_note.index - this.adviceIndex) * 0.2) : 1;
@@ -190,7 +192,7 @@ MidiMatch.Node.prototype.lastCNote = function () {
 	return -1;
 };
 
-MidiMatch.Node.prototype.includsCIndex = function (index) {
+/*MidiMatch.Node.prototype.includsCIndex = function (index) {
 	if (this.path_list)
 		return this.path_list.includes(index);
 
@@ -201,6 +203,22 @@ MidiMatch.Node.prototype.includsCIndex = function (index) {
 		return this.prev.includsCIndex(index);
 
 	return false;
+};*/
+
+MidiMatch.Node.prototype.includsCIndexCost = function (index) {
+	if (this.path_list)
+		return this.path_list.includes(index);
+
+	if (this.c_note && this.c_note.index == index)
+		return Config.RepeatConnectionCost;
+
+    if (this.repeated)
+        return 0;
+
+	if (this.prev)
+		return this.prev.includsCIndexCost(index) * Config.StepDecay;
+
+	return 0;
 };
 
 MidiMatch.Node.prototype.lastCIndex = function () {
@@ -240,7 +258,7 @@ MidiMatch.Node.prototype.evaluateConnectionCost = function (prev, end_limit, deb
 
 	if (current_c.index < prev_c.index) {
 		var bias = (prev_c.start - current_c.start) / Config.ConnectionBiasCostBenchmark;
-		cost += bias * bias;
+		cost += (bias * bias);
 
         //if (debug)
         //    console.log("evaluateConnectionCost.4", cost);
@@ -252,8 +270,8 @@ MidiMatch.Node.prototype.evaluateConnectionCost = function (prev, end_limit, deb
     //if (debug)
     //    console.log("evaluateConnectionCost.5", prev.includsCIndex(current_c.index));
 
-    if (prev && prev.includsCIndex(current_c.index)) {
-        cost += Config.RepeatConnectionCost;
+    if (prev) {
+        cost += prev.includsCIndexCost(current_c.index);
 
         //if (debug)
         //    console.log("evaluateConnectionCost.6", cost);
@@ -265,7 +283,7 @@ MidiMatch.Node.prototype.evaluateConnectionCost = function (prev, end_limit, deb
 		if (i > last_c_index) {
 			var note = this.criterion.notes[i];
 			var bias = (current_c.start - note.start) / Config.ConnectionBiasCostBenchmark;
-			cost += bias * bias;
+			cost += (bias * bias);
 
             //if (debug)
             //    console.log("evaluateConnectionCost.7", cost);
@@ -289,7 +307,7 @@ MidiMatch.Node.prototype.evaluateConnection = function (prev) {
 		return;
 
 	var connect_cost = this.evaluateConnectionCost(prev, end_limit);
-	var prev_cost = prev_total_cost + connect_cost;
+	var prev_cost = prev_total_cost + connect_cost / this.hesitate;
 
 	//if (prev.c_note && prev.c_note.fixed)
 	//	prev_cost += Config.NullConnectionCost;
@@ -316,30 +334,22 @@ MidiMatch.Node.prototype.path = function () {
 };
 
 
-MidiMatch.makeMatchNodes = function (note, criterion, adviceIndex) {
+MidiMatch.makeMatchNodes = function (note, criterion, adviceIndex, lastNote) {
     note.matches = [];
 
 	var targetList = criterion.pitchMap[note.pitch];
 	if (targetList) {
-		//var max_matching = 0;
+        var hesitate = 1;
+        if (lastNote)
+            hesitate = Math.exp(Math.pow((note.start - lastNote.start) / Config.HesitateIntervalBenchmark, 2));
 
 		for (var ii in targetList) {
 			var node = new MidiMatch.Node(targetList[ii], note, criterion, adviceIndex);
+            node.hesitate = hesitate;
 
-			//max_matching = Math.max(max_matching, node.matching.value);
-
-			//if (node.matching.value > 0)
-				note.matches.push(node);
+			note.matches.push(node);
 		}
-
-		/*note.matches = note.matches.filter(function(m) {
-			return m.matching.value >= max_matching * Config.MatchingThreshold;
-		});*/
 	}
-
-	/*note.matches.sort(function(m1, m2) {
-		return m2.matching.value - m1.matching.value;
-	});*/
 
 	note.matches.push(new MidiMatch.Node(null, note, criterion, adviceIndex));
 };
@@ -417,21 +427,20 @@ MidiMatch.Follower.prototype.matchNote = function(index) {
 
     var endNode = new MidiMatch.Node();
 
+    var next_note = this.Sequence.length > index + 1 ? this.Sequence[index + 1] : null;
+
     for (var ii in note.matches) {
         var node = note.matches[ii];
         if (node.totalCost() - second_best_node_cost < 1 || ii < Config.ConnectionClipIndex) {
             node.evaluateMatchingCost();
 
-            if (this.Sequence.length > index + 1) {
-                 var next_note = this.Sequence[index + 1];
+            if (node.prev && node.c_note)
+                node.repeated = node.prev.includsCIndexCost(node.c_note.index) > 0;
+
+            if (next_note) {
                  for (var i in next_note.matches)
                     next_note.matches[i].evaluateConnection(node);
 
-                next_note.matches = next_note.matches.sort(function(n1, n2) {
-                    return n1.totalCost() - n2.totalCost();
-                });
-
-                endNode = next_note.matches[0];
             }
             else {
                 endNode.evaluateConnection(node);
@@ -439,8 +448,16 @@ MidiMatch.Follower.prototype.matchNote = function(index) {
         }
     }
 
+    if (next_note) {
+        next_note.matches = next_note.matches.sort(function(n1, n2) {
+            return n1.totalCost() - n2.totalCost();
+        });
+
+        endNode = next_note.matches[0];
+    }
+
     var c_index = endNode.prev.c_note ? endNode.prev.c_note.index : -1;
-    console.log("match:", index, c_index);
+    console.log("match:", index, c_index, endNode.prev.totalCost());
 
     var duplicated = false;
 
@@ -490,7 +507,7 @@ MidiMatch.Follower.prototype.matchNote = function(index) {
 
 
 MidiMatch.Follower.prototype.onNoteRecord = function(note) {
-    MidiMatch.makeMatchNodes(note, this.criterionNotations, this.CeriterionIndex);
+    MidiMatch.makeMatchNodes(note, this.criterionNotations, this.CeriterionIndex, this.Sequence[this.Sequence.length - 1]);
     this.Sequence.push(note);
 
     var lastNote = this.Sequence[this.Sequence.length - 2];
@@ -592,7 +609,7 @@ MidiMatch.Follower.prototype.debugMatchNote = function(index) {
     //var next_c_index = next_note.matches[0].c_note ? next_note.matches[0].c_note.index : -1;
     var next_c_index = this.Path[index + 1];
 
-    MidiMatch.makeMatchNodes(next_note, this.criterionNotations, next_note.matches[0].adviceIndex);
+    MidiMatch.makeMatchNodes(next_note, this.criterionNotations, next_note.matches[0].adviceIndex, this.Sequence[index]);
 
     var next_node = null;
     for (var i in next_note.matches) {

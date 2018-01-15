@@ -261,6 +261,7 @@
         <script src="../js/MusicalUtils.js" type="text/javascript"></script>
         <script src="recorder.js" type="text/javascript"></script>
         <script src="MidiMatch.js" type="text/javascript"></script>
+        <script src="evaluation.js" type="text/javascript"></script>
         <script type="text/javascript">
             var criterionMidiData = null;
             var criterionNotations = null;
@@ -956,6 +957,9 @@
                     clearNoteMarks: clearNoteMarks,
                     markNotePressed: markNotePressed,
                     onUpdateCriterionPositionByIndex: updateCriterionPositionByIndex,
+                    onSequenceFinished: function(sequence, path) {
+                        evaluateNotations(criterionNotations, {notes: sequence}, path);
+                    },
                 });
 
                 $("#pause").click(function() {

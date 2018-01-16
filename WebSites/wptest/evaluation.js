@@ -2,6 +2,21 @@
 var ContextRange = 4;   // how many beats, the long term note context contains
 
 
+var distributePosition = function(list, val) {
+    var start = list.indexOf(val);
+
+    var end = start;
+    for (var i = start + 1; i < list.length; ++i) {
+        if (list[i] > val)
+            break;
+
+        end = i;
+    }
+
+    return ((start + end) / 2) / (list.length - 1);
+};
+
+
 var evaluateNotations = function(criterion, sample, correspondence) {
     var cindex_low = null;
     var cindex_high = null;
@@ -153,7 +168,7 @@ var evaluateNotations = function(criterion, sample, correspondence) {
 
     var result = {};
 
-    // fluency: sigmoid(tempo bias costs)
+    result.note_count = cindex_high - cindex_low + 1;
 
     // accuracy: error notes statistics
     var omit_count = 0;
@@ -169,14 +184,68 @@ var evaluateNotations = function(criterion, sample, correspondence) {
     }
 
     result.accuracy = (1 - omit_count / (cindex_high - cindex_low + 1)) * (1 - error_count / correspondence.length);
+    result.omit_note_count = omit_count;
+    result.error_note_count = error_count;
+
+    // fluency: sigmoid(tempo bias costs)
+    var stuck_cost = 0;
+    for (var i in sample.notes) {
+        var note = sample.notes[i];
+
+        var cost = 0;
+        if (note.retraced)
+            cost = 1;
+        else if (note.eval.tempo_rate) {
+            var latency = Math.max(Math.log(note.eval.tempo_rate), 0);
+            var sl = sigmoid(latency);
+
+            cost = sl * sl;
+        }
+
+        stuck_cost += cost;
+    }
+
+    result.stuck_cost = stuck_cost;
+    result.fluency = 1 - stuck_cost / (result.note_count - omit_count);
+    //result.fluency2 = 1 - sigmoid(stuck_cost / 5);
 
     // intensity: based on velocity histogram
+    var c_vels = [];
+    var s_vels = [];
+    for (var i in c2s) {
+        var cn = criterion.notes[i];
+        var sn = sample.notes[c2s[i]];
 
+        c_vels.push(cn.velocity);
+        s_vels.push(sn.velocity);
+    }
+
+    c_vels.sort();
+    s_vels.sort();
+
+    var intensity_cost = 0;
+
+    for (var i in c2s) {
+        var cn = criterion.notes[i];
+        var sn = sample.notes[c2s[i]];
+
+        sn.eval.intensity = distributePosition(s_vels, sn.velocity);
+        sn.eval.c_intensity = distributePosition(c_vels, cn.velocity);
+
+        sn.eval.intensity_bias = sn.eval.intensity - sn.eval.c_intensity;
+
+        intensity_cost += sn.eval.intensity_bias * sn.eval.intensity_bias;
+    }
+
+    result.intensity = 1 - intensity_cost / (result.note_count - omit_count);
+
+
+    // dump
     console.log("average_speed_rate:", average_speed_rate);
     for (var i in sample.notes) {
         var note = sample.notes[i];
         if (note.eval.tempo_contrast)
-            console.log(i, note.beats.toPrecision(4), note.eval.tempo_contrast.toPrecision(4), note.eval.speed_rate.toPrecision(4));
+            console.log(i, note.beats.toPrecision(4), note.eval.tempo_contrast.toPrecision(4), note.eval.speed_rate.toPrecision(4), note.eval.intensity_bias ? note.eval.intensity_bias.toPrecision(4) : null);
     }
 
     //console.log(sample.notes);

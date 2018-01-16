@@ -123,3 +123,9 @@
     stroke: #b2f;
     stroke-width: 40px;
 }
+
+.note:hover
+{
+    stroke: #f60;
+    stroke-width: 50px;
+}

@@ -814,12 +814,13 @@ $(function() {
             if (si != null) {
                 var sn = _sequence[si];
                 if (sn && sn.eval) {
-                    //console.log("eval:", sn.eval);
+                    console.log("eval:", sn.eval);
+
                     eval += "[" + index + "]: "
 
                     if (sn.eval.tempo_rate != null) {
                         var percent = (Math.abs(sn.eval.tempo_rate - 1) * 100).toPrecision(4);
-                        eval += "节奏" + (sn.eval.tempo_rate > 1 ? "偏快" : "偏慢<") + "<em>" + percent + "%</em>";
+                        eval += "节奏" + (sn.eval.tempo_rate > 1 ? "偏快" : "偏慢") + "<em>" + percent + "%</em>";
                     }
 
                     if (sn.eval.intensity_bias) {

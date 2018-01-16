@@ -5,6 +5,27 @@
     right: 0;
 }
 
+#status-bar
+{
+    position: fixed;
+    bottom: 0;
+    left: 0;
+}
+
+#status-bar span
+{
+    display: inline-block;
+    margin: 0 2em;
+}
+
+#status-bar span em
+{
+    font-weight: bold;
+    color: #07d;
+    display: inline-block;
+    margin: 0 0.3em;
+}
+
 #pause, #sample-file-input
 {
     display: none;

@@ -186,6 +186,7 @@ var evaluateNotations = function(criterion, sample, correspondence) {
     result.accuracy = (1 - omit_count / (cindex_high - cindex_low + 1)) * (1 - error_count / correspondence.length);
     result.omit_note_count = omit_count;
     result.error_note_count = error_count;
+    result.coverage = (result.note_count - omit_count) / criterion.notes.length;
 
     // fluency: sigmoid(tempo bias costs)
     var stuck_cost = 0;
@@ -245,7 +246,7 @@ var evaluateNotations = function(criterion, sample, correspondence) {
     for (var i in sample.notes) {
         var note = sample.notes[i];
         if (note.eval.tempo_contrast)
-            console.log(i, note.beats.toPrecision(4), note.eval.tempo_contrast.toPrecision(4), note.eval.speed_rate.toPrecision(4), note.eval.intensity_bias ? note.eval.intensity_bias.toPrecision(4) : null);
+            console.log(i, note.beats.toPrecision(4), note.eval.tempo_contrast.toPrecision(4), note.eval.speed_rate.toPrecision(4), note.eval.intensity_bias != null ? note.eval.intensity_bias.toPrecision(4) : null);
     }
 
     //console.log(sample.notes);

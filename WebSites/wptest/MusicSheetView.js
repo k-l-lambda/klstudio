@@ -622,6 +622,16 @@ $(function() {
 
         paintScore("#criterion-score", criterionNotations);
 
+        for (var i in criterionNotations.notes) {
+    		var note = criterionNotations.notes[i];
+
+            if (note.id) {
+                var g = $("#" + note.id);
+                if (g)
+                    g.data("index", note.index);
+            }
+    	}
+
         Follower = new MidiMatch.Follower({
             criterionNotations: criterionNotations,
             markNotePair: markNotePair,
@@ -634,6 +644,12 @@ $(function() {
                 console.log(result);
 
                 window._sequence = sequence;
+                window._correspondence = MidiMatch.pathToCorrespondence(path);
+
+                var summary = "演奏了<em>" + result.note_count + "</em>个音符，覆盖乐谱<em>" + (result.coverage * 100).toPrecision(4) + "%</em>，错音<em>"
+                    + result.error_note_count + "</em>个，漏音<em>" + result.omit_note_count + "</em>个，正确率<em>" + (result.accuracy * 100).toPrecision(4) + "%</em>，流畅度<em>"
+                    + (result.fluency * 100).toPrecision(4) + "%</em>，力度准确性<em>" + (result.intensity * 100).toPrecision(4) + "%</em>";
+                $("#status-summary").html(summary);
             },
         });
     });
@@ -774,5 +790,46 @@ $(function() {
 
         if (!unhandled)
             event.preventDefault();
+    });
+
+    /*$("#svgcontainer").mouseenter(function() {
+        console.log("#svgcontainer mouseenter");
+    });
+
+    $("#svg").mouseenter(function() {
+        console.log("#svg mouseenter");
+    });
+
+    $("#wuxianpu").mouseenter(function() {
+        console.log("#wuxianpu mouseenter");
+    });*/
+
+    $(".note").mouseenter(function() {
+        var eval = "";
+        var index = $(this).data("index");
+        //console.log("index:", index);
+        if (index != null && window._correspondence && window._sequence) {
+            var si = _correspondence[index];
+            //console.log("si:", si);
+            if (si != null) {
+                var sn = _sequence[si];
+                if (sn && sn.eval) {
+                    //console.log("eval:", sn.eval);
+                    eval += "[" + index + "]: "
+
+                    if (sn.eval.tempo_rate != null) {
+                        var percent = (Math.abs(sn.eval.tempo_rate - 1) * 100).toPrecision(4);
+                        eval += "节奏" + (sn.eval.tempo_rate > 1 ? "偏快" : "偏慢<") + "<em>" + percent + "%</em>";
+                    }
+
+                    if (sn.eval.intensity_bias) {
+                        var percent = (Math.abs(sn.eval.intensity_bias) * 100).toPrecision(4);
+                        eval += "力度" + (sn.eval.intensity_bias > 0 ? "偏重" : "偏轻") + "<em>" + percent + "%</em>";
+                    }
+                }
+            }
+        }
+
+        $("#status-note").html(eval);
     });
 });

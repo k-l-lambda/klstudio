@@ -269,6 +269,8 @@
             var sampleMidiData = null;
             var sampleNotations = null;
 
+            var _sequence = null;
+
 
             var Config = {
             	KeyWidth: 40,
@@ -958,7 +960,10 @@
                     markNotePressed: markNotePressed,
                     onUpdateCriterionPositionByIndex: updateCriterionPositionByIndex,
                     onSequenceFinished: function(sequence, path) {
-                        evaluateNotations(criterionNotations, {notes: sequence}, path);
+                        var result = evaluateNotations(criterionNotations, {notes: sequence}, path);
+                        console.log(result);
+
+                        _sequence = sequence;
                     },
                 });
 

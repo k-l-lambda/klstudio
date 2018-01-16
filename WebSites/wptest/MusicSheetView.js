@@ -630,7 +630,10 @@ $(function() {
             onUpdateCriterionPositionByIndex: updateCriterionPositionByIndex,
             markNotePressed: markNotePressed,
             onSequenceFinished: function(sequence, path) {
-                evaluateNotations(criterionNotations, {notes: sequence}, path);
+                var result = evaluateNotations(criterionNotations, {notes: sequence}, path);
+                console.log(result);
+
+                window._sequence = sequence;
             },
         });
     });

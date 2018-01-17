@@ -419,7 +419,8 @@ var clearEvaluation = function() {
 
 var markEvaluation = function(eval) {
     var summary = "演奏了<em>" + eval.note_count + "</em>个音符，覆盖乐谱<em>" + (eval.coverage * 100).toPrecision(4) + "%</em>，错音<em>"
-        + eval.error_note_count + "</em>个，漏音<em>" + eval.omit_note_count + "</em>个，正确率<em>" + (eval.accuracy * 100).toPrecision(4) + "%</em>，流畅度<em>"
+        + eval.error_note_count + "</em>个，漏音<em>" + eval.omit_note_count + "</em>个，重音<em>" + eval.retraced_note_count
+        + "</em>个，正确率<em>" + (eval.accuracy * 100).toPrecision(4) + "%</em>，流畅度<em>"
         + (eval.fluency * 100).toPrecision(4) + "%</em>，力度准确性<em>" + (eval.intensity * 100).toPrecision(4) + "%</em>";
     $("#status-summary").html(summary);
     $("#status-bar").removeClass("playing");

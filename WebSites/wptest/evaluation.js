@@ -20,6 +20,7 @@ var distributePosition = function(list, val) {
 var evaluateNotations = function(criterion, sample, correspondence) {
     var cindex_low = null;
     var cindex_high = null;
+    var retraced_count = 0;
 
     var c2s = [];
     var c2s_temp = [];
@@ -28,6 +29,8 @@ var evaluateNotations = function(criterion, sample, correspondence) {
         if (ci >= 0) {
             if (c2s_temp[ci] != null && ci) {
                 sample.notes[i].retraced = true;
+
+                ++retraced_count;
 
                 for (var j = ci; j <= c2s_temp.length; ++j)
                     delete c2s_temp[j];
@@ -183,9 +186,10 @@ var evaluateNotations = function(criterion, sample, correspondence) {
             ++error_count;
     }
 
-    result.accuracy = (1 - omit_count / (cindex_high - cindex_low + 1)) * (1 - error_count / correspondence.length);
+    result.accuracy = (1 - omit_count / (cindex_high - cindex_low + 1)) * (1 - (error_count + retraced_count) / correspondence.length);
     result.omit_note_count = omit_count;
     result.error_note_count = error_count;
+    result.retraced_note_count = retraced_count;
     result.coverage = (result.note_count - omit_count) / criterion.notes.length;
 
     // fluency: sigmoid(tempo bias costs)

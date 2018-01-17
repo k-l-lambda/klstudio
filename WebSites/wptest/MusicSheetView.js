@@ -166,12 +166,12 @@ var PianoConfig = {
 };
 
 
-var PedalControllerTypes = {
+/*var PedalControllerTypes = {
     64: "Sustain",
     65: "Portamento",
     66: "Sostenuto",
     67: "Soft"
-};
+};*/
 
 
 var KeyMap = $.parseJSON(localStorage.KeyMap || null) || {
@@ -319,15 +319,15 @@ var markEvaluation = function(eval) {
                 var tempo_contrast = snote.eval.tempo_contrast;
                 if (tempo_contrast != null) {
                     if (tempo_contrast > 3)
-                        g.addClass("eval-fast2");
+                        g.addClass("eval-slow2");
                     else if (tempo_contrast > 1.6)
-                        g.addClass("eval-fast1");
+                        g.addClass("eval-slow1");
                     else if (tempo_contrast > 1 / 1.6)
                         g.addClass("eval-fine");
-                    else if (tempo_contrast > 1 / 4)
-                        g.addClass("eval-slow1");
-                    else if (tempo_contrast <= 1 / 4)
-                        g.addClass("eval-slow2");
+                    else if (tempo_contrast > 1 / 3)
+                        g.addClass("eval-fast1");
+                    else if (tempo_contrast <= 1 / 3)
+                        g.addClass("eval-fast2");
                 }
             }
         }
@@ -856,7 +856,7 @@ $(function() {
 
                     if (sn.eval.tempo_contrast != null) {
                         var percent = (Math.abs(sn.eval.tempo_contrast - 1) * 100).toPrecision(4);
-                        eval += "节奏" + (sn.eval.tempo_contrast > 1 ? "偏快" : "偏慢") + "<em>" + percent + "%</em>";
+                        eval += "节奏" + (sn.eval.tempo_contrast > 1 ? "偏慢" : "偏快") + "<em>" + percent + "%</em>";
                     }
 
                     if (sn.eval.intensity_bias) {

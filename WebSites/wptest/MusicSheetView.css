@@ -10,6 +10,8 @@
     position: fixed;
     bottom: 0;
     left: 0;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding-bottom: 1em;
 }
 
 #status-bar span
@@ -132,7 +134,7 @@
 .note:hover
 {
     stroke: #f60;
-    stroke-width: 50px;
+    stroke-width: 30px;
 }
 
 .note.eval-fine
@@ -147,7 +149,7 @@
 
 .note.eval-fast2
 {
-    fill: #02f;
+    fill: #04f;
 }
 
 .note.eval-slow1
@@ -158,4 +160,22 @@
 .note.eval-slow2
 {
     fill: #f20;
+}
+
+#wuxianpu rect
+{
+    display: none;
+}
+
+#smart-logo
+{
+    display: block;
+    position: fixed;
+    top: 4px;
+    left: 4px;
+    color: #a4f;
+    font-size: 20px;
+    font-weight: bold;
+    font-family: monospace;
+    opacity: 0.8;
 }

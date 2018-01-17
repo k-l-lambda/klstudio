@@ -1,5 +1,5 @@
 
-var ContextRange = 4;   // how many beats, the long term note context contains
+var ContextRange = 16;   // how many beats, the long term note context contains
 
 
 var distributePosition = function(list, val) {
@@ -84,7 +84,7 @@ var evaluateNotations = function(criterion, sample, correspondence) {
         }
     }
 
-    // tempo based on span (-4 beat, 4 beats), rate = note tempo / average tempo
+    // tempo based on span (-16 beats, 16 beats), rate = note tempo / average tempo
     var speed_total_sum = 0;
     var c_speed_total_sum = 0;
     var speed_total_count = 0;
@@ -197,8 +197,8 @@ var evaluateNotations = function(criterion, sample, correspondence) {
         if (note.retraced)
             cost = 1;
         else if (note.eval.tempo_rate) {
-            var latency = Math.max(Math.log(note.eval.tempo_rate), 0);
-            var sl = sigmoid(latency);
+            var latency = Math.max(Math.log(note.eval.tempo_rate), 0) * 3;
+            var sl = sigmoid(latency * latency);
 
             cost = sl * sl;
         }
@@ -207,7 +207,7 @@ var evaluateNotations = function(criterion, sample, correspondence) {
     }
 
     result.stuck_cost = stuck_cost;
-    result.fluency = 1 - stuck_cost / (result.note_count - omit_count);
+    result.fluency = Math.max(1 - stuck_cost / (result.note_count - omit_count), 0);
     //result.fluency2 = 1 - sigmoid(stuck_cost / 5);
 
     // intensity: based on velocity histogram

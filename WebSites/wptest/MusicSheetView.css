@@ -26,6 +26,11 @@
     margin: 0 0.3em;
 }
 
+.playing #status-summary
+{
+    opacity: 0.3;
+}
+
 #pause, #sample-file-input
 {
     display: none;
@@ -128,4 +133,29 @@
 {
     stroke: #f60;
     stroke-width: 50px;
+}
+
+.note.eval-fine
+{
+    fill: #0f0;
+}
+
+.note.eval-fast1
+{
+    fill: #08a;
+}
+
+.note.eval-fast2
+{
+    fill: #02f;
+}
+
+.note.eval-slow1
+{
+    fill: #ea0;
+}
+
+.note.eval-slow2
+{
+    fill: #f20;
 }

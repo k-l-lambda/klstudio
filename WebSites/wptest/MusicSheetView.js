@@ -292,6 +292,49 @@ var pickMidiFile = function (file, elem) {
 };
 
 
+var clearEvaluation = function() {
+    $("#status-note").html("");
+
+    $(".note").removeClass("eval-fine");
+    $(".note").removeClass("eval-fast1");
+    $(".note").removeClass("eval-fast2");
+    $(".note").removeClass("eval-slow1");
+    $(".note").removeClass("eval-slow2");
+};
+
+var markEvaluation = function(eval) {
+    var summary = "演奏了<em>" + eval.note_count + "</em>个音符，覆盖乐谱<em>" + (eval.coverage * 100).toPrecision(4) + "%</em>，错音<em>"
+        + eval.error_note_count + "</em>个，漏音<em>" + eval.omit_note_count + "</em>个，正确率<em>" + (eval.accuracy * 100).toPrecision(4) + "%</em>，流畅度<em>"
+        + (eval.fluency * 100).toPrecision(4) + "%</em>，力度准确性<em>" + (eval.intensity * 100).toPrecision(4) + "%</em>";
+    $("#status-summary").html(summary);
+    $("#status-bar").removeClass("playing");
+
+    for (var i in _correspondence) {
+        var cnote = criterionNotations.notes[i];
+        var g = $("#" + cnote.id);
+        if (g) {
+            var si = _correspondence[i];
+            var snote = _sequence[si];
+            if (snote && snote.eval) {
+                var tempo_contrast = snote.eval.tempo_contrast;
+                if (tempo_contrast != null) {
+                    if (tempo_contrast > 3)
+                        g.addClass("eval-fast2");
+                    else if (tempo_contrast > 1.6)
+                        g.addClass("eval-fast1");
+                    else if (tempo_contrast > 1 / 1.6)
+                        g.addClass("eval-fine");
+                    else if (tempo_contrast > 1 / 4)
+                        g.addClass("eval-slow1");
+                    else if (tempo_contrast <= 1 / 4)
+                        g.addClass("eval-slow2");
+                }
+            }
+        }
+    }
+};
+
+
 var ChannelStatus = [];
 
 var sampleCursorIndex = 0;
@@ -313,6 +356,11 @@ var noteOn = function (data) {
     ChannelStatus[data.channel][data.pitch] = { start: now, velocity: data.velocity, pitch: data.pitch };
 
     Follower.onNoteRecord(ChannelStatus[data.channel][data.pitch]);
+
+    if (!$("#status-bar").hasClass("playing")) {
+        clearEvaluation();
+        $("#status-bar").addClass("playing");
+    }
 };
 
 var noteOff = function (data) {
@@ -646,10 +694,7 @@ $(function() {
                 window._sequence = sequence;
                 window._correspondence = MidiMatch.pathToCorrespondence(path);
 
-                var summary = "演奏了<em>" + result.note_count + "</em>个音符，覆盖乐谱<em>" + (result.coverage * 100).toPrecision(4) + "%</em>，错音<em>"
-                    + result.error_note_count + "</em>个，漏音<em>" + result.omit_note_count + "</em>个，正确率<em>" + (result.accuracy * 100).toPrecision(4) + "%</em>，流畅度<em>"
-                    + (result.fluency * 100).toPrecision(4) + "%</em>，力度准确性<em>" + (result.intensity * 100).toPrecision(4) + "%</em>";
-                $("#status-summary").html(summary);
+                markEvaluation(result);
             },
         });
     });
@@ -792,19 +837,10 @@ $(function() {
             event.preventDefault();
     });
 
-    /*$("#svgcontainer").mouseenter(function() {
-        console.log("#svgcontainer mouseenter");
-    });
-
-    $("#svg").mouseenter(function() {
-        console.log("#svg mouseenter");
-    });
-
-    $("#wuxianpu").mouseenter(function() {
-        console.log("#wuxianpu mouseenter");
-    });*/
-
     $(".note").mouseenter(function() {
+        if ($("#status-bar").hasClass("playing"))
+            return;
+
         var eval = "";
         var index = $(this).data("index");
         //console.log("index:", index);
@@ -816,11 +852,11 @@ $(function() {
                 if (sn && sn.eval) {
                     console.log("eval:", sn.eval);
 
-                    eval += "[" + index + "]: "
+                    eval += "[" + index + "]: ";
 
-                    if (sn.eval.tempo_rate != null) {
-                        var percent = (Math.abs(sn.eval.tempo_rate - 1) * 100).toPrecision(4);
-                        eval += "节奏" + (sn.eval.tempo_rate > 1 ? "偏快" : "偏慢") + "<em>" + percent + "%</em>";
+                    if (sn.eval.tempo_contrast != null) {
+                        var percent = (Math.abs(sn.eval.tempo_contrast - 1) * 100).toPrecision(4);
+                        eval += "节奏" + (sn.eval.tempo_contrast > 1 ? "偏快" : "偏慢") + "<em>" + percent + "%</em>";
                     }
 
                     if (sn.eval.intensity_bias) {

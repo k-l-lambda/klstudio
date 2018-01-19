@@ -617,6 +617,13 @@ var setPressedMark = function(c_index, on) {
             g.addClass("pressed");
         else
             g.removeClass("pressed");
+
+        if (showProgressLineMm) {
+            var captures = c_note.id.match(/(\d+)_(\d+)/);
+            if (captures[2]) {
+                showProgressLineMm(Number(captures[1]), Number(captures[2]), 0);
+            }
+        }
     }
 
     {

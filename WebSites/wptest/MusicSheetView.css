@@ -128,13 +128,13 @@
 {
     fill: #b2f;
     stroke: #b2f;
-    stroke-width: 40px;
+    stroke-width: 8px;
 }
 
 .note:hover
 {
     stroke: #f60;
-    stroke-width: 30px;
+    stroke-width: 10px;
 }
 
 .note.eval-fine

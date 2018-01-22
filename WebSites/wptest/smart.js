@@ -141,155 +141,13 @@ loadScript(dir + "../js/jquery.js", function() {
         $(function() {
             console.log("document loaded.");
 
-            // load MIDI notation
-            criterionNotations = parseJsonNotations(midiInfo);
-            MidiMatch.genNotationContext(criterionNotations);
-
-            //console.log("notation:", criterionNotations);
-
-
-            // mount DOM, paint criternion
-            $("body").append('<div id="viewer">' +
-'                <div id="criterion-area">' +
-'                    <div class="middle-wrapper">' +
-'                        <svg id="criterion-canvas" preserveAspectRatio="none">' +
-'                            <g id="criterion-score"></g>' +
-'                        </svg>' +
-'                    </div>' +
-'                </div>' +
-'                <div id="sample-area">' +
-'                    <div class="middle-wrapper">' +
-'                        <svg id="sample-canvas" preserveAspectRatio="none">' +
-'                            <g id="sample-score"></g>' +
-'                        </svg>' +
-'                    </div>' +
-'                </div>' +
-'            </div>' +
-'            <span id="smart-logo">S</span>' +
-'            <div id="controllers">' +
-'                <span class="section">' +
-'                    <input id="show-criterion-roll" type="checkbox" checked="checked" />' +
-'                    <input id="show-sample-roll" type="checkbox" checked="checked" />' +
-'                </span>' +
-'            </div>' +
-'            <div id="status-bar">' +
-'               <span id="status-summary"></span>' +
-'               <span id="status-note"></span>' +
-'            </div>');
-
-            paintScore("#criterion-score", criterionNotations);
-
-            for (var i in criterionNotations.notes) {
-            	var note = criterionNotations.notes[i];
-
-                if (note.id) {
-                    var g = $("#" + note.id);
-                    if (g) {
-                        g.data("index", note.index);
-                        g.addClass("note");
-                    }
-                }
-            }
-
-
-            $("#show-criterion-roll").change(function(event) {
-                if (event.currentTarget.checked)
-                    $("#criterion-canvas").show();
-                else
-                    $("#criterion-canvas").hide();
-            });
-
-            $("#show-sample-roll").change(function(event) {
-                if (event.currentTarget.checked)
-                    $("#sample-canvas").show();
-                else
-                    $("#sample-canvas").hide();
-            });
-
-
-            // scroll sample canvas
-            var canvasWidth = Config.KeyWidth * (pitchToX(PianoConfig.PitchEnd) + 1);
-            var canvasHeight = Config.SampleCanvasLength * Config.ScoreHeightScale + 2400;
-            $("#sample-canvas").attr("viewBox", "0 0 " + (canvasWidth) + " " + (canvasHeight));
-            $("#sample-canvas").attr("height", canvasHeight + 2);
-            var scrollHandle = setInterval(scrollSampleCanvas, 30);
-
-
-            // display note evalations
-            $(".note").mouseenter(function() {
-                if ($("#status-bar").hasClass("playing"))
-                    return;
-
-                var eval = "";
-                var index = $(this).data("index");
-                //console.log("index:", index);
-                if (index != null && window._correspondence && window._sequence) {
-                    var si = _correspondence[index];
-                    //console.log("si:", si);
-                    if (si != null) {
-                        var sn = _sequence[si];
-                        if (sn && sn.eval) {
-                            console.log("eval:", sn.eval);
-
-                            eval += "[" + index + "]: ";
-
-                            if (sn.eval.tempo_contrast != null) {
-                                var percent = (Math.abs(sn.eval.tempo_contrast - 1) * 100).toPrecision(4);
-                                eval += "节奏" + (sn.eval.tempo_contrast > 1 ? "偏慢" : "偏快") + "<em>" + percent + "%</em>";
-                            }
-
-                            if (sn.eval.intensity_bias) {
-                                var percent = (Math.abs(sn.eval.intensity_bias) * 100).toPrecision(4);
-                                eval += "力度" + (sn.eval.intensity_bias > 0 ? "偏重" : "偏轻") + "<em>" + percent + "%</em>";
-                            }
-                        }
-                    }
-                }
-
-                $("#status-note").html(eval);
-            });
-
-
-            // run Follower
-            Follower = new MidiMatch.Follower({
-                criterionNotations: criterionNotations,
-                markNotePair: markNotePair,
-                unmarkNotePair: unmarkNotePair,
-                clearNoteMarks: clearNoteMarks,
-                onUpdateCriterionPositionByIndex: updateCriterionPositionByIndex,
-                markNotePressed: markNotePressed,
-                onSequenceFinished: function(sequence, path) {
-                    var result = evaluateNotations(criterionNotations, {notes: sequence}, path);
-                    console.log(result);
-
-                    window._sequence = sequence;
-                    window._correspondence = MidiMatch.pathToCorrespondence(path);
-
-                    markEvaluation(result);
-                },
-            });
-
-
-            // keyboard play
-            $(document).keydown(function () {
-            	if (!event.ctrlKey && KeyMap[event.keyCode]) {
-            		if (!KeyStatus[event.keyCode]) {	// to avoid auto-repeat
-            			noteOn({ channel: 0, pitch: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0), velocity: 100 });
-
-            			KeyStatus[event.keyCode] = true;
-
-            			event.preventDefault();
-            		}
-            	}
-            });
-
-            $(document).keyup(function () {
-            	if (!event.ctrlKey && KeyMap[event.keyCode]) {
-            		noteOff({ channel: 0, pitch: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0) });
-
-            		KeyStatus[event.keyCode] = false;
-            	}
-            });
+			if (window.midiInfo)
+				initializePage(midiInfo);
+			else if (window.midiJson) {
+				$.getJSON(midiJson, function(json) {
+					initializePage(json);
+				});
+			}
         });
     });
 });
@@ -595,10 +453,8 @@ var setPressedMark = function(c_index, on) {
     var c_note = criterionNotations.notes[c_index];
     if (c_note.id) {
         var g = $("#" + c_note.id);
-        if (on)
-            g.addClass("pressed");
-        else
-            g.removeClass("pressed");
+        if (on) {
+			g.addClass("pressed");
 
 			if (showProgressLineMm) {
 			    var captures = c_note.id.match(/(\d+)_(\d+)/);
@@ -606,6 +462,9 @@ var setPressedMark = function(c_index, on) {
 			        showProgressLineMm(Number(captures[1]), Number(captures[2]), 0);
 			    }
 			}
+		}
+        else
+            g.removeClass("pressed");
     }
 
     {
@@ -683,4 +542,160 @@ var noteOff = function (data) {
     // clear pressed mark
     if (pressedMap[note.pitch] != null)
         setPressedMark(pressedMap[note.pitch], false);
+};
+
+
+var initializePage = function(midiData) {
+	// load MIDI notation
+	criterionNotations = parseJsonNotations(midiData);
+	MidiMatch.genNotationContext(criterionNotations);
+
+	//console.log("notation:", criterionNotations);
+
+
+	// mount DOM, paint criternion
+	$("body").append('<div id="viewer">' +
+'                <div id="criterion-area">' +
+'                    <div class="middle-wrapper">' +
+'                        <svg id="criterion-canvas" preserveAspectRatio="none">' +
+'                            <g id="criterion-score"></g>' +
+'                        </svg>' +
+'                    </div>' +
+'                </div>' +
+'                <div id="sample-area">' +
+'                    <div class="middle-wrapper">' +
+'                        <svg id="sample-canvas" preserveAspectRatio="none">' +
+'                            <g id="sample-score"></g>' +
+'                        </svg>' +
+'                    </div>' +
+'                </div>' +
+'            </div>' +
+'            <span id="smart-logo">S</span>' +
+'            <div id="controllers">' +
+'                <span class="section">' +
+'                    <input id="show-criterion-roll" type="checkbox" />' +
+'                    <input id="show-sample-roll" type="checkbox" />' +
+'                </span>' +
+'            </div>' +
+'            <div id="status-bar">' +
+'               <span id="status-summary"></span>' +
+'               <span id="status-note"></span>' +
+'            </div>');
+
+	paintScore("#criterion-score", criterionNotations);
+
+	for (var i in criterionNotations.notes) {
+		var note = criterionNotations.notes[i];
+
+		if (note.id) {
+			var g = $("#" + note.id);
+			if (g) {
+				g.data("index", note.index);
+				g.addClass("note");
+			}
+		}
+	}
+
+
+	$("#show-criterion-roll").change(function(event) {
+		if (event.currentTarget.checked)
+			$("#criterion-canvas").show();
+		else
+			$("#criterion-canvas").hide();
+	});
+
+	$("#show-sample-roll").change(function(event) {
+		if (event.currentTarget.checked)
+			$("#sample-canvas").show();
+		else
+			$("#sample-canvas").hide();
+	});
+
+	$("#criterion-canvas").hide();
+	$("#sample-canvas").hide();
+
+
+	// scroll sample canvas
+	var canvasWidth = Config.KeyWidth * (pitchToX(PianoConfig.PitchEnd) + 1);
+	var canvasHeight = Config.SampleCanvasLength * Config.ScoreHeightScale + 2400;
+	$("#sample-canvas").attr("viewBox", "0 0 " + (canvasWidth) + " " + (canvasHeight));
+	$("#sample-canvas").attr("height", canvasHeight + 2);
+	var scrollHandle = setInterval(scrollSampleCanvas, 30);
+
+
+	// display note evalations
+	$(".note").mouseenter(function() {
+		if ($("#status-bar").hasClass("playing"))
+			return;
+
+		var eval = "";
+		var index = $(this).data("index");
+		//console.log("index:", index);
+		if (index != null && window._correspondence && window._sequence) {
+			var si = _correspondence[index];
+			//console.log("si:", si);
+			if (si != null) {
+				var sn = _sequence[si];
+				if (sn && sn.eval) {
+					console.log("eval:", sn.eval);
+
+					eval += "[" + index + "]: ";
+
+					if (sn.eval.tempo_contrast != null) {
+						var percent = (Math.abs(sn.eval.tempo_contrast - 1) * 100).toPrecision(4);
+						eval += "节奏" + (sn.eval.tempo_contrast > 1 ? "偏慢" : "偏快") + "<em>" + percent + "%</em>";
+					}
+
+					if (sn.eval.intensity_bias) {
+						var percent = (Math.abs(sn.eval.intensity_bias) * 100).toPrecision(4);
+						eval += "力度" + (sn.eval.intensity_bias > 0 ? "偏重" : "偏轻") + "<em>" + percent + "%</em>";
+					}
+				}
+			}
+		}
+
+		$("#status-note").html(eval);
+	});
+
+
+	// run Follower
+	Follower = new MidiMatch.Follower({
+		criterionNotations: criterionNotations,
+		markNotePair: markNotePair,
+		unmarkNotePair: unmarkNotePair,
+		clearNoteMarks: clearNoteMarks,
+		onUpdateCriterionPositionByIndex: updateCriterionPositionByIndex,
+		markNotePressed: markNotePressed,
+		onSequenceFinished: function(sequence, path) {
+			var result = evaluateNotations(criterionNotations, {notes: sequence}, path);
+			console.log(result);
+
+			window._sequence = sequence;
+			window._correspondence = MidiMatch.pathToCorrespondence(path);
+
+			markEvaluation(result);
+		},
+	});
+
+
+	// keyboard play
+	$(document).keydown(function () {
+		if (!event.ctrlKey && KeyMap[event.keyCode]) {
+			if (!KeyStatus[event.keyCode]) {	// to avoid auto-repeat
+				noteOn({ channel: 0, pitch: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0), velocity: 100 });
+
+				KeyStatus[event.keyCode] = true;
+
+				event.preventDefault();
+			}
+		}
+	});
+
+	$(document).keyup(function () {
+		if (!event.ctrlKey && KeyMap[event.keyCode]) {
+			noteOff({ channel: 0, pitch: KeyMap[event.keyCode] + (event.shiftKey ? 1 : 0) });
+
+			KeyStatus[event.keyCode] = false;
+		}
+	});
 };

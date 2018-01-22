@@ -609,21 +609,32 @@ var clearNoteMarks = function() {
 };
 
 
+var setProgressLine = function(id) {
+    if (showProgressLineMm) {
+        var captures = id.match(/(\d+)_(\d+)/);
+        if (captures[2]) {
+            if (meas_pos) {
+                var mm = Number(captures[1]);
+                var nn = Number(captures[2]);
+                if (meas_pos[mm - meas_start] && nn < meas_pos[mm - meas_start].notes.length - 1)
+                    showProgressLineMm(mm, nn, 0);
+            }
+        }
+    }
+};
+
+
 var setPressedMark = function(c_index, on) {
     var c_note = criterionNotations.notes[c_index];
     if (c_note.id) {
         var g = $("#" + c_note.id);
-        if (on)
+        if (on) {
             g.addClass("pressed");
+
+            setProgressLine(c_note.id);
+        }
         else
             g.removeClass("pressed");
-
-        if (showProgressLineMm) {
-            var captures = c_note.id.match(/(\d+)_(\d+)/);
-            if (captures[2]) {
-                showProgressLineMm(Number(captures[1]), Number(captures[2]), 0);
-            }
-        }
     }
 
     {

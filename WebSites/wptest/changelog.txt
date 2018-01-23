@@ -2,3 +2,7 @@
 TODO:
 	tempo evaluation multiple criterion notes
 	smart follower based on state machine
+
+
+2018.1.23
+	smart.js: added sample MIDI play.

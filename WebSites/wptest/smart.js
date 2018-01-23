@@ -30,6 +30,7 @@ dir = dir.replace("/" + name, "/");
 
 
 var criterionNotations = null;
+var sampleMidiData;
 
 var Config = {
     KeyWidth: 40,
@@ -141,8 +142,12 @@ loadScript(dir + "../js/jquery.js", function() {
         $(function() {
             console.log("document loaded.");
 
-			if (window.midiInfo)
-				initializePage(midiInfo);
+			var midiData = /*window.midiInfo_sp ||*/ window.midiInfo;
+
+			sampleMidiData = window.midiInfo || window.midiInfo_sp;
+
+			if (midiData)
+				initializePage(midiData);
 			else if (window.midiJson) {
 				$.getJSON(midiJson, function(json) {
 					initializePage(json);
@@ -168,7 +173,7 @@ var parseJsonNotations = function(json) {
     var channels = [];
     var bars = [];
     var time = 0;
-    var millisecondsPerBeat = 600000 / 120;
+    var millisecondsPerBeat = 60000 / 120;
     var tempoIndex = -1;
     var keyRange = {};
 
@@ -279,7 +284,7 @@ var markEvaluation = function(eval) {
     var summary = "演奏了<em>" + eval.note_count + "</em>个音符，覆盖乐谱<em>" + (eval.coverage * 100).toPrecision(4) + "%</em>，错音<em>"
         + eval.error_note_count + "</em>个，漏音<em>" + eval.omit_note_count + "</em>个，重音<em>" + eval.retraced_note_count
         + "</em>个，正确率<em>" + (eval.accuracy * 100).toPrecision(4) + "%</em>，流畅度<em>"
-        + (eval.fluency * 100).toPrecision(4) + "%</em>，力度准确性<em>" + (eval.intensity * 100).toPrecision(4) + "%</em>";
+        + (eval.fluency2 * 100).toPrecision(4) + ", " + (eval.fluency3 * 100).toPrecision(4) + "%</em>，力度准确性<em>" + (eval.intensity * 100).toPrecision(4) + "%</em>";
     $("#status-summary").html(summary);
     $("#status-bar").removeClass("playing");
 
@@ -582,6 +587,9 @@ var initializePage = function(midiData) {
 '            </div>' +
 '            <span id="smart-logo">S</span>' +
 '            <div id="controllers">' +
+'				<span class="section">' +
+'					<button id="playing-sample"></button>' +
+'				</span>' +
 '                <span class="section">' +
 '                    <input id="show-criterion-roll" type="checkbox" />' +
 '                    <input id="show-sample-roll" type="checkbox" />' +
@@ -623,6 +631,21 @@ var initializePage = function(midiData) {
 
 	$("#criterion-canvas").hide();
 	$("#sample-canvas").hide();
+
+
+	$("#playing-sample").click(function() {
+		var button = $(this);
+		var playing = button.hasClass("playing");
+
+		if (playing) {
+			pauseSamplePlay();
+			button.removeClass("playing");
+		}
+		else {
+			resumeSamplePlay();
+			button.addClass("playing");
+		}
+	});
 
 
 	// scroll sample canvas
@@ -708,4 +731,118 @@ var initializePage = function(midiData) {
 			KeyStatus[event.keyCode] = false;
 		}
 	});
+
+
+	// shortcuts
+	$(document).keydown(function () {
+	    //console.log(event.keyCode);
+	    var unhandled = false;
+	    switch (event.keyCode) {
+	        case 32: // Space
+	            $("#playing-sample").click();
+
+	            break;
+	        case 36:    // Home
+	            //updateCriterionPositionByIndex(0);
+	           // Follower.clearWorkSequence();
+
+	            break;
+	        case 35:    // End
+
+	            break;
+	        default:
+	            //console.log("unhandled key:", event.keyCode);
+	            unhandled = true;
+	    }
+
+	    if (!unhandled)
+	        event.preventDefault();
+	});
+};
+
+
+var sampleCursorIndex = 0;
+var samplePlaying = false;
+var samplePaused = false;
+var samplePlayHandle = null;
+
+
+var playSampleEvent = function(event) {
+	var channel = event.event[0] & 0x0f;
+
+	switch (event.event[0] & 0xf0) {
+		case 0x90:
+			pitch = event.event[1];
+			noteOn({ channel: channel, pitch: pitch, velocity: event.event[2] });
+
+			break;
+		case 0x80:
+			pitch = event.event[1];
+			noteOff({ channel: channel, pitch: pitch });
+
+			break;
+	}
+};
+
+var playSample = function(data) {
+	var TICK_TO_MS = 1000 / 480;
+
+    var step;
+    step = function() {
+        if (sampleCursorIndex >= data.events.length) {
+            samplePlaying = false;
+            return;
+        }
+
+        var event = data.events[sampleCursorIndex];
+		playSampleEvent(event);
+
+        ++sampleCursorIndex;
+
+        if (sampleCursorIndex >= data.length) {
+            samplePlaying = false;
+			sampleCursorIndex = 0;
+            return;
+        }
+
+		var deltaTicks = data.events[sampleCursorIndex].tick - data.events[sampleCursorIndex - 1].tick;
+
+        if (deltaTicks > 0) {
+            if (samplePlaying)
+                samplePlayHandle = setTimeout(step, deltaTicks  * TICK_TO_MS);
+        }
+        else {
+            step();
+        }
+    };
+
+	var deltaTicks = 0;
+	if (sampleCursorIndex > 0)
+		deltaTicks = data.events[sampleCursorIndex].tick - data.events[sampleCursorIndex - 1].tick;
+
+    samplePlaying = true;
+
+    if (samplePlayHandle)
+        clearTimeout(samplePlayHandle);
+    samplePlayHandle = setTimeout(step, deltaTicks * TICK_TO_MS);
+};
+
+var restartSamplePlay = function() {
+    sampleCursorIndex = 0;
+
+    playSample(sampleMidiData);
+};
+
+var pauseSamplePlay = function() {
+    samplePlaying = false;
+};
+
+var resumeSamplePlay = function() {
+    playSample(sampleMidiData);
+};
+
+var endSamplePlay = function() {
+    samplePlaying = false;
+    sampleCursorIndex = 0;
+    samplePaused = false;
 };

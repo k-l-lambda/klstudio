@@ -179,3 +179,19 @@
     font-family: monospace;
     opacity: 0.8;
 }
+
+#playing-sample
+{
+    width: 2em;
+}
+
+#playing-sample.playing
+{
+    background-color: #4f4;
+}
+
+#controllers .section
+{
+    display: inline-block;
+    margin: 0 0.5em;
+}

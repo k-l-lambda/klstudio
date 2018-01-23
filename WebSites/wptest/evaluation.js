@@ -212,6 +212,8 @@ var evaluateNotations = function(criterion, sample, correspondence) {
 
     result.stuck_cost = stuck_cost;
     result.fluency = Math.max(1 - stuck_cost / (result.note_count - omit_count), 0);
+    result.fluency2 = result.fluency * result.fluency;
+    result.fluency3 = sigmoid(Math.max(result.note_count - omit_count - stuck_cost, 0) * 0.1 / stuck_cost);
     //result.fluency2 = 1 - sigmoid(stuck_cost / 5);
 
     // intensity: based on velocity histogram

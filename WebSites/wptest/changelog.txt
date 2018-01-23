@@ -1,4 +1,4 @@
 
 TODO:
-    sequence evaluation
-    smart follower based on state machine
+	tempo evaluation multiple criterion notes
+	smart follower based on state machine

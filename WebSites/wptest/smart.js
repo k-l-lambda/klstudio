@@ -29,8 +29,9 @@ var name = dir.split("/").pop();
 dir = dir.replace("/" + name, "/");
 
 
+var criterionMidiInfo = null;
 var criterionNotations = null;
-var sampleMidiData;
+var sampleMidiInfo = null;
 
 var Config = {
     KeyWidth: 40,
@@ -144,7 +145,7 @@ loadScript(dir + "../js/jquery.js", function() {
 
 			var midiData = /*window.midiInfo_sp ||*/ window.midiInfo;
 
-			sampleMidiData = window.midiInfo || window.midiInfo_sp;
+			sampleMidiInfo = window.midiInfo || window.midiInfo_sp;
 
 			if (midiData)
 				initializePage(midiData);
@@ -199,7 +200,7 @@ var parseJsonNotations = function(json) {
                 pitch = event[1];
                 if (channelStatus[channel][pitch])
                     console.warn("unexpected noteOn: ", n, time, event);
-                channelStatus[channel][pitch] = { start: time, velocity: event[2], id: ev.id, beats: ev.tick / ticksPerBeat };
+                channelStatus[channel][pitch] = { start: time, velocity: event[2], id: ev.id, beats: ev.tick / ticksPerBeat, startTick: ev.tick };
 
                 keyRange.low = Math.min(keyRange.low || pitch, pitch);
 
@@ -213,7 +214,7 @@ var parseJsonNotations = function(json) {
                 if (!status)
                     console.warn("unexpected noteOff: ", n, time, event);
                 else {
-                    channels[channel].push({ pitch: pitch, start: status.start, duration: time - status.start, velocity: status.velocity, id: status.id, beats: status.beats });
+                    channels[channel].push({ pitch: pitch, start: status.start, duration: time - status.start, velocity: status.velocity, id: status.id, beats: status.beats, startTick: status.startTick });
                     channelStatus[channel][pitch] = null;
                 }
 
@@ -454,17 +455,35 @@ var clearNoteMarks = function() {
     }
 };
 
-var setProgressLine = function(id) {
+var lookupMeasureNoteIndex = function(tick) {
+	var result = {m: 0, n: 0};
+
+	for (var mt in criterionMidiInfo.measures) {
+		var measure = criterionMidiInfo.measures[mt];
+
+		for (var i in measure.note_ticks) {
+			var t = Number(mt) + Number(measure.note_ticks[i]);
+			if (t > tick)
+				return result;
+
+			result.m = measure.measure;
+			result.n = Number(i);
+		}
+	}
+
+	return result;
+};
+
+var setProgressLine = function(tick) {
     if (showProgressLineMm) {
-        var captures = id.match(/(\d+)_(\d+)/);
-        if (captures[2]) {
-            if (meas_pos) {
-                var mm = Number(captures[1]);
-                var nn = Number(captures[2]);
-                if (meas_pos[mm - meas_start] && nn < meas_pos[mm - meas_start].notes.length - 1)
-                    showProgressLineMm(mm, nn, 0);
-            }
-        }
+        var position = lookupMeasureNoteIndex(tick);
+
+        var mm = position.m;
+        var nn = position.n;
+        if (meas_pos[mm - meas_start] && nn < meas_pos[mm - meas_start].notes.length - 1) {
+			showProgressLineMm(mm, nn, 0);
+			console.log("show line:", tick, mm, nn);
+		}
     }
 };
 
@@ -476,7 +495,7 @@ var setPressedMark = function(c_index, on) {
         if (on) {
 			g.addClass("pressed");
 
-			setProgressLine(c_note.id);
+			setProgressLine(c_note.startTick);
 		}
         else
             g.removeClass("pressed");
@@ -560,7 +579,113 @@ var noteOff = function (data) {
 };
 
 
+var sampleCursorIndex = 0;
+var samplePlaying = false;
+var samplePaused = false;
+var samplePlayHandle = null;
+
+
+var playSampleEvent = function(event) {
+	var channel = event.event[0] & 0x0f;
+
+	switch (event.event[0] & 0xf0) {
+		case 0x90:
+			pitch = event.event[1];
+			noteOn({ channel: channel, pitch: pitch, velocity: event.event[2] });
+
+			break;
+		case 0x80:
+			pitch = event.event[1];
+			noteOff({ channel: channel, pitch: pitch });
+
+			break;
+	}
+};
+
+var tabPlaySample = function() {
+	var data = sampleMidiInfo;
+
+	var event = data.events[sampleCursorIndex];
+	playSampleEvent(event);
+
+	var startTick = event.tick;
+
+	++sampleCursorIndex;
+
+	while (sampleCursorIndex < data.events.length && data.events[sampleCursorIndex].tick - startTick < 60) {
+		playSampleEvent(data.events[sampleCursorIndex]);
+		++sampleCursorIndex;
+	}
+};
+
+var playSample = function(data) {
+	var TICK_TO_MS = 1000 / 480;
+
+    var step;
+    step = function() {
+        if (sampleCursorIndex >= data.events.length) {
+            samplePlaying = false;
+            return;
+        }
+
+        var event = data.events[sampleCursorIndex];
+		playSampleEvent(event);
+
+        ++sampleCursorIndex;
+
+        if (sampleCursorIndex >= data.length) {
+            samplePlaying = false;
+			sampleCursorIndex = 0;
+            return;
+        }
+
+		var deltaTicks = data.events[sampleCursorIndex].tick - data.events[sampleCursorIndex - 1].tick;
+
+        if (deltaTicks > 0) {
+            if (samplePlaying)
+                samplePlayHandle = setTimeout(step, deltaTicks  * TICK_TO_MS);
+        }
+        else {
+            step();
+        }
+    };
+
+	var deltaTicks = 0;
+	if (sampleCursorIndex > 0)
+		deltaTicks = data.events[sampleCursorIndex].tick - data.events[sampleCursorIndex - 1].tick;
+
+    samplePlaying = true;
+
+    if (samplePlayHandle)
+        clearTimeout(samplePlayHandle);
+    samplePlayHandle = setTimeout(step, deltaTicks * TICK_TO_MS);
+};
+
+var restartSamplePlay = function() {
+    sampleCursorIndex = 0;
+
+    playSample(sampleMidiInfo);
+};
+
+var pauseSamplePlay = function() {
+    samplePlaying = false;
+};
+
+var resumeSamplePlay = function() {
+    playSample(sampleMidiInfo);
+};
+
+var endSamplePlay = function() {
+    samplePlaying = false;
+    sampleCursorIndex = 0;
+    samplePaused = false;
+};
+
+
+
 var initializePage = function(midiData) {
+	criterionMidiInfo = midiData;
+
 	// load MIDI notation
 	criterionNotations = parseJsonNotations(midiData);
 	MidiMatch.genNotationContext(criterionNotations);
@@ -743,8 +868,9 @@ var initializePage = function(midiData) {
 
 	            break;
 	        case 36:	// Home
-	            //updateCriterionPositionByIndex(0);
-	           	//Follower.clearWorkSequence();
+	            updateCriterionPositionByIndex(0);
+	           	Follower.clearWorkSequence();
+
 				sampleCursorIndex = 0;
 
 	            break;
@@ -763,107 +889,4 @@ var initializePage = function(midiData) {
 	    if (!unhandled)
 	        event.preventDefault();
 	});
-};
-
-
-var sampleCursorIndex = 0;
-var samplePlaying = false;
-var samplePaused = false;
-var samplePlayHandle = null;
-
-
-var playSampleEvent = function(event) {
-	var channel = event.event[0] & 0x0f;
-
-	switch (event.event[0] & 0xf0) {
-		case 0x90:
-			pitch = event.event[1];
-			noteOn({ channel: channel, pitch: pitch, velocity: event.event[2] });
-
-			break;
-		case 0x80:
-			pitch = event.event[1];
-			noteOff({ channel: channel, pitch: pitch });
-
-			break;
-	}
-};
-
-var tabPlaySample = function() {
-	var data = sampleMidiData;
-
-	var event = data.events[sampleCursorIndex];
-	playSampleEvent(event);
-
-	var startTick = event.tick;
-
-	++sampleCursorIndex;
-
-	while (sampleCursorIndex < data.events.length && data.events[sampleCursorIndex].tick - startTick < 60) {
-		playSampleEvent(data.events[sampleCursorIndex]);
-		++sampleCursorIndex;
-	}
-};
-
-var playSample = function(data) {
-	var TICK_TO_MS = 1000 / 480;
-
-    var step;
-    step = function() {
-        if (sampleCursorIndex >= data.events.length) {
-            samplePlaying = false;
-            return;
-        }
-
-        var event = data.events[sampleCursorIndex];
-		playSampleEvent(event);
-
-        ++sampleCursorIndex;
-
-        if (sampleCursorIndex >= data.length) {
-            samplePlaying = false;
-			sampleCursorIndex = 0;
-            return;
-        }
-
-		var deltaTicks = data.events[sampleCursorIndex].tick - data.events[sampleCursorIndex - 1].tick;
-
-        if (deltaTicks > 0) {
-            if (samplePlaying)
-                samplePlayHandle = setTimeout(step, deltaTicks  * TICK_TO_MS);
-        }
-        else {
-            step();
-        }
-    };
-
-	var deltaTicks = 0;
-	if (sampleCursorIndex > 0)
-		deltaTicks = data.events[sampleCursorIndex].tick - data.events[sampleCursorIndex - 1].tick;
-
-    samplePlaying = true;
-
-    if (samplePlayHandle)
-        clearTimeout(samplePlayHandle);
-    samplePlayHandle = setTimeout(step, deltaTicks * TICK_TO_MS);
-};
-
-var restartSamplePlay = function() {
-    sampleCursorIndex = 0;
-
-    playSample(sampleMidiData);
-};
-
-var pauseSamplePlay = function() {
-    samplePlaying = false;
-};
-
-var resumeSamplePlay = function() {
-    playSample(sampleMidiData);
-};
-
-var endSamplePlay = function() {
-    samplePlaying = false;
-    sampleCursorIndex = 0;
-    samplePaused = false;
 };

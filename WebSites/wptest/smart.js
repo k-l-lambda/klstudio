@@ -738,18 +738,23 @@ var initializePage = function(midiData) {
 	    //console.log(event.keyCode);
 	    var unhandled = false;
 	    switch (event.keyCode) {
-	        case 32: // Space
+	        case 32:	// Space
 	            $("#playing-sample").click();
 
 	            break;
-	        case 36:    // Home
+	        case 36:	// Home
 	            //updateCriterionPositionByIndex(0);
-	           // Follower.clearWorkSequence();
+	           	//Follower.clearWorkSequence();
+				sampleCursorIndex = 0;
 
 	            break;
-	        case 35:    // End
+	        case 35:	// End
 
 	            break;
+			case 9:		// Tab
+				tabPlaySample();
+
+				break;
 	        default:
 	            //console.log("unhandled key:", event.keyCode);
 	            unhandled = true;
@@ -781,6 +786,22 @@ var playSampleEvent = function(event) {
 			noteOff({ channel: channel, pitch: pitch });
 
 			break;
+	}
+};
+
+var tabPlaySample = function() {
+	var data = sampleMidiData;
+
+	var event = data.events[sampleCursorIndex];
+	playSampleEvent(event);
+
+	var startTick = event.tick;
+
+	++sampleCursorIndex;
+
+	while (sampleCursorIndex < data.events.length && data.events[sampleCursorIndex].tick - startTick < 60) {
+		playSampleEvent(data.events[sampleCursorIndex]);
+		++sampleCursorIndex;
 	}
 };
 

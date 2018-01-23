@@ -457,7 +457,7 @@ MidiMatch.Follower.prototype.matchNote = function(index) {
     }
 
     var c_index = endNode.prev.c_note ? endNode.prev.c_note.index : -1;
-    console.log("match:", index, c_index, endNode.prev.totalCost());
+    //console.log("match:", index, c_index, endNode.prev.totalCost());
 
     var duplicated = false;
 
@@ -473,8 +473,8 @@ MidiMatch.Follower.prototype.matchNote = function(index) {
 
         // trim PressedIndices
         var press_index = this.PressedIndices.indexOf(c_index);
-        if (press_index >= 0)
-            this.PressedIndices.splice(0, press_index + 1);
+        if (press_index > 10)	// 1o notes at most may pressed simultaneously
+            this.PressedIndices.splice(0, press_index - 10);
     }
 
     note.matched = true;

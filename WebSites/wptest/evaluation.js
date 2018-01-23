@@ -248,12 +248,12 @@ var evaluateNotations = function(criterion, sample, correspondence) {
 
 
     // dump
-    console.log("average_speed_rate:", average_speed_rate);
+    /*console.log("average_speed_rate:", average_speed_rate);
     for (var i in sample.notes) {
         var note = sample.notes[i];
         if (note.eval.tempo_contrast)
             console.log(i, note.beats.toPrecision(4), note.eval.tempo_contrast.toPrecision(4), note.eval.speed_rate.toPrecision(4), note.eval.intensity_bias != null ? note.eval.intensity_bias.toPrecision(4) : null);
-    }
+    }*/
 
     //console.log(sample.notes);
 

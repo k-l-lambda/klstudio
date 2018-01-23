@@ -482,7 +482,7 @@ var setProgressLine = function(tick) {
         var nn = position.n;
         if (meas_pos[mm - meas_start] && nn < meas_pos[mm - meas_start].notes.length - 1) {
 			showProgressLineMm(mm, nn, 0);
-			console.log("show line:", tick, mm, nn);
+			//console.log("show line:", tick, mm, nn);
 		}
     }
 };
@@ -512,6 +512,7 @@ var setPressedMark = function(c_index, on) {
 
 var markNotePressed = function(c_index) {
     var note = criterionNotations.notes[c_index];
+	//console.log("pressed:", c_index, Follower.CeriterionIndex, note.startTick);
 
     if (pressedMap[note.pitch] != null)
         setPressedMark(pressedMap[note.pitch], false);
@@ -661,25 +662,28 @@ var playSample = function(data) {
     samplePlayHandle = setTimeout(step, deltaTicks * TICK_TO_MS);
 };
 
-var restartSamplePlay = function() {
+/*var restartSamplePlay = function() {
     sampleCursorIndex = 0;
 
     playSample(sampleMidiInfo);
-};
+};*/
 
 var pauseSamplePlay = function() {
     samplePlaying = false;
 };
 
 var resumeSamplePlay = function() {
+	if (sampleCursorIndex >= sampleMidiInfo.events.length)
+		sampleCursorIndex = 0;
+
     playSample(sampleMidiInfo);
 };
 
-var endSamplePlay = function() {
+/*var endSamplePlay = function() {
     samplePlaying = false;
     sampleCursorIndex = 0;
     samplePaused = false;
-};
+};*/
 
 
 
@@ -694,8 +698,9 @@ var initializePage = function(midiData) {
 
 
 	// mount DOM, paint criternion
-	$("body").append('<div id="viewer">' +
-'                <div id="criterion-area">' +
+	$("body").append(
+'			<div id="viewer">' +
+'               <div id="criterion-area">' +
 '                    <div class="middle-wrapper">' +
 '                        <svg id="criterion-canvas" preserveAspectRatio="none">' +
 '                            <g id="criterion-score"></g>' +

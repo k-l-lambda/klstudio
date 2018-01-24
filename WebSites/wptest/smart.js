@@ -145,7 +145,7 @@ loadScript(dir + "../js/jquery.js", function() {
 
 			var load;
 			load = function() {
-				if (!MidiMatch) {
+				if (!window.MidiMatch) {
 					// waiting for MidiMatch loading
 					setTimeout(load, 1000);
 					return;
@@ -288,8 +288,10 @@ var clearEvaluation = function() {
     $(".note").removeClass("eval-fine");
     $(".note").removeClass("eval-fast1");
     $(".note").removeClass("eval-fast2");
+	$(".note").removeClass("eval-fast3");
     $(".note").removeClass("eval-slow1");
     $(".note").removeClass("eval-slow2");
+	$(".note").removeClass("eval-slow3");
 };
 
 var markEvaluation = function(eval) {
@@ -310,15 +312,19 @@ var markEvaluation = function(eval) {
                 var tempo_contrast = snote.eval.tempo_contrast;
                 if (tempo_contrast != null) {
                     if (tempo_contrast > 3)
-                        g.addClass("eval-slow2");
+                        g.addClass("eval-slow3");
                     else if (tempo_contrast > 1.6)
-                        g.addClass("eval-slow1");
+                        g.addClass("eval-slow2");
+					else if (tempo_contrast > 1.1)
+	                    g.addClass("eval-slow1");
+					else if (tempo_contrast > 1 / 1.1)
+	                    g.addClass("eval-fine");
                     else if (tempo_contrast > 1 / 1.6)
-                        g.addClass("eval-fine");
-                    else if (tempo_contrast > 1 / 3)
                         g.addClass("eval-fast1");
-                    else if (tempo_contrast <= 1 / 3)
+                    else if (tempo_contrast > 1 / 3)
                         g.addClass("eval-fast2");
+                    else if (tempo_contrast <= 1 / 3)
+                        g.addClass("eval-fast3");
                 }
             }
         }

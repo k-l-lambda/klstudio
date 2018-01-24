@@ -116,7 +116,7 @@
 
 .note.paired
 {
-    fill: #0a0;
+    fill: #080;
 }
 
 /*.note.duplicated
@@ -134,7 +134,7 @@
 .note:hover
 {
     stroke: #f60;
-    stroke-width: 10px;
+    stroke-width: 5px;
 }
 
 .note.eval-fine
@@ -144,20 +144,30 @@
 
 .note.eval-fast1
 {
-    fill: #08a;
+    fill: #0e8;
 }
 
 .note.eval-fast2
+{
+    fill: #08a;
+}
+
+.note.eval-fast3
 {
     fill: #04f;
 }
 
 .note.eval-slow1
 {
-    fill: #ea0;
+    fill: #8e0;
 }
 
 .note.eval-slow2
+{
+    fill: #ea0;
+}
+
+.note.eval-slow3
 {
     fill: #f20;
 }

@@ -2,6 +2,9 @@
 console.log("smart.js loaded.");
 
 
+var TICKS_PER_BEATS = 480;
+
+
 var loadScript = function(url, onload) {
 	var script = document.createElement("script");
     script.setAttribute("type", "text/javascript");
@@ -159,6 +162,7 @@ loadScript(dir + "../js/jquery.js", function() {
 					initializePage(midiData);
 				else if (window.midiJson) {
 					$.getJSON(midiJson, function(json) {
+						sampleMidiInfo = json;
 						initializePage(json);
 					});
 				}
@@ -177,8 +181,6 @@ loadCss(dir + "MusicSheetView.css");
 
 
 var parseJsonNotations = function(json) {
-    var ticksPerBeat = 480;
-
     var channelStatus = [];
     var pedalStatus = {};
     var pedals = {};
@@ -197,7 +199,7 @@ var parseJsonNotations = function(json) {
             millisecondsPerBeat = json.tempos[tempoIndex].tempo / 1000;
         }
 
-        time = (ev.tick / ticksPerBeat) * millisecondsPerBeat;
+        time = (ev.tick / TICKS_PER_BEATS) * millisecondsPerBeat;
 
         var event = ev.event;
         if (!event)
@@ -211,7 +213,7 @@ var parseJsonNotations = function(json) {
                 pitch = event[1];
                 if (channelStatus[channel][pitch])
                     console.warn("unexpected noteOn: ", n, time, event);
-                channelStatus[channel][pitch] = { start: time, velocity: event[2], id: ev.id, beats: ev.tick / ticksPerBeat, startTick: ev.tick };
+                channelStatus[channel][pitch] = { start: time, velocity: event[2], id: ev.id, beats: ev.tick / TICKS_PER_BEATS, startTick: ev.tick };
 
                 keyRange.low = Math.min(keyRange.low || pitch, pitch);
 
@@ -292,9 +294,12 @@ var clearEvaluation = function() {
     $(".note").removeClass("eval-slow1");
     $(".note").removeClass("eval-slow2");
 	$(".note").removeClass("eval-slow3");
+
+	$("#wuxianpu .mark-error").remove();
 };
 
-var markEvaluation = function(eval) {
+var paintEvaluation = function(eval) {
+	// summary
     var summary = "演奏了<em>" + eval.note_count + "</em>个音符，覆盖乐谱<em>" + (eval.coverage * 100).toPrecision(4) + "%</em>，错音<em>"
         + eval.error_note_count + "</em>个，漏音<em>" + eval.omit_note_count + "</em>个，重音<em>" + eval.retraced_note_count
         + "</em>个，正确率<em>" + (eval.accuracy * 100).toPrecision(4) + "%</em>，流畅度<em>"
@@ -302,6 +307,33 @@ var markEvaluation = function(eval) {
     $("#status-summary").html(summary);
     $("#status-bar").removeClass("playing");
 
+	// error note marks
+	var ref_note = null;
+	for (var i = _sequence.length - 1; i >= 0; --i) {
+		var s_note = _sequence[i];
+
+		//console.log("s:", i, s_note.c_index, s_note.eval.tempo);
+
+		if (s_note.c_index >= 0) {
+			if (s_note.eval.tempo)
+				ref_note = s_note;
+		}
+		else if (ref_note) {
+			var deltaBeats = (s_note.start - ref_note.start) / ref_note.eval.tempo;
+			var c_note = criterionNotations.notes[ref_note.c_index];
+			//console.log("em:", i, s_note, ref_note, c_note);
+			if (c_note) {
+				var tick = c_note.startTick + deltaBeats * TICKS_PER_BEATS;
+				var position = lookupScorePosition(tick);
+				//console.log("error mark:", position);
+
+				var line = svg("#line_" + position.line);
+				line.use(position.x, -70, 0, 0, "#mark-arrow", {class: "mark-error"});
+			}
+		}
+	}
+
+	// tempo marks
     for (var i in _correspondence) {
         var cnote = criterionNotations.notes[i];
         var g = $("#" + cnote.id);
@@ -473,22 +505,55 @@ var clearNoteMarks = function() {
 };
 
 var lookupMeasureNoteIndex = function(tick) {
-	var result = {m: 0, n: 0};
+	var result = {m: 0, n: 0, percent: 0};
+
+	var lastTick = 0;
 
 	for (var mt in criterionMidiInfo.measures) {
 		var measure = criterionMidiInfo.measures[mt];
 
 		for (var i in measure.note_ticks) {
 			var t = Number(mt) + Number(measure.note_ticks[i]);
-			if (t > tick)
+			if (t > tick) {
+				result.percent = (tick - lastTick) / (t - lastTick);
+
 				return result;
+			}
 
 			result.m = measure.measure;
 			result.n = Number(i);
+
+			lastTick = t;
 		}
 	}
 
 	return result;
+};
+
+var lookupScorePosition = function(tick) {
+	var index = lookupMeasureNoteIndex(tick);
+	var pos = meas_pos[index.m];
+	var x = 0;
+
+	if(index.n < 0) {
+		if (pos.notes.length > 0) {
+			x = pos.notes[0];
+			x += (pos.pos.x + pos.pos.w - x) * index.percent;
+		}
+		else
+			x = pos.pos.x + pos.pos.w * index.percent;
+	}
+	else if (index.n < pos.notes.length) {
+		x = pos.notes[index.n];
+		if (index.n < pos.notes.length - 1)
+			x += (pos.notes[index.n + 1] - x) * index.percent;
+		else
+			x += (pos.pos.x + pos.pos.w - x) * index.percent;
+	}
+	else
+		x = pos.pos.x + pos.pos.w;
+
+	return {line: pos.line, x: x};
 };
 
 var setProgressLine = function(tick) {
@@ -640,7 +705,7 @@ var tabPlaySample = function() {
 };
 
 var playSample = function(data) {
-	var TICK_TO_MS = 1000 / 480;
+	var TICK_TO_MS = 1000 / TICKS_PER_BEATS;
 
     var step;
     step = function() {
@@ -768,6 +833,15 @@ var initializePage = function(midiData) {
 		}
 	}
 
+	// mount svg elemnts
+	var defs = svg("#svg defs");
+	var arrow = defs.createPath();
+	arrow.move(-3, -8);
+	arrow.line(3, -8);
+	arrow.line(0, 0);
+	arrow.close();
+	defs.path(arrow, { id: "mark-arrow" });
+
 
 	$("#show-criterion-roll").change(function(event) {
 		if (event.currentTarget.checked)
@@ -855,12 +929,17 @@ var initializePage = function(midiData) {
 		markNotePressed: markNotePressed,
 		onSequenceFinished: function(sequence, path) {
 			var result = evaluateNotations(criterionNotations, {notes: sequence}, path);
-			console.log(result);
+			//console.log(result);
 
 			window._sequence = sequence;
 			window._correspondence = MidiMatch.pathToCorrespondence(path);
 
-			markEvaluation(result);
+			for (var i in path) {
+				if (sequence[i])
+					sequence[i].c_index = path[i];
+			}
+
+			paintEvaluation(result);
 		},
 	});
 

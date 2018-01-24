@@ -205,3 +205,8 @@
     display: inline-block;
     margin: 0 0.5em;
 }
+
+.mark-error
+{
+    fill: #f00;
+}

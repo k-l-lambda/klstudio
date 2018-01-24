@@ -143,17 +143,28 @@ loadScript(dir + "../js/jquery.js", function() {
         $(function() {
             console.log("document loaded.");
 
-			var midiData = /*window.midiInfo_sp ||*/ window.midiInfo;
+			var load;
+			load = function() {
+				if (!MidiMatch) {
+					// waiting for MidiMatch loading
+					setTimeout(load, 1000);
+					return;
+				}
 
-			sampleMidiInfo = window.midiInfo || window.midiInfo_sp;
+				var midiData = /*window.midiInfo_sp ||*/ window.midiInfo;
 
-			if (midiData)
-				initializePage(midiData);
-			else if (window.midiJson) {
-				$.getJSON(midiJson, function(json) {
-					initializePage(json);
-				});
-			}
+				sampleMidiInfo = window.midiInfo || window.midiInfo_sp;
+
+				if (midiData)
+					initializePage(midiData);
+				else if (window.midiJson) {
+					$.getJSON(midiJson, function(json) {
+						initializePage(json);
+					});
+				}
+			};
+
+			load();
         });
     });
 });
@@ -604,6 +615,9 @@ var playSampleEvent = function(event) {
 };
 
 var tabPlaySample = function() {
+	if ($("#playing-sample").hasClass("playing"))
+		$("#playing-sample").click();
+
 	var data = sampleMidiInfo;
 
 	var event = data.events[sampleCursorIndex];
@@ -626,6 +640,10 @@ var playSample = function(data) {
     step = function() {
         if (sampleCursorIndex >= data.events.length) {
             samplePlaying = false;
+
+			if ($("#playing-sample").hasClass("playing"))
+				$("#playing-sample").click();
+
             return;
         }
 
@@ -875,8 +893,10 @@ var initializePage = function(midiData) {
 	        case 36:	// Home
 	            updateCriterionPositionByIndex(0);
 	           	Follower.clearWorkSequence();
+				setProgressLine(0);
 
 				sampleCursorIndex = 0;
+				samplePlaying = false;
 
 	            break;
 	        case 35:	// End

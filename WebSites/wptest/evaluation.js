@@ -66,23 +66,36 @@ var evaluateNotations = function(criterion, sample, correspondence) {
             var c_note = criterion.notes[c_index];
             note.beats = c_note.beats;
 
+            var tempo_sum = 0;
+            var count = 0;
+
+            var first_beats = null;
+
             for (var ii = i - 1; ii >= 0; --ii) {
                 var sn = sample.notes[ii];
                 var ci = correspondence[ii];
                 if (ci >= 0 && ci < c_index) {
                     var cn = criterion.notes[ci];
                     if (c_note.beats - cn.beats > 1/8) {
-                        note.eval.tempo = (note.start - sn.start) / (note.beats - sn.beats);
+                        first_beats = first_beats || c_note.beats - cn.beats;
+                        if (c_note.beats - cn.beats > first_beats * 2)
+                            break;
+
+                        tempo_sum += (note.start - sn.start) / (note.beats - sn.beats);
+                        ++count;
 
                         if (!c_note.tempo)
                             c_note.tempo = (c_note.start - cn.start) / (c_note.beats - cn.beats);
-
-                        break;
                     }
                 }
 
                 if (sn.retraced)
                     break;
+            }
+
+            if (count) {
+                note.eval.tempo = tempo_sum / count;
+                note.eval.base_count = count;
             }
         }
     }

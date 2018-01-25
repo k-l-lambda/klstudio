@@ -305,7 +305,7 @@ var paintEvaluation = function(eval) {
         + "</em>个，正确率<em>" + (eval.accuracy * 100).toPrecision(4) + "%</em>，流畅度<em>"
         + (eval.fluency2 * 100).toPrecision(4) + ", " + (eval.fluency3 * 100).toPrecision(4) + "%</em>，力度准确性<em>" + (eval.intensity * 100).toPrecision(4) + "%</em>";
     $("#status-summary").html(summary);
-    $("#status-bar").removeClass("playing");
+    $("body").removeClass("playing");
 
 	// error note marks
 	var ref_note = null;
@@ -328,7 +328,7 @@ var paintEvaluation = function(eval) {
 				//console.log("error mark:", position);
 
 				var line = svg("#line_" + position.line);
-				line.use(position.x, -70, 0, 0, "#mark-arrow", {class: "mark-error"});
+				line.use(position.x, -65, 0, 0, "#mark-arrow", {class: "mark-error"});
 			}
 		}
 	}
@@ -358,9 +358,31 @@ var paintEvaluation = function(eval) {
                     else if (tempo_contrast <= 1 / 3)
                         g.addClass("eval-fast3");
                 }
+				else
+					g.addClass("eval-fine");
             }
         }
     }
+};
+
+
+var initializeScoreCanvas = function() {
+	var defs = svg("#svg defs");
+	var arrow = defs.createPath();
+	arrow.move(-3, -8);
+	arrow.line(3, -8);
+	arrow.line(0, 0);
+	arrow.close();
+	defs.path(arrow, { id: "mark-arrow" });
+
+	$("rect[id^='m']").addClass("measure");
+	$("g[id^='line_']").addClass("line");
+
+	for (var i in meas_pos) {
+		var measure = meas_pos[i];
+		var line = svg("#line_" + measure.line);
+		line.rect(measure.pos.x + 3, measure.pos.y + measure.pos.h + 10, measure.pos.w - 6, 30, 2, 2, {class: "measure-summary"});
+	}
 };
 
 
@@ -626,9 +648,9 @@ var noteOn = function (data) {
 
     Follower.onNoteRecord(ChannelStatus[data.channel][data.pitch]);
 
-    if (!$("#status-bar").hasClass("playing")) {
+    if (!$("body").hasClass("playing")) {
         clearEvaluation();
-        $("#status-bar").addClass("playing");
+        $("body").addClass("playing");
     }
 };
 
@@ -834,13 +856,7 @@ var initializePage = function(midiData) {
 	}
 
 	// mount svg elemnts
-	var defs = svg("#svg defs");
-	var arrow = defs.createPath();
-	arrow.move(-3, -8);
-	arrow.line(3, -8);
-	arrow.line(0, 0);
-	arrow.close();
-	defs.path(arrow, { id: "mark-arrow" });
+	initializeScoreCanvas();
 
 
 	$("#show-criterion-roll").change(function(event) {
@@ -886,7 +902,7 @@ var initializePage = function(midiData) {
 
 	// display note evalations
 	$(".note").mouseenter(function() {
-		if ($("#status-bar").hasClass("playing"))
+		if ($("body").hasClass("playing"))
 			return;
 
 		var eval = "";

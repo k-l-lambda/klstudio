@@ -45,6 +45,7 @@
     top: 0;
     bottom: 0;
     width: 1600px;
+    pointer-events: none;
 }
 
 
@@ -137,6 +138,11 @@
     stroke-width: 5px;
 }
 
+path.note:hover
+{
+    stroke-width: 80px;
+}
+
 .note.eval-fine
 {
     fill: #0f0;
@@ -172,10 +178,10 @@
     fill: #f20;
 }
 
-#wuxianpu rect
+/*#wuxianpu rect
 {
     display: none;
-}
+}*/
 
 #smart-logo
 {
@@ -209,4 +215,26 @@
 .mark-error
 {
     fill: #f00;
+}
+
+.measure
+{
+    pointer-events: none;
+}
+
+.measure-summary
+{
+    /*stroke: rgba(0, 0, 0, 0.3);
+    stroke-width: 1px;*/
+    fill: transparent;
+
+    transition: fill .6s;
+}
+
+.measure-summary:hover
+{
+    /*stroke: rgba(0, 0, 0, 0.3);
+    stroke-width: 1px;*/
+    fill: rgba(128, 255, 128, 0.2);
+    cursor: pointer;
 }

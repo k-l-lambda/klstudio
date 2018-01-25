@@ -232,13 +232,35 @@ path.note:hover
     transition: opacity .6s;
 }
 
-.measure-summary:hover
+.measure-summary:hover, .measure-summary.active
 {
     opacity: 1;
     cursor: pointer;
 }
 
+.measure-summary.active
+{
+    fill: rgba(64, 255, 64, 0.3);
+}
+
 .evaluating .measure-summary
 {
     opacity: 1;
+}
+
+.viewer-background
+{
+    fill: #fff;
+}
+
+.viewer-pitch-label
+{
+    fill: #000;
+    text-anchor: end;
+    font-size: 16px;
+}
+
+.viewer-bar
+{
+    fill: #ccc;
 }

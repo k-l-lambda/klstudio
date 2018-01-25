@@ -227,7 +227,7 @@ var parseJsonNotations = function(json) {
                 if (!status)
                     console.warn("unexpected noteOff: ", n, time, event);
                 else {
-                    channels[channel].push({ pitch: pitch, start: status.start, duration: time - status.start, velocity: status.velocity, id: status.id, beats: status.beats, startTick: status.startTick });
+                    channels[channel].push({ pitch: pitch, start: status.start, duration: time - status.start, velocity: status.velocity, id: status.id, beats: status.beats, startTick: status.startTick, endTick: ev.tick });
                     channelStatus[channel][pitch] = null;
                 }
 
@@ -267,6 +267,34 @@ var parseJsonNotations = function(json) {
             return n1.start - n2.start;
         });
 
+	// setup measure notes index
+	var measure_list = [];
+	var last_measure = null;
+	for (var t in json.measures) {
+		json.measures[t].startTick = Number(t);
+		json.measures[t].notes = [];
+
+		if (last_measure)
+			last_measure.endTick = json.measures[t].startTick;
+
+		var m = json.measures[t].measure;
+		measure_list[m] = measure_list[m] || [];
+		measure_list[m].push(json.measures[t]);
+
+		last_measure = json.measures[t];
+	}
+	last_measure.endTick = notes[notes.length - 1].endTick;
+	for (var i in notes) {
+		var note = notes[i];
+		for (var i in json.measures) {
+			var measure = json.measures[i];
+
+			if (note.startTick >= measure.startTick && note.startTick < measure.endTick || note.endTick > measure.startTick && note.endTick <= measure.endTick)
+				measure.notes.push(note);
+		}
+	}
+	json.measure_list = measure_list;
+
     return { channels: channels, notes: notes, pitchMap: pitchMap, pedals: pedals, bars: bars, endTime: time, keyRange: keyRange };
 };
 
@@ -284,6 +312,56 @@ var scrollSampleCanvas = function() {
 };
 
 
+var VIEWER_LINE_HEIGHT = 20;
+var VIEWER_SUSPEND_WIDTH = 16;
+
+var paintMeasureRolls = function(group, notes, range, width, type) {
+	var pitches = [];
+	for (var i in notes) {
+		var note = notes[i];
+		if (pitches.indexOf(note.pitch) < 0)
+			pitches.push(note.pitch);
+	}
+	pitches.sort(function(a, b) {return b - a;});
+	//console.log("pitches:", pitches, notes);
+
+	var bg = svg(group.rect(-VIEWER_SUSPEND_WIDTH, 0, width + VIEWER_SUSPEND_WIDTH, pitches.length * VIEWER_LINE_HEIGHT, 0, 0, {class: "viewer-background"}));
+
+	// pitch label
+	for (var i in pitches) {
+		i = Number(i);
+		group.text(0, (i + 1) * VIEWER_LINE_HEIGHT, Musical.PitchNames[Musical.notePitch(pitches[i])], {class: "viewer-pitch-label"});
+	}
+
+	// note bars
+	for (var i in notes) {
+		var note = notes[i];
+		var line = pitches.indexOf(note.pitch);
+		var start = note.startTick - range.start;
+		var end = note.endTick - range.start;
+		var xscale = width / (range.end - range.start);
+		//console.log("bar:", note, range, line, start, end, xscale);
+		group.rect(start * xscale, line * VIEWER_LINE_HEIGHT + 1, (end - start) * xscale, VIEWER_LINE_HEIGHT - 2, 4, 4, {class: "viewer-bar type-" + type});
+	}
+};
+
+var showMeasureRollView = function(mm) {
+	$("#measure-viewer").remove();
+
+	var mp = meas_pos[mm];
+	if (mp) {
+		var transform = $("#line_" + mp.line).attr("transform");
+		var viewer = svg("#wuxianpu").group({id: "measure-viewer", "data-m": mm, transform: transform});
+		viewer = svg(viewer);
+
+		var wrapper = svg(viewer.group({transform: "translate(" + mp.pos.x + "," + (mp.pos.y + mp.pos.h + 30) + ")"}));
+
+		var measure = criterionMidiInfo.measure_list[mm][0];
+		paintMeasureRolls(wrapper, measure.notes, {start: measure.startTick, end: measure.endTick}, mp.pos.w, "criterion");
+	}
+};
+
+
 var clearEvaluation = function() {
     $("#status-note").html("");
 
@@ -296,6 +374,8 @@ var clearEvaluation = function() {
 	$(".note").removeClass("eval-slow3");
 
 	$("#wuxianpu .mark-error").remove();
+
+	$("#measure-viewer").remove();
 };
 
 var paintEvaluation = function(eval) {
@@ -394,8 +474,22 @@ var initializeScoreCanvas = function() {
 	for (var i in meas_pos) {
 		var measure = meas_pos[i];
 		var line = svg("#line_" + measure.line);
-		line.rect(measure.pos.x + 3, measure.pos.y + measure.pos.h, measure.pos.w - 6, 30, 2, 2, {class: "measure-summary"});
+		line.rect(measure.pos.x + 3, measure.pos.y + measure.pos.h, measure.pos.w - 6, 30, 2, 2, {class: "measure-summary", "data-m": i});
 	}
+
+	$(".measure-summary").click(function() {
+		var mm = $(this).data("m");
+
+		$(".measure-summary.active").removeClass("active");
+
+		var viewer = $("#measure-viewer");
+		if (viewer.data("m") == mm)
+			viewer.remove();
+		else {
+			showMeasureRollView(mm);
+			$(this).addClass("active");
+		}
+	});
 };
 
 

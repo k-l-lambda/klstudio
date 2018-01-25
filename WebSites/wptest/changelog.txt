@@ -1,8 +1,12 @@
 
 TODO:
-	error note mark
-	roll view below score measures
+	measure summary info
 	smart follower based on state machine
+
+
+2018.1.25
+
+	+	smart.js: added measure roll viewer.
 
 
 2018.1.24

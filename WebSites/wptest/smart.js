@@ -312,6 +312,100 @@ var scrollSampleCanvas = function() {
 };
 
 
+var findSampleNoteSegment = function(c_notes, c_range) {
+	//console.log("findSampleNoteSegment:", c_notes, c_range);
+
+	if (!window._sequence || !window._correspondence || !c_notes.length)
+		return null;
+
+	var c_indices = [];
+	for (var i in c_notes)
+		c_indices.push(c_notes[i].index);
+
+	var segment = [];
+
+	for (var i = c_notes.length - 1; i >= 0; --i) {
+		var tail_si = _correspondence[c_notes[i].index];
+		if (tail_si != null) {
+			if (segment.indexOf(tail_si) >= 0)
+				continue;
+
+			var indices = [];
+
+			for (var ii = tail_si; ii >= 0; --ii) {
+				var note = _sequence[ii];
+				if (c_indices.indexOf(note.c_index) >= 0)
+					indices.push(ii);
+
+				if (note.c_index >= 0 && note.c_index < c_indices[0])
+					break;
+			}
+
+			// find the longest segment
+			if (indices.length > segment.length)
+				segment = indices;
+
+			//console.log("fs:", i, indices);
+		}
+	}
+
+	var range = {};
+
+	if (segment.length > 0) {
+		var head = _sequence[segment[segment.length - 1]];
+		var tail = _sequence[segment[0]];
+
+		var tempo_s = head.eval.tempo || 600;
+		var tempo_e = tail.eval.speed || 600;
+
+		var start_c_note = criterionNotations.notes[head.c_index];
+		var startTicks = start_c_note.startTick - c_range.start;
+		var padding_s = (startTicks / TICKS_PER_BEATS) * tempo_s;
+
+		var end_c_note = criterionNotations.notes[tail.c_index];
+		var endTicks = c_range.end - end_c_note.startTick;
+		var padding_e = (endTicks / TICKS_PER_BEATS) * tempo_e;
+
+		var range = {
+			start: head.start - padding_s,
+			end: tail.start + padding_e,
+		}
+
+		var start_index = Infinity;
+		var end_index = 0;
+		for (var i in segment) {
+			start_index = Math.min(start_index, segment[i]);
+			end_index = Math.max(end_index, segment[i]);
+		}
+
+		for (var i = start_index - 1; i >= 0; --i) {
+			if (_sequence[i].c_index >= 0)
+				break;
+
+			start_index = Math.min(start_index, i);
+		}
+
+		for (var i = end_index + 1; i < _sequence.length; ++i) {
+			if (_sequence[i].c_index >= 0)
+				break;
+
+			end_index = Math.max(end_index, i);
+		}
+
+		var notes = [];
+		for (var i = start_index; i <= end_index; ++i)
+			if (_sequence[i].duration)
+				notes.push(_sequence[i]);
+
+		//console.log(segment, padding_s, );
+
+		return {range: range, notes: notes};
+	}
+
+	return null;
+};
+
+
 var VIEWER_LINE_HEIGHT = 20;
 var VIEWER_SUSPEND_WIDTH = 16;
 
@@ -337,12 +431,15 @@ var paintMeasureRolls = function(group, notes, range, width, type) {
 	for (var i in notes) {
 		var note = notes[i];
 		var line = pitches.indexOf(note.pitch);
-		var start = note.startTick - range.start;
-		var end = note.endTick - range.start;
+		var start = (type == "criterion" ? note.startTick : note.start) - range.start;
+		var end = (type == "criterion" ? note.endTick : note.start + note.duration) - range.start;
 		var xscale = width / (range.end - range.start);
-		//console.log("bar:", note, range, line, start, end, xscale);
+
+		//console.log("bar:", type, note, range, line, start, end, xscale);
 		group.rect(start * xscale, line * VIEWER_LINE_HEIGHT + 1, (end - start) * xscale, VIEWER_LINE_HEIGHT - 2, 4, 4, {class: "viewer-bar type-" + type});
 	}
+
+	return pitches.length;
 };
 
 var showMeasureRollView = function(mm) {
@@ -357,7 +454,19 @@ var showMeasureRollView = function(mm) {
 		var wrapper = svg(viewer.group({transform: "translate(" + mp.pos.x + "," + (mp.pos.y + mp.pos.h + 30) + ")"}));
 
 		var measure = criterionMidiInfo.measure_list[mm][0];
-		paintMeasureRolls(wrapper, measure.notes, {start: measure.startTick, end: measure.endTick}, mp.pos.w, "criterion");
+		var tick_range = {start: measure.startTick, end: measure.endTick};
+		var lines = paintMeasureRolls(wrapper, measure.notes, tick_range, mp.pos.w, "criterion");
+
+		for (var i in criterionMidiInfo.measure_list[mm]) {
+			var measure = criterionMidiInfo.measure_list[mm][i];
+			var tick_range = {start: measure.startTick, end: measure.endTick};
+
+			var wrapper_sample = svg(viewer.group({transform: "translate(" + mp.pos.x + "," + (mp.pos.y + mp.pos.h + 30 + lines * VIEWER_LINE_HEIGHT + 20) + ")"}));
+
+			var ss = findSampleNoteSegment(measure.notes, tick_range);
+			if (ss && ss.notes.length > 0)
+				lines += paintMeasureRolls(wrapper_sample, ss.notes, ss.range, mp.pos.w, "sample") + 1;
+		}
 	}
 };
 
@@ -376,12 +485,14 @@ var clearEvaluation = function() {
 	$("#wuxianpu .mark-error").remove();
 
 	$("#measure-viewer").remove();
+
+	$(".measure-summary").removeClass("active");
 };
 
 var paintEvaluation = function(eval) {
 	// summary
     var summary = "演奏了<em>" + eval.note_count + "</em>个音符，覆盖乐谱<em>" + (eval.coverage * 100).toPrecision(4) + "%</em>，错音<em>"
-        + eval.error_note_count + "</em>个，漏音<em>" + eval.omit_note_count + "</em>个，重音<em>" + eval.retraced_note_count
+        + eval.error_note_count + "</em>个，漏音<em>" + eval.omit_note_count + "</em>个，重复音<em>" + eval.retraced_note_count
         + "</em>个，正确率<em>" + (eval.accuracy * 100).toPrecision(4) + "%</em>，流畅度<em>"
         + (eval.fluency2 * 100).toPrecision(4) + ", " + (eval.fluency3 * 100).toPrecision(4) + "%</em>，力度准确性<em>" + (eval.intensity * 100).toPrecision(4) + "%</em>";
     $("#status-summary").html(summary);

@@ -226,15 +226,19 @@ path.note:hover
 {
     /*stroke: rgba(0, 0, 0, 0.3);
     stroke-width: 1px;*/
-    fill: transparent;
+    fill: rgba(128, 255, 128, 0.2);
+    opacity: 0;
 
-    transition: fill .6s;
+    transition: opacity .6s;
 }
 
 .measure-summary:hover
 {
-    /*stroke: rgba(0, 0, 0, 0.3);
-    stroke-width: 1px;*/
-    fill: rgba(128, 255, 128, 0.2);
+    opacity: 1;
     cursor: pointer;
+}
+
+.evaluating .measure-summary
+{
+    opacity: 1;
 }

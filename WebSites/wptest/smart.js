@@ -305,9 +305,11 @@ var paintEvaluation = function(eval) {
         + "</em>个，正确率<em>" + (eval.accuracy * 100).toPrecision(4) + "%</em>，流畅度<em>"
         + (eval.fluency2 * 100).toPrecision(4) + ", " + (eval.fluency3 * 100).toPrecision(4) + "%</em>，力度准确性<em>" + (eval.intensity * 100).toPrecision(4) + "%</em>";
     $("#status-summary").html(summary);
-    $("body").removeClass("playing");
+	$("body").removeClass("playing");
+	$("body").addClass("evaluating");
 
 	// error note marks
+	var ERROR_MARK_Y = -65;
 	var ref_note = null;
 	for (var i = _sequence.length - 1; i >= 0; --i) {
 		var s_note = _sequence[i];
@@ -317,8 +319,19 @@ var paintEvaluation = function(eval) {
 		if (s_note.c_index >= 0) {
 			if (s_note.eval.tempo)
 				ref_note = s_note;
+
+			// retraced note
+			if (s_note.retraced) {
+				var c_note = criterionNotations.notes[s_note.c_index];
+				if (c_note) {
+					var position = lookupScorePosition(c_note.startTick);
+					var line = svg("#line_" + position.line);
+					line.use(position.x, ERROR_MARK_Y, 0, 0, "#mark-arrow", {class: "mark-error retraced"});
+				}
+			}
 		}
 		else if (ref_note) {
+			// error note
 			var deltaBeats = (s_note.start - ref_note.start) / ref_note.eval.tempo;
 			var c_note = criterionNotations.notes[ref_note.c_index];
 			//console.log("em:", i, s_note, ref_note, c_note);
@@ -328,7 +341,7 @@ var paintEvaluation = function(eval) {
 				//console.log("error mark:", position);
 
 				var line = svg("#line_" + position.line);
-				line.use(position.x, -65, 0, 0, "#mark-arrow", {class: "mark-error"});
+				line.use(position.x, ERROR_MARK_Y, 0, 0, "#mark-arrow", {class: "mark-error"});
 			}
 		}
 	}
@@ -381,7 +394,7 @@ var initializeScoreCanvas = function() {
 	for (var i in meas_pos) {
 		var measure = meas_pos[i];
 		var line = svg("#line_" + measure.line);
-		line.rect(measure.pos.x + 3, measure.pos.y + measure.pos.h + 10, measure.pos.w - 6, 30, 2, 2, {class: "measure-summary"});
+		line.rect(measure.pos.x + 3, measure.pos.y + measure.pos.h, measure.pos.w - 6, 30, 2, 2, {class: "measure-summary"});
 	}
 };
 
@@ -651,6 +664,7 @@ var noteOn = function (data) {
     if (!$("body").hasClass("playing")) {
         clearEvaluation();
         $("body").addClass("playing");
+		$("body").removeClass("evaluating");
     }
 };
 

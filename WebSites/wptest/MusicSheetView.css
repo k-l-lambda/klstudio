@@ -282,6 +282,15 @@ path.note:hover
     fill: #f00;
 }
 
+.viewer-bar.fine
+{
+    fill: #afa;
+}
+
+.viewer-bar.retraced
+{
+    fill: #fa0;
+}
 
 .switch-1, .switch-2
 {

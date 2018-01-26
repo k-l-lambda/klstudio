@@ -348,9 +348,8 @@ var findSampleNoteSegment = function(c_notes, c_range) {
 		}
 	}
 
-	var range = {};
-
 	if (segment.length > 0) {
+		// calculate range
 		var head = _sequence[segment[segment.length - 1]];
 		var tail = _sequence[segment[0]];
 
@@ -440,8 +439,20 @@ var paintMeasureRolls = function(group, notes, range, width, type, index, option
 		var xscale = width / (range.end - range.start);
 
 		var classes = "viewer-bar";
-		if (type == "sample" && note.c_index < 0)
-			classes += " error";
+		if (type == "sample") {
+			if (note.c_index < 0)
+				classes += " error";
+			else if (note.retraced)
+				classes += " retraced";
+			else
+				classes += " fine";
+		}
+		else if (type == "criterion" && options.compare) {
+			if (_correspondence[note.index] == null)
+				classes += " omit";
+			else
+				classes += " fine";
+		}
 
 		//console.log("bar:", type, note, range, line, start, end, xscale);
 		group.rect(start * xscale, line * VIEWER_LINE_HEIGHT + 1, (end - start) * xscale, VIEWER_LINE_HEIGHT - 2, 3, 3, {class: classes, mask: "url(#viwer-mask-" + index + ")"});
@@ -469,6 +480,15 @@ var showMeasureRollView = function(mm) {
 		var viewer = svg("#wuxianpu").group({id: "measure-viewer", "data-m": mm, transform: transform});
 		viewer = svg(viewer);
 
+		var y_offset = 0;
+		var tm = transform.match(/translate\([\d\.]+,\s*([\d\.]+)\)/);
+		if (tm && tm[1]) {
+			var ly = Number(tm[1]);
+			console.log("ly:", ly);
+			if (ly > 700)
+				y_offset = -ly - mp.pos.h;
+		}
+
 		var index = 0;
 
 		var has_samples = false;
@@ -491,7 +511,7 @@ var showMeasureRollView = function(mm) {
 						pitches.push(note.pitch);
 				}
 
-				var y = mp.pos.y + mp.pos.h + 30 + lines * VIEWER_LINE_HEIGHT;
+				var y = mp.pos.y + mp.pos.h + 30 + lines * VIEWER_LINE_HEIGHT + y_offset;
 
 				var options = {pitches: pitches, compare: true};
 
@@ -508,7 +528,7 @@ var showMeasureRollView = function(mm) {
 		}
 
 		if (!has_samples) {
-			var wrapper = svg(viewer.group({transform: "translate(" + mp.pos.x + "," + (mp.pos.y + mp.pos.h + 30) + ")", class: "type-criterion", id: "rolls-" + index}));
+			var wrapper = svg(viewer.group({transform: "translate(" + mp.pos.x + "," + (mp.pos.y + mp.pos.h + 30 + y_offset) + ")", class: "type-criterion", id: "rolls-" + index}));
 
 			paintMeasureRolls(wrapper, measure.notes, tick_range, mp.pos.w, "criterion", index++);
 		}

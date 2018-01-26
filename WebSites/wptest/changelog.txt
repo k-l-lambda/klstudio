@@ -1,5 +1,6 @@
 
 TODO:
+	avoid cursor too far
 	measure summary info
 	measure viewer label: note name according to key signature
 	smart follower based on state machine

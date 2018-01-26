@@ -1,7 +1,13 @@
 
 TODO:
 	measure summary info
+	measure viewer label: note name according to key signature
 	smart follower based on state machine
+
+
+2018.1.26
+
+	+	smart.js: added measure roll mask.
 
 
 2018.1.25

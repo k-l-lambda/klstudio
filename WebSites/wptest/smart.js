@@ -408,12 +408,20 @@ var findSampleNoteSegment = function(c_notes, c_range) {
 var VIEWER_LINE_HEIGHT = 12;
 var VIEWER_SUSPEND_WIDTH = 19;
 
-var paintMeasureRolls = function(group, notes, range, width, type, index) {
-	var pitches = [];
+var paintMeasureRolls = function(group, notes, range, width, type, index, options) {
+	var options = options || {};
+
+	var addtion_pitches = options.addtion_pitches || {};
+	options.addtion_pitches = addtion_pitches;
+
+	var pitches = options.pitches || [];
 	for (var i in notes) {
 		var note = notes[i];
-		if (pitches.indexOf(note.pitch) < 0)
+		if (pitches.indexOf(note.pitch) < 0) {
 			pitches.push(note.pitch);
+
+			addtion_pitches[note.pitch] = true;
+		}
 	}
 	pitches.sort(function(a, b) {return b - a;});
 	//console.log("pitches:", pitches, notes);
@@ -431,14 +439,22 @@ var paintMeasureRolls = function(group, notes, range, width, type, index) {
 		var end = (type == "criterion" ? note.endTick : note.start + note.duration) - range.start;
 		var xscale = width / (range.end - range.start);
 
+		var classes = "viewer-bar";
+		if (type == "sample" && note.c_index < 0)
+			classes += " error";
+
 		//console.log("bar:", type, note, range, line, start, end, xscale);
-		group.rect(start * xscale, line * VIEWER_LINE_HEIGHT + 1, (end - start) * xscale, VIEWER_LINE_HEIGHT - 2, 3, 3, {class: "viewer-bar", mask: "url(#viwer-mask-" + index + ")"});
+		group.rect(start * xscale, line * VIEWER_LINE_HEIGHT + 1, (end - start) * xscale, VIEWER_LINE_HEIGHT - 2, 3, 3, {class: classes, mask: "url(#viwer-mask-" + index + ")"});
 	}
 
 	// pitch label
 	for (var i in pitches) {
 		i = Number(i);
-		group.text(0, (i + 1) * VIEWER_LINE_HEIGHT, Musical.PitchNames[Musical.notePitch(pitches[i])], {class: "viewer-pitch-label"});
+
+		var classes = "viewer-pitch-label";
+		if (options.compare && addtion_pitches[pitches[i]])
+			classes += " error";
+		group.text(0, (i + 1) * VIEWER_LINE_HEIGHT, Musical.PitchNames[Musical.notePitch(pitches[i])], {class: classes});
 	}
 
 	return pitches.length;
@@ -455,11 +471,12 @@ var showMeasureRollView = function(mm) {
 
 		var index = 0;
 
-		var wrapper = svg(viewer.group({transform: "translate(" + mp.pos.x + "," + (mp.pos.y + mp.pos.h + 30) + ")", class: "type-criterion", id: "rolls-" + index}));
+		var has_samples = false;
+
+		var lines = 0;
 
 		var measure = criterionMidiInfo.measure_list[mm][0];
 		var tick_range = {start: measure.startTick, end: measure.endTick};
-		var lines = paintMeasureRolls(wrapper, measure.notes, tick_range, mp.pos.w, "criterion", index++);
 
 		for (var i in criterionMidiInfo.measure_list[mm]) {
 			var measure = criterionMidiInfo.measure_list[mm][i];
@@ -467,11 +484,33 @@ var showMeasureRollView = function(mm) {
 
 			var ss = findSampleNoteSegment(measure.notes, tick_range);
 			if (ss && ss.notes.length > 0) {
-				var wrapper_sample = svg(viewer.group({transform: "translate(" + mp.pos.x + "," + (mp.pos.y + mp.pos.h + 30 + lines * VIEWER_LINE_HEIGHT + 20) + ")",
-					class: "type-sample", id: "rolls-" + index}));
+				var pitches = [];
+				for (var i in measure.notes) {
+					var note = measure.notes[i];
+					if (pitches.indexOf(note.pitch) < 0)
+						pitches.push(note.pitch);
+				}
 
-				lines += paintMeasureRolls(wrapper_sample, ss.notes, ss.range, mp.pos.w, "sample", index++) + 1;
+				var y = mp.pos.y + mp.pos.h + 30 + lines * VIEWER_LINE_HEIGHT;
+
+				var options = {pitches: pitches, compare: true};
+
+				var wrapper_sample = svg(viewer.group({transform: "translate(" + mp.pos.x + "," + y + ")",
+					class: "type-sample", id: "rolls-" + index}));
+				lines += paintMeasureRolls(wrapper_sample, ss.notes, ss.range, mp.pos.w, "sample", index++, options) + 1;
+
+				var wrapper_criterion = svg(viewer.group({transform: "translate(" + mp.pos.x + "," + y + ")",
+					class: "type-criterion switch-2", id: "rolls-" + index}));
+				paintMeasureRolls(wrapper_criterion, measure.notes, tick_range, mp.pos.w, "criterion", index++, options);
+
+				has_samples = true;
 			}
+		}
+
+		if (!has_samples) {
+			var wrapper = svg(viewer.group({transform: "translate(" + mp.pos.x + "," + (mp.pos.y + mp.pos.h + 30) + ")", class: "type-criterion", id: "rolls-" + index}));
+
+			paintMeasureRolls(wrapper, measure.notes, tick_range, mp.pos.w, "criterion", index++);
 		}
 	}
 };
@@ -607,6 +646,19 @@ var initializeScoreCanvas = function() {
 			$(this).addClass("active");
 		}
 	});
+
+	// start phase switching
+	setInterval(function() {
+		window.switching_phase = window.switching_phase || 1;
+
+		$("body").removeClass("switch-phase-" + switching_phase);
+
+		++switching_phase;
+		if (switching_phase > 2)
+			switching_phase = 1;
+
+		$("body").addClass("switch-phase-" + switching_phase);
+	}, 1500);
 };
 
 

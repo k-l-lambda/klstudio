@@ -267,7 +267,29 @@ path.note:hover
     font-size: 13px;
 }
 
+.viewer-pitch-label.error
+{
+    fill: #f00;
+}
+
 .viewer-bar
 {
     fill: #ccc;
+}
+
+.viewer-bar.error
+{
+    fill: #f00;
+}
+
+
+.switch-1, .switch-2
+{
+    transition: opacity .6s linear;
+    opacity: 0;
+}
+
+.switch-phase-1 .switch-1, .switch-phase-2 .switch-2
+{
+    opacity: 1;
 }

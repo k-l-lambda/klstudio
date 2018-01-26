@@ -7,6 +7,8 @@ TODO:
 
 2018.1.26
 
+	+	smart.js: switching measure view implemneted.
+
 	+	smart.js: added measure roll mask.
 
 

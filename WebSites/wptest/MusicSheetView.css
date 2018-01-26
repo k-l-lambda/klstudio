@@ -226,38 +226,45 @@ path.note:hover
 {
     /*stroke: rgba(0, 0, 0, 0.3);
     stroke-width: 1px;*/
-    fill: rgba(128, 255, 128, 0.2);
+    fill: rgba(128, 255, 128, 0.5);
     opacity: 0;
 
     transition: opacity .6s;
 }
 
-.measure-summary:hover, .measure-summary.active
+.measure-summary:hover, .evaluating .measure-summary:hover
 {
-    opacity: 1;
+    opacity: 0.7;
     cursor: pointer;
 }
 
-.measure-summary.active
+.measure-summary.active, .evaluating .measure-summary.active
 {
-    fill: rgba(64, 255, 64, 0.3);
+    opacity: 1;
+    stroke: #4b0;
+    stroke-width: 4px;
 }
 
 .evaluating .measure-summary
 {
-    opacity: 1;
+    opacity: 0.4;
 }
 
-.viewer-background
+.type-criterion .viewer-background
 {
-    fill: #fff;
+    fill: #f8fff8;
+}
+
+.type-sample .viewer-background
+{
+    fill: #ffe;
 }
 
 .viewer-pitch-label
 {
     fill: #000;
     text-anchor: end;
-    font-size: 16px;
+    font-size: 13px;
 }
 
 .viewer-bar

@@ -286,9 +286,8 @@ var parseJsonNotations = function(json) {
 	last_measure.endTick = notes[notes.length - 1].endTick;
 	for (var i in notes) {
 		var note = notes[i];
-		for (var i in json.measures) {
-			var measure = json.measures[i];
-
+		for (var t in json.measures) {
+			var measure = json.measures[t];
 			if (note.startTick >= measure.startTick && note.startTick < measure.endTick || note.endTick > measure.startTick && note.endTick <= measure.endTick)
 				measure.notes.push(note);
 		}
@@ -406,8 +405,8 @@ var findSampleNoteSegment = function(c_notes, c_range) {
 };
 
 
-var VIEWER_LINE_HEIGHT = 20;
-var VIEWER_SUSPEND_WIDTH = 16;
+var VIEWER_LINE_HEIGHT = 12;
+var VIEWER_SUSPEND_WIDTH = 19;
 
 var paintMeasureRolls = function(group, notes, range, width, type) {
 	var pitches = [];
@@ -421,12 +420,6 @@ var paintMeasureRolls = function(group, notes, range, width, type) {
 
 	var bg = svg(group.rect(-VIEWER_SUSPEND_WIDTH, 0, width + VIEWER_SUSPEND_WIDTH, pitches.length * VIEWER_LINE_HEIGHT, 0, 0, {class: "viewer-background"}));
 
-	// pitch label
-	for (var i in pitches) {
-		i = Number(i);
-		group.text(0, (i + 1) * VIEWER_LINE_HEIGHT, Musical.PitchNames[Musical.notePitch(pitches[i])], {class: "viewer-pitch-label"});
-	}
-
 	// note bars
 	for (var i in notes) {
 		var note = notes[i];
@@ -436,7 +429,13 @@ var paintMeasureRolls = function(group, notes, range, width, type) {
 		var xscale = width / (range.end - range.start);
 
 		//console.log("bar:", type, note, range, line, start, end, xscale);
-		group.rect(start * xscale, line * VIEWER_LINE_HEIGHT + 1, (end - start) * xscale, VIEWER_LINE_HEIGHT - 2, 4, 4, {class: "viewer-bar type-" + type});
+		group.rect(start * xscale, line * VIEWER_LINE_HEIGHT + 1, (end - start) * xscale, VIEWER_LINE_HEIGHT - 2, 3, 3, {class: "viewer-bar"});
+	}
+
+	// pitch label
+	for (var i in pitches) {
+		i = Number(i);
+		group.text(0, (i + 1) * VIEWER_LINE_HEIGHT, Musical.PitchNames[Musical.notePitch(pitches[i])], {class: "viewer-pitch-label"});
 	}
 
 	return pitches.length;
@@ -451,7 +450,7 @@ var showMeasureRollView = function(mm) {
 		var viewer = svg("#wuxianpu").group({id: "measure-viewer", "data-m": mm, transform: transform});
 		viewer = svg(viewer);
 
-		var wrapper = svg(viewer.group({transform: "translate(" + mp.pos.x + "," + (mp.pos.y + mp.pos.h + 30) + ")"}));
+		var wrapper = svg(viewer.group({transform: "translate(" + mp.pos.x + "," + (mp.pos.y + mp.pos.h + 30) + ")", class: "type-criterion"}));
 
 		var measure = criterionMidiInfo.measure_list[mm][0];
 		var tick_range = {start: measure.startTick, end: measure.endTick};
@@ -461,7 +460,7 @@ var showMeasureRollView = function(mm) {
 			var measure = criterionMidiInfo.measure_list[mm][i];
 			var tick_range = {start: measure.startTick, end: measure.endTick};
 
-			var wrapper_sample = svg(viewer.group({transform: "translate(" + mp.pos.x + "," + (mp.pos.y + mp.pos.h + 30 + lines * VIEWER_LINE_HEIGHT + 20) + ")"}));
+			var wrapper_sample = svg(viewer.group({transform: "translate(" + mp.pos.x + "," + (mp.pos.y + mp.pos.h + 30 + lines * VIEWER_LINE_HEIGHT + 20) + ")", class: "type-sample"}));
 
 			var ss = findSampleNoteSegment(measure.notes, tick_range);
 			if (ss && ss.notes.length > 0)

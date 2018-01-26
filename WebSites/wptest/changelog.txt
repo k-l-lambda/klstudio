@@ -8,6 +8,8 @@ TODO:
 
 2018.1.26
 
+	+	smart.js: measure summary text added.
+
 	+	smart.js: switching measure view implemneted.
 
 	+	smart.js: added measure roll mask.

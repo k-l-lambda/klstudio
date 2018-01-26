@@ -184,6 +184,7 @@ var evaluateNotations = function(criterion, sample, correspondence) {
 
     var result = {};
 
+    result.average_speed_rate = average_speed_rate;
     result.note_count = cindex_high - cindex_low + 1;
 
     // accuracy: error notes statistics
@@ -261,8 +262,7 @@ var evaluateNotations = function(criterion, sample, correspondence) {
 
 
     // dump
-    /*console.log("average_speed_rate:", average_speed_rate);
-    for (var i in sample.notes) {
+    /*for (var i in sample.notes) {
         var note = sample.notes[i];
         if (note.eval.tempo_contrast)
             console.log(i, note.beats.toPrecision(4), note.eval.tempo_contrast.toPrecision(4), note.eval.speed_rate.toPrecision(4), note.eval.intensity_bias != null ? note.eval.intensity_bias.toPrecision(4) : null);

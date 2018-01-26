@@ -44,7 +44,7 @@ var Config = {
     PendingLatency: 800,
     SequenceResetInterval: 4000,
     ContextSpan: { left: -800, right: 800 },
-    DistanceSigmoidFactor: 0.01,		// context compare time distance, sigmod x units per ms
+    DistanceSigmoidFactor: 0.01,		// context compare time distance, sigmoid x units per ms
     ContextRegressionDiffer: 0.01,		// context compare regression cost derivation default infinitesimal
     ContextRegressionBegin: 10,			// context compare regression begin boundary
     ContextRegressionEnd: 0.01,			// context compare regression cost end condition
@@ -391,9 +391,21 @@ var findSampleNoteSegment = function(c_notes, c_range) {
 		}
 
 		var notes = [];
-		for (var i = start_index; i <= end_index; ++i)
-			if (_sequence[i].duration)
-				notes.push(_sequence[i]);
+		for (var i = start_index; i <= end_index; ++i) {
+			var note = _sequence[i];
+			if (note.duration) {
+				var exclude = false;
+
+				// exclude out of range notes
+				if (note.c_index >= 0) {
+					var c_note = criterionNotations.notes[note.c_index];
+					exclude |= c_note.endTick <= c_range.start;
+				}
+
+				if (!exclude)
+					notes.push(_sequence[i]);
+			}
+		}
 
 		//console.log(segment, padding_s, );
 
@@ -484,7 +496,7 @@ var showMeasureRollView = function(mm) {
 		var tm = transform.match(/translate\([\d\.]+,\s*([\d\.]+)\)/);
 		if (tm && tm[1]) {
 			var ly = Number(tm[1]);
-			console.log("ly:", ly);
+			//console.log("ly:", ly);
 			if (ly > 700)
 				y_offset = -ly - mp.pos.h;
 		}
@@ -552,6 +564,9 @@ var clearEvaluation = function() {
 	$("#measure-viewer").remove();
 
 	$(".measure-summary").removeClass("active");
+	$(".measure-summary text").remove();
+	$(".measure-summary").attr("style", null);
+	$(".measure-summary .background").attr("style", null);
 };
 
 var paintEvaluation = function(eval) {
@@ -632,6 +647,74 @@ var paintEvaluation = function(eval) {
             }
         }
     }
+
+	// measure summaries
+	$(".measure-summary").each(function(m, elem) {
+		var mm = $(elem).data("m");
+		var list = criterionMidiInfo.measure_list[mm];
+		if (list && list.length) {
+			var speed_sum = 0;
+			var c_speed_sum = 0;
+			var speed_count = 0;
+
+			var error_count = 0;
+
+			var mp = meas_pos[mm];
+
+			for (var i in list) {
+				var measure = list[i];
+
+				var ss = findSampleNoteSegment(measure.notes, {start: measure.startTick, end: measure.endTick});
+				if (ss) {
+					for (var ii in ss.notes) {
+						var note = ss.notes[ii];
+						if (note.eval && note.eval.speed && note.eval.c_speed) {
+							speed_sum += note.eval.speed;
+							c_speed_sum += note.eval.c_speed;
+
+							++speed_count;
+						}
+
+						if (note.c_index < 0)
+							++error_count;
+					}
+
+					for (var i in measure.notes) {
+						if (_correspondence[measure.notes[i].index] == null)
+							++error_count;
+					}
+				}
+			}
+
+			if (speed_count) {
+				var credit = 1;
+
+				var average_speed = speed_sum / speed_count;
+				var speed_rate = (c_speed_sum * eval.average_speed_rate) / speed_sum;
+
+				credit *= 1 - sigmoid(Math.abs(Math.log(speed_rate)) * 2);
+				//console.log("credit:", speed_rate, credit);
+
+				var text = "速度:" + Math.round(60000 / average_speed) + "  " + (speed_rate > 1.01 ? "\u2191" : (speed_rate < 0.99 ? "\u2193" : "")) + speed_rate.toPrecision(3);
+
+				var group = svg(elem);
+				group.text(6, 20, text, {class: "measure-summary-text"});
+
+				if (error_count) {
+					credit *= 1 - sigmoid(error_count * 0.8);
+
+					group.text(mp.pos.w - 8, 20, error_count.toString(), {class: "measure-summary-error"});
+				}
+
+				var g = Math.round(255 * credit);
+				var r = Math.round(255 * (1 - credit));
+				$(elem).find(".background").css("fill", "rgba(" + r + ", " + g + ", 0, 0.3)");
+				$(elem).css({
+					opacity: 1,
+				});
+			}
+		}
+	});
 };
 
 
@@ -650,7 +733,8 @@ var initializeScoreCanvas = function() {
 	for (var i in meas_pos) {
 		var measure = meas_pos[i];
 		var line = svg("#line_" + measure.line);
-		line.rect(measure.pos.x + 3, measure.pos.y + measure.pos.h, measure.pos.w - 6, 30, 2, 2, {class: "measure-summary", "data-m": i});
+		var g = svg(line.group({class: "measure-summary", "data-m": i, transform: "translate(" + measure.pos.x + "," + (measure.pos.y + measure.pos.h) + ")"}));
+		g.rect(3, 0, measure.pos.w - 6, 30, 2, 2, {class: "background"});
 	}
 
 	$(".measure-summary").click(function() {

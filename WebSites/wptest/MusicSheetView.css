@@ -225,11 +225,16 @@ path.note:hover
 .measure-summary
 {
     /*stroke: rgba(0, 0, 0, 0.3);
-    stroke-width: 1px;*/
-    fill: rgba(128, 255, 128, 0.5);
+    stroke-width: 1px;
+    fill: rgba(128, 255, 128, 0.5);*/
     opacity: 0;
 
     transition: opacity .6s;
+}
+
+.measure-summary .background
+{
+    fill: rgba(128, 255, 128, 0.5);
 }
 
 .measure-summary:hover, .evaluating .measure-summary:hover
@@ -241,13 +246,24 @@ path.note:hover
 .measure-summary.active, .evaluating .measure-summary.active
 {
     opacity: 1;
+}
+
+.measure-summary.active .background, .evaluating .measure-summary.active .background
+{
     stroke: #4b0;
     stroke-width: 4px;
 }
 
-.evaluating .measure-summary
+/*.evaluating .measure-summary
 {
     opacity: 0.4;
+}*/
+
+.measure-summary-error
+{
+    fill: #c00;
+    font-weight: bold;
+    text-anchor: end;
 }
 
 .type-criterion .viewer-background

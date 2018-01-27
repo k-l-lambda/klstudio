@@ -336,7 +336,7 @@ var findSampleNoteSegment = function(c_notes, c_range) {
 				if (c_indices.indexOf(note.c_index) >= 0)
 					indices.push(ii);
 
-				if (note.c_index >= 0 && note.c_index < c_indices[0])
+				if ((note.c_index >= 0 && note.c_index < c_indices[0]) || note.retraced)
 					break;
 			}
 

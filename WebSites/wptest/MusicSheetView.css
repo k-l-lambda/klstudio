@@ -239,7 +239,7 @@ path.note:hover
 
 .measure-summary:hover, .evaluating .measure-summary:hover
 {
-    opacity: 0.7;
+    opacity: 0.7 !important;
     cursor: pointer;
 }
 
@@ -268,12 +268,12 @@ path.note:hover
 
 .type-criterion .viewer-background
 {
-    fill: #f8fff8;
+    fill: #efe;
 }
 
 .type-sample .viewer-background
 {
-    fill: #ffe;
+    fill: #ffd;
 }
 
 .viewer-pitch-label
@@ -300,7 +300,7 @@ path.note:hover
 
 .viewer-bar.fine
 {
-    fill: #afa;
+    fill: #0c0;
 }
 
 .viewer-bar.retraced

@@ -6,6 +6,11 @@ TODO:
 	smart follower based on state machine
 
 
+2018.1.27
+
+	>	smart: fixed retraced bug in findSampleNoteSegment.
+
+
 2018.1.26
 
 	+	smart.js: measure summary text added.

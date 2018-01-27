@@ -8,6 +8,8 @@ TODO:
 
 2018.1.27
 
+	>	MidiMatch: refined pressed note finding.
+
 	>	smart: fixed retraced bug in findSampleNoteSegment.
 
 

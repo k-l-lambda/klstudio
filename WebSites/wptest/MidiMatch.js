@@ -521,7 +521,10 @@ MidiMatch.Follower.prototype.onNoteRecord = function(note) {
         for (var i in plist) {
             var n = plist[i];
             if (n.index >= this.CeriterionIndex && this.PressedIndices.indexOf(n.index) < 0) {
-                pressed = n.index;
+				var advanced_time = n.start - this.criterionNotations.notes[this.CeriterionIndex].start;
+				if (advanced_time < Config.PendingLatency * 4)
+                	pressed = n.index;
+
                 break;
             }
         }

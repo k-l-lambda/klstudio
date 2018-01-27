@@ -1132,7 +1132,7 @@ var playSample = function(data) {
             return;
         }
 
-		var deltaTicks = data.events[sampleCursorIndex].tick - data.events[sampleCursorIndex - 1].tick;
+		var deltaTicks = sampleCursorIndex <= 0 ? 0 : data.events[sampleCursorIndex].tick - data.events[sampleCursorIndex - 1].tick;
 
         if (deltaTicks > 0) {
             if (samplePlaying)

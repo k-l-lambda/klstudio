@@ -1126,7 +1126,7 @@ var playSample = function(data) {
 
         ++sampleCursorIndex;
 
-        if (sampleCursorIndex >= data.length) {
+        if (sampleCursorIndex >= data.events.length) {
             samplePlaying = false;
 			sampleCursorIndex = 0;
             return;

@@ -32,6 +32,8 @@ Musical.KeySignatureNames[-5] = ["D\u266d", "b\u266d"];
 Musical.KeySignatureNames[-6] = ["G\u266d", "e\u266d"];
 Musical.KeySignatureNames[-7] = ["C\u266d", "a\u266d"];
 
+Musical.PitchNames = ["C", "\u266dD", "D", "\u266dE", "E", "F", "\u266dG", "G", "\u266dA", "A", "\u266dB", "B"];
+
 Musical.notePitch = function (note) {
 	var pitch = note % Musical.GroupLen;
 	if (pitch < 0)

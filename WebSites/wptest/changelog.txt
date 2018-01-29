@@ -1,9 +1,13 @@
 
 TODO:
-	avoid cursor too far
-	measure summary info
+	refine sample note range by multiple compare.
 	measure viewer label: note name according to key signature
 	smart follower based on state machine
+
+
+2018.1.29
+
+	>	smart: refined sample note segment end time.
 
 
 2018.1.27

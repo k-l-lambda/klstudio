@@ -359,14 +359,22 @@ var findSampleNoteSegment = function(c_notes, c_range) {
 		var start_c_note = criterionNotations.notes[head.c_index];
 		var startTicks = start_c_note.startTick - c_range.start;
 		var padding_s = (startTicks / TICKS_PER_BEATS) * tempo_s;
+		var startTime = head.start - padding_s;
 
 		var end_c_note = criterionNotations.notes[tail.c_index];
-		var endTicks = c_range.end - end_c_note.startTick;
-		var padding_e = (endTicks / TICKS_PER_BEATS) * tempo_e;
+		var endTime;
+		if (end_c_note.startTick > c_range.start) {
+			endTime = startTime + (tail.start - startTime) * (c_range.end - c_range.start) / (end_c_note.startTick - c_range.start);
+		}
+		else {
+			var endTicks = c_range.end - end_c_note.startTick;
+			var padding_e = (endTicks / TICKS_PER_BEATS) * tempo_e;
+			endTime = tail.start + padding_e;
+		}
 
 		var range = {
-			start: head.start - padding_s,
-			end: tail.start + padding_e,
+			start: startTime,
+			end: endTime,
 		}
 
 		var start_index = Infinity;

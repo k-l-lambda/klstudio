@@ -298,6 +298,91 @@ var parseJsonNotations = function(json) {
 };
 
 
+// reload html functions
+/*window.scrollTo = function(x, y) {
+	$("#svgcontainer").css({left: -x, top: -y});
+};*/
+
+var scrollViewX = function(x) {
+	$("#svgcontainer").css({left: -x});
+};
+
+var getViewX = function() {
+	return -$("#svgcontainer").position().left;
+};
+
+window.startScrollTo = function(x) {
+	scrollViewX(x);
+};
+
+window.movePage = function(num,pagex,delta) {
+	//console.log("movePage:", num, pagex, delta);
+	scrollViewX(pagex);
+};
+
+/*window.turnPage = function(delta) {
+	console.log("turnPage:", delta);
+};*/
+
+function currentPage() {
+    for (var i = page_pos.length - 1; i >= 0; i--)
+    {
+        var curx=getViewX();
+        var pagex=page_pos[i].x;
+        if (curx>=pagex-80 && curx<pagex+300) {
+            return i;
+            break;
+        }
+    }
+    return 0;
+}
+
+var showCursor = function(x,y,h, meas){
+    if (window.scale) {
+        x = x*window.scale
+        y = y*window.scale
+        h = h*window.scale
+    }
+
+    var line=meas.line;
+    var linePos=window.lineoffset[line];
+    if(linePos) {
+        x+=linePos.x;
+        y+=linePos.y;
+    }
+
+    if(linePos && line<window.lineoffset.length-1) {
+        var screenw=document.body.clientWidth;
+        var screenx=document.body.clientleft;
+        var pagesPerScreen = 2;
+        if (screenw>=1920*2){
+            pagesPerScreen = 4;
+        }
+		var view_x = getViewX();
+        if(pagesPerScreen == 4){
+            if(x<view_x+screenw*0.25 || x>view_x+screenw*0.75){
+                var to=0
+                if(line>0){
+                    linePos = window.lineoffset[line-1];
+                    to=linePos.x;
+                }
+                scrollViewX(to);
+            }
+        }else {
+            if(x<view_x+0 || x>view_x+screenw/2){
+                var to=linePos.x;
+                scrollViewX(to);
+            }
+        }
+    }
+    var elem = theProgressBarElem();
+    elem.x.baseVal.value=x;
+    elem.y.baseVal.value=y;
+    elem.height.baseVal.value=h;
+}
+
+
+
 var svg = function (selector) {
     return new $.svg._wrapperClass($(selector)[0]);
 };
@@ -506,7 +591,7 @@ var showMeasureRollView = function(mm) {
 			var ly = Number(tm[1]);
 			//console.log("ly:", ly);
 			if (ly > 700)
-				y_offset = -ly - mp.pos.h;
+				y_offset = -ly + 300;
 		}
 
 		var index = 0;
@@ -1388,10 +1473,20 @@ var initializePage = function(midiData) {
 				sampleCursorIndex = 0;
 				samplePlaying = false;
 
+				scrollViewX(0);
+
 	            break;
 	        case 35:	// End
 
 	            break;
+			case 33:	// PageUp
+				turnPage(-1);
+
+				break;
+			case 34:	// PageDown
+				turnPage(1);
+
+				break;
 			case 9:		// Tab
 				tabPlaySample();
 

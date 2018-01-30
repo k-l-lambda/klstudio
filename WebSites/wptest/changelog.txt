@@ -5,6 +5,11 @@ TODO:
 	smart follower based on state machine
 
 
+2018.1.30
+
+	+	smart: smooth page move implemented.
+
+
 2018.1.29
 
 	>	smart: refined sample note segment end time.

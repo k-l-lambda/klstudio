@@ -269,6 +269,8 @@ path.note:hover
 .type-criterion .viewer-background
 {
     fill: #efe;
+    stroke: #4b0;
+    stroke-width: 2px;
 }
 
 .type-sample .viewer-background
@@ -317,4 +319,12 @@ path.note:hover
 .switch-phase-1 .switch-1, .switch-phase-2 .switch-2
 {
     opacity: 1;
+}
+
+
+#svgcontainer
+{
+    position: absolute;
+    transition: left .8s;
+    left: 0;
 }

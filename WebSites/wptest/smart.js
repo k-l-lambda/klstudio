@@ -436,6 +436,21 @@ var findSampleNoteSegment = function(c_notes, c_range) {
 	if (segment.length > 0) {
 		// calculate range
 		var head = _sequence[segment[segment.length - 1]];
+
+		// find the nearest head note
+		var distance = Math.abs(criterionNotations.notes[head.c_index].startTick - c_range.start);
+		for (var i = segment.length - 2; i >= 0; --i) {
+			var s_note = _sequence[segment[i]];
+			if (s_note.c_index >= 0) {
+				var c_note = criterionNotations.notes[s_note.c_index];
+				var d = Math.abs(c_note.startTick - c_range.start);
+				if (d < distance) {
+					head = _sequence[segment[i]];
+					distance = d;
+				}
+			}
+		}
+
 		var tail = _sequence[segment[0]];
 
 		var tempo_s = head.eval.tempo || 600;

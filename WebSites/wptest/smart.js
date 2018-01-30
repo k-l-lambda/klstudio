@@ -396,7 +396,9 @@ var scrollSampleCanvas = function() {
 };
 
 
-var findSampleNoteSegment = function(c_notes, c_range) {
+var findSampleNoteSegment = function(c_notes, c_range, options) {
+	options = options || {};
+
 	//console.log("findSampleNoteSegment:", c_notes, c_range);
 
 	if (!window._sequence || !window._correspondence || !c_notes.length)
@@ -492,11 +494,20 @@ var findSampleNoteSegment = function(c_notes, c_range) {
 		}
 
 		for (var i = end_index + 1; i < _sequence.length; ++i) {
-			if (_sequence[i].c_index >= 0)
-				break;
+			if (options.extend) {
+				if (_sequence[i].start > endTime)
+					break;
+			}
+			else {
+				if (_sequence[i].c_index >= 0)
+					break;
+			}
 
 			end_index = Math.max(end_index, i);
 		}
+
+		if (options.extend)
+			start_index = Math.max(start_index - 20, 0);
 
 		var notes = [];
 		for (var i = start_index; i <= end_index; ++i) {
@@ -505,7 +516,10 @@ var findSampleNoteSegment = function(c_notes, c_range) {
 				var exclude = false;
 
 				// exclude out of range notes
-				if (note.c_index >= 0) {
+				if (options.extend) {
+					exclude |= note.start + note.duration <= startTime;
+				}
+				else if (note.c_index >= 0) {
 					var c_note = criterionNotations.notes[note.c_index];
 					exclude |= c_note.endTick <= c_range.start;
 				}
@@ -622,7 +636,7 @@ var showMeasureRollView = function(mm) {
 			var measure = criterionMidiInfo.measure_list[mm][i];
 			var tick_range = {start: measure.startTick, end: measure.endTick};
 
-			var ss = findSampleNoteSegment(measure.notes, tick_range);
+			var ss = findSampleNoteSegment(measure.notes, tick_range, {extend: true});
 			if (ss && ss.notes.length > 0) {
 				var pitches = [];
 				for (var i in measure.notes) {

@@ -1140,13 +1140,13 @@ var updateCriterionPositionByIndex = function(index, elapsed) {
 };
 
 
-var noteOn = function (data) {
-    //console.log("noteOn:", data);
+var noteOn = function (data, timestamp) {
+	//console.log("noteOn:", data, timestamp);
 
-    var now = Date.now();
+    timestamp = timestamp || Date.now();
 
     ChannelStatus[data.channel] = ChannelStatus[data.channel] || [];
-    ChannelStatus[data.channel][data.pitch] = { start: now, velocity: data.velocity, pitch: data.pitch };
+    ChannelStatus[data.channel][data.pitch] = { start: timestamp, velocity: data.velocity, pitch: data.pitch };
 
     Follower.onNoteRecord(ChannelStatus[data.channel][data.pitch]);
 
@@ -1157,16 +1157,17 @@ var noteOn = function (data) {
     }
 };
 
-var noteOff = function (data) {
-    //console.log("noteOff:", data);
+var noteOff = function (data, timestamp) {
+	//console.log("noteOff:", data, timestamp);
 
-    var now = Date.now();
+    timestamp = timestamp || Date.now();
+
     var status = ChannelStatus[data.channel][data.pitch];
     if (!status)
         return;
 
     var note = status;
-    note.duration = now - status.start;
+    note.duration = timestamp - status.start;
 
     var score = svg("#sample-score");
 

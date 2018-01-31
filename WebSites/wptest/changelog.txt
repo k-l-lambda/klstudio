@@ -5,6 +5,11 @@ TODO:
 	smart follower based on state machine
 
 
+2018.1.31
+
+	+	smart: added timestamp for noteOn, onteOff.
+
+
 2018.1.30
 
 	+	smart: refined findSampleNoteSegment by extend option.

@@ -55,6 +55,8 @@ var Config = {
     RepeatConnectionCost: 1,
     StartPositionOffsetCost: 1,
     StepDecay: 0.96,
+
+	SmartServiceOrigin: "http://13.13.13.83:8101",
 };
 
 var PianoConfig = {
@@ -156,7 +158,7 @@ loadScript(dir + "../js/jquery.js", function() {
 
 				var midiData = /*window.midiInfo_sp ||*/ window.midiInfo;
 
-				sampleMidiInfo = window.midiInfo || window.midiInfo_sp;
+				sampleMidiInfo = window.midiInfo_sp || window.midiInfo;
 
 				if (midiData)
 					initializePage(midiData);
@@ -174,8 +176,19 @@ loadScript(dir + "../js/jquery.js", function() {
 });
 
 loadScript(dir + "../js/MusicalUtils.js");
+loadScript(dir + "../js/md5.js");
 loadScript(dir + "MidiMatch.js");
 loadScript(dir + "evaluation.js");
+
+loadScript(dir + "../js/MIDI/inc/WebMIDIAPI.js", function() {
+	loadScript(dir + "../js/MIDI/inc/Base64.js", function() {
+		loadScript(dir + "../js/MIDI/inc/base64binary.js", function() {
+			loadScript(dir + "../js/MIDI/inc/streamEx.js", function() {
+				loadScript(dir + "../js/MIDI/inc/midifileEx.js");
+			});
+		});
+	});
+});
 
 loadCss(dir + "MusicSheetView.css");
 
@@ -295,6 +308,64 @@ var parseJsonNotations = function(json) {
 	json.measure_list = measure_list;
 
     return { channels: channels, notes: notes, pitchMap: pitchMap, pedals: pedals, bars: bars, endTime: time, keyRange: keyRange };
+};
+
+
+var encodeNotationToMIDI = function(notation) {
+	notation.microsecondsPerBeat = notation.microsecondsPerBeat || 500000;
+
+	var ticksPerBeat = 96;
+	var msToTicks = ticksPerBeat * 1000 / notation.microsecondsPerBeat;
+
+	var header = { formatType: 0, ticksPerBeat: ticksPerBeat };
+	var track = [];
+
+	var startTime = notation.notes[0].start;
+
+	track.push({ time: startTime, type: "meta", subtype: "timeSignature", numerator: 4, denominator: 4, thirtyseconds: 8 });
+	track.push({ time: startTime, type: "meta", subtype: "setTempo", microsecondsPerBeat: notation.microsecondsPerBeat });
+
+	var endTime = 0;
+
+	for (var i in notation.notes) {
+		var note = notation.notes[i];
+
+		track.push({
+			time: note.start,
+			type: "channel",
+			subtype: "noteOn",
+			channel: note.channel,
+			noteNumber: note.pitch,
+			velocity: note.velocity,
+		});
+
+		endTime = Math.max(endTime, note.start);
+
+		if (note.duration) {
+			track.push({
+				time: note.start + note.duration,
+				type: "channel",
+				subtype: "noteOff",
+				channel: note.channel,
+				noteNumber: note.pitch,
+				velocity: 0,
+			});
+
+			endTime = Math.max(endTime, note.start + note.duration);
+		}
+	}
+
+	track.push({ time: endTime + 100, type: "meta", subtype: "endOfTrack" });
+
+	track.sort(function (e1, e2) { return e1.time - e2.time; });
+	for (var i in track)
+		track[i].deltaTime = (i > 0 ? (track[i].time - track[i - 1].time) : 0) * msToTicks;
+
+	//console.log(track);
+
+	var midiData = OMidiFile(header, [track]);
+
+	return "data:audio/mid;base64," + btoa(midiData);
 };
 
 
@@ -1277,12 +1348,6 @@ var playSample = function(data) {
     samplePlayHandle = setTimeout(step, deltaTicks * TICK_TO_MS);
 };
 
-/*var restartSamplePlay = function() {
-    sampleCursorIndex = 0;
-
-    playSample(sampleMidiInfo);
-};*/
-
 var pauseSamplePlay = function() {
     samplePlaying = false;
 };
@@ -1294,11 +1359,16 @@ var resumeSamplePlay = function() {
     playSample(sampleMidiInfo);
 };
 
-/*var endSamplePlay = function() {
-    samplePlaying = false;
-    sampleCursorIndex = 0;
-    samplePaused = false;
-};*/
+
+var sendRecording = function() {
+	$.post(Config.SmartServiceOrigin + "/upload-recording", {
+		title: criterionMidiInfo.title || "",
+		criterion_id: md5(JSON.stringify(criterionMidiInfo)),
+		sample: encodeNotationToMIDI({notes: _sequence}),
+	}, function(response, status, xhr) {
+		console.log("recording uploaded:", response);
+	}, "json");
+};
 
 
 
@@ -1460,6 +1530,8 @@ var initializePage = function(midiData) {
 			}
 
 			paintEvaluation(result);
+
+			sendRecording();
 		},
 	});
 

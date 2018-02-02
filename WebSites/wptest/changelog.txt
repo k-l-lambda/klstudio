@@ -5,6 +5,11 @@ TODO:
 	smart follower based on state machine
 
 
+2018.2.2
+
+	+	smart: upload recording to smart service.
+
+
 2018.1.31
 
 	+	smart: added timestamp for noteOn, onteOff.
@@ -33,7 +38,7 @@ TODO:
 
 	+	smart.js: measure summary text added.
 
-	+	smart.js: switching measure view implemneted.
+	+	smart.js: switching measure view implemented.
 
 	+	smart.js: added measure roll mask.
 

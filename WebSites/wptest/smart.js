@@ -1361,12 +1361,32 @@ var resumeSamplePlay = function() {
 
 
 var sendRecording = function() {
+	var info = {
+		beatInfos: criterionMidiInfo.beatInfos,
+		beats: criterionMidiInfo.beats,
+		beatsUnit: criterionMidiInfo.beatsUnit,
+		events: criterionMidiInfo.events,
+		tempos: criterionMidiInfo.tempos,
+		ver: criterionMidiInfo.ver,
+	};
+	var criterionData = JSON.stringify(info);
+	var cid = md5(criterionData);
+
 	$.post(Config.SmartServiceOrigin + "/upload-recording", {
 		title: criterionMidiInfo.title || "",
-		criterion_id: md5(JSON.stringify(criterionMidiInfo)),
+		criterion_id: cid,
 		sample: encodeNotationToMIDI({notes: _sequence}),
 	}, function(response, status, xhr) {
-		console.log("recording uploaded:", response);
+		console.log("Recording uploaded:", response);
+
+		if (response.criterionRequired) {
+			$.post(Config.SmartServiceOrigin + "/upload-criterion", {
+				id: cid,
+				data: criterionData,
+			}, function() {
+				console.log("Criterion data uploaded.");
+			});
+		}
 	}, "json");
 };
 

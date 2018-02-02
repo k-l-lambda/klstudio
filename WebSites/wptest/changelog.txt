@@ -7,6 +7,8 @@ TODO:
 
 2018.2.2
 
+	+	smart: upload criterion added.
+
 	+	smart: upload recording to smart service.
 
 

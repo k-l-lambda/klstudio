@@ -57,6 +57,7 @@ var Config = {
     StepDecay: 0.96,
 
 	SmartServiceOrigin: "http://13.13.13.83:8101",
+	//SmartServiceOrigin: "http://localhost:8101",
 };
 
 var PianoConfig = {
@@ -1376,12 +1377,14 @@ var sendRecording = function() {
 		title: criterionMidiInfo.title || "",
 		criterion_id: cid,
 		sample: encodeNotationToMIDI({notes: _sequence}),
+		length: _sequence[_sequence.length - 1].start - _sequence[0].start,
 	}, function(response, status, xhr) {
 		console.log("Recording uploaded:", response);
 
 		if (response.criterionRequired) {
 			$.post(Config.SmartServiceOrigin + "/upload-criterion", {
 				id: cid,
+				title: criterionMidiInfo.title || "",
 				data: criterionData,
 			}, function() {
 				console.log("Criterion data uploaded.");
@@ -1551,7 +1554,8 @@ var initializePage = function(midiData) {
 
 			paintEvaluation(result);
 
-			sendRecording();
+			if (_sequence.length > 0)
+				sendRecording();
 		},
 	});
 

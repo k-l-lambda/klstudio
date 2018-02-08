@@ -1212,8 +1212,14 @@ var updateCriterionPositionByIndex = function(index, elapsed) {
 };
 
 
+var timestampOffset = null;
+
+
 var noteOn = function (data, timestamp) {
 	//console.log("noteOn:", data, timestamp);
+
+	if (timestamp)
+		timestampOffset = timestampOffset || (Date.now() - timestamp);
 
     timestamp = timestamp || Date.now();
 
@@ -1556,6 +1562,10 @@ var initializePage = function(midiData) {
 
 			if (_sequence.length > 0)
 				sendRecording();
+		},
+		noteStartTimeOffset: function() {
+			console.log("timestampOffset:", timestampOffset);
+			return timestampOffset || 0;
 		},
 	});
 

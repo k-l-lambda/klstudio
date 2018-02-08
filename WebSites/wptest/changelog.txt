@@ -5,6 +5,11 @@ TODO:
 	smart follower based on state machine
 
 
+2018.2.8
+
+	>	smart: fixed time stamp compare issue.
+
+
 2018.2.2
 
 	+	smart: upload criterion added.

@@ -371,6 +371,13 @@
 				});
 			};
 
+			var moveDuplicatedFiles = function () {
+				var paths = $("li.duplicated").toArray().map(l =>[{ path: $(l).data("identity"), hash: $(l).data("path") }, { path: $(l).data("path"), hash: $(l).data("path") }]);
+				paths = [].concat(...paths);
+
+				Peris.moveDuplicatedFigureFiles(paths);
+			};
+
 			$(function () {
 				ajax = new ajax_queue({ onIdle: onIdle });
 

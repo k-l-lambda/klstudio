@@ -307,10 +307,15 @@
 
 				figure.click(function () {
 					(function () {
-						var path_ = path;
+						//var path_ = path;
+						var figure_ = figure;
 
 						if (event.ctrlKey) {
-							Peris.showFileInFolder(path_);
+							Peris.showFileInFolder(figure_.data("path"));
+
+							var identity = figure_.data("identity");
+							if (identity)
+								Peris.showFileInFolder(identity);
 
 							event.preventDefault();
 						}
@@ -350,8 +355,10 @@
 
 						figure.addClass("ready");
 
-						if(json.duplicated)
+						if (json.duplicated) {
 							figure.addClass("duplicated");
+							figure.data("identity", json.duplicated);
+						}
 					}
 					else {
 						console.warn("check file failed: ", json);

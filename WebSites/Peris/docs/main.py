@@ -480,6 +480,11 @@ class CheckFileHandle:
 						rename = getImageExtensionFix(full_path)
 						if rename:
 							new_path = re.sub(r"\.\w+$", "." + rename, path)
+							i = 1
+							while os.path.isfile(config.data_root + new_path):
+								new_path = re.sub(r"\.\w+$", ("(%d)." % i) + rename, path)
+								i = i + 1
+
 							os.rename(full_path, config.data_root + new_path)
 
 							record = db.select('file_register', where = 'path=$path', vars = dict(path = path))

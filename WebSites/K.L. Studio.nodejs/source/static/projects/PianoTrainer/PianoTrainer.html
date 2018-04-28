@@ -1578,7 +1578,7 @@
 			var resetlocalStorage = function () {
 				localStorage.removeItem("KeyboardRangeLow");
 				localStorage.removeItem("KeyboardRangeHigh");
-				localStorage.removeItem("KeyboardRangeAuto"); 
+				localStorage.removeItem("KeyboardRangeAuto");
 				localStorage.removeItem("MetaData");
 				localStorage.removeItem("KeyMap");
 			};
@@ -1833,7 +1833,7 @@
 									break;
 								case "controller":
 									switch (event.controllerType) {
-										// pedal controllers  
+										// pedal controllers
 										case 64:
 										case 65:
 										case 66:
@@ -2356,6 +2356,63 @@
 				console.log("Edition saved.");
 			};
 
+			const onWebMIDIMessage = function(message) {
+				console.log("onWebMIDIMessage:", message.data, message.timeStamp);
+
+				const cmd = message.data[0] >> 4;
+				const channel = message.data[0] & 0xf;
+				const noteNumber = message.data[1];
+				const velocity = message.data[2];
+
+				const data = {note: noteNumber, channel, velocity};
+
+				switch(cmd) {
+					case 9:	// note on
+						if (velocity > 0) {
+							data.type = "NoteOn";
+
+							break;
+						}
+
+					case 8:	// note off
+						data.type = "NoteOff";
+
+						break;
+					case 14:	// pitch wheel
+						data.type = "PitchWheel";
+						data.value = velocity * 128.0 + noteNumber;
+
+						break;
+				}
+
+				switch (data.type) {
+					case "NoteOn":
+						noteOn(data);
+
+						break;
+					case "NoteOff":
+						noteOff(data);
+
+						break;
+					case "PedalOn":
+						Rec.onPedalOn(data);
+
+						break;
+					case "PedalOff":
+						Rec.onPedalOff(data);
+
+						break;
+					case "PitchWheel":
+						if (!MIDI.Player.playing) {
+							PitchWheelValue = (data.value - 0x2000) / 0x2000;
+						}
+
+						break;
+					default:
+						console.log("Web MIDI message:", data.type);
+				}
+			}
+
 			$(function () {
 				$("body, body *").each(function (i, elem) {
 					elem.ondrop = function (e) {
@@ -2751,6 +2808,18 @@
 						console.log("MIDI plugin cleanup.");
 					});
 				}
+
+
+				// connect WebMIDI
+				if (navigator.requestMIDIAccess) {
+					navigator.requestMIDIAccess()
+						.then(midi => {
+							const inputs = midi.inputs.values();
+							for (const input of inputs)
+								input.onmidimessage = onWebMIDIMessage;
+						});
+				}
+
 
 				updateLayout();
 

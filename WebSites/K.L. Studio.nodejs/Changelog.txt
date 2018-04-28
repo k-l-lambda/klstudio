@@ -1,5 +1,12 @@
 
+TODO:
+	add petal web MIDI events
+
+
+
 2018.4.28	K.L.	<k.l.lambda@gmail.com>
+
+	+	PianoTrainer: added web MIDI interface.
 
 	+	Website of K.L. Studio based on node.js setup.
 

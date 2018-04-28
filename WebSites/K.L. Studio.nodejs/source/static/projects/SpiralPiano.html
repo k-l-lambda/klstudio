@@ -1,0 +1,1247 @@
+<html>
+	<head>
+		<title>Spiral Piano</title>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<style type="text/css">
+			html
+			{
+				background-color: black;
+				color: white;
+			}
+
+			body
+			{
+				text-align: center;
+				margin: 0;
+			}
+
+			body > *
+			{
+				vertical-align: middle;
+			}
+
+			#panel
+			{
+				width: 100vh;
+				height: 100vh;
+				max-width: 100vw;
+				max-height: 100vw;
+			}
+
+			#panel .key
+			{
+				stroke: white;
+				stroke-width: 0;
+				filter: url(#filter-grey);
+				cursor: pointer;
+				opacity: 0.8;
+			}
+
+			#panel .key:hover
+			{
+				filter: url(#filter-middle-saturate);
+				opacity: 1;
+			}
+
+			#panel .key.active
+			{
+				filter: url(#filter-brilliancy) !important;
+				opacity: 1;
+				stroke-width: 2px;
+			}
+
+			.key-label
+			{
+				text-anchor: middle;
+			}
+
+			.syllable-label
+			{
+				text-anchor: middle;
+				font-size: 10px;
+			}
+
+			.group-1
+			{
+				filter: url(#filter-brightness-n4);
+			}
+
+			.group-2
+			{
+				filter: url(#filter-brightness-n3);
+			}
+
+			.group-3
+			{
+				filter: url(#filter-brightness-n2);
+			}
+
+			.group-4
+			{
+				filter: url(#filter-brightness-n1);
+			}
+
+			.group-6
+			{
+				filter: url(#filter-brightness-1);
+			}
+
+			.group-7
+			{
+				filter: url(#filter-brightness-2);
+			}
+
+			.group-8
+			{
+				filter: url(#filter-brightness-3);
+			}
+
+			.group-9
+			{
+				filter: url(#filter-brightness-4);
+			}
+
+			.region
+			{
+				stroke: white;
+				stroke-width: 1px;
+			}
+
+			.region-main
+			{
+				fill: #ccc;
+			}
+
+			.region-deputy
+			{
+				fill: #777;
+			}
+
+			#settings
+			{
+				display: inline-block;
+				margin-left: 20px;
+				text-align: justify;
+			}
+
+			#span-keyboard-canvas
+			{
+				width: 470px;
+				height: 60px;
+			}
+
+			#span-keyboard .key
+			{
+				cursor: pointer;
+			}
+
+			.white-key
+			{
+				fill: white;
+				stroke: #333;
+				stroke-width: 1px;
+			}
+
+			.black-key
+			{
+				fill: black;
+			}
+
+			.white-key:hover, .white-key.active
+			{
+				fill: #aaf;
+			}
+
+			.black-key:hover, .black-key.active
+			{
+				fill: #22d;
+			}
+
+			#span-keyboard-labels text
+			{
+				text-anchor: middle;
+				font-size: 8px;
+			}
+
+			#def-vernier
+			{
+				fill: #ddf;
+				stroke: #222;
+				stroke-width: 1px;
+			}
+
+			#span-verniers
+			{
+				cursor: pointer;
+			}
+
+			#player input, #player span
+			{
+				vertical-align: middle;
+			}
+
+			#player-source
+			{
+				width: 30em;
+				height: 100%;
+			}
+
+			.player-button
+			{
+				opacity: 0.7;
+			}
+
+			.player-button:hover
+			{
+				opacity: 1;
+			}
+
+			.player-button:active
+			{
+				opacity: 0.85;
+			}
+
+			#player-progress
+			{
+				display: inline-block;
+				height: 26px;
+				border-radius: 8px;
+				overflow: hidden;
+			}
+
+			#player-progress-cursor
+			{
+				display: inline-block;
+				position: relative;
+				background: #003b96;
+				background-image: -webkit-gradient(linear, left top, left bottom, color-stop(1, #003b96), color-stop(0, #0088e9));
+				top: -24px;
+				height: 22px;
+				opacity: 0.6;
+			}
+
+			#player-source-tips
+			{
+				position: absolute;
+				display: inline-block;
+				line-height: 26px;
+				color: #ccc;
+				padding-left: 0.4em;
+			}
+
+			.drag-hover #player-progress
+			{
+				outline: red solid 2px;
+			}
+
+			.drag-hover #player-source
+			{
+				background: #ffc;
+			}
+
+			.drag-hover #player-source-tips
+			{
+				color: #444;
+				font-weight: bold;
+			}
+
+			#loading
+			{
+				position: fixed;
+				top: 0;
+				width: 100%;
+				height: 100%;
+				background: no-repeat no-repeat url(/res/images/loading-5d.gif) center;
+				background-color: rgba(0, 0, 0, 0.4);
+			}
+
+			@media only screen and (max-device-width: 1200px)
+			{
+				/*#panel
+				{
+					width: 600px;
+					height: 600px;
+				}*/
+
+				#settings-touch-line
+				{
+					display: none;
+				}
+			}
+		</style>
+		<style id="synesthesia" type="text/css">
+		</style>
+		<script src="../js/jquery.js" type="text/javascript"></script>
+		<script src="../js/jquery.svg.js" type="text/javascript"></script>
+		<script src="../js/Color.js" type="text/javascript"></script>
+		<script src="../js/MIDI/AudioDetect.js" type="text/javascript"></script>
+		<script src="../js/MIDI/LoadPlugin.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Plugin.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Player.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Window/DOMLoader.XMLHttp.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Window/DOMLoader.script.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/WebMIDIAPI.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/Base64.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/base64binary.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/replayer.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/midifile.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/stream.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			var Config = {
+				GroupLen: 12,
+				InnerRadius: 30,
+				ScrewPitch: 4,
+				Center: { x: 400, y: 400 },
+				KeyCount: 88,
+				NoteStart: 21,
+				NoteEnd: 108,
+				MiddleC: 60,
+				RegionRadius: 400,
+				Mode: {
+					Major: {
+						MainPitches: { 0: true, 2: true, 4: true, 5: true, 7: true, 9: true, 11: true },
+						SyllableNames: ["do", null, "re", null, "mi", "fa", null, "so", null, "la", null, "si"]
+					},
+					Minor: {
+						MainPitches: { 0: true, 2: true, 3: true, 5: true, 7: true, 8: true, 11: true },
+						SyllableNames: ["do", null, "re", "mi", null, "fa", null, "so", "la", null, null, "si"]
+					}
+				},
+				KeySerials: {
+					White: [0, 2, 4, 5, 7, 9, 11],
+					BlackPosition: {
+						1: 0.4,
+						3: 1.6,
+						6: 3.34,
+						8: 4.5,
+						10: 5.66
+					}
+				},
+				SpanKeyWidth: 9
+			};
+
+			var Status = {
+				Extends: [],
+				KeyPoints: [],
+				ModalOffset: 0,
+				KeyWidthRatio: 0.7,
+				Mode: Config.Mode.Major,
+				WideRange: {Start: 51, End: 83}
+			};
+
+			var Synesthesia = {
+				Rainbow: {
+					0: "#ff0000",
+					1: "#ff8600",
+					2: "#ffb400",
+					3: "#ffe400",
+					4: "#eaff00",
+					5: "#6cff00",
+					6: "#00ff96",
+					7: "#00fff6",
+					8: "#008cff",
+					9: "#0003ff",
+					10: "#8e00ff",
+					11: "#f000ff"
+				},
+				FifthRainbow: {
+					1: "#ff0000",
+					8: "#ff8600",
+					3: "#ffb400",
+					10: "#ffe400",
+					5: "#eaff00",
+					0: "#6cff00",
+					7: "#00ff96",
+					2: "#00fff6",
+					9: "#008cff",
+					4: "#0003ff",
+					11: "#8e00ff",
+					6: "#f000ff"
+				},
+				'Isaac Newton (1704)': {
+					ref: "Gerstner, p.167",
+					english: ['red', null, 'orange', null, 'yellow', 'green', null, 'blue', null, 'indigo', null, 'violet'],
+					0: [0, 96, 51], // C
+					1: [0, 0, 0], // C#
+					2: [29, 94, 52], // D
+					3: [0, 0, 0], // D#
+					4: [60, 90, 60], // E
+					5: [135, 76, 32], // F
+					6: [0, 0, 0], // F#
+					7: [248, 82, 28], // G
+					8: [0, 0, 0], // G#
+					9: [302, 88, 26], // A
+					10: [0, 0, 0], // A#
+					11: [325, 84, 46] // B
+				},
+				'Louis Bertrand Castel (1734)': {
+					ref: 'Peacock, p.400',
+					english: ['blue', 'blue-green', 'green', 'olive green', 'yellow', 'yellow-orange', 'orange', 'red', 'crimson', 'violet', 'agate', 'indigo'],
+					0: [248, 82, 28],
+					1: [172, 68, 34],
+					2: [135, 76, 32],
+					3: [79, 59, 36],
+					4: [60, 90, 60],
+					5: [49, 90, 60],
+					6: [29, 94, 52],
+					7: [360, 96, 51],
+					8: [1, 89, 33],
+					9: [325, 84, 46],
+					10: [273, 80, 27],
+					11: [302, 88, 26]
+				},
+				'George Field (1816)': {
+					ref: 'Klein, p.69',
+					english: ['blue', null, 'purple', null, 'red', 'orange', null, 'yellow', null, 'yellow green', null, 'green'],
+					0: [248, 82, 28],
+					1: [0, 0, 0],
+					2: [302, 88, 26],
+					3: [0, 0, 0],
+					4: [360, 96, 51],
+					5: [29, 94, 52],
+					6: [0, 0, 0],
+					7: [60, 90, 60],
+					8: [0, 0, 0],
+					9: [79, 59, 36],
+					10: [0, 0, 0],
+					11: [135, 76, 32]
+				},
+				'D. D. Jameson (1844)': {
+					ref: 'Jameson, p.12',
+					english: ['red', 'red-orange', 'orange', 'orange-yellow', 'yellow', 'green', 'green-blue', 'blue', 'blue-purple', 'purple', 'purple-violet', 'violet'],
+					0: [360, 96, 51],
+					1: [14, 91, 51],
+					2: [29, 94, 52],
+					3: [49, 90, 60],
+					4: [60, 90, 60],
+					5: [135, 76, 32],
+					6: [172, 68, 34],
+					7: [248, 82, 28],
+					8: [273, 80, 27],
+					9: [302, 88, 26],
+					10: [313, 78, 37],
+					11: [325, 84, 46]
+				},
+				'Theodor Seemann (1881)': {
+					ref: 'Klein, p.86',
+					english: ['carmine', 'scarlet', 'orange', 'yellow-orange', 'yellow', 'green', 'green blue', 'blue', 'indigo', 'violet', 'brown', 'black'],
+					0: [0, 58, 26],
+					1: [360, 96, 51],
+					2: [29, 94, 52],
+					3: [49, 90, 60],
+					4: [60, 90, 60],
+					5: [135, 76, 32],
+					6: [172, 68, 34],
+					7: [248, 82, 28],
+					8: [302, 88, 26],
+					9: [325, 84, 46],
+					10: [0, 58, 26],
+					11: [0, 0, 3]
+				},
+				'A. Wallace Rimington (1893)': {
+					ref: 'Peacock, p.402',
+					english: ['deep red', 'crimson', 'orange-crimson', 'orange', 'yellow', 'yellow-green', 'green', 'blueish green', 'blue-green', 'indigo', 'deep blue', 'violet'],
+					0: [360, 96, 51],
+					1: [1, 89, 33],
+					2: [14, 91, 51],
+					3: [29, 94, 52],
+					4: [60, 90, 60],
+					5: [79, 59, 36],
+					6: [135, 76, 32],
+					7: [163, 62, 40],
+					8: [172, 68, 34],
+					9: [302, 88, 26],
+					10: [248, 82, 28],
+					11: [325, 84, 46]
+				},
+				'Bainbridge Bishop (1893)': {
+					ref: 'Bishop, p.11',
+					english: ['red', 'orange-red or scarlet', 'orange', 'gold or yellow-orange', 'yellow or green-gold', 'yellow-green', 'green', 'greenish-blue or aquamarine', 'blue', 'indigo or violet-blue', 'violet', 'violet-red', 'red'],
+					0: [360, 96, 51],
+					1: [1, 89, 33],
+					2: [29, 94, 52],
+					3: [50, 93, 52],
+					4: [60, 90, 60],
+					5: [73, 73, 55],
+					6: [135, 76, 32],
+					7: [163, 62, 40],
+					8: [302, 88, 26],
+					9: [325, 84, 46],
+					10: [343, 79, 47],
+					11: [360, 96, 51]
+				},
+				'H. von Helmholtz (1910)': {
+					ref: 'Helmholtz, p.22',
+					english: ['yellow', 'green', 'greenish blue', 'cayan-blue', 'indigo blue', 'violet', 'end of red', 'red', 'red', 'red', 'red orange', 'orange'],
+					0: [60, 90, 60],
+					1: [135, 76, 32],
+					2: [172, 68, 34],
+					3: [211, 70, 37],
+					4: [302, 88, 26],
+					5: [325, 84, 46],
+					6: [330, 84, 34],
+					7: [360, 96, 51],
+					8: [10, 91, 43],
+					9: [10, 91, 43],
+					10: [8, 93, 51],
+					11: [28, 89, 50]
+				},
+				'Alexander Scriabin (1911)': {
+					ref: 'Jones, p.104',
+					english: ['red', 'violet', 'yellow', 'steely with the glint of metal', 'pearly blue the shimmer of moonshine', 'dark red', 'bright blue', 'rosy orange', 'purple', 'green', 'steely with a glint of metal', 'pearly blue the shimmer of moonshine'],
+					0: [360, 96, 51],
+					1: [325, 84, 46],
+					2: [60, 90, 60],
+					3: [245, 21, 43],
+					4: [211, 70, 37],
+					5: [1, 89, 33],
+					6: [248, 82, 28],
+					7: [29, 94, 52],
+					8: [302, 88, 26],
+					9: [135, 76, 32],
+					10: [245, 21, 43],
+					11: [211, 70, 37]
+				},
+				'Adrian Bernard Klein (1930)': {
+					ref: 'Klein, p.209',
+					english: ['dark red', 'red', 'red orange', 'orange', 'yellow', 'yellow green', 'green', 'blue-green', 'blue', 'blue violet', 'violet', 'dark violet'],
+					0: [0, 91, 40],
+					1: [360, 96, 51],
+					2: [14, 91, 51],
+					3: [29, 94, 52],
+					4: [60, 90, 60],
+					5: [73, 73, 55],
+					6: [135, 76, 32],
+					7: [172, 68, 34],
+					8: [248, 82, 28],
+					9: [292, 70, 31],
+					10: [325, 84, 46],
+					11: [330, 84, 34]
+				},
+				'August Aeppli (1940)': {
+					ref: 'Gerstner, p.169',
+					english: ['red', null, 'orange', null, 'yellow', null, 'green', 'blue-green', null, 'ultramarine blue', 'violet', 'purple'],
+					0: [0, 96, 51],
+					1: [0, 0, 0],
+					2: [29, 94, 52],
+					3: [0, 0, 0],
+					4: [60, 90, 60],
+					5: [0, 0, 0],
+					6: [135, 76, 32],
+					7: [172, 68, 34],
+					8: [0, 0, 0],
+					9: [211, 70, 37],
+					10: [273, 80, 27],
+					11: [302, 88, 26]
+				},
+				'I. J. Belmont (1944)': {
+					ref: 'Belmont, p.226',
+					english: ['red', 'red-orange', 'orange', 'yellow-orange', 'yellow', 'yellow-green', 'green', 'blue-green', 'blue', 'blue-violet', 'violet', 'red-violet'],
+					0: [360, 96, 51],
+					1: [14, 91, 51],
+					2: [29, 94, 52],
+					3: [50, 93, 52],
+					4: [60, 90, 60],
+					5: [73, 73, 55],
+					6: [135, 76, 32],
+					7: [172, 68, 34],
+					8: [248, 82, 28],
+					9: [313, 78, 37],
+					10: [325, 84, 46],
+					11: [338, 85, 37]
+				},
+				'Steve Zieverink (2004)': {
+					ref: 'Cincinnati Contemporary Art Center',
+					english: ['yellow-green', 'green', 'blue-green', 'blue', 'indigo', 'violet', 'ultra violet', 'infra red', 'red', 'orange', 'yellow-white', 'yellow'],
+					0: [73, 73, 55],
+					1: [135, 76, 32],
+					2: [172, 68, 34],
+					3: [248, 82, 28],
+					4: [302, 88, 26],
+					5: [325, 84, 46],
+					6: [326, 79, 24],
+					7: [1, 89, 33],
+					8: [360, 96, 51],
+					9: [29, 94, 52],
+					10: [62, 78, 74],
+					11: [60, 90, 60]
+				}
+			};
+			var SynesthesiaScheme = "FifthRainbow";
+
+			var OnMobileDevice = (/ipad|android/i).test(navigator.userAgent);
+
+			var addClass = function(elem, cls){
+				elem.attr("class", elem.attr("class") + " " + cls);
+			};
+
+			var removeClass = function (elem, cls) {
+				if (elem.attr("class"))
+					elem.attr("class", elem.attr("class").replace(RegExp("\\s" + cls, "g"), ""));
+			};
+
+			var keyToNote = function(key){
+				return Config.NoteEnd - key;
+			};
+
+			var noteToKey = function (note) {
+				return Config.NoteEnd - note;
+			};
+
+			var noteToPitch = function (note) {
+				var pitch = note % Config.GroupLen;
+				if (pitch < 0)
+					pitch += Config.GroupLen;
+
+				return pitch;
+			};
+
+			var noteToGroup = function(note){
+				return Math.floor(note / Config.GroupLen);
+			};
+
+			var keyToOffset = function (key) {
+				var offset = (key * 7) % 12;
+				while (offset < -5)
+					offset += 12;
+				while (offset > 6)
+					offset -= 12;
+
+				return offset;
+			};
+
+			var getSpanExtends = function (low, high) {
+				var exts = [];
+				var avg = (low + high) / 2;
+				var unit = (low - high) / 2;
+				for (var k = 0; k < Config.KeyCount + Config.GroupLen + 1; ++k) {
+					var x = (keyToNote(k) - avg) / unit;
+					exts[k] = Math.exp(-x * x * x * x / 2) * 70;
+				}
+
+				return exts;
+			};
+
+			var initializeStatus = function () {
+				for (var k = 0; k < Config.KeyCount + Config.GroupLen + 1; ++k) {
+					//Status.Extends[k] = 0;
+					//Status.Extends[k] = Math.sin((k - 3) * 3 * Math.PI / Config.GroupLen) * 20;
+					Status.KeyPoints[k] = Config.InnerRadius + k * Config.ScrewPitch / Config.GroupLen;
+				}
+				Status.Extends = getSpanExtends(Status.WideRange.Start, Status.WideRange.End);
+			};
+
+			var updateKeyPoints = function () {
+				for (var k = 0; k < Config.KeyCount + Config.GroupLen + 1; ++k) {
+					var exts = 0;
+					for (var g = Math.floor(k / Config.GroupLen); g > 0; --g)
+						exts += Status.Extends[k - g * Config.GroupLen];
+
+					Status.KeyPoints[k] = Config.InnerRadius + k * Config.ScrewPitch / Config.GroupLen + exts;
+				}
+			};
+
+			var svg = function (selector) {
+				return new $.svg._wrapperClass($(selector)[0]);
+			};
+
+			var getOffsetAngles = function (note) {
+				var mains = [noteToPitch(note + 1) in Status.Mode.MainPitches, noteToPitch(note) in Status.Mode.MainPitches];
+				var offsetAngle = (mains[0] == mains[1]) ? 0.5 : (mains[0] ? 1 - Status.KeyWidthRatio : Status.KeyWidthRatio);
+
+				return offsetAngle;
+			};
+
+			var activeKey = function (key, volume) {
+				if (volume === undefined)
+					volume = 100;
+
+				if (volume > 0)
+					MIDI.noteOn(0, key.data("note"), volume);
+				addClass(key, "active");
+
+				key.data("volume", volume);
+
+				updateBackground();
+			};
+
+			var deactiveKey = function (key, mute) {
+				if (!mute)
+					MIDI.noteOff(0, key.data("note"));
+				removeClass(key, "active");
+
+				key.removeData("volume");
+
+				updateBackground();
+			};
+
+			var paintKeys = function () {
+				var points = [];
+				for (var p = 0; p < Config.KeyCount + Config.GroupLen + 1; ++p) {
+					var offsetAngle = getOffsetAngles(keyToNote(p) - Status.ModalOffset);
+					var angle = Math.PI * (1.5 - (Status.ModalOffset + p - offsetAngle) * 2 / Config.GroupLen);
+					var radius = (Status.KeyPoints[p] + (p > 0 ? Status.KeyPoints[p - 1] : Status.KeyPoints[p])) / 2;
+
+					points[p] = { x: Config.Center.x + Math.cos(angle) * radius, y: Config.Center.y + Math.sin(angle) * radius };
+				}
+
+				$("#keys g").empty();
+				for (var k = 0; k < Config.KeyCount; ++k) {
+					var group = svg("#keys .group-" + noteToGroup(keyToNote(k)));
+					var key = group.createPath();
+
+					key.move(points[k].x, points[k].y);
+					//key.line(points[k + 1].x, points[k + 1].y);
+					key.arc(Status.KeyPoints[k], Status.KeyPoints[k], 0, false, false, points[k + 1].x, points[k + 1].y);
+					key.line(points[k + Config.GroupLen + 1].x, points[k + Config.GroupLen + 1].y);
+					//key.line(points[k + Config.GroupLen].x, points[k + Config.GroupLen].y);
+					key.arc(Status.KeyPoints[k + Config.GroupLen], Status.KeyPoints[k + Config.GroupLen], 0, false, true, points[k + Config.GroupLen].x, points[k + Config.GroupLen].y);
+					key.close();
+
+					var shape = group.path(key, { class: "key pitch-" + ((keyToNote(k) - Status.ModalOffset) % Config.GroupLen), "data-note": keyToNote(k) });
+				}
+
+				if (OnMobileDevice) {
+					$("#panel .key").bind("touchstart", function () {
+						activeKey($(this));
+
+						event.preventDefault();
+					});
+					$("#panel .key").bind("touchend", function () {
+						deactiveKey($(this));
+					});
+
+					/*$("#panel .key").bind("touchmove", function () {
+						//console.log("touchmove:", event.targetTouches[0].target);
+					});*/
+				}
+				else {
+					$("#panel .key").mousedown(function () {
+						activeKey($(this));
+
+						event.preventDefault();
+						return false;
+					});
+					$("#panel .key").mouseup(function () {
+						deactiveKey($(this));
+					});
+
+					$("#panel .key").mouseenter(function () {
+						if (event.which == 1 || $("#settings-touch")[0].checked) {
+							activeKey($(this));
+						}
+					});
+					$("#panel .key").mouseleave(function () {
+						if (event.which == 1 || $("#settings-touch")[0].checked) {
+							deactiveKey($(this));
+						}
+					});
+				}
+
+				var getMiddlePoint = function (note) {
+					var k = noteToKey(note);
+					return { x: (points[k].x + points[k + 1].x + points[k + Config.GroupLen].x + points[k + Config.GroupLen + 1].x) / 4, y: (points[k].y + points[k + 1].y + points[k + Config.GroupLen].y + points[k + Config.GroupLen + 1].y) / 4 };
+				};
+
+				$("#keys-labels").empty();
+				var keyLabels = svg("#keys-labels");
+				var point = getMiddlePoint(Config.MiddleC);
+				keyLabels.text(point.x, point.y, "C", { class: "key-label" });
+			};
+
+			var paintPanelBackground = function () {
+				// labels
+				$("#labels").empty();
+				var labels = svg("#labels");
+
+				for (var i = 0; i < Config.GroupLen; ++i) {
+					if (Status.Mode.SyllableNames[i]) {
+						var angle = Math.PI * (1.5 + i * 2 / Config.GroupLen);
+						var radius = Config.InnerRadius - 8;
+						labels.text(Config.Center.x + Math.cos(angle) * radius, Config.Center.y + 3 + Math.sin(angle) * radius, Status.Mode.SyllableNames[i], { class: "syllable-label" });
+					}
+				}
+
+				// regions
+				var regionPoints = [];
+				for (var i = 0; i < Config.GroupLen; ++i) {
+					var offsetAngle = getOffsetAngles(i);
+					var angle = Math.PI * (1.5 + (i + offsetAngle) * 2 / Config.GroupLen);
+
+					regionPoints[i] = { x: Config.Center.x + Math.cos(angle) * Config.RegionRadius, y: Config.Center.y + Math.sin(angle) * Config.RegionRadius };
+				}
+
+				$("#regions").empty();
+				var regions = svg("#regions");
+				for (var i = 0; i < Config.GroupLen; ++i) {
+					var nextIndex = (i > 0) ? i - 1 : Config.GroupLen - 1;
+					var region = regions.createPath();
+					region.move(Config.Center.x, Config.Center.y);
+					region.line(regionPoints[i].x, regionPoints[i].y);
+					region.arc(Config.RegionRadius, Config.RegionRadius, 0, false, false, regionPoints[nextIndex].x, regionPoints[nextIndex].y);
+					region.close();
+
+					regions.path(region, { class: "region region-" + i + " region-" + (noteToPitch(i + Status.ModalOffset) in Status.Mode.MainPitches ? "main" : "deputy") });
+				}
+			};
+
+			var initializeSpanKeyboard = function () {
+				var noteToX = function (note) {
+					var group = noteToGroup(note);
+					var pitch = noteToPitch(note);
+					var pos = Config.KeySerials.White.indexOf(pitch);
+					if (pos < 0)
+						pos = Config.KeySerials.BlackPosition[pitch];
+
+					return group * Config.KeySerials.White.length + pos - 12;
+				};
+
+				var xToNote = function (x) {
+					var pos = Math.floor(x / Config.SpanKeyWidth) + 12;
+					var group = Math.floor(pos / 7);
+					var pitch = Config.KeySerials.White[pos % 7];
+
+					return group * 12 + pitch;
+				};
+
+				var keyboardWhite = svg("#span-keyboard-white");
+				var keyboardBlack = svg("#span-keyboard-black");
+				for (var note = Config.NoteStart; note <= Config.NoteEnd; ++note) {
+					var pitch = noteToPitch(note);
+					var x = noteToX(note);
+					if (Config.KeySerials.White.indexOf(pitch) >= 0) {
+						keyboardWhite.rect(x * Config.SpanKeyWidth, 0, Config.SpanKeyWidth, Config.SpanKeyWidth * 4, 0, 0, { class: "key white-key", "data-note": note });
+					}
+					else {
+						keyboardBlack.rect((x + 0.1) * Config.SpanKeyWidth, 0, Config.SpanKeyWidth * 0.8, Config.SpanKeyWidth * 2.4, 0, 0, { class: "key black-key", "data-note": note });
+					}
+				}
+
+				var keyboardLabels = svg("#span-keyboard-labels");
+				keyboardLabels.text((noteToX(Config.MiddleC) + 0.5) * Config.SpanKeyWidth, Config.SpanKeyWidth * 3.5, "C");
+
+				$("#span-keyboard .key").mouseenter(function () {
+					activeKey($(this), 60);
+
+					activeKey($("#panel .key[data-note='" + $(this).data("note") + "']"), 0);
+				});
+				$("#span-keyboard .key").mouseleave(function () {
+					deactiveKey($(this));
+
+					deactiveKey($("#panel .key[data-note='" + $(this).data("note") + "']"), true);
+				});
+
+				$("#span-verniers-start").attr("x", noteToX(Status.WideRange.Start) * Config.SpanKeyWidth);
+				$("#span-verniers-end").attr("x", noteToX(Status.WideRange.End) * Config.SpanKeyWidth);
+
+				$(".vernier").mousedown(function () {
+					addClass($(this), "hold");
+
+					return false;
+				});
+
+				$("#span-keyboard-canvas, #span-verniers").mouseup(function () {
+					removeClass($("#span-verniers-start"), "hold");
+					removeClass($("#span-verniers-end"), "hold");
+				});
+
+				var onVernierMove = function () {
+					var x = event.pageX - $("#span-keyboard-canvas").offset().left;
+					var changed = false;
+
+					if ($("#span-verniers-start").is(".hold")) {
+						Status.WideRange.Start = Math.min(xToNote(x), Status.WideRange.End - 5);
+						$("#span-verniers-start").attr("x", noteToX(Status.WideRange.Start) * Config.SpanKeyWidth);
+
+						changed = true;
+					}
+
+					if ($("#span-verniers-end").is(".hold")) {
+						Status.WideRange.End = Math.max(xToNote(x), Status.WideRange.Start + 5);
+						$("#span-verniers-end").attr("x", noteToX(Status.WideRange.End) * Config.SpanKeyWidth);
+
+						changed = true;
+					}
+
+					if (changed) {
+						Status.Extends = getSpanExtends(Status.WideRange.Start, Status.WideRange.End);
+						updateKeyPoints();
+						paintKeys();
+					}
+				};
+
+				$("#span-keyboard-canvas, #span-verniers").mousemove(onVernierMove);
+			};
+
+			var pickFile = function (file) {
+				if (file.type == "audio/mid" || file.type == "audio/midi") {
+					var playing = $("#player-source").attr("disabled");
+					if (playing)
+						$("#player-stop").click();
+
+					var fr = new FileReader();
+					fr.onloadend = function (e) {
+						$("#player-source").val(e.currentTarget.result);
+
+						$("#player-play").click();
+						if (!MIDI.Player.playing)
+							$("#player-play").click();
+					};
+					fr.readAsDataURL(file);
+
+					$("#player-source-tips").hide();
+				}
+			};
+
+			var rgbFormat = function (array) {
+				if (typeof array === "string")
+					return array;
+
+				return "#" + Color.Space({ H: array[0], S: array[1], L: array[2] }, "HSL>RGB>HEX>STRING");
+			};
+
+			var updateSynesthesiaStyle = function () {
+				var text = "";
+				for (var i = 0; i < 12; ++i) {
+					text += ".pitch-" + i + " { fill: " + rgbFormat(Synesthesia[SynesthesiaScheme][i]) + "; }\n";
+				}
+
+				$("#synesthesia").text(text);
+
+				return text;
+			};
+
+			var getMelodyNote = function () {
+				var activeKeys = $(".key.active");
+				if (!activeKeys.length)
+					return null;
+
+				var mkey = $(activeKeys[0]);
+				for (var i = 1; i < activeKeys.length; ++i) {
+					var key = $(activeKeys[i]);
+
+					if (key.data("volume") > mkey.data("volume"))
+						mkey = key;
+					else if(key.data("volume") == mkey.data("volume") && key.data("note") > mkey.data("note"))
+						mkey = key;
+				}
+
+				return mkey.data("note");
+			};
+
+			var updateBackground = function () {
+				if ($("#settings-synesthesia")[0].checked) {
+					// set melody pitch color
+					var melodyNote = getMelodyNote();
+					var melodyPitch = (melodyNote - Status.ModalOffset) % Config.GroupLen;
+					$(".region").css("fill", melodyNote === null ? "" : rgbFormat(Synesthesia[SynesthesiaScheme][melodyPitch]));
+				}
+				else
+					$(".region").css("fill", "");
+			};
+
+			$(function () {
+				MIDI.loadPlugin({
+					soundfontUrl: "../soundfont/",
+					instrument: "acoustic_grand_piano",
+					callback: function () {
+						console.log("MIDI loaded.");
+
+						$("#loading").fadeOut(900);
+
+						$("#player-play").click(function () {
+							if (MIDI.Player.playing) {
+								MIDI.Player.pause();
+
+								$("#player-play").attr("src", "/res/images/play.png");
+							}
+							else {
+								if ($("#player-source").attr("disabled"))
+									MIDI.Player.resume();
+								else {
+									MIDI.Player.loadFile($("#player-source").val(), MIDI.Player.start);
+									$("#player-source").attr("disabled", true);
+								}
+
+								$("#player-play").attr("src", "/res/images/pause.png");
+							}
+						});
+
+						$("#player-stop").click(function () {
+							if ($("#player-source").attr("disabled")) {
+								MIDI.Player.stop();
+								$("#player-source").attr("disabled", false);
+
+								$("#player-play").attr("src", "/res/images/play.png");
+							}
+						});
+
+						$("#player-source-file").change(function () {
+							if (event.target.files[0])
+								pickFile(event.target.files[0]);
+						});
+
+						MIDI.Player.addListener(function (data) {
+							//console.log(data);
+
+							var key = $("#panel .key[data-note='" + data.note + "']");
+							var key2 = $("#span-keyboard .key[data-note='" + data.note + "']");
+							switch (data.message) {
+								case 144:
+									activeKey(key, 0);
+									activeKey(key2, 0);
+
+									break;
+								case 128:
+									deactiveKey(key, true);
+									deactiveKey(key2, true);
+
+									break;
+								case "meta":
+									switch (data.subtype) {
+										case "keySignature":
+											$("#settings-mode").val(keyToOffset(data.key));
+											$("#settings-mode").change();
+
+											break;
+									}
+
+									break;
+							}
+						});
+
+						MIDI.Player.setAnimation(function (data, element) {
+							$("#player-progress-cursor").css("width", (data.now * 100 / data.end) + "%");
+
+							if (data.now >= data.end)
+								$("#player-stop").click();
+						});
+					}
+				});
+
+				if ($("#panel").width() < 800)
+					$("#panel").attr("viewBox", "120 120 560 560");
+				else
+					$("#panel").attr("viewBox", "0 0 800 800");
+
+				updateSynesthesiaStyle();
+
+				initializeStatus();
+
+				paintPanelBackground();
+
+				updateKeyPoints();
+				paintKeys();
+
+				initializeSpanKeyboard();
+
+				$("#settings-mode").change(function () {
+					Status.ModalOffset = Number($("#settings-mode").val());
+
+					paintPanelBackground();
+					paintKeys();
+				});
+
+				$("body, #panel, #settings, #player-source, #player-source-tips, #player-progress-cursor").each(function (i, elem) {
+					elem.ondragover = function (e) {
+						$("#player").addClass("drag-hover");
+						e.preventDefault();
+					};
+					elem.ondragleave = function () {
+						$("#player").removeClass("drag-hover");
+					};
+
+					elem.ondrop = function (e) {
+						$("#player").removeClass("drag-hover");
+
+						pickFile(e.dataTransfer.files[0]);
+
+						e.preventDefault();
+						return false;
+					};
+				});
+
+				$("#player-source-tips").click(function () {
+					$("#player-source").focus();
+				});
+				$("#player-source").focus(function () {
+					$("#player-source-tips").hide();
+				});
+				$("#player-source").blur(function () {
+					if (!$("#player-source").val())
+						$("#player-source-tips").show();
+				});
+
+				for (var name in Synesthesia) {
+					var option = $("<option value='" + name + "'>" + name + "</option>")
+					option.appendTo("#settings-synesthesia-scheme");
+
+					if (name == SynesthesiaScheme)
+						option.attr("selected", true);
+				}
+				$("#settings-synesthesia-scheme").hide();
+
+				$("#settings-synesthesia").change(function () {
+					if ($("#settings-synesthesia")[0].checked)
+						$("#settings-synesthesia-scheme").show();
+					else
+						$("#settings-synesthesia-scheme").hide();
+				});
+
+				$("#settings-synesthesia-scheme").change(function () {
+					SynesthesiaScheme = $(this).val();
+					updateSynesthesiaStyle();
+				});
+			});
+		</script>
+		<script type="text/javascript">
+			var _gaq = _gaq || [];
+			_gaq.push(['_setAccount', 'UA-20678203-1']);
+			_gaq.push(['_trackPageview']);
+
+			(function () {
+				var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+				ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+				var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+			})();
+		</script>
+	</head>
+	<body>
+		<svg id="panel">
+			<defs>
+				<filter id="filter-brilliancy">
+					<feColorMatrix type="saturate" values="1.2"/>
+				</filter>
+				<filter id="filter-middle-saturate">
+					<feColorMatrix type="saturate" values="0.7"/>
+				</filter>
+				<filter id="filter-grey">
+					<feColorMatrix type="saturate" values="0.04"/>
+				</filter>
+				<filter id="filter-brightness-n4">
+					<feComponentTransfer>
+						<feFuncR type="linear" intercept="-0.4" slope="1"/>
+						<feFuncG type="linear" intercept="-0.4" slope="1"/>
+						<feFuncB type="linear" intercept="-0.4" slope="1"/>
+					</feComponentTransfer>
+				</filter>
+				<filter id="filter-brightness-n3">
+					<feComponentTransfer>
+						<feFuncR type="linear" intercept="-0.3" slope="1"/>
+						<feFuncG type="linear" intercept="-0.3" slope="1"/>
+						<feFuncB type="linear" intercept="-0.3" slope="1"/>
+					</feComponentTransfer>
+				</filter>
+				<filter id="filter-brightness-n2">
+					<feComponentTransfer>
+						<feFuncR type="linear" intercept="-0.2" slope="1"/>
+						<feFuncG type="linear" intercept="-0.2" slope="1"/>
+						<feFuncB type="linear" intercept="-0.2" slope="1"/>
+					</feComponentTransfer>
+				</filter>
+				<filter id="filter-brightness-n1">
+					<feComponentTransfer>
+						<feFuncR type="linear" intercept="-0.1" slope="1"/>
+						<feFuncG type="linear" intercept="-0.1" slope="1"/>
+						<feFuncB type="linear" intercept="-0.1" slope="1"/>
+					</feComponentTransfer>
+				</filter>
+				<filter id="filter-brightness-1">
+					<feComponentTransfer>
+						<feFuncR type="linear" intercept="0.1" slope="1"/>
+						<feFuncG type="linear" intercept="0.1" slope="1"/>
+						<feFuncB type="linear" intercept="0.1" slope="1"/>
+					</feComponentTransfer>
+				</filter>
+				<filter id="filter-brightness-2">
+					<feComponentTransfer>
+						<feFuncR type="linear" intercept="0.2" slope="1"/>
+						<feFuncG type="linear" intercept="0.2" slope="1"/>
+						<feFuncB type="linear" intercept="0.2" slope="1"/>
+					</feComponentTransfer>
+				</filter>
+				<filter id="filter-brightness-3">
+					<feComponentTransfer>
+						<feFuncR type="linear" intercept="0.3" slope="1"/>
+						<feFuncG type="linear" intercept="0.3" slope="1"/>
+						<feFuncB type="linear" intercept="0.3" slope="1"/>
+					</feComponentTransfer>
+				</filter>
+				<filter id="filter-brightness-4">
+					<feComponentTransfer>
+						<feFuncR type="linear" intercept="0.4" slope="1"/>
+						<feFuncG type="linear" intercept="0.4" slope="1"/>
+						<feFuncB type="linear" intercept="0.4" slope="1"/>
+					</feComponentTransfer>
+				</filter>
+				<filter id="filter-brightness-5">
+					<feComponentTransfer>
+						<feFuncR type="linear" intercept="0.4" slope="1"/>
+						<feFuncG type="linear" intercept="0.4" slope="1"/>
+						<feFuncB type="linear" intercept="0.4" slope="1"/>
+					</feComponentTransfer>
+				</filter>
+			</defs>
+			<g id="regions"></g>
+			<g id="labels"></g>
+			<g id="keys">
+				<g id="keys-labels"></g>
+				<g class="group-1"></g>
+				<g class="group-2"></g>
+				<g class="group-3"></g>
+				<g class="group-4"></g>
+				<g class="group-5"></g>
+				<g class="group-6"></g>
+				<g class="group-7"></g>
+				<g class="group-8"></g>
+				<g class="group-9"></g>
+			</g>
+		</svg>
+		<div id="settings">
+			<p>
+				<svg id="span-keyboard-canvas">
+					<defs>
+						<g id="def-vernier">
+							<path d="M0,0 L-16,0 C0,0 -10,-16 0,-16z"></path>
+						</g>
+						<use id="def-vernier-mirror" xlink:href="#def-vernier" transform="scale(-1, 1)"></use>
+					</defs>
+					<g id="span-keyboard">
+						<g id="span-keyboard-white"></g>
+						<g id="span-keyboard-black"></g>
+						<g id="span-keyboard-labels"></g>
+					</g>
+					<g id="span-verniers">
+						<use id="span-verniers-start" class="vernier" xlink:href="#def-vernier" y="60"></use>
+						<use id="span-verniers-end" class="vernier" xlink:href="#def-vernier-mirror" y="60"></use>
+					</g>
+				</svg>
+			</p>
+			<p id="settings-touch-line">
+				<input id="settings-touch" type="checkbox" /> Touch
+				<input id="settings-synesthesia" type="checkbox" /> Synesthesia
+				<select id="settings-synesthesia-scheme"></select>
+			</p>
+			<p>
+				Mode: <select id="settings-mode">
+					<option value="-5">G / e</option>
+					<option value="-4">&#x266d;A / f</option>
+					<option value="-3">A / &#x266f;f</option>
+					<option value="-2">&#x266d;B / g</option>
+					<option value="-1">B / &#x266f;g</option>
+					<option value="0" selected="selected">C / a</option>
+					<option value="1">&#x266d;D / &#x266d;b</option>
+					<option value="2">D / b</option>
+					<option value="3">&#x266d;E / c</option>
+					<option value="4">E / &#x266f;c</option>
+					<option value="5">F / d</option>
+					<option value="6">&#x266d;G / &#x266f;d</option>
+				</select>
+			</p>
+			<p id="player">
+				<span id="player-progress"><label id="player-source-tips">Drag and drop MIDI file here.</label><input type="text" id="player-source" /><span id="player-progress-cursor"></span></span> <span><input id="player-play" type="image" src="/res/images/play.png" class="player-button" /> <input id="player-stop" type="image" src="/res/images/stop.png" class="player-button" /><input id="player-source-file" type="file" accept="audio/mid,audio/midi" /></span>
+			</p>
+		</div>
+		<div id="loading"></div>
+	</body>
+</html>

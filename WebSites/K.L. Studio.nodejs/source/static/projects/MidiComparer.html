@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>MIDI Comparer</title>
+		<style type="text/css">
+			body
+			{
+				font-family: Verdana, Arial, Helvetica, sans-serif;
+				margin: 0.6em;
+				font-size: 11px;
+			}
+
+			.midi-file.drag-hover
+			{
+				border: 2px solid red;
+			}
+
+			.midi-file.loading
+			{
+				color: #ccc;
+				background-color: #ff8;
+			}
+
+			#controls
+			{
+				margin: 1em 0;
+			}
+
+			#pitch-stat table
+			{
+			}
+
+			td, th
+			{
+				text-align: right;
+			}
+
+			#results
+			{
+				padding: 1em;
+			}
+
+			#status
+			{
+				position: fixed;
+				bottom: 0;
+				background: #fff;
+			}
+
+			#midi-canvas
+			{
+				background: #fafafa;
+				width: 100%;
+			}
+
+			.note-bar
+			{
+				fill: #fff;
+				stroke: #888;
+				stroke-width: 1px;
+			}
+
+			.note-dot
+			{
+				fill: #fff;
+				stroke: #333;
+				stroke-width: 1px;
+			}
+
+			.note-bar, .note-dot
+			{
+				fill: #fff;
+			}
+
+			#score-sample .pending .note-bar, #score-sample .pending .note-dot
+			{
+				fill: #faa;
+			}
+
+			#score-criterion .pending .note-bar, #score-criterion .pending .note-dot
+			{
+				fill: #fea;
+			}
+
+			.duplicated .note-bar, .duplicated .note-dot
+			{
+				fill: #fde !important;
+			}
+
+			/*.pending .note-bar, .pending .note-dot
+			{
+				stroke: #f00;
+			}*/
+
+			.focus .note-bar, .focus .note-dot
+			{
+				fill: #afb !important;
+				stroke: #111;
+			}
+
+			.focus .note-dot
+			{
+				stroke-width: 2px;
+			}
+
+			.on .note-bar
+			{
+				fill: #0df !important;
+			}
+
+			.correspondence
+			{
+				stroke: #000;
+				stroke-width: 0.1px;
+			}
+
+			.correspondence.focus
+			{
+				stroke-width: 1px;
+			}
+		</style>
+		<script src="../js/jquery.js" type="text/javascript"></script>
+		<script src="../js/jquery.svg.js" type="text/javascript"></script>
+		<script src="../js/MIDI/AudioDetect.js" type="text/javascript"></script>
+		<script src="../js/MIDI/LoadPlugin.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Plugin.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Player.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Window/DOMLoader.XMLHttp.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Window/DOMLoader.script.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/WebMIDIAPI.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/Base64.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/base64binary.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/replayer.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/midifile.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/stream.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			var MidiData = {};
+			var Notations = {};
+			var ResultPath = null;
+			var ResultStat = {};
+			var GraphOffsetY = 0;
+
+			var loadMidiFile = function (data, name, filename, onload) {
+				MIDI.Player.loadFile(data, function () {
+					MidiData[name] = MIDI.Player.data;
+
+					if (onload)
+						onload();
+				});
+
+				localStorage[name + "_data"] = data;
+				localStorage[name + "_filename"] = filename;
+			};
+
+			var PedalControllerTypes = {
+				64: "Sustain",
+				65: "Portamento",
+				66: "Sostenuto",
+				67: "Soft"
+			};
+
+			var Config = {
+				ContextSpan: { left: -800, right: 800 },
+				DistanceSigmoidFactor: 0.01,		// context compare time distance, sigmod x units per ms
+				ContextRegressionDiffer: 0.01,		// context compare regression cost derivation default infinitesimal
+				ContextRegressionBegin: 10,			// context compare regression begin boundary
+				ContextRegressionEnd: 0.01,			// context compare regression cost end condition
+				ConnectionBiasCostBenchmark: 800,	// how many ms bias result in cost = 1
+				//MatchingThreshold: 0.3,				// over than max matching * threshold will stay in node list
+				//ConnectionCostClip: 16,
+				ConnectionClipIndex: 5,
+				NullConnectionCost: 1,
+
+				MidiCanvasWidth: 2000,
+				MidiScoreWidth: 900,
+				MidiScoreHeightScale: 0.04,
+			};
+
+
+			var sigmoid = function (x) {
+				return (1 - Math.exp(-x)) / (1 + Math.exp(-x));
+			};
+
+			var pickMidiFile = function (file, elem) {
+				if (file && (file.type == "audio/mid" || file.type == "audio/midi")) {
+					var fr = new FileReader();
+					fr.onloadend = function (e) {
+						elem.text(file.name);
+						elem.addClass("loading");
+
+						loadMidiFile(e.currentTarget.result, elem.data("name"), file.name, function () {
+							elem.removeClass("loading");
+
+							console.log(name + " MIDI file loaded:", file.name);
+						});
+					};
+					fr.readAsDataURL(file);
+				}
+			};
+
+			var parseMidiNotation = function (data) {
+				var channelStatus = [];
+				var pedalStatus = {};
+				var pedals = {};
+				var channels = [];
+				var bars = [];
+				var time = 0;
+				var millisecondsPerBeat = 60000 / 120;
+				var beats = 0;
+				var tempos = 4;
+				var tempoIndex = 0;
+				var keyRange = {};
+				var ticks = 0;
+
+				for (var n = 0; n < data.length; ++n) {
+					ticks += data[n][0].ticksToEvent;
+
+					if (data[n][1] > 0) {
+						var deltaBeats = data[n][1] / millisecondsPerBeat;
+						for (var b = Math.ceil(beats) ; b < beats + deltaBeats; ++b) {
+							var t = time + (b - beats) * millisecondsPerBeat;
+							bars.push({ time: t, index: tempoIndex % tempos });
+
+							++tempoIndex;
+						}
+
+						beats += deltaBeats;
+					}
+
+					time += data[n][1];
+
+					var event = data[n][0].event;
+					switch (event.type) {
+						case "channel":
+							channelStatus[event.channel] = channelStatus[event.channel] || [];
+
+							switch (event.subtype) {
+								case "noteOn":
+									pitch = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
+									if (channelStatus[event.channel][pitch])
+										console.warn("unexpected noteOn: ", n, time, event);
+									channelStatus[event.channel][pitch] = { startTick: ticks, start: time, velocity: event.velocity };
+
+									keyRange.low = Math.min(keyRange.low || pitch, pitch);
+
+									break;
+								case "noteOff":
+									pitch = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
+
+									channels[event.channel] = channels[event.channel] || [];
+
+									var status = channelStatus[event.channel][pitch];
+									if (!status)
+										console.warn("unexpected noteOff: ", n, time, event);
+									else {
+										channels[event.channel].push({ startTick: status.startTick, endTick: ticks, pitch: pitch, start: status.start, duration: time - status.start, velocity: status.velocity });
+										channelStatus[event.channel][pitch] = null;
+									}
+
+									keyRange.high = Math.max(keyRange.high || pitch, pitch);
+
+									break;
+								case "controller":
+									switch (event.controllerType) {
+										// pedal controllers  
+										case 64:
+										case 65:
+										case 66:
+										case 67:
+											var pedalType = PedalControllerTypes[event.controllerType];
+
+											pedalStatus[event.channel] = pedalStatus[event.channel] || {};
+											pedals[event.channel] = pedals[event.channel] || [];
+
+											var status = pedalStatus[event.channel][pedalType];
+
+											if (event.value > 0) {
+												if (!status)
+													pedalStatus[event.channel][pedalType] = { start: time, value: event.value };
+											}
+											else {
+												if (status) {
+													pedals[event.channel].push({ type: pedalType, start: status.start, duration: time - status.start, value: status.value });
+
+													pedalStatus[event.channel][pedalType] = null;
+												}
+											}
+
+											break;
+									}
+
+									break;
+							}
+
+							break;
+						case "meta":
+							switch (event.subtype) {
+								case "setTempo":
+									millisecondsPerBeat = event.microsecondsPerBeat / 1000;
+									//beats = Math.round(beats);
+
+									break;
+								case "timeSignature":
+									tempos = event.numerator;
+									tempoIndex = 0;
+
+									break;
+							}
+
+							break;
+					}
+				}
+
+
+				var notes = [];
+				for (var c in channels) {
+					for (var n in channels[c]) {
+						notes.push(channels[c][n]);
+					}
+				}
+				notes.sort(function (n1, n2) {
+					return n1.start - n2.start;
+				});
+
+				for (var i in notes)
+					notes[i].index = Number(i);
+
+
+				var pitchMap = [];
+				for (var c in channels) {
+					for (var n in channels[c]) {
+						var pitch = channels[c][n].pitch
+						pitchMap[pitch] = pitchMap[pitch] || [];
+
+						pitchMap[pitch].push(channels[c][n]);
+					}
+				}
+
+				for (var pitch in pitchMap)
+					pitchMap[pitch].sort(function (n1, n2) {
+						return n1.start - n2.start;
+					});
+
+				return { channels: channels, notes: notes, pitchMap: pitchMap, pedals: pedals, bars: bars, endTime: time, keyRange: keyRange };
+			};
+
+			var genNoteContext = function (notation, index) {
+				index = Number(index);
+
+				var left = index;
+				var right = index;
+
+				var note = notation.notes[index];
+
+				for (var i = index - 1; i >= 0; --i) {
+					var n = notation.notes[i];
+					if (left < index && n.start - note.start < Config.ContextSpan.left)
+						break;
+
+					left = i;
+				}
+
+				for (var i = index + 1; i < notation.notes.length; ++i) {
+					var n = notation.notes[i];
+					if (right > index && n.start - note.start > Config.ContextSpan.right)
+						break;
+
+					right = i;
+				}
+
+				note.context = [];
+
+				for (var i = left; i <= right; ++i) {
+					if (i != index) {
+						var n = notation.notes[i];
+						var d_pitch = n.pitch - note.pitch;
+						var d_time = Math.floor(n.start - note.start);
+
+						if (d_time > 0)
+							d_pitch += 1000;
+
+						if(note.context[d_pitch] == null || Math.abs(d_time) < Math.abs(note.context[d_pitch]))
+							note.context[d_pitch] = d_time;
+					}
+				}
+			};
+
+			var genNotationContext = function (notation) {
+				for (var i in notation.notes)
+					genNoteContext(notation, i);
+			};
+
+			var compareContexts = function (criterion, sample, scale) {
+				var match = 0;
+
+				for (var pitch in criterion) {
+					var pc = criterion[pitch];
+
+					pitch = Number(pitch);
+
+					if (pitch > 800)
+						pitch -= 1000;
+
+					var ps1 = sample[pitch];
+					var ps2 = sample[pitch + 1000];
+
+					var distance = null;
+
+					if (ps1 != null)
+						distance = Math.abs(pc - ps1 * scale);
+
+					if (ps2 != null) {
+						var d2 = Math.abs(pc - ps2 * scale);
+						if (distance != null)
+							distance = Math.min(distance, d2);
+						else
+							distance = d2;
+					}
+
+					if (distance != null) {
+						var increase = 1 - sigmoid(distance * Config.DistanceSigmoidFactor);
+						match += increase;
+
+						/*if (isNaN(increase)) {
+							console.error("error increase:", criterion, sample, scale, pitch, distance, pc, ps1, ps2);
+							throw "error increase";
+						}*/
+					}
+				}
+
+				return match;
+			};
+
+			var compareContextsDerivation = function (criterion, sample, scale, ds) {
+				var v0 = compareContexts(criterion, sample, scale);
+				var v1 = compareContexts(criterion, sample, scale + Math.min(Config.ContextRegressionDiffer, ds));
+
+				var derivation = (v1 - v0) / Config.ContextRegressionDiffer;
+
+				return { value: v0, derivation: derivation };
+			};
+
+			var compareContextsInRange = function (criterion, sample, low, high) {
+				var better = high.value > low.value ? high : low;
+				var worse = high.value > low.value ? low : high;
+
+				if (Math.abs(high.value - low.value) < Config.ContextRegressionEnd)
+					return better;
+
+				var middle_scale = Math.sqrt(low.scale * high.scale);
+				var middle_result = compareContextsDerivation(criterion, sample, middle_scale, middle_scale - low.scale);
+
+				//console.log("middle:", middle_scale, middle_result.value, middle_result.derivation);
+
+				//console.assert(middle_result.value >= worse.value, "concave match curve: ", criterion, sample, low, high);
+
+				if (middle_result.derivation > 0)
+					return compareContextsInRange(criterion, sample, { scale: middle_scale, value: middle_result.value }, high);
+				else
+					return compareContextsInRange(criterion, sample, low, { scale: middle_scale, value: middle_result.value });
+			};
+
+			var compareContextsRegression = function (criterion, sample) {
+				var low = {
+					scale: 1 / Config.ContextRegressionBegin,
+					value: compareContexts(criterion, sample, 1 / Config.ContextRegressionBegin),
+				};
+				var high = {
+					scale: Config.ContextRegressionBegin,
+					value: compareContexts(criterion, sample, Config.ContextRegressionBegin),
+				};
+
+				return compareContextsInRange(criterion, sample, low, high);
+			};
+
+			var genPitchStatTable = function (pitches, pitchMaps, elem) {
+				elem.html("");
+
+				elem.append("<tr><th>Pitch</th><th>Criterion</th><th>Sample</th></tr>");
+
+				for (var pitch in pitches) {
+					var tr = "<tr><th>" + pitch + "</th>";
+
+					for(var i in pitchMaps) {
+						var map = pitchMaps[i][pitch];
+						var text = map ? map.length : "";
+
+						tr += "<td>" + text + "</td>";
+					}
+					tr += "</tr>";
+
+					elem.append(tr);
+				}
+
+				elem.append("<tr><th>total</th><td>" + Notations.criterion.notes.length + "</td><td>" + Notations.sample.notes.length + "</td></tr>");
+			};
+
+
+			var Node = function (c_note, s_note) {
+				this.c_note = c_note;
+				this.s_note = s_note;
+
+				/*if (this.c_note)
+					this.matching = {value: 4}
+					//this.matching = compareContextsRegression(this.c_note.context, this.s_note.context);
+				else
+					this.matching = {value: 0};
+
+				this.evaluateCost();*/
+				this.selfCost = 0;
+			};
+
+			Node.prototype.totalCost = function () {
+				var cost = this.selfCost;
+
+				if (this.prev)
+					cost += this.prev_cost;
+
+				if (isNaN(cost)) {
+					console.log("NaN cost:", this);
+					throw "NaN";
+				}
+
+				return cost;
+			};
+
+			Node.prototype.evaluateMatchingCost = function () {
+				if (this.c_note)
+					this.matching = compareContextsRegression(this.c_note.context, this.s_note.context);
+				else
+					this.matching = {value: 0};
+
+				this.selfCost = 1 - sigmoid(this.matching.value);
+			};
+
+			Node.prototype.lastCNote = function () {
+				if (this.c_note)
+					return this.c_note;
+
+				if (this.prev)
+					return this.prev.lastCNote();
+
+				return -1;
+			};
+
+			Node.prototype.includsCIndex = function (index) {
+				if (this.path_list)
+					return this.path_list.includes(index);
+
+				if (this.c_note && this.c_note.index == index)
+					return true;
+
+				if (this.prev)
+					return this.prev.includsCIndex(index);
+
+				return false;
+			};
+
+			Node.prototype.lastCIndex = function () {
+				if (this.last_c_index)
+					return this.last_c_index;
+
+				var index = this.c_note ? this.c_note.index : -1;
+				if (this.prev)
+					index = Math.max(index, this.prev.lastCIndex());
+
+				return index;
+			};
+
+			Node.prototype.evaluateConnectionCost = function (prev, end_limit) {
+				var prev_c = prev.lastCNote();
+				var current_c = this.c_note;
+
+				if (!current_c)
+					return Config.NullConnectionCost;
+
+				if (!prev_c)
+					return 0;
+
+				var cost = 0;
+
+				if (current_c.index < prev_c.index) {
+					var bias = (prev_c.start - current_c.start) / Config.ConnectionBiasCostBenchmark;
+					cost += bias * bias;
+				}
+
+				if(cost > end_limit)
+					return cost;
+
+				var last_c_index = prev.lastCIndex();
+
+				for (var i = prev_c.index + 1; i < current_c.index; ++i) {
+					if (i > last_c_index) {
+						var note = Notations.criterion.notes[i];
+						var bias = (current_c.start - note.start) / Config.ConnectionBiasCostBenchmark;
+						cost += bias * bias;
+
+						if(cost > end_limit)
+							return cost;
+					}
+				}
+
+				return cost;
+			};
+
+			Node.prototype.evaluateConnection = function (prev) {
+				var prev_total_cost = prev.totalCost();
+
+				var end_limit = this.prev_cost ? this.prev_cost - prev_total_cost : null;
+				if (end_limit < 0)
+					return;
+
+				var connect_cost = this.evaluateConnectionCost(prev, end_limit);
+				var prev_cost = prev_total_cost + connect_cost;
+
+				//if (prev.c_note && prev.c_note.fixed)
+				//	prev_cost += Config.NullConnectionCost;
+
+				if (this.prev == null || this.prev_cost > prev_cost) {
+					this.prev = prev;
+					this.prev_cost = prev_cost;
+					this.connect_cost = connect_cost;
+				}
+
+				//prev.next_connect_costs = prev.next_connect_costs || [];
+				//prev.next_connect_costs.push(connect_cost);
+			};
+
+			Node.prototype.path = function () {
+				var indices = this.prev ? this.prev.path() : [];
+
+				if (this.c_note)
+					indices.push(this.c_note.index);
+				else
+					indices.push(-1);
+
+				return indices;
+			};
+
+
+			var genMatchNodes = function () {
+				ResultStat.NodeCount = 0;
+
+				for (var i in Notations.sample.notes) {
+					var note = Notations.sample.notes[i];
+					note.matches = [];
+
+					var targetList = Notations.criterion.pitchMap[note.pitch];
+					if (targetList) {
+						//var max_matching = 0;
+
+						for (var ii in targetList) {
+							var node = new Node(targetList[ii], note);
+
+							//max_matching = Math.max(max_matching, node.matching.value);
+
+							//if (node.matching.value > 0)
+								note.matches.push(node);
+						}
+
+						/*note.matches = note.matches.filter(function(m) {
+							return m.matching.value >= max_matching * Config.MatchingThreshold;
+						});*/
+					}
+
+					/*note.matches.sort(function(m1, m2) {
+						return m2.matching.value - m1.matching.value;
+					});*/
+
+					note.matches.push(new Node(null, note));
+
+					//for(var ii in note.matches)
+					//	note.matches[ii].index = ii;
+
+					ResultStat.NodeCount += note.matches.length;
+				}
+
+				//console.log("node count:", NodeCount);
+			};
+
+			var evaluateNode = function (index, match) {
+				index = Number(index);
+				match = Number(match);
+
+				var next_index = index + 1;
+
+				var next_note = Notations.sample.notes[next_index];
+				if (next_note) {
+					var node = Notations.sample.notes[index].matches[match];
+
+					node.last_c_index = node.lastCIndex();
+
+					for (var i in next_note.matches) {
+						next_note.matches[i].evaluateConnection(node);
+
+						if (node.c_note) {
+							node.c_note.nodes = node.c_note.nodes || [];
+							node.c_note.nodes.push(node);
+						}
+					}
+
+					node.evaluated = true;
+				}
+			};
+
+			var traverseEvaluateNode = function* () {
+				var progress = 0;
+
+				var lastYield = new Date().getTime();
+
+				for (var i in Notations.sample.notes) {
+					var note = Notations.sample.notes[i];
+					if (note.fixed) {
+						progress += note.matches.length;
+
+						continue;
+					}
+
+					note.matches = note.matches.sort(function(n1, n2) {
+						return n1.totalCost() - n2.totalCost();
+					});
+
+					var second_best_node = note.matches[1] || note.matches[0];
+					var second_best_node_cost = second_best_node.totalCost();
+
+					for (var ii in note.matches) {
+						var node = note.matches[ii];
+						if (node.totalCost() - second_best_node_cost < 1 || ii < Config.ConnectionClipIndex) {
+							evaluateNode(i, ii);
+							++ResultStat.EvaluatedNodeCount;
+						}
+
+						++progress;
+					}
+
+					var now = new Date().getTime();
+					if (now - lastYield > 100) {
+						lastYield = now;
+
+						var percent = Math.floor(progress * 100 / ResultStat.NodeCount);
+						$("#status").text("navigating  " + percent + "%   " + i + ", " + ii + "...");
+
+						yield;
+					}
+				}
+
+				console.log("evaluated node count:", ResultStat.EvaluatedNodeCount);
+			};
+
+			var runInFrames = function(it, on_end) {
+				var f;
+				f = function() {
+					var done = it.next().done;
+
+					if (!done)
+						setTimeout(f, 0);
+					else if (on_end)
+						on_end();
+				};
+
+				f();
+			};
+
+			var runNavigation = function (on_end) {
+				/*for (var i in Notations.sample.notes)
+					for (var ii in Notations.sample.notes[i].matches)
+						evaluateNode(i, ii);*/
+				var iterator = traverseEvaluateNode();
+				runInFrames(iterator, function() {
+					var last_note = Notations.sample.notes[Notations.sample.notes.length - 1];
+					if (last_note) {
+						var endNode = new Node();
+
+						for (var ii in last_note.matches) {
+							var node = last_note.matches[ii];
+
+							endNode.evaluateConnection(node);
+						}
+
+						endNode = endNode;
+
+						ResultPath = endNode.prev.path();
+						ResultStat.ResultCost = endNode.totalCost().toFixed(4);
+
+						//console.log("result cost:", endNode.totalCost());
+						//console.log("result path:", ResultPath.toString(), ResultPath);
+					}
+
+					if (on_end)
+						on_end();
+				});
+			};
+
+			var markNoteCorrespondences = function(reevaluateOmitNotes) {
+				var paired_count = 0;
+				var cc = [];
+
+				for (var i in ResultPath) {
+					var index = ResultPath[i];
+					if (index >= 0) {
+						cc[index] = cc[index] || [];
+
+						cc[index].push(i);
+
+						++paired_count;
+					}
+				}
+
+				ResultStat.WrongNotes = Notations.sample.notes.length - paired_count;
+				ResultStat.OmitNotes = Notations.criterion.notes.length - Object.keys(cc).length;
+
+				for (var i in cc) {
+					var indices = cc[i];
+					//if (indices && indices.length > 0) {
+					if (indices && indices.length == 1) {
+						Notations.criterion.notes[i].fixed = true;
+						Notations.sample.notes[indices[0]].fixed = true;
+					}
+					else if(indices && indices.length > 1) {
+						var minCost = null;
+
+						for (var ii in indices) {
+							var note = Notations.sample.notes[indices[ii]];
+							for (var iii in note.matches) {
+								var node = note.matches[iii];
+								//if (node.evaluated)
+									node.evaluateMatchingCost();
+
+								if (node.c_note && node.c_note.index == i) {
+									note.selfCost = node.selfCost;
+
+									if (minCost == null)
+										minCost = node.selfCost;
+									else
+										minCost = Math.min(minCost, node.selfCost);
+								}
+							}
+						}
+
+						for (var ii in indices) {
+							var note = Notations.sample.notes[indices[ii]];
+							if (note.selfCost > minCost)
+								note.duplicated = true;
+							else
+								note.fixed = true;
+						}
+					}
+				}
+
+				// re-evaluate omit notes
+				var s_indices = [];
+				for (var i in Notations.criterion.notes) {
+					if(!cc[i]) {
+						var c_note = Notations.criterion.notes[i];
+						if (c_note && c_note.nodes)
+							c_note.fixed = false;
+
+						if (reevaluateOmitNotes) {
+							for (var ii in c_note.nodes) {
+								var node = c_note.nodes[ii];
+
+								node.evaluateMatchingCost();
+
+								s_indices[node.s_note.index] = node.selfCost;
+							}
+						}
+					}
+				}
+
+				for (var i in s_indices) {
+					var note = Notations.sample.notes[i];
+					note.fixed = false;
+
+					for (var ii in note.matches) {
+						var node = note.matches[ii];
+						if (node.selfCost == 0)
+							node.evaluateMatchingCost();
+					}
+				}
+
+				Notations.cc = cc;
+			};
+
+			var prepareNavigation = function() {
+				for (var i = 0; i < Notations.sample.notes.length - 1; ++i) {
+					var note = Notations.sample.notes[i];
+					if (!note.fixed) {
+						var next_note = Notations.sample.notes[i + 1];
+						for (var ii in next_note.matches) {
+							var node = next_note.matches[ii];
+							node.prev = null;
+							node.prev_cost = null;
+							node.connect_cost = null;
+							node.evaluated = null;
+						}
+
+						note.duplicated = null;
+					}
+				}
+
+				for (var i in Notations.criterion.notes) {
+					Notations.criterion.notes[i].nodes = [];
+				}
+			};
+
+			var svg = function (selector) {
+				return new $.svg._wrapperClass($(selector)[0]);
+			};
+
+			var clearResults = function () {
+				$("#score-criterion").html("");
+				$("#score-sample").html("");
+				$("#correspondences").html("");
+
+				$("#result-stat-table").html("");
+
+				ResultStat = {};
+				ResultStat.EvaluatedNodeCount = 0;
+
+				GraphOffsetY = 0;
+			};
+
+			var paintMidiScore = function (notation, pitch_range, canvas_range, group) {
+				var pitch_width = (canvas_range.right - canvas_range.left) / (pitch_range.end - pitch_range.start);
+
+				for (var i in notation.notes) {
+					var note = notation.notes[i];
+
+					var left = (note.pitch - Notations.pitch_low) * pitch_width + canvas_range.left;
+					var top = note.start * Config.MidiScoreHeightScale;
+					var height = note.duration * Config.MidiScoreHeightScale;
+
+					//if (Number.isNaN(left))
+					//	console.log("NAN:", i);
+
+					note.position = { x: left + pitch_width * 0.5, y: top };
+
+					note.graph = note.graph || {}
+
+					var note_elem = group.group({ class: "note", "data-index": i });
+					var note_group = svg(note_elem);
+
+					if (!note.fixed)
+						$(note_elem).addClass("pending");
+
+					note.graph.group = note_elem;
+					note.graph.bar = note_group.rect(left, top, pitch_width, height, 2, 2, { class: "note-bar" });
+					note.graph.dot = note_group.circle(note.position.x, note.position.y, 3, { class: "note-dot" });
+
+					var c_index = ResultPath[i];
+					var node = null;
+					if (c_index >= 0)
+						for (var ii in note.matches)
+							if (note.matches[ii].c_note && note.matches[ii].c_note.index == c_index)
+								node = note.matches[ii];
+
+					var title = "index: " + i;
+					if (node) {
+						if (node.matching)
+							title += ", matching: " + node.matching.value.toFixed(3);
+
+						if (node.connect_cost)
+							title += ", connection: " + node.connect_cost;
+					}
+
+					$(note_elem).append("<title>" + title + "</title>");
+				}
+			};
+
+			var paintLine = function (start, end, group, options) {
+				var path = group.createPath();
+				path.move(start.x, start.y);
+				path.line(end.x, end.y);
+				path.close();
+
+				return group.path(path, options);
+			};
+
+			var paintCorrespondences = function (group) {
+				ResultStat.DuplicatedNotes = 0;
+
+				for (var i in ResultPath) {
+					var ri = ResultPath[i];
+					if (ri >= 0) {
+						var s_note = Notations.sample.notes[i];
+						var c_note = Notations.criterion.notes[ri];
+
+						var line = paintLine(s_note.position, c_note.position, group, { class: "correspondence", "data-index": i });
+
+						s_note.graph.line = line;
+
+						//var duplicated = $(c_note.graph.group).hasClass("paired");
+
+						$(s_note.graph.group).addClass("paired");
+
+						$(c_note.graph.group).addClass("paired");
+
+						if (s_note.duplicated) {
+							$(s_note.graph.group).addClass("duplicated");
+							$(c_note.graph.group).addClass("duplicated");
+
+							++ResultStat.DuplicatedNotes;
+						}
+					}
+				}
+			};
+
+			var panScore = function(y) {
+				var dy = y - GraphOffsetY;
+				GraphOffsetY = y;
+
+				$("#score-criterion").attr("transform", "translate(0, " + y + ")");
+
+				$("#correspondences path").each(function(i, path) {
+					var $path = $(path);
+					var d = $path.attr("d");
+					var y = Number(d.match(/,(\-?\d+\.*\d*)z/)[1]);
+
+					$path.attr("d", d.replace(/,(\-?\d+\.*\d*)z/, "," + (y + dy) + "z"));
+				});
+			};
+
+			var alignScore = function(s_index) {
+				var sy = Notations.sample.notes[s_index].position.y;
+				var cy = Notations.criterion.notes[ResultPath[s_index]].position.y;
+
+				var dy = sy - cy;
+				if (Math.abs(dy - GraphOffsetY) > 400)
+					panScore(dy);
+			};
+
+			var cursorTime = 0;
+			var cursorNotation = null;
+
+			var onCursorMove = function(time) {
+				if (!cursorNotation)
+					return;
+
+				var inverse = time < cursorTime;
+
+				var start = Math.min(cursorTime, time);
+				var end = Math.max(cursorTime, time);
+
+				for (var i in cursorNotation.notes) {
+					var note = cursorNotation.notes[i];
+
+					if (note.start > end)
+						break;
+
+					var note_end = note.start + note.duration;
+					var start_in = note.start >= start && note.start < end;
+					var end_in = note_end >= start && note_end < end;
+
+					if (inverse ? end_in : start_in) {
+						note.graph.group.addClass("on");
+						MIDI.noteOn(0, note.pitch, note.velocity);
+					}
+
+					if (inverse ? start_in : end_in) {
+						note.graph.group.removeClass("on");
+						MIDI.noteOff(0, note.pitch);
+					}
+				}
+
+				cursorTime = time;
+			};
+
+			var pressNotes = function(notation, time, on) {
+				var notes = [];
+
+				for (var i in notation.notes) {
+					var note = notation.notes[i];
+
+					if (note.start > time)
+						break;
+
+					if (note.start <= time && note.start + note.duration > time)
+						notes.push(note);
+				}
+
+				for (var i in notes) {
+					var note = notes[i];
+
+					if (on) {
+						note.graph.group.addClass("on");
+
+						note.graph.group.data("pitch", note.pitch);
+
+						MIDI.noteOn(0, note.pitch, note.velocity);
+					}
+					else {
+						note.graph.group.removeClass("on");
+
+						MIDI.noteOff(0, note.pitch);
+					}
+				}
+
+				cursorTime = time;
+				cursorNotation = notation;
+			};
+
+			var releaseNotes = function() {
+				$(".note.on").each(function(i, note) {
+					$(note).removeClass("on");
+
+					var pitch = $(note).data("pitch");
+
+					MIDI.noteOff(0, pitch);
+				});
+			};
+
+			var yToTime = function(y, isCriterion) {
+				var ratio = (Config.MidiCanvasWidth + 20) / $("#midi-canvas").width();
+				var time = ((y - 10) * ratio - (isCriterion ? GraphOffsetY : 0)) / Config.MidiScoreHeightScale;
+
+				return time;
+			};
+
+			var paintMidiGraph = function () {
+				$("#midi-canvas").attr("viewBox", "-10 -10 " + (Config.MidiCanvasWidth + 20) + " " + (Notations.endTime * Config.MidiScoreHeightScale + 20));
+
+				paintMidiScore(Notations.criterion, { start: Notations.pitch_low, end: Notations.pitch_high + 1 }, { left: 0, right: Config.MidiScoreWidth }, svg("#score-criterion"));
+				paintMidiScore(Notations.sample, { start: Notations.pitch_low, end: Notations.pitch_high + 1 }, { left: Config.MidiCanvasWidth - Config.MidiScoreWidth, right: Config.MidiCanvasWidth }, svg("#score-sample"));
+
+				paintCorrespondences(svg("#correspondences"));
+
+				$("#midi-canvas").html($("#midi-canvas").html());
+
+				// redirect graph elements
+				for (var i in Notations.criterion.notes) {
+					var note = Notations.criterion.notes[i];
+					note.graph.group = $("#score-criterion .note[data-index=" + note.index + "]");
+				}
+
+				for (var i in Notations.sample.notes) {
+					var note = Notations.sample.notes[i];
+					note.graph.group = $("#score-sample .note[data-index=" + note.index + "]");
+				}
+
+				$("#midi-canvas .note").mouseenter(function() {
+					$(this).addClass("focus");
+				});
+
+				$("#midi-canvas .note").mouseleave(function() {
+					$(".note.focus").removeClass("focus");
+					$(".correspondence.focus").removeClass("focus");
+				});
+
+				$("#score-criterion .note").mouseenter(function() {
+					var c_index = $(this).data("index");
+
+					var s_index = null;
+
+					for (var i in ResultPath) {
+						if (ResultPath[i] == c_index) {
+							$("#score-sample .note[data-index=" + i + "]").addClass("focus");
+							$(".correspondence[data-index=" + i + "]").addClass("focus");
+
+							s_index = s_index || i;
+						}
+					}
+
+					if (s_index != null)
+						alignScore(s_index);
+				});
+
+				$("#score-sample .note").mouseenter(function() {
+					var s_index = $(this).data("index");
+
+					$("#score-criterion .note[data-index=" + ResultPath[s_index] + "]").addClass("focus");
+					$(".correspondence[data-index=" + s_index + "]").addClass("focus");
+
+					if (ResultPath[s_index] >= 0)
+						alignScore(s_index);
+				});
+
+				$("#midi-canvas .note").click(function() {
+					var cnote = $("#score-criterion .note.focus");
+					console.log("c note:", cnote);
+
+					var snotes = [];
+
+					var c_index = cnote.length ? cnote.data("index") : null;
+
+					$("#score-sample .note.focus").each(function(i, e) {
+						var index = $(e).data("index");
+
+						console.log("s note:", Notations.sample.notes[index]);
+						if (c_index != null)
+							dumpNode(index, c_index);
+
+						snotes.push(Notations.sample.notes[index]);
+					});
+				});
+
+				$("#midi-canvas").mousemove(function() {
+					if (event.buttons == 1)
+						onCursorMove(yToTime(event.offsetY, cursorNotation === Notations.criterion));
+				});
+
+				// TODO: need smooth scroll
+				/*$("#midi-canvas")[0].addEventListener("mousewheel", function() {
+					if (event.buttons == 1)
+						onCursorMove(yToTime(event.offsetY, cursorNotation === Notations.criterion));
+				}, false);*/
+
+				$("#midi-canvas").mousedown(function() {
+					var x = event.offsetX / $("#midi-canvas").width();
+					var notation = x > 0.5 ? Notations.sample : Notations.criterion;
+
+					var time = yToTime(event.offsetY, x <= 0.5);
+
+					pressNotes(notation, time, true);
+				});
+
+				$("#midi-canvas").mouseup(function() {
+					releaseNotes();
+				});
+			};
+
+			var genResultStatTable = function () {
+				var table = $("#result-stat-table");
+
+				table.html("");
+
+				for (var name in ResultStat) {
+					var tr = "<tr><th>" + name + "</th><td>" + ResultStat[name] + "</td></tr>";
+
+					table.append(tr);
+				}
+			};
+
+			var dumpNode = function(s_index, c_index) {
+				for (var i in Notations.sample.notes[s_index].matches) {
+					var node = Notations.sample.notes[s_index].matches[i];
+					if (node.c_note && node.c_note.index == c_index) {
+						//console.log(node);
+						return node;
+					}
+				}
+
+				console.log("s:", Notations.sample.notes[s_index].context);
+				console.log("c:", Notations.criterion.notes[c_index].context);
+
+				console.log("compare:", compareContextsRegression(Notations.criterion.notes[c_index].context, Notations.sample.notes[s_index].context));
+			};
+
+
+			$(function () {
+				MIDI.loadPlugin({
+					soundfontUrl: "../soundfont/",
+					instrument: "acoustic_grand_piano",
+					callback: function () {
+						console.log("MIDI plugin loaded.");
+					}
+				});
+
+				$(".midi-file").each(function (i, elem) {
+					elem.ondragover = function (e) {
+						$(elem).addClass("drag-hover");
+						e.preventDefault();
+					};
+					elem.ondragleave = function () {
+						$(elem).removeClass("drag-hover");
+					};
+
+					elem.ondrop = function (e) {
+						$(elem).removeClass("drag-hover");
+
+						pickMidiFile(e.dataTransfer.files[0], $(elem));
+
+						e.preventDefault();
+						return false;
+					};
+				});
+
+				$("#compare").click(function () {
+					if (!MidiData.criterion) {
+						console.error("criterion data is null.");
+						return;
+					}
+
+					if (!MidiData.sample) {
+						console.error("sample data is null.");
+						return;
+					}
+
+					clearResults();
+
+					$("#compare").attr("disabled", true);
+
+					var time0 = new Date().getTime();
+
+					$("#status").text("parse notation...");
+
+					setTimeout(function () {
+						Notations.criterion = parseMidiNotation(MidiData.criterion);
+						Notations.sample = parseMidiNotation(MidiData.sample);
+
+						Notations.pitches = {};
+						for (var pitch in Notations.criterion.pitchMap)
+							Notations.pitches[pitch] = true;
+						for (var pitch in Notations.sample.pitchMap)
+							Notations.pitches[pitch] = true;
+
+						for (var pitch in Notations.pitches) {
+							if (Notations.pitch_low == null)
+								Notations.pitch_low = pitch;
+							if (Notations.pitch_high == null)
+								Notations.pitch_high = pitch;
+
+							Notations.pitch_low = Math.min(Notations.pitch_low, pitch);
+							Notations.pitch_high = Math.max(Notations.pitch_high, pitch);
+						}
+
+						Notations.endTime = Math.max(Notations.criterion.endTime, Notations.sample.endTime);
+
+						genPitchStatTable(Notations.pitches, [Notations.criterion.pitchMap, Notations.sample.pitchMap], $("#pitch-stat-table"));
+
+						var time1 = new Date().getTime();
+						console.log("parse notation cost:", time1 - time0);
+
+						$("#status").text("generating context...");
+
+						setTimeout(function () {
+							genNotationContext(Notations.criterion);
+							genNotationContext(Notations.sample);
+
+							var time2 = new Date().getTime();
+							console.log("generating context cost:", time2 - time1);
+
+							$("#status").text("generating match nodes...");
+
+							setTimeout(function () {
+								genMatchNodes();
+
+								var time3 = new Date().getTime();
+								console.log("generating match nodes cost:", time3 - time2);
+
+								$("#status").text("navigating...");
+
+								setTimeout(function () {
+									runNavigation(function() {
+										var time3_1 = new Date().getTime();
+
+										//var time3_2 = time3_1;
+										markNoteCorrespondences(true);
+										prepareNavigation();
+
+										var time3_2 = new Date().getTime();
+
+										runNavigation(function(){
+											markNoteCorrespondences();
+
+											var time4 = new Date().getTime();
+											console.log("navigating cost:", time4 - time3);
+											console.log("total computation cost:", time4 - time0);
+
+											$("#status").text("graphing...");
+
+											setTimeout(function () {
+												paintMidiGraph();
+
+												var time5 = new Date().getTime();
+												console.log("graphing cost:", time5 - time4);
+
+												$("#status").text("statistics...");
+
+												setTimeout(function () {
+													ResultStat.TimeCostNavigating = (time4 - time3) / 1000,
+													ResultStat.TimeCostNavigating1 = (time3_1 - time3) / 1000,
+													ResultStat.TimeCostNavigating2 = (time4 - time3_2) / 1000,
+													ResultStat.TimeCostTotal = (time4 - time0) / 1000,
+
+													genResultStatTable();
+
+													var time6 = new Date().getTime();
+													console.log("statistics cost:", time6 - time5);
+													console.log("total cost:", time6 - time0);
+
+													$("#status").text("finished.");
+
+													$("#compare").attr("disabled", false);
+												}, 1);
+											}, 1);
+										});
+									});
+								}, 1);
+							}, 1);
+						}, 1);
+					}, 1);
+				});
+
+				if (localStorage.criterion_data) {
+					loadMidiFile(localStorage.criterion_data, "criterion", localStorage.criterion_filename);
+					$("#file1").text(localStorage.criterion_filename);
+				}
+
+				if (localStorage.sample_data) {
+					loadMidiFile(localStorage.sample_data, "sample", localStorage.sample_filename);
+					$("#file2").text(localStorage.sample_filename);
+				}
+			});
+		</script>
+	</head>
+	<body>
+		<div id="input">
+			<button id="file1" class="midi-file" data-name="criterion">...</button>
+			<button id="file2" class="midi-file" data-name="sample">...</button>
+		</div>
+		<div id="controls">
+			<button id="compare">COMPARE</button>
+		</div>
+		<div id="results">
+			<div id="pitch-stat">
+				<table id="pitch-stat-table"></table>
+			</div>
+			<div id="midi-graph">
+				<svg id="midi-canvas" preserveAspectRatio="none">
+					<g id="score-criterion"></g>
+					<g id="score-sample"></g>
+					<g id="correspondences"></g>
+				</svg>
+			</div>
+			<div id="result-stat">
+				<table id="result-stat-table"></table>
+			</div>
+			<div id="status"></div>
+		</div>
+	</body>
+</html>

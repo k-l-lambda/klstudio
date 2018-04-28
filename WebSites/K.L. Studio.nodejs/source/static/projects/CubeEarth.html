@@ -1,0 +1,1087 @@
+<html>
+	<head>
+		<title>Cube Earth</title>
+		<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+		<script src="../js/jquery.js" type="text/javascript"></script>
+		<script src="../js/copperlicht.js" type="text/javascript"></script>
+		<style type="text/css">
+			html
+			{
+				background-color: transparent;
+			}
+
+			body
+			{
+				margin: 0;
+				/*background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#aaa));
+				background: -moz-linear-gradient(#fff, #aaa);*/
+				background-color: transparent;
+			}
+
+			#cube-earth
+			{
+				position: absolute;
+				left: 0%;
+				top: 0%;
+				width: 100%;
+				height: 100%;
+				-webkit-filter: drop-shadow(4px 9px 10px rgba(0,0,0,0.7));
+				filter: drop-shadow(4px 9px 10px rgba(0,0,0,0.7));
+			}
+		</style>
+		<script id="vs-3dposition" type="x-shader/x-vertex">
+			#ifdef GL_ES
+			precision highp float;
+			#endif
+
+
+			uniform mat4	worldviewproj;
+			uniform mat4	normaltransform;
+			uniform mat4	modelviewtransform;
+
+			attribute vec4	vPosition;
+			attribute vec4	vNormal;
+			attribute vec4	vTangent;
+			attribute vec4	vBinormal;
+			attribute vec4	vTexCoord1;
+			attribute vec4	vTexCoord2;
+
+			varying vec3	v_Position;
+			varying vec3	v_Normal;
+			varying vec3	v_Tangent;
+			varying vec3	v_Binormal;
+			varying vec2	v_TexCoord1;
+			varying vec2	v_TexCoord2;
+
+
+			void main()
+			{
+				gl_Position = worldviewproj * vPosition;
+
+				v_Position = (modelviewtransform * vPosition).xyz;
+				v_Normal = normalize((normaltransform * vNormal).xyz);
+				v_Tangent = normalize((normaltransform * vTangent).xyz);
+				v_Binormal = normalize((normaltransform * vBinormal).xyz);
+				v_TexCoord1 = vTexCoord1.st;
+				v_TexCoord2 = vTexCoord2.st;
+			}
+		</script>
+		<script id="fs-earth" type="x-shader/x-fragment">
+			#ifdef GL_ES
+			precision highp float;
+			#endif
+
+
+			uniform mat4		normaltransform;
+			uniform sampler2D	texture1;
+			uniform sampler2D	texture2;
+			uniform sampler2D	texture3;
+
+			uniform vec3	vLightAmbientColor;
+			uniform vec3	vLightDirection;
+			uniform vec3	vLightDirectionalColor;
+			uniform vec3	vMaterialEmissive;
+			uniform vec3	vMaterialSpecular;
+			uniform float	vMaterialShiness;
+
+			varying vec3	v_Normal;
+			varying vec3	v_Tangent;
+			varying vec3	v_Binormal;
+			varying vec2	v_TexCoord1;
+
+
+			void main()
+			{
+				vec4 color;
+
+				vec4 tex = texture2D(texture1, v_TexCoord1);
+				vec4 texSp = texture2D(texture2, v_TexCoord1);
+				vec4 texNor = texture2D(texture3, v_TexCoord1);
+
+				vec3 L = -normalize(vLightDirection);
+				vec3 N = normalize(v_Normal * texNor.z + v_Tangent * (texNor.x - 0.5) * 4. + v_Binormal * (texNor.y - 0.5) * 4.);
+
+				vec3 ambient = tex.rgb * vLightAmbientColor;
+
+				float diffuseLight = max(dot(N, L), 0.);
+				vec3 diffuse = tex.rgb * vLightDirectionalColor * diffuseLight;
+
+				vec3 H = normalize(L + vec3(0, 0, -1));
+				float specularLight = pow(max(dot(N, H), 0.), vMaterialShiness);
+				if(diffuseLight <= 0.)
+					specularLight = 0.;
+				vec3 specular = texSp.rgb * vMaterialSpecular * vLightDirectionalColor * specularLight;
+
+				color.rgb = vMaterialEmissive + ambient + diffuse + specular;
+				color.a = 1.0;
+
+				gl_FragColor = color;
+			}
+		</script>
+		<script type="text/javascript">
+			CL3D.MeshBuffer.prototype.setVIMesh = function(mesh) {
+				if (this.Vertices != mesh.vertices || this.Indices != mesh.indices) {
+					this.Vertices = mesh.vertices;
+					this.Indices = mesh.indices;
+					this.update();
+				}
+			};
+
+			CL3D.Renderer.prototype.MaterialUniforms = {};
+
+			CL3D.Renderer.prototype.createMaterialTypeEx = function(vs, fs, uniforms, blendenabled, blendsfactor, blenddfactor) {
+				var type = this.createMaterialType(vs, fs, blendenabled, blendsfactor, blenddfactor);
+
+				this.MaterialUniforms[type] = uniforms;
+
+				return type;
+			};
+
+			CL3D.Renderer.prototype.createShaderProgram = function(d, c) {
+				var f = this.gl;
+				var e = this.loadShader(f.VERTEX_SHADER, d);
+				var a = this.loadShader(f.FRAGMENT_SHADER, c);
+				if (!e || !a) {
+					CL3D.gCCDebugOutput.print("Could not create shader program");
+					return null;
+				}
+				var b = f.createProgram();
+				f.attachShader(b, e);
+				f.attachShader(b, a);
+				f.bindAttribLocation(b, 0, "vPosition");
+				f.bindAttribLocation(b, 1, "vTexCoord1");
+				f.bindAttribLocation(b, 2, "vTexCoord2");
+				f.bindAttribLocation(b, 3, "vNormal");
+				f.bindAttribLocation(b, 4, "vTangent");
+				f.bindAttribLocation(b, 5, "vBinormal");
+				f.linkProgram(b);
+				if (!f.getProgramParameter(b, f.LINK_STATUS)) {
+					CL3D.gCCDebugOutput.print("Could not link program:" + f.getProgramInfoLog(b));
+				} else {
+					f.useProgram(b);
+					f.uniform1i(f.getUniformLocation(b, "texture1"), 0);
+					f.uniform1i(f.getUniformLocation(b, "texture2"), 1);
+					f.uniform1i(f.getUniformLocation(b, "texture3"), 2);
+				}
+				return b;
+			};
+
+			CL3D.Renderer.prototype.drawMeshBuffer = function(a) {
+				if (a == null) {
+					return;
+				}
+				if (this.gl == null) {
+					return;
+				}
+				if (a.RendererNativeArray == null) {
+					var g = this.gl;
+					var f = new Object();
+					var h = a.Vertices.length;
+					var k = new WebGLFloatArray(h * 3);
+					var b = new WebGLFloatArray(h * 3);
+					var tangent = new WebGLFloatArray(h * 3);
+					var binormal = new WebGLFloatArray(h * 3);
+					var l = new WebGLFloatArray(h * 2);
+					var c = new WebGLFloatArray(h * 2);
+					for (var e = 0; e < h; ++e) {
+						var o = a.Vertices[e];
+						k[e * 3 + 0] = o.Pos.X;
+						k[e * 3 + 1] = o.Pos.Y;
+						k[e * 3 + 2] = o.Pos.Z;
+						b[e * 3 + 0] = o.Normal.X;
+						b[e * 3 + 1] = o.Normal.Y;
+						b[e * 3 + 2] = o.Normal.Z;
+						tangent[e * 3 + 0] = o.Tangent.X;
+						tangent[e * 3 + 1] = o.Tangent.Y;
+						tangent[e * 3 + 2] = o.Tangent.Z;
+						binormal[e * 3 + 0] = o.Binormal.X;
+						binormal[e * 3 + 1] = o.Binormal.Y;
+						binormal[e * 3 + 2] = o.Binormal.Z;
+						l[e * 2 + 0] = o.TCoords.X;
+						l[e * 2 + 1] = o.TCoords.Y;
+						c[e * 2 + 0] = o.TCoords2.X;
+						c[e * 2 + 1] = o.TCoords2.Y;
+					}
+					var m = a.Indices.length;
+					var n = new WebGLUnsignedShortArray(m);
+					switch (a.DrawMode) {
+						case CL3D.Renderer.DrawModes.TRIANGLES:
+							for (var d = 0; d < m; d += 3) {
+								n[d + 0] = a.Indices[d + 0];
+								n[d + 1] = a.Indices[d + 2];
+								n[d + 2] = a.Indices[d + 1];
+							}
+
+							break;
+						default:
+							for (var d = 0; d < m; ++d)
+								n[d] = a.Indices[d];
+					}
+					f.positionBuffer = g.createBuffer();
+					g.bindBuffer(g.ARRAY_BUFFER, f.positionBuffer);
+					g.bufferData(g.ARRAY_BUFFER, k, g.STATIC_DRAW);
+
+					f.texcoordsBuffer = g.createBuffer();
+					g.bindBuffer(g.ARRAY_BUFFER, f.texcoordsBuffer);
+					g.bufferData(g.ARRAY_BUFFER, l, g.STATIC_DRAW);
+
+					f.texcoordsBuffer2 = g.createBuffer();
+					g.bindBuffer(g.ARRAY_BUFFER, f.texcoordsBuffer2);
+					g.bufferData(g.ARRAY_BUFFER, c, g.STATIC_DRAW);
+
+					f.normalBuffer = g.createBuffer();
+					g.bindBuffer(g.ARRAY_BUFFER, f.normalBuffer);
+					g.bufferData(g.ARRAY_BUFFER, b, g.STATIC_DRAW);
+
+					f.tangentBuffer = g.createBuffer();
+					g.bindBuffer(g.ARRAY_BUFFER, f.tangentBuffer);
+					g.bufferData(g.ARRAY_BUFFER, tangent, g.STATIC_DRAW);
+
+					f.binormalBuffer = g.createBuffer();
+					g.bindBuffer(g.ARRAY_BUFFER, f.binormalBuffer);
+					g.bufferData(g.ARRAY_BUFFER, binormal, g.STATIC_DRAW);
+
+					g.bindBuffer(g.ARRAY_BUFFER, null);
+
+					f.indexBuffer = g.createBuffer();
+					g.bindBuffer(g.ELEMENT_ARRAY_BUFFER, f.indexBuffer);
+					g.bufferData(g.ELEMENT_ARRAY_BUFFER, n, g.STATIC_DRAW);
+					f.indexCount = m;
+
+					g.bindBuffer(g.ELEMENT_ARRAY_BUFFER, null);
+
+					f.drawMode = a.DrawMode;
+					a.RendererNativeArray = f;
+				}
+				this.drawWebGlStaticGeometry(a.RendererNativeArray);
+			};
+
+			CL3D.Renderer.prototype.drawWebGlStaticGeometry = function(a) {
+				var g = this.gl;
+				g.enableVertexAttribArray(0);
+				g.enableVertexAttribArray(1);
+				g.enableVertexAttribArray(2);
+				g.enableVertexAttribArray(3);
+				g.enableVertexAttribArray(4);
+				g.enableVertexAttribArray(5);
+				g.bindBuffer(g.ARRAY_BUFFER, a.positionBuffer);
+				g.vertexAttribPointer(0, 3, g.FLOAT, false, 0, 0);
+				g.bindBuffer(g.ARRAY_BUFFER, a.texcoordsBuffer);
+				g.vertexAttribPointer(1, 2, g.FLOAT, false, 0, 0);
+				g.bindBuffer(g.ARRAY_BUFFER, a.texcoordsBuffer2);
+				g.vertexAttribPointer(2, 2, g.FLOAT, false, 0, 0);
+				g.bindBuffer(g.ARRAY_BUFFER, a.normalBuffer);
+				g.vertexAttribPointer(3, 3, g.FLOAT, false, 0, 0);
+				g.bindBuffer(g.ARRAY_BUFFER, a.tangentBuffer);
+				g.vertexAttribPointer(4, 3, g.FLOAT, false, 0, 0);
+				g.bindBuffer(g.ARRAY_BUFFER, a.binormalBuffer);
+				g.vertexAttribPointer(5, 3, g.FLOAT, false, 0, 0);
+				g.bindBuffer(g.ELEMENT_ARRAY_BUFFER, a.indexBuffer);
+				var d = new CL3D.Matrix4(false);
+				this.Projection.copyTo(d);
+				d = d.multiply(this.View);
+				d = d.multiply(this.World);
+				var c = this.currentGLProgram;
+				if (c.locWorldViewProj != null) {
+					g.uniformMatrix4fv(c.locWorldViewProj, false, this.getMatrixAsWebGLFloatArray(d));
+				}
+				if (c.locNormalMatrix != null) {
+					var e = new CL3D.Matrix4(true);
+					e = e.multiply(this.View);
+					e = e.multiply(this.World);
+					e.makeInverse();
+					e.makeTranspose();
+					g.uniformMatrix4fv(c.locNormalMatrix, false, this.getMatrixAsWebGLFloatArray(e));
+				}
+				if (c.locModelViewMatrix != null) {
+					var f = new CL3D.Matrix4(true);
+					f = f.multiply(this.View);
+					f = f.multiply(this.World);
+					g.uniformMatrix4fv(c.locModelViewMatrix, false, this.getMatrixAsWebGLFloatArray(f));
+				}
+				g.drawElements(a.drawMode, a.indexCount, g.UNSIGNED_SHORT, 0);
+			};
+
+			CL3D.Renderer.prototype.setMaterial = function(b) {
+				if (b == null) {
+					return;
+				}
+				var d = this.gl;
+				if (d == null) {
+					return;
+				}
+				var a = null;
+				try {
+					a = this.MaterialPrograms[b.Type];
+				} catch (c) { }
+				if (a) {
+					this.currentGLProgram = a;
+					d.useProgram(a);
+					if (this.OnChangeMaterial != null) {
+						try {
+							this.OnChangeMaterial(b.Type);
+						} catch (c) { }
+					}
+					if (a.blendenabled) {
+						d.enable(d.BLEND);
+						//d.blendFunc(a.blendsfactor, a.blenddfactor);
+						d.blendFuncSeparate(a.blendsfactor, a.blenddfactor, d.ONE, d.ONE);
+					} else {
+						d.disable(d.BLEND);
+					}
+					if (!b.ZWriteEnabled || b.isTransparent()) {
+						d.depthMask(false);
+					} else {
+						d.depthMask(true);
+					}
+					if (b.ZReadEnabled) {
+						d.enable(d.DEPTH_TEST);
+					} else {
+						d.disable(d.DEPTH_TEST);
+					}
+				}
+				if (b.Tex1 && b.Tex1.Loaded) {
+					d.activeTexture(d.TEXTURE0);
+					d.bindTexture(d.TEXTURE_2D, b.Tex1.Texture);
+					d.texParameteri(d.TEXTURE_2D, d.TEXTURE_WRAP_S, b.ClampTexture1 ? d.CLAMP_TO_EDGE : d.REPEAT);
+					d.texParameteri(d.TEXTURE_2D, d.TEXTURE_WRAP_T, b.ClampTexture1 ? d.CLAMP_TO_EDGE : d.REPEAT);
+				} else {
+					d.activeTexture(d.TEXTURE0);
+					d.bindTexture(d.TEXTURE_2D, null);
+				}
+				if (a) {
+					d.uniform1i(d.getUniformLocation(a, "texture1"), 0);
+				}
+
+				if (b.Tex2 && b.Tex2.Loaded) {
+					d.activeTexture(d.TEXTURE1);
+					d.bindTexture(d.TEXTURE_2D, b.Tex2.Texture);
+				} else {
+					d.activeTexture(d.TEXTURE1);
+					d.bindTexture(d.TEXTURE_2D, null);
+				}
+				if (a) {
+					d.uniform1i(d.getUniformLocation(a, "texture2"), 1);
+				}
+
+				if (b.Tex3 && b.Tex3.Loaded) {
+					d.activeTexture(d.TEXTURE2);
+					d.bindTexture(d.TEXTURE_2D, b.Tex3.Texture);
+				} else {
+					d.activeTexture(d.TEXTURE2);
+					d.bindTexture(d.TEXTURE_2D, null);
+				}
+				if (a) {
+					d.uniform1i(d.getUniformLocation(a, "texture3"), 2);
+				}
+			};
+
+			CL3D.Renderer.prototype.OnChangeMaterial = function(mattype) {
+				var uniforms = this.MaterialUniforms[mattype];
+				if (uniforms) {
+					var gl = this.getWebGL();
+					var program = this.getGLProgramFromMaterialType(mattype);
+					$.each(uniforms, function(key, uniform) {
+						var location = gl.getUniformLocation(program, key);
+
+						while (typeof (uniform) == "function")
+							uniform = uniform();
+
+						if (typeof (uniform) == "number")
+							gl.uniform1f(location, uniform);
+						else
+							switch (uniform.length) {
+							case 1:
+								gl.uniform1f(location, uniform[0]);
+								break;
+							case 2:
+								gl.uniform2f(location, uniform[0], uniform[1]);
+								break;
+							case 3:
+								gl.uniform3f(location, uniform[0], uniform[1], uniform[2]);
+								break;
+							case 4:
+								gl.uniform4f(location, uniform[0], uniform[1], uniform[2], uniform[3]);
+								break;
+							default:
+								throw "invalid uniform length: " + uniform.length;
+							}
+					});
+				}
+			};
+
+			CL3D.QMeshSceneNode = function() {
+				this.Rotation = new CL3D.Quaternion();
+			};
+
+			CL3D.QMeshSceneNode.prototype = new CL3D.MeshSceneNode();
+
+			CL3D.QMeshSceneNode.prototype.getRelativeTransformation = function () {
+				var trans = this.Rotation.getMatrix();
+				trans.setTranslation(this.Pos);
+				if (this.Scale.X != 1 || this.Scale.Y != 1 || this.Scale.Z != 1) {
+					var a = new CL3D.Matrix4();
+					a.setScale(this.Scale);
+					trans = trans.multiply(a);
+				}
+				return trans;
+			};
+
+			CL3D.Quaternion.prototype.multiplyWithQuat = function(q) {
+				return new CL3D.Quaternion(
+					this.W * q.X + this.X * q.W + this.Y * q.Z - this.Z * q.Y,
+					this.W * q.Y + this.Y * q.W + this.Z * q.X - this.X * q.Z,
+					this.W * q.Z + this.Z * q.W + this.X * q.Y - this.Y * q.X,
+					this.W * q.W - this.X * q.X - this.Y * q.Y - this.Z * q.Z
+				);
+			};
+
+			CL3D.SceneNode.prototype.OnAnimate = function(h, k) {
+				var e = false;
+				if (this.Visible) {
+					var f;
+					var b = this.Animators.length;
+					for (f = 0; f < b; ) {
+						var d = this.Animators[f];
+						if (!d.Disabled)
+							e = d.animateNode(this, k) || e;
+						var g = b;
+						b = this.Animators.length;
+						if (g >= b) {
+							++f;
+						}
+					}
+					this.updateAbsolutePosition();
+					for (f = 0; f < this.Children.length; ++f) {
+						var j = this.Children[f];
+						e = j.OnAnimate(h, k) || e;
+					}
+				}
+				return e;
+			};
+		</script>
+		<script type="text/javascript">
+			var CUBE_SPHERAL_RATE = 0.48;
+			var CL, Scene, Cube;
+
+			var util = {
+				createVertex: function(pos, normal, tu, tv) {
+					var v = new CL3D.Vertex3D(true);
+					v.Pos = pos;
+					if (normal)
+						v.Normal = normal;
+					if (tu || tu == 0)
+						v.TCoords.X = tu;
+					if (tv || tv == 0)
+						v.TCoords.Y = tv;
+
+					return v;
+				},
+
+				createSimpleCubeMesh: function(length) {
+					length = length || 1;
+					var half = length / 2;
+
+					var vertices = [
+						util.createVertex(new CL3D.Vect3d(-half, -half, -half)),
+						util.createVertex(new CL3D.Vect3d(-half, -half, +half)),
+						util.createVertex(new CL3D.Vect3d(-half, +half, -half)),
+						util.createVertex(new CL3D.Vect3d(-half, +half, +half)),
+
+						util.createVertex(new CL3D.Vect3d(+half, -half, -half)),
+						util.createVertex(new CL3D.Vect3d(+half, -half, +half)),
+						util.createVertex(new CL3D.Vect3d(+half, +half, -half)),
+						util.createVertex(new CL3D.Vect3d(+half, +half, +half))
+					];
+					var indices = [
+						0, 1, 2, 1, 3, 2,
+						4, 6, 5, 5, 6, 7,
+						1, 5, 3, 5, 7, 3,
+						0, 2, 4, 2, 6, 4,
+						2, 3, 7, 7, 6, 2,
+						5, 1, 0, 0, 4, 5
+					];
+
+					return { vertices: vertices, indices: indices };
+				},
+
+				createCubeArrayMeshes: function(options) {
+					options = options || {};
+					options.Segments = options.Segments || 16;
+					options.Spheral = options.Spheral || CUBE_SPHERAL_RATE;
+
+					var grids = options.Segments * 1.5 + 1;
+					var inv_grids = 1 / grids;
+
+					var eachRange2D = function(ul, uh, vl, vh, elem) {
+						for (var u = ul; u <= uh; ++u)
+							for (var v = vl; v <= vh; ++v)
+							elem(u, v);
+					};
+
+					var faceVerticesCount = (options.Segments + 1) * (options.Segments + 1);
+
+					var getVertexIndex = function(f, u, v) {
+						return faceVerticesCount * f + u * (options.Segments + 1) + v;
+					};
+
+					var indices = [];
+					for (var f = 0; f < 6; ++f) {
+						eachRange2D(0, options.Segments - 1, 0, options.Segments - 1, function(u, v) {
+							indices.push(getVertexIndex(f, u, v));
+							indices.push(getVertexIndex(f, u + 1, v + 1));
+							indices.push(getVertexIndex(f, u + 1, v));
+
+							indices.push(getVertexIndex(f, u, v));
+							indices.push(getVertexIndex(f, u, v + 1));
+							indices.push(getVertexIndex(f, u + 1, v + 1));
+						});
+					}
+
+					var mendIndicesMap = {};
+					var mendIndicesInitialized = false;
+
+					var units = [];
+
+					// traverse all units
+					for (var ax = -1; ax <= 1; ++ax)
+						for (var ay = -1; ay <= 1; ++ay)
+							for (var az = -1; az <= 1; ++az) {
+								var boxpos = [];
+								var vertices = [];
+
+								var xl = ax * (options.Segments + 1) - options.Segments / 2, xh = ax * (options.Segments + 1) + options.Segments / 2;
+								var yl = ay * (options.Segments + 1) - options.Segments / 2, yh = ay * (options.Segments + 1) + options.Segments / 2;
+								var zl = az * (options.Segments + 1) - options.Segments / 2, zh = az * (options.Segments + 1) + options.Segments / 2;
+
+								eachRange2D(yl, yh, zl, zh, function(y, z) { var pos = new CL3D.Vect3d(xl, y, z).multiplyWithScal(inv_grids); boxpos.push(pos); vertices.push(util.createVertex(util.spherize(pos, options.Spheral))); });
+								eachRange2D(zl, zh, yl, yh, function(z, y) { var pos = new CL3D.Vect3d(xh, y, z).multiplyWithScal(inv_grids); boxpos.push(pos); vertices.push(util.createVertex(util.spherize(pos, options.Spheral))); });
+								eachRange2D(zl, zh, xl, xh, function(z, x) { var pos = new CL3D.Vect3d(x, yl, z).multiplyWithScal(inv_grids); boxpos.push(pos); vertices.push(util.createVertex(util.spherize(pos, options.Spheral))); });
+								eachRange2D(xl, xh, zl, zh, function(x, z) { var pos = new CL3D.Vect3d(x, yh, z).multiplyWithScal(inv_grids); boxpos.push(pos); vertices.push(util.createVertex(util.spherize(pos, options.Spheral))); });
+								eachRange2D(xl, xh, yl, yh, function(x, y) { var pos = new CL3D.Vect3d(x, y, zl).multiplyWithScal(inv_grids); boxpos.push(pos); vertices.push(util.createVertex(util.spherize(pos, options.Spheral))); });
+								eachRange2D(yl, yh, xl, xh, function(y, x) { var pos = new CL3D.Vect3d(x, y, zh).multiplyWithScal(inv_grids); boxpos.push(pos); vertices.push(util.createVertex(util.spherize(pos, options.Spheral))); });
+
+								var mended = 0;
+
+								var backVectors = [new CL3D.Vect3d(1, 0, 0), new CL3D.Vect3d(-1, 0, 0), new CL3D.Vect3d(0, 1, 0), new CL3D.Vect3d(0, -1, 0), new CL3D.Vect3d(0, 0, 1), new CL3D.Vect3d(0, 0, -1)];
+
+								for (var f = 0; f < 6; ++f) {
+									var backVector = backVectors[f].multiplyWithScal(inv_grids);
+
+									eachRange2D(0, options.Segments, 0, options.Segments, function(u, v) {
+										var index = getVertexIndex(f, u, v);
+										var vertex = vertices[index];
+
+										// chamfer position on edge
+										if (u == 0 || u == options.Segments || v == 0 || v == options.Segments) {
+											var R = 0.2;
+											var pos = boxpos[index].clone();
+											pos.addToThis(backVector.multiplyWithScal(R));
+											if (u == 0)
+												pos.addToThis(boxpos[getVertexIndex(f, u + 1, v)].substract(boxpos[index]).multiplyWithScal(R));
+											if (u == options.Segments)
+												pos.addToThis(boxpos[getVertexIndex(f, u - 1, v)].substract(boxpos[index]).multiplyWithScal(R));
+											if (v == 0)
+												pos.addToThis(boxpos[getVertexIndex(f, u, v + 1)].substract(boxpos[index]).multiplyWithScal(R));
+											if (v == options.Segments)
+												pos.addToThis(boxpos[getVertexIndex(f, u, v - 1)].substract(boxpos[index]).multiplyWithScal(R));
+
+											vertex.Pos = util.spherize(pos, options.Spheral);
+										}
+
+										// compute normal, tangent & binormal
+										{
+											var pos = vertex.Pos;
+											var normals = [];
+											var back = util.spherize(boxpos[index].add(backVector), options.Spheral).substract(pos).getNormalized();
+											var L, R, U, D;
+
+											L = (u > 0) ? (vertices[getVertexIndex(f, u - 1, v)].Pos.substract(pos)) : back;
+											R = (u < options.Segments) ? (vertices[getVertexIndex(f, u + 1, v)].Pos.substract(pos)) : back;
+											U = (v > 0) ? (vertices[getVertexIndex(f, u, v - 1)].Pos.substract(pos)) : back;
+											D = (v < options.Segments) ? (vertices[getVertexIndex(f, u, v + 1)].Pos.substract(pos)) : back;
+
+											normals.push(U.crossProduct(L));
+											normals.push(L.crossProduct(D));
+											normals.push(R.crossProduct(U));
+											normals.push(D.crossProduct(R));
+
+											vertex.Normal = new CL3D.Vect3d(0, 0, 0);
+											$.each(normals, function(i, n) {
+												vertex.Normal.addToThis(n.getNormalized());
+											});
+											vertex.Normal.multiplyWithScal(1 / normals.length);
+											vertex.Normal.normalize();
+
+											vertex.Tangent = R.add(L.multiplyWithScal(-1));
+											vertex.Tangent.normalize();
+											vertex.Binormal = D.add(U.multiplyWithScal(-1));
+											vertex.Binormal.normalize();
+										}
+
+										var wuv = util.xyzToWuv(pos);
+										vertex.TCoords.X = wuv.U;
+										vertex.TCoords.Y = wuv.V;
+
+										// append a mend vertex
+										if (pos.Z == 0) {
+											++mended;
+
+											if (!mendIndicesInitialized)
+												mendIndicesMap[getVertexIndex(f, u, v)] = vertices.length;
+
+											var newVertex = vertex;
+											if (vertex.TCoords.X == 0) {
+												newVertex = new CL3D.Vertex3D(true);
+												newVertex.Pos = vertex.Pos;
+												newVertex.Normal = vertex.Normal;
+												newVertex.Tangent = vertex.Tangent;
+												newVertex.Binormal = vertex.Binormal;
+												newVertex.TCoords.Y = vertex.TCoords.Y;
+												newVertex.TCoords.X = 1;
+											}
+
+											vertices.push(newVertex);
+										}
+									});
+								}
+
+								units.push({ vertices: vertices, indices: indices, mended: mended });
+
+								mendIndicesInitialized = mendIndicesInitialized || mended;
+							}
+
+					// build mendIndices
+					var mendIndices = [];
+					for (var f = 0; f < 6; ++f) {
+						eachRange2D(0, options.Segments - 1, 0, options.Segments - 1, function(u, v) {
+							var i00 = getVertexIndex(f, u, v);
+							var i10 = getVertexIndex(f, u + 1, v);
+							var i01 = getVertexIndex(f, u, v + 1);
+							var i11 = getVertexIndex(f, u + 1, v + 1);
+
+							switch(f) {
+								case 0:
+								case 3:
+									i01 = mendIndicesMap[i01] || i01;
+									i11 = mendIndicesMap[i11] || i11;
+
+									break;
+								case 1:
+								case 2:
+									i10 = mendIndicesMap[i10] || i10;
+									i11 = mendIndicesMap[i11] || i11;
+
+									break;
+							}
+
+							mendIndices.push(i00);
+							mendIndices.push(i11);
+							mendIndices.push(i10);
+
+							mendIndices.push(i00);
+							mendIndices.push(i01);
+							mendIndices.push(i11);
+						});
+					}
+
+					$.each(units, function(i, unit){
+						if(unit.mended)
+							unit.indices = mendIndices;
+					});
+
+					return units;
+				},
+
+				spherize: function(v, k) {
+					k = k || CUBE_SPHERAL_RATE;
+
+					var m = v.getLength();
+					var r = Math.max(Math.abs(v.X), Math.max(Math.abs(v.Y), Math.abs(v.Z)));
+					var radius = m * k + r * (1 - k);
+
+					return new CL3D.Vect3d(v.X * radius / m, v.Y * radius / m, v.Z * radius / m);
+				},
+
+				xyzToWuv: function(v) {
+					var m = v.getLength();
+					var r = Math.sqrt(v.X * v.X + v.Z * v.Z);
+
+					var V = Math.acos(v.Y / m) / Math.PI;
+					var U = r == 0 ? 0 : Math.acos(v.X / r) / (Math.PI * 2);
+					if (v.Z < 0)
+						U = 1 - U;
+
+					return {W: m, U: U, V: V};
+				},
+
+				pointsRightDeflect: function(p1, p2, p3) {
+					return (p2.Y - p1.Y) * (p3.X - p2.X) - (p2.X - p1.X) * (p3.Y - p2.Y) > 0;
+				},
+
+				pointInQuadrangle: function(p, q) {
+					if (!(q[0] && q[1] && q[2] && q[3]))
+						return false;
+
+					if (util.pointsRightDeflect(q[0], q[1], q[2]))
+						return util.pointsRightDeflect(q[0], q[1], p) && util.pointsRightDeflect(q[1], q[2], p) && util.pointsRightDeflect(q[2], q[3], p) && util.pointsRightDeflect(q[3], q[0], p);
+					else
+						return util.pointsRightDeflect(q[1], q[0], p) && util.pointsRightDeflect(q[2], q[1], p) && util.pointsRightDeflect(q[3], q[2], p) && util.pointsRightDeflect(q[0], q[3], p);
+				}
+			};
+			util.SimpleCubeMesh = util.createSimpleCubeMesh(1);
+			util.CubeArrayMeshes = util.createCubeArrayMeshes();
+
+			$(function () {
+				var canvas = $("#cube-earth");
+				canvas.attr("width", canvas.width());
+				canvas.attr("height", canvas.height());
+
+				CL = new CL3D.CopperLicht("cube-earth", false, 30);
+				if (CL.initRenderer({ antialias: true })) {
+					Scene = new CL3D.Scene();
+					CL.addScene(Scene);
+
+					Scene.setBackgroundColor(0x00000000);
+
+					var cam = new CL3D.CameraSceneNode();
+					cam.Pos = new CL3D.Vect3d(0.8, 0.7, -1);
+					cam.setTarget(new CL3D.Vect3d(0, 0, 0));
+					cam.setFov(Math.PI * 0.3);
+					var animator = new CL3D.AnimatorCameraModelViewer(cam, CL, [0, 1]);
+					cam.addAnimator(animator);
+					animator.Radius = 3.2;
+					Scene.getRootSceneNode().addChild(cam);
+					Scene.setActiveCamera(cam);
+					cam.setAspectRatio(canvas.width() / canvas.height());
+
+					var cube = new CL3D.SceneNode();
+					Scene.getRootSceneNode().addChild(cube);
+
+					var cubeMat = CL.getRenderer().createMaterialTypeEx($("#vs-3dposition").text(), $("#fs-earth").text(), {
+						vLightAmbientColor: [0.06, 0.06, 0.06],
+						vLightDirection: [0, 0, 1],
+						vLightDirectionalColor: [1.8, 1.8, 1.8],
+						vMaterialEmissive: [0, 0, 0],
+						vMaterialSpecular: [0.4, 0.4, 0.4],
+						vMaterialShiness: 64
+					});
+
+					var cubeHighlightMat = CL.getRenderer().createMaterialTypeEx($("#vs-3dposition").text(), $("#fs-earth").text(), {
+						vLightAmbientColor: [0.06, 0.06, 0.06],
+						vLightDirection: [0, 0, 1],
+						vLightDirectionalColor: [1.8, 1.8, 1.8],
+						vMaterialEmissive: [0.1, 0.13, 0.14],
+						vMaterialSpecular: [0.4, 0.4, 0.4],
+						vMaterialShiness: 64
+					});
+
+					$.each(util.CubeArrayMeshes, function (i, unit) {
+						var buffer = new CL3D.MeshBuffer();
+						buffer.setVIMesh(unit);
+						buffer.Mat.Type = cubeMat;
+						buffer.Mat.Tex1 = CL.getTextureManager().getTexture("../res/images/earth.jpg", true);
+						buffer.Mat.Tex2 = CL.getTextureManager().getTexture("../res/images/earth_specular.jpg", true);
+						buffer.Mat.Tex3 = CL.getTextureManager().getTexture("../res/images/earth_normal.jpg", true);
+
+						var mesh = new CL3D.Mesh();
+						mesh.AddMeshBuffer(buffer);
+
+						var node = new CL3D.QMeshSceneNode();
+						node.setMesh(mesh);
+						cube.addChild(node);
+					});
+
+					$(window).resize(function () {
+						canvas.attr("width", canvas.width());
+						canvas.attr("height", canvas.height());
+						Scene.getActiveCamera().setAspectRatio(canvas.width() / canvas.height());
+					});
+
+					$(top).focus(function () {
+						CL.IsPaused = false;
+					});
+
+					$(top).blur(function () {
+						CL.IsPaused = true;
+					});
+
+					Cube = new CubeArray(cube.Children);
+					CL.OnBeforeDrawAll = function () { Cube.update(); };
+
+					// screw randomly
+					var faces = [[-1, 0, 0], [1, 0, 0], [0, -1, 0], [0, 1, 0], [0, 0, -1], [0, 0, 1]];
+					var phases = [-1, 1, 2];
+					var stopAutoScrew = false;
+					var autoScrew = function () {
+						if (!stopAutoScrew) {
+							Cube.startTransition({
+								face: faces[Math.floor(Math.random() * 6)],
+								phase: phases[Math.floor(Math.random() * 3)],
+								length: 150,
+								finish: autoScrew
+							});
+						}
+					};
+					if (/screw_random/.test(location.hash))
+						setTimeout(autoScrew, 6000);
+
+					// screw operation
+					{
+						var tips = [
+							util.spherize(new CL3D.Vect3d(-1, -1, -1)), // 0
+							util.spherize(new CL3D.Vect3d(-1, -1, +1)), // 1
+							util.spherize(new CL3D.Vect3d(-1, +1, -1)), // 2
+							util.spherize(new CL3D.Vect3d(-1, +1, +1)), // 3
+							util.spherize(new CL3D.Vect3d(+1, -1, -1)), // 4
+							util.spherize(new CL3D.Vect3d(+1, -1, +1)), // 5
+							util.spherize(new CL3D.Vect3d(+1, +1, -1)), // 6
+							util.spherize(new CL3D.Vect3d(+1, +1, +1))  // 7
+						];
+						var faceTips = [
+							[tips[0], tips[1], tips[3], tips[2]],
+							[tips[4], tips[5], tips[7], tips[6]],
+							[tips[0], tips[1], tips[5], tips[4]],
+							[tips[2], tips[3], tips[7], tips[6]],
+							[tips[0], tips[2], tips[6], tips[4]],
+							[tips[1], tips[3], tips[7], tips[5]]
+						];
+						var faceNormals = [new CL3D.Vect3d(-1, 0, 0), new CL3D.Vect3d(1, 0, 0), new CL3D.Vect3d(0, -1, 0), new CL3D.Vect3d(0, 1, 0), new CL3D.Vect3d(0, 0, -1), new CL3D.Vect3d(0, 0, 1)];
+
+						var focusFace = null;
+						var screwing = false;
+						var cursorPos = null;
+						var screwInPoint = null;
+						var currentPhase = 0;
+						var mouseButtons = {};
+
+						$(window).mousedown(function (event) {
+							if (event.button == 0 && focusFace != null) {
+								stopAutoScrew = true;
+
+								if (!Cube.Transition) {
+									screwing = true;
+									screwInPoint = cursorPos;
+									currentPhase = 0;
+
+									Scene.getActiveCamera().Animators[0].Disabled = true;
+								}
+							}
+
+							mouseButtons[event.button] = true;
+						});
+
+						$(window).mouseup(function (event) {
+							if (event.button == 0 && screwing) {
+								screwing = false;
+
+								Scene.getActiveCamera().Animators[0].Disabled = false;
+
+								Cube.startTransition({
+									face: faces[focusFace],
+									length: 10,
+									startPhase: currentPhase,
+									phase: Math.round(currentPhase)
+								});
+							}
+
+							mouseButtons[event.button] = false;
+						});
+
+						var updateFocusFace = function () {
+							var cam = Scene.getActiveCamera();
+							var cameraDirection = cam.Pos.substract(cam.getTarget());
+
+							for (var f = 0; f < 6; ++f) {
+								if (cameraDirection.dotProduct(faceNormals[f]) > 0) {
+									var points = [
+										CL.get2DPositionFrom3DPosition(faceTips[f][3]),
+										CL.get2DPositionFrom3DPosition(faceTips[f][2]),
+										CL.get2DPositionFrom3DPosition(faceTips[f][1]),
+										CL.get2DPositionFrom3DPosition(faceTips[f][0])
+									];
+
+									if (util.pointInQuadrangle(cursorPos, points)) {
+										focusFace = f;
+										break;
+									}
+								}
+							}
+						};
+
+						$(window).mousemove(function (event) {
+							cursorPos = { X: event.pageX, Y: event.pageY };
+
+							if (screwing) {
+								var center = CL.get2DPositionFrom3DPosition(faceNormals[focusFace]);
+								var torque = new CL3D.Vect3d(cursorPos.X - screwInPoint.X, cursorPos.Y - screwInPoint.Y, 0).crossProduct(new CL3D.Vect3d(screwInPoint.X - center.X, screwInPoint.Y - center.Y, 0));
+								screwInPoint = cursorPos;
+								currentPhase += torque.Z * 0.00004;
+								Cube.setFaceRotation(faces[focusFace], currentPhase * Math.PI * 0.5);
+							}
+							else {
+								focusFace = null;
+
+								$.each(cube.Children, function (i, node) {
+									node.getMesh().GetMeshBuffers()[0].Mat.Type = cubeMat;
+								});
+
+								if (!mouseButtons[0] && !mouseButtons[1])
+									updateFocusFace();
+
+								if (!Cube.Transition) {
+									if (focusFace != null) {
+										Cube.traverseArrayFace(faces[focusFace], function (node) {
+											node.getMesh().GetMeshBuffers()[0].Mat.Type = cubeHighlightMat;
+										});
+									}
+								}
+
+								canvas.css("cursor", focusFace != null ? "pointer" : "default");
+							}
+						});
+
+						document.onmousewheel = function (event) {
+							if (!Cube.Transition && !screwing && focusFace != null) {
+								Cube.startTransition({
+									face: faces[focusFace],
+									phase: event.wheelDelta > 0 ? 1 : -1,
+									finish: updateFocusFace
+								});
+
+								focusFace = null;
+								screwing = false;
+
+								event.preventDefault();
+							}
+						};
+					}
+				}
+			});
+
+			var CubeArray = function(nodes) {
+				var self = this;
+
+				this.Nodes = nodes;
+				this.Array = {};
+
+				$.each(nodes, function(i, node) {
+					var pos = [Math.floor(i / 9) % 3 - 1, Math.floor(i / 3) % 3 - 1, i % 3 - 1];
+
+					node.ArrayPos = pos;
+					node.RotationBase = node.Rotation;
+				});
+				this.updateArray();
+
+				this.ActiveFace = null;
+			};
+
+			CubeArray.prototype.getArrayNode = function(i, j, k) {
+				return this.Array[i][j][k];
+			};
+
+			CubeArray.prototype.setArrayNode = function(node, i, j, k) {
+				this.Array[i] = this.Array[i] || {};
+				this.Array[i][j] = this.Array[i][j] || {};
+				this.Array[i][j][k] = node;
+			};
+
+			CubeArray.prototype.updateArray = function() {
+				var self = this;
+
+				$.each(this.Nodes, function(i, node){
+					self.setArrayNode(node, node.ArrayPos[0], node.ArrayPos[1], node.ArrayPos[2]);
+				});
+			};
+
+			CubeArray.prototype.setFaceRotation = function(face, angle) {
+				var r = new CL3D.Quaternion();
+				r.setFromEuler(face[0] * angle, face[1] * angle, face[2] * angle);
+
+				this.traverseArrayFace(face, function(node){
+					node.Rotation = node.RotationBase.multiplyWithQuat(r);
+				});
+			};
+
+			CubeArray.prototype.traverseArrayFace = function(face, callback) {
+				for (var i = -1; i <= 1; ++i)
+					for (var j = -1; j <= 1; ++j)
+						for (var k = -1; k <= 1; ++k) {
+							if ((!face[0] || face[0] == i) && (!face[1] || face[1] == j) && (!face[2] || face[2] == k))
+								callback(this.Array[i][j][k]);
+						}
+			};
+
+			CubeArray.prototype.update = function() {
+				if (this.Transition)
+					this.updateTransition(this.Transition);
+			};
+
+			CubeArray.prototype.startTransition = function(options) {
+				this.ActiveFace = options.face || this.ActiveFace;
+
+				this.Transition = {
+					Time: 0,
+					Length: options.length != null ? options.length : 30,
+					Phase: options.phase != null ? options.phase : 1,
+					StartPhase: options.startPhase != null ? options.startPhase : 0,
+					Interpolater: options.interpolater || function(t) { return (((6 * t) - 15) * t + 10) * t * t * t; },
+					Finish: options.finish
+				};
+			};
+
+			CubeArray.prototype.updateTransition = function(transition) {
+				if (!this.ActiveFace)
+					throw "ActiveFace required in CubeArray transition";
+
+				var k = transition.Interpolater(transition.Time / transition.Length);
+				var angle = (transition.StartPhase + k * (transition.Phase - transition.StartPhase)) * Math.PI * 0.5;
+				this.setFaceRotation(this.ActiveFace, angle);
+
+				++transition.Time;
+				if (transition.Time >= transition.Length) {
+					this.Transition = null;
+					this.screw(this.ActiveFace, transition.Phase);
+
+					if (transition.Finish)
+						transition.Finish();
+				}
+			};
+
+			CubeArray.prototype.screw = function(face, phase) {
+				var angle = phase * Math.PI * 0.5;
+				var r = new CL3D.Quaternion();
+				r.setFromEuler(face[0] * angle, face[1] * angle, face[2] * angle);
+				var rm = r.getMatrix();
+
+				this.traverseArrayFace(face, function(node) {
+					node.RotationBase = node.RotationBase.multiplyWithQuat(r);
+
+					var v = new CL3D.Vect3d(node.ArrayPos[0], node.ArrayPos[1], node.ArrayPos[2]);
+					v.W = 1;
+					rm.multiplyWith1x4Matrix(v);
+					node.ArrayPos[0] = Math.round(v.X);
+					node.ArrayPos[1] = Math.round(v.Y);
+					node.ArrayPos[2] = Math.round(v.Z);
+				});
+
+				this.updateArray();
+				this.setFaceRotation(face, 0);
+			};
+		</script>
+		<script type="text/javascript">
+			var _gaq = _gaq || [];
+			_gaq.push(['_setAccount', 'UA-20678203-1']);
+			_gaq.push(['_trackPageview']);
+
+			(function() {
+				var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+				ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+				var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+			})();
+		</script>
+	</head>
+	<body>
+		<canvas id="cube-earth"></canvas>
+	</body>
+</html>

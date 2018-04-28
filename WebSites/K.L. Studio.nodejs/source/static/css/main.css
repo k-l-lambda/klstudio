@@ -1,0 +1,67 @@
+
+body
+{
+	margin: 0;
+	font: 100% Verdana, Arial, Helvetica, sans-serif;
+}
+
+img
+{
+	border: none;
+}
+
+.clear
+{
+	clear: both;
+}
+
+#header
+{
+	padding: 8px;
+}
+
+#header span
+{
+	display: inline-block;
+	vertical-align: middle;
+}
+
+#nav
+{
+	margin-left: 280px;
+	font-size: 22px;
+}
+
+#nav a
+{
+	color: #aaa;
+	text-decoration: none;
+}
+
+#nav a.current
+{
+	color: #000;
+}
+
+.container
+{
+	width: 800px;
+	margin: 0 auto;
+	text-align: left;
+}
+
+.footer
+{
+	margin-top: 2em;
+	padding-top: 8px;
+	border-top: solid 1px #eee;
+}
+
+.copyright
+{
+	float: right;
+	font-family: "lucida grande", "Segoe UI", arial, verdana, "lucida sans unicode", tahoma, sans-serif;
+	color: #aaa;
+	margin: 15px 7px;
+	font-size: 12px;
+}

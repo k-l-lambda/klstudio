@@ -2381,7 +2381,7 @@
 			};
 
 			const onWebMIDIMessage = function(message) {
-				console.log("onWebMIDIMessage:", message.data, message.timeStamp);
+				//console.log("onWebMIDIMessage:", message.data, message.timeStamp);
 
 				const cmd = message.data[0] >> 4;
 				const channel = message.data[0] & 0xf;
@@ -2431,6 +2431,8 @@
 
 						break;
 				}
+
+				//console.log("onWebMIDIMessage:", cmd, data);
 
 				switch (data.type) {
 					case "NoteOn":

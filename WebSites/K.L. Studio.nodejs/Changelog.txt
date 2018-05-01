@@ -1,6 +1,5 @@
 
 TODO:
-	web MIDI event timestamp
 	add petal web MIDI events
 
 

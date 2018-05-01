@@ -213,6 +213,7 @@
 			{
 				opacity: 0.7;
 				background-color: #711;
+				border-radius: 6px;
 			}
 
 			#playback-edit:hover
@@ -254,10 +255,10 @@
 				z-index: -1000;
 			}
 
-			#input-device-bar
+			/*#input-device-bar
 			{
 				display: none;
-			}
+			}*/
 
 			#input-device
 			{
@@ -795,6 +796,7 @@
 		<script src="../../js/MusicalUtils.js" type="text/javascript"></script>
 		<script type="text/javascript">
 			var MidiIO = null;
+			let MidiAccess = null;
 
 			var PinaoConfig = {
 				NoteStart: 21,
@@ -1476,6 +1478,28 @@
 
 					console.log("No MIDI input device detected.");
 				}
+			};
+
+			const updateWebMIDIConnection = function() {
+				const chosen = $("#input-device").val();
+
+				const inputs = MidiAccess.inputs.values();
+				for (const input of inputs) {
+					input.onmidimessage = input.id == chosen ? onWebMIDIMessage : null;
+				}
+			};
+
+			const refreshWebMIDIInputDevices = function () {
+				$("#input-device").empty();
+
+				const inputs = MidiAccess.inputs.values();
+				for (const input of inputs) {
+					//console.log("input device:", input);
+
+					$("#input-device").append("<option value='" + input.id + "'>" + input.name + "</option>");
+				}
+
+				updateWebMIDIConnection();
 			};
 
 			var svg = function (selector) {
@@ -2364,7 +2388,7 @@
 				const noteNumber = message.data[1];
 				const velocity = message.data[2];
 
-				const data = {note: noteNumber, channel, velocity};
+				const data = {pluginDevice: true, note: noteNumber, channel, velocity, timeStamp: message.timeStamp};
 
 				switch(cmd) {
 					case 9:	// note on
@@ -2381,6 +2405,29 @@
 					case 14:	// pitch wheel
 						data.type = "PitchWheel";
 						data.value = velocity * 128.0 + noteNumber;
+
+						break;
+					case 11:	// pedals
+						if (channel == 0xf) {
+							// page turn pedals
+						}
+
+						data.type = velocity > 0 ? "PedalOn" : "PedalOff";
+
+						switch (noteNumber) {
+							case 64:	// SustainPedal
+								data.pedalType = "Sustain";
+
+								break;
+							case 66:	// SostenutoPedal
+								data.pedalType = "Sostenuto";
+
+								break;
+							case 67:	// SoftPedal
+								data.pedalType = "Soft";
+
+								break;
+						}
 
 						break;
 				}
@@ -2425,7 +2472,7 @@
 					soundfontUrl: "../../soundfont/",
 					instrument: "acoustic_grand_piano",
 					callback: function () {
-						console.log("Web MIDI loaded.");
+						console.log("MIDI font loaded.");
 						$("#loading").fadeOut(900);
 
 						if (localStorage.SourceData) {
@@ -2685,7 +2732,7 @@
 
 				updateRangeMask();
 
-				if (!checkPlugin("application/x-klstudio-midi"))
+				/*if (!checkPlugin("application/x-klstudio-midi"))
 					console.warn("No MIDI NPAPI plugin installed.");
 				else {
 					console.log("MIDI NPAPI plugin detected.");
@@ -2807,18 +2854,41 @@
 						MidiIO.cleanup();
 						console.log("MIDI plugin cleanup.");
 					});
-				}
+				}*/
 
 
 				// connect WebMIDI
 				if (navigator.requestMIDIAccess) {
 					navigator.requestMIDIAccess()
 						.then(midi => {
-							const inputs = midi.inputs.values();
+							/*const inputs = midi.inputs.values();
 							for (const input of inputs)
-								input.onmidimessage = onWebMIDIMessage;
+								input.onmidimessage = onWebMIDIMessage;*/
+							MidiAccess = midi;
+
+							refreshWebMIDIInputDevices();
+
+							$("#input-device-refresh").click(refreshWebMIDIInputDevices);
+							$("#input-device").change(updateWebMIDIConnection);
+
+							if (localStorage.InputDeviceMute === false || localStorage.InputDeviceMute === "false")
+								$("#input-device-mute").removeClass("checked");
+
+							$("#input-device-mute").click(function () {
+								var checked = $("#input-device-mute").hasClass("checked");
+								if (checked) {
+									$("#input-device-mute").removeClass("checked");
+								}
+								else {
+									$("#input-device-mute").addClass("checked");
+								}
+
+								localStorage.InputDeviceMute = !checked;
+							});
 						});
 				}
+				else
+					$("#input-device-bar").hide();
 
 
 				updateLayout();
@@ -2863,7 +2933,7 @@
 					<button id="playback-edit" class="image-button"></button>
 				</span>
 				<span id="input-device-bar">
-					<select id="input-device" disabled="disabled" title="Choose a MIDI Input Device">
+					<select id="input-device" title="Choose a MIDI Input Device">
 					</select>
 					<input id="input-device-refresh" class="image-button" type="image" src="/res/images/refresh.png" />
 					<input id="input-device-mute" class="image-button checked" type="button" title="toggle input device mute/audible" />

@@ -1,7 +1,13 @@
 
 TODO:
+	web MIDI event timestamp
 	add petal web MIDI events
 
+
+
+2018.5.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	PianoTrainer: input device bar for web MIDI access implemented.
 
 
 2018.4.28	K.L.	<k.l.lambda@gmail.com>

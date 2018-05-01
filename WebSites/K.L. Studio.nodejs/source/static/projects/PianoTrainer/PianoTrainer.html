@@ -826,7 +826,7 @@
 
 			var PedalControllerNumber = {};
 			for (var i in PedalControllerTypes)
-				PedalControllerNumber[PedalControllerTypes[i]] = i;
+				PedalControllerNumber[PedalControllerTypes[i]] = Number(i);
 
 			Date.prototype.format = function (format) {
 				/*
@@ -1330,10 +1330,14 @@
 			};
 
 			Recorder.prototype.onPedalOn = function (data) {
+				//console.log("Recorder.prototype.onPedalOn:", data);
 				if (this.Recording) {
-					if (data.channel == 1) {
+					//if (data.channel == 1) {
+					if (data.pedalType) {
 						if (this.Waiting)
 							this.beginRecord(data.timeStamp);
+
+						//console.log("Recorder.prototype.onPedalOn:", data);
 
 						if (!this.PedalStatus[data.pedalType]) {
 							var now = this.getTimeStamp(data.timeStamp);
@@ -1350,7 +1354,7 @@
 								subtype: "controller",
 								channel: data.channel,
 								controllerType: PedalControllerNumber[data.pedalType],
-								value: 127
+								value: data.velocity
 							});
 						}
 					}
@@ -1359,7 +1363,8 @@
 
 			Recorder.prototype.onPedalOff = function (data) {
 				if (this.Recording) {
-					if (data.channel == 1) {
+					//if (data.channel == 1) {
+					if (data.pedalType) {
 						var status = this.PedalStatus[data.pedalType];
 						if (status) {
 							var now = this.getTimeStamp(data.timeStamp);
@@ -2388,7 +2393,7 @@
 				const noteNumber = message.data[1];
 				const velocity = message.data[2];
 
-				const data = {pluginDevice: true, note: noteNumber, channel, velocity, timeStamp: message.timeStamp};
+				const data = {pluginDevice: true, note: noteNumber, channel, velocity, timeStamp: message.timeStamp / 1000};
 
 				switch(cmd) {
 					case 9:	// note on
@@ -2433,6 +2438,9 @@
 				}
 
 				//console.log("onWebMIDIMessage:", cmd, data);
+
+				if (!MidiTimeStampOffset)
+					MidiTimeStampOffset = Date.now() - data.timeStamp * 1000;
 
 				switch (data.type) {
 					case "NoteOn":

@@ -1,0 +1,14 @@
+{
+	"name": "peris.node",
+	"version": "1.0.0",
+	"description": "a website to manage image set",
+	"scripts": {
+		"start": "node --experimental-modules main.mjs"
+	},
+	"author": "k.l.lambda",
+	"license": "ISC",
+	"dependencies": {},
+	"devDependencies": {
+		"express": "^4.16.3"
+	}
+}

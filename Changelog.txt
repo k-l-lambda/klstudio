@@ -1,0 +1,10 @@
+
+
+2018.8.29	K.L.	<k.l.lambda@gmail.com>
+
+	+	main.mjs created.
+
+	+	Project of Peris.node setup.
+
+
+------------------------------------------------------- Peris.node ChangeLog -------------------------------------------------------

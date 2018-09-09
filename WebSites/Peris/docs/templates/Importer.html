@@ -297,6 +297,8 @@
 			};
 
 			var addCheckFile = function (path) {
+				path = path.replace(/'/g, "%27");
+
 				var url = "/images/" + path;
 				var name = path;
 				if (name.length > 17)

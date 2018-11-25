@@ -3,6 +3,11 @@ TODO:
 
 
 
+2018.11.18	K.L.	<k.l.lambda@gmail.com>
+
+	+	viewer.js: added webp video extension name.
+
+
 2016.2.17	K.L.	<k.l.lambda@gmail.com>
 
 	+	viewer.js: GE.evaluateCoverPriority added.

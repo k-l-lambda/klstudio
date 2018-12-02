@@ -5,6 +5,8 @@ var Peris = Peris || {};
 Peris.Slider = function (viewer) {
 	this.Viewer = viewer;
 
+	this.noSleep = new NoSleep();
+
 	this.initialize();
 };
 
@@ -78,6 +80,9 @@ Peris.Slider.prototype.open = function (options) {
 	this.startSwitching();
 
 	this.Showing = true;
+
+	this.noSleep.enable();
+	//console.log("noSleep.enable.");
 };
 
 Peris.Slider.prototype.close = function () {
@@ -91,6 +96,9 @@ Peris.Slider.prototype.close = function () {
 
 	if (this.OnClose)
 		this.OnClose();
+
+	this.noSleep.disable();
+	//console.log("noSleep.disable.");
 };
 
 Peris.Slider.prototype.startSwitching = function () {

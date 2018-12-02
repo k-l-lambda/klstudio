@@ -599,7 +599,8 @@ Peris.Peer.prototype.onTagItemClick = function (item, e) {
 };
 
 Peris.Peer.prototype.updateTransform = function (e) {
-	this.Figure.css({ transform: "scale(" + this.Zoom + ", " + this.Zoom + ") translate(" + this.Translate.x + "px, " + this.Translate.y + "px) rotate(" + this.Rotation + "deg)" });
+	if (this.Figure)
+		this.Figure.css({ transform: "scale(" + this.Zoom + ", " + this.Zoom + ") translate(" + this.Translate.x + "px, " + this.Translate.y + "px) rotate(" + this.Rotation + "deg)" });
 };
 
 Peris.Peer.prototype.postFigureData = function (data) {

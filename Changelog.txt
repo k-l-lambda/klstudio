@@ -1,0 +1,824 @@
+
+TODO:
+	PianoTrainer.html:
+		play piano by keyboard settings
+	SpiralPiano.html:
+		settings panel
+			mode
+				grpah UI
+	MidiComparer:
+		added time statistics for markNoteCorrespondences.
+
+Pending Issues:
+	cube earth sphere tangent space issue
+	
+
+
+2018.12.8	K.L.	<k.l.lambda@gmail.com>
+
+	|	Project of K.L. Studio.node setup.
+
+
+------------------------------------------------------- K.L. Studio.node ChangeLog -------------------------------------------------------
+
+
+2018.1.4	K.L.	<k.l.lambda@gmail.com>
+
+	>	Fixed midi MIME type issue on linux Chrome.
+
+
+2017.12.6	K.L.	<k.l.lambda@gmail.com>
+
+	>	MidiComparer: refined markNoteCorrespondences.
+
+	>	MidiComparer: added graph offset for notes play.
+
+
+2017.12.5	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiComparer: play notes by mouse moving implemented.
+
+	+	MidiComparer: pressNotes added.
+
+	+	MidiFingeringGen: runNavigation added.
+
+
+2017.12.3	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiFingeringGen: paintScore implemented.
+
+
+2017.12.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiFingeringGen.html created.
+
+
+2017.11.21	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiComparer: align score added.
+
+	>	MidiComparer: refined log and statistics.
+
+
+2017.11.20	K.L.	<k.l.lambda@gmail.com>
+
+	>	MidiComparer: mending pass added.
+
+	>	MidiComparer: markNoteCorrespondences added.
+
+
+2017.11.16	K.L.	<k.l.lambda@gmail.com>
+
+	>	MidiComparer: refine yield time.
+
+
+2017.11.14	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiComparer: marked duplicated notes.
+
+
+2017.11.13	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiComparer: added focus note dump.
+
+	>	MidiComparer: fixed compareContexts.
+
+	>	MidiComparer: added connection cost for null node.
+	+	MidiComparer: highlight focus note in SVG.
+
+	+	MidiComparer: added result stat table.
+
+
+2017.11.12	K.L.	<k.l.lambda@gmail.com>
+
+	>	MidiComparer: refined SVG.
+
+
+2017.11.10	K.L.	<k.l.lambda@gmail.com>
+
+	>	MidiComparer: clip connection evulation by total cost and cost differ.
+
+	>	MidiComparer: clip connection cost by x^2.
+
+	*	Node traverse cost data:
+							node count		cost (in ms)	totoal cost (in ms)			cost per node
+			full				9259			45311			47410			4.8937250243006804190517334485366
+			clip by x^2			2016			10159			12270			5.0391865079365079365079365079365
+			clip by x			1587			7825			9968			4.9306868304977945809703843730309
+			clip by 1			1316			6476			8672			4.920972644376899696048632218845
+
+			x = 1 / self cost
+
+
+	+	MidiComparer: optimized by last c index.
+
+
+2017.11.9	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiComparer: optimized by connection cost clip.
+
+	+	MidiComparer: optimized includsCIndex.
+
+	+	MidiComparer: sort matches nodes.
+
+	+	MidiComparer: optimized connection evaluation.
+
+	+	MidiComparer: colored omit notes.
+
+	+	MidiComparer: refined connection bias cost function.
+
+	+	MidiComparer: added time cost statistics.
+
+	+	MidiComparer: removed zero match nodes.
+
+
+2017.11.8	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiComparer: run navigation in frames.
+
+	+	MidiComparer: evaluateConnectionCost implemented.
+
+
+2017.11.7	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiComparer: correspondences in MIDI graph added.
+
+	+	MidiComparer: MIDI canvas added.
+
+	+	MidiComparer: result path dump added.
+
+	+	MidiComparer: navigation node class added.
+
+
+2017.11.6	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiComparer: genMatchNodes added.
+
+	+	MidiComparer: context compare added.
+
+	+	MidiComparer: genNotationContext added.
+
+	>	MidiComparer: refined pitch stat table.
+
+
+2017.11.4	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiComparer: genPitchStatTable added.
+
+	+	MidiComparer: parseMidiNotation added.
+
+	+	MidiComparer: added compare button.
+
+
+2017.11.3	K.L.	<k.l.lambda@gmail.com>
+
+	+	MidiComparer.html created.
+
+
+2017.10.15	K.L.	<k.l.lambda@gmail.com>
+
+	>	SpiralPiano: fixed checked attributes access method: .attr("checked") -> [0].checked.
+
+
+2017.9.3	K.L.	<k.l.lambda@gmairl.com>
+
+	+	PianoTrainer: hide padels panel in editing mode.
+
+	+	PianoTrainer: use tick as key for fingering marker.
+
+
+2017.9.2	K.L.	<k.l.lambda@gmail.com>
+
+	+	PianoTrainer: added fingering signature.
+
+
+2017.9.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	PianoTrainer: fingering edition save implemented.
+
+	+	PianoTrainer: added save fingrings.
+	+	PianoTrainer: fingerings edition implemented.
+	+	PianoTrainer: added editing mode.
+
+
+2017.8.31	K.L.	<k.l.lambda@gmail.com>
+
+	+	PianoTrainer: added fingering painter.
+
+
+2017.4.19	K.L.	<k.l.lambda@gmail.com>
+
+	>	life-game.html: set default zoom to 4.
+
+	+	Home page: added project link of SpiralPiano.
+
+
+2015.5.9	K.L.	<k.l.lambda@gmail.com>
+
+	*!	Note transform:
+			filterMidiFileTransformNotes(Musical.noteTransformers.log3)
+
+	+	Source/static/projects/PianoTrainer.html: function of filterMidiFileTransformNotes added.
+
+
+2015.3.21	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/static/projects/clock.html: refined hour pointer.
+
+
+2015.3.13	K.L.	<k.l.lambda@gmail.com>
+
+	|	Migrated to Github.
+
+
+2015.3.9	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/static/projects/SpiralPiano.html: refined synesthesia region.
+
+
+2015.3.7	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/SpiralPiano.html: auto set key signature.
+
+	+	Source/static/projects/SpiralPiano.html: added synesthesia combo box.
+
+
+2015.3.6	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/SpiralPiano.html: added synesthesia color.
+
+
+2015.2.28	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/clock.html: added paramter of update interval.
+
+	+	Source/static/projects/clock.html: refined pointers.
+
+
+2015.2.27	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/clock.html: added scale texts.
+
+	+	Source/static/projects/clock.html: added queries parse.
+
+	+	Source/static/projects/clock.html: created.
+
+
+2015.2.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: function of generateMetronomeMidi added.
+
+
+2015.1.17	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: function of filterMidiFile added.
+
+
+2014.12.27	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/FieldGraph.html: refined density precision.
+
+	+	Source/static/projects/FieldGraph.html: added mass config.
+
+
+2014.12.25	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/FieldGraph.html: added coordinate controls.
+
+	+	Source/static/projects/FieldGraph.html: added density viewer.
+
+
+2014.12.24	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/FieldGraph.html: created.
+
+
+2014.12.13	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/static/projects/PianoTrainer.html: adjust pedal opacity.
+
+
+2014.11.2	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/static/projects/SpiralPiano.html: refined for mobile browser.
+	>	Source/static/projects/SpiralPiano.html: refined mode text.
+	>	Source/static/projects/SpiralPiano.html: color key by mode pitch.
+
+
+2014.11.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/SpiralPiano.html: added touch events for keys.
+
+
+2014.10.5	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: added input device mute button.
+
+
+2014.9.7	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/static/projects/PianoTrainer.html: prevent default behavior when keyboard event handled.
+
+
+2014.9.4	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: added shotcut for record button and save button.
+
+	+	Source/static/projects/PianoTrainer.html: added maker information in record MIDI file.
+
+	>	Source/static/projects/PianoTrainer.html: refined elements' title.
+
+
+2014.9.3	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/static/projects/PianoTrainer.html: range adjust controls added.
+
+	>	Source/static/projects/PianoTrainer.html/Recorder: refined begin time from time stamp.
+
+
+2014.9.2	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/static/projects/PianoTrainer.html/Recorder: sort events to solve minus delta time issue.
+
+	*!	OStream.writeVarInt with minus number will result in infinit loop, then browser tab crash.
+
+	+	Source/static/projects/PianoTrainer.html/Recorder: save pedal events into MIDI file.
+
+	+	Source/static/projects/PianoTrainer.html/Recorder: save MIDI file implemented.
+
+	+	Source/static/js/MIDI/inc/midifileEx.js: implemented.
+
+
+2014.9.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/js/MIDI/inc/midifileEx.js: created.
+	+	Source/static/js/MIDI/inc/streamEx.js: created.
+
+	+	Source/static/projects/PianoTrainer.html: paint pedals for MIDI file.
+
+	+	Source/static/projects/PianoTrainer.html: added file save button.
+
+
+2014.8.31	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: added pedal graph in Recorder.
+
+	+	Source/static/projects/PianoTrainer.html: add time stamp for Recorder.
+
+
+2014.8.30	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: score painting from recorder added.
+
+	+	Source/static/projects/PianoTrainer.html: recorder class added.
+
+
+2014.4.5	K.L.	<k.l.lambda@gmail.com>
+
+	+	Home page: added Othello3D to project list.
+
+
+2014.3.31	K.L.	<k.l.lambda@gmail.com>
+
+	+	Added google analytics code in project pages.
+
+	>	Source/static/js/MIDI: updated MIDI.js.
+
+	>	Source/static/projects/PianoTrainer.html: refined studio link.
+
+	>	Updated copyright info to 2014.
+
+
+2014.3.30	K.L.	<k.l.lambda@gmail.com>
+
+	>	Upgraded app runtime to python2.7.
+
+	+	Cube Earth: added drop shadow filter.
+
+	>	Home page: trigger cube earth by click.
+	+	Home page: added PianoTraner to project list.
+
+
+2014.3.28	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/static/js/MIDI: fixed audio API error.
+
+
+2014.3.27	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/templates/index.html: refined onTrigoonlineClick.
+
+
+2013.7.25	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/SpiralPiano.html: file picker added.
+
+
+2013.5.13	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html:  scroll score by pitch wheel implemented.
+
+	+	Source/static/projects/PianoTrainer.html: note bar status color added.
+
+
+2013.5.12	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: following state process added.
+
+	+	Source/static/projects/PianoTrainer.html: class of Follower added, follower work rect added.
+
+
+2013.5.11	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: score cursor added.
+
+
+2013.5.9	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: play piano by keyboard.
+
+
+2013.5.7	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: auto keyboard range added.
+	+	Source/static/projects/PianoTrainer.html: shortcut added.
+
+	+	Source/static/projects/PianoTrainer.html: bar line added.
+
+
+2013.5.6	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: meta data added.
+
+	+	Source/static/projects/PianoTrainer.html: file picker added.
+
+
+2013.5.3	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: music score implemented.
+
+	+	Source/static/projects/PianoTrainer.html: main keyboard added.
+
+	+	Source/static/projects/PianoTrainer.html: range bar added.
+
+
+2013.5.2	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: MIDI input plugin added.
+
+
+2013.5.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: playback implement.
+
+
+2013.4.29	K.L.	<k.l.lambda@gmail.com>
+
+	+	Home page: thumbnails for project added.
+
+
+2013.4.28	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/PianoTrainer.html: created.
+
+	+	Home page: project description added.
+
+
+2013.4.27	K.L.	<k.l.lambda@gmail.com>
+
+	>	Home page: navigator bar added.
+
+	>	Refined home page, message board page.
+
+
+2013.4.22	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/SpiralPiano.html: drag file to player implemented.
+
+
+2013.4.17	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/SpiralPiano.html: MIDI player added.
+
+
+2013.4.12	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/SpiralPiano.html: wide range adjusting implemented.
+
+
+2013.4.9	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/SpiralPiano.html: span keyboard added.
+
+
+2013.4.5	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/SpiralPiano.html: settings panel added.
+
+
+2013.4.3	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/SpiralPiano.html: refined piano keys.
+
+
+2013.4.2	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/SpiralPiano.html: note playing implemented.
+
+	+	Source/static/projects/SpiralPiano.html: key panel painting implemented.
+
+
+2013.4.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/SpiralPiano.html: created.
+
+
+2012.12.28	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/templates/index.html: fixed the .tk link of trigo website.
+
+
+2012.7.21	K.L.	<k.l.lambda@gmail.com>
+
+	+	PicasaUploader: added.
+
+
+2012.5.31	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/PageTracer/templates/generator.html: added.
+	+	Source/PageTracer: redirect query added.
+
+
+2012.3.21	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/PageTracer: added.
+
+
+2012.2.24	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/templates/index.html: Google+ page link added.
+
+
+2012.2.18	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/main.py: catch exception on 'use_library'.
+
+
+2011.12.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/LifeGame/life-game.html: data seriliazation implemented.
+
+	+	Source/static/projects/LifeGame/life-game.html: zoom option added.
+
+
+2011.11.28	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/LifeGame/life-game.html: created.
+
+
+2011.8.22	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/main.py: excluded non-logged-on users' messages.
+
+
+2011.4.21	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/robots.txt: created.
+
+
+2011.4.12	K.L.	<k.l.lambda@gmail.com>
+
+	>	Refined style of pages of message board and about.
+
+
+2011.4.3	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/CubeEarth.html: screw operation by mouse implemented.
+
+
+2011.3.30	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/TanxWebService/ApplicationHandlers.py: ApplicationSessionListHandler added memory cache.
+
+
+2011.3.28	K.L.	<k.l.lambda@gmail.com>
+
+	+	Home page: embedded cube earth 3D into.
+
+
+2011.3.27	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/CubeEarth.html: CubeArray screw method added.
+
+	+	Source/static/projects/CubeEarth.html: normal chamfer added.
+
+
+2011.3.26	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/CubeEarth.html: specular map and normal map on earth material added.
+
+
+2011.3.25	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/CubeEarth.html: CubeArray added.
+
+	>	Source/static/projects/CubeEarth.html: util.createCubeArrayMeshes: texture coordinates mend added.
+
+	+	Source/static/projects/CubeEarth.html: util.spherize, util.xyzToWuv implemented.
+
+
+2011.3.24	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/CubeEarth.html: util.createCubeArrayMeshes added.
+
+	+	Source/static/projects/CubeEarth.html: created.
+
+
+2011.3.20	K.L.	<k.l.lambda@gmail.com>
+
+	>	tanxjs.WebSession.prototype.fetchMessageLoop: added option of 'onMessageProcessError'.
+
+
+2011.3.8	K.L.	<k.l.lambda@gmail.com>
+
+	+	tanxjs.WebSession.prototype.testGuestConnection: added.
+
+
+2011.3.7	K.L.	<k.l.lambda@gmail.com>
+
+	+	TanxWebService: cache session data when delete.
+
+	+	Trigo online link on home page added.
+
+
+2011.3.5	K.L.	<k.l.lambda@gmail.com>
+
+	*!	TanxWebService: next message id must be generated after new message put, or receiver may get null message.
+
+	>	Django version declarations added.
+
+
+2011.2.25	K.L.	<k.l.lambda@gmail.com>
+
+	+	Tags editor added in TanxWebService session admin page.
+
+	+	Source/TanxWebService/templates/SessionViewer.html: added session end button.
+
+	>	Source/TanxWebService/static/ajax.js: refined tanxjs.WebSession.prototype.fetchMessageLoop.
+
+	>	Source/TanxWebService/static/ajax.js: refined error processing.
+
+
+2011.2.24	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/TanxWebService/static/ajax.js: method of reset guest message id added.
+
+	>	tanxjs.WebSession.prototype.postMessage: fixed json encoding issue.
+
+
+2011.1.16	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/ChatRoom: contacts list implemented.
+
+
+2011.1.15	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/ChatRoom: contacts' photos added.
+
+
+2011.1.14	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/ChatRoom/GdataQuery.py: created, implemented.
+
+	+	Source/ChatRoom: page of contacts list added.
+
+
+2011.1.4	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/ChatRoom: fixed to satisfy IE.
+
+	*!	IE bugs:
+			*	tail comma in brackets is error, e.g.:
+					{a:1,}
+			*	default width and height of element style of div with 100% size children is not 100%.
+			*	iframe border cannot be hidden by css, but by setting attribute frameBorder="0".
+
+
+2011.1.2	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/cron.yaml: created.
+
+	+	Source/TanxWebService/static/ajax.js: tanxjs.WebSession.activate, tanxjs.WebSession.deactivate added.
+
+	+	Source/ChatRoom: system information for join and quit added.
+
+	+	Source/ChatRoom: guest dialog on home page added.
+
+
+2010.12.31	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/ChatRoom: room list panel added.
+
+
+2010.12.29	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/ChatRoom: guest dialog implemented.
+
+	+	Source/ChatRoom: python scripts setup.
+
+	>	Source/ChatRoom: host dialog implemented.
+
+
+2010.12.28	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/ChatRoom: host dialog setup.
+
+
+2010.12.27	K.L.	<k.l.lambda@gmail.com>
+
+	>	Source/TanxWebService/static/ajax.js: implemented.
+
+
+2010.12.26	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/ChatRoom: created.
+
+	+	Source/TanxWebService/static/ajax.js: created.
+
+	+	Source/static/js/jquery.js: imported.
+
+	>	Source/TanxWebService/Serializer.py: rewrited encoding by json.
+
+
+2010.12.19	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/static/projects/Tanx/Demos/ChatRoom.html created.
+
+
+2010.12.14	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/TanxWebService: header on administrator console added.
+
+
+2010.12.13	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/TanxWebService: account bar on administrator console added.
+
+
+2010.12.5	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/TanxWebService/templates/SessionViewer.html: post message form added.
+
+
+2010.12.3	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/TanxWebService/SessionAdminHandlers.py: created, implemented.
+
+
+2010.11.19	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/TanxWebService/ApplicationAdminHandlers.py/ClearSessionsHandler: added.
+
+
+2010.11.7	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/TanxWebService/ApplicationAdminHandlers.py: created.
+	+	Source/TanxWebService/admin.py: created.
+
+	+	TanxWebService.SessionPostMessageHandler: implemented.
+	+	TanxWebService.SessionFetchMessageHandler: implemented.
+
+	+	TanxWebService.SessionChannel: added.
+
+	+	TanxWebService.SessionSetTagsHandler: added.
+	+	TanxWebService.SessionKeepAliveHandler: added.
+
+	+	Source/TanxWebService/Serializer.py: created.
+
+
+2010.11.4	K.L.	<k.l.lambda@gmail.com>
+
+	+	ApplicationSessionListHandler added.
+
+	*!	To use a sub directory source file: add __init__.py in directory to make a module.
+
+
+2010.11.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	Source/TanxWebService: set up.
+
+	>	Source/main.py: redirect '\html\.*' to '\.*'.
+
+	>	Source/static/projects/Tanx.html: changed installers' URL.
+
+
+2010.10.31	K.L.	<k.l.lambda@gmail.com>
+
+	>	Directory renamed: WebRoot -> Source\static.
+	>	Directory renamed: AppEngineRoot -> Source.
+	>	Directory renamed: Source -> Footages.
+
+	+	ChangeLog.txt: created.
+
+
+------------------------------------------------------- K.L. Studio ChangeLog -------------------------------------------------------

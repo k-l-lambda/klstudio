@@ -2,9 +2,8 @@
   "name": "klstudio",
   "version": "1.0.0",
   "description": "the website of K.L. Studio",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack --config=./webpack.config.js --progress --hide-modules"
   },
   "repository": {
     "type": "git",
@@ -15,5 +14,12 @@
   "bugs": {
     "url": "https://github.com/k-l-lambda/klstudio/issues"
   },
-  "homepage": "https://github.com/k-l-lambda/klstudio#readme"
+  "devDependencies": {
+    "@babel/core": "^7.2.0",
+    "vue": "^2.5.18",
+    "vue-loader": "^15.4.2",
+    "vue-template-compiler": "^2.5.18",
+    "webpack": "^4.27.1",
+    "webpack-cli": "^3.1.2"
+  }
 }

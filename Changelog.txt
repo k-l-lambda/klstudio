@@ -1,4 +1,16 @@
 
+
+
+2018.12.8	K.L.	<k.l.lambda@gmail.com>
+
+	+	webpack.config.js created.
+
+	|	Project of K.L. Studio.node setup.
+
+
+------------------------------------------------------- K.L. Studio.node ChangeLog -------------------------------------------------------
+
+
 TODO:
 	PianoTrainer.html:
 		play piano by keyboard settings
@@ -11,15 +23,6 @@ TODO:
 
 Pending Issues:
 	cube earth sphere tangent space issue
-	
-
-
-2018.12.8	K.L.	<k.l.lambda@gmail.com>
-
-	|	Project of K.L. Studio.node setup.
-
-
-------------------------------------------------------- K.L. Studio.node ChangeLog -------------------------------------------------------
 
 
 2018.1.4	K.L.	<k.l.lambda@gmail.com>

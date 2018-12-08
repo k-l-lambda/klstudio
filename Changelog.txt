@@ -3,6 +3,10 @@
 
 2018.12.8	K.L.	<k.l.lambda@gmail.com>
 
+	+	home.vue: home page created.
+
+	+	main.js: server entry created.
+
 	+	webpack.config.js created.
 
 	|	Project of K.L. Studio.node setup.

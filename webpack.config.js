@@ -7,7 +7,7 @@ const VueLoaderPlugin = require('vue-loader/lib/plugin');
 
 module.exports = {
 	entry: {
-		"home": path.resolve(__dirname, "app/home.vue"),
+		"home": path.resolve(__dirname, "app/entries/home.js"),
 	},
 
 	output: {
@@ -22,10 +22,22 @@ module.exports = {
 				include: path.resolve(__dirname, "app"),
 				loader: "vue-loader",
 			},
+			{
+				test: /\.js$/,
+				include: path.resolve(__dirname, "app"),
+				use: {
+					loader: "babel-loader",
+					options: {
+						cacheDirectory: true,
+					},
+				},
+			},
 		],
 	},
 
 	plugins: [
 		new VueLoaderPlugin(),
 	],
+
+	mode: "development",
 };

@@ -1,3 +1,5 @@
 *.suo
 node_modules
 .vs
+static/bundles
+*.local

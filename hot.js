@@ -8,35 +8,43 @@ const FriendlyErrorsWebpackPlugin = require("friendly-errors-webpack-plugin");
 const ip = require("ip");
 
 const webpackBase = require("./webpack.config.js");
+const entries = require("./entries.js");
 
 
 
 const hotUrl = mark => `webpack-hot-middleware/client?name=${mark}?timeout=2000&overlay=true&reload=true`;
 
-const entries = Object.keys(webpackBase.entry).reduce((result, key) => {
-	const value = webpackBase.entry[key];
-	const hm = hotUrl(key);
+const webpackEntry = entries.reduce((result, entry) => {
+	const value = webpackBase.entry[entry.name];
+	const hm = hotUrl(entry.name);
 
-	result[key] = Array.isArray(value) ? [...value, hm] : [value, hm];
+	result[entry.name] = Array.isArray(value) ? [...value, hm] : [value, hm];
 
 	return result;
 }, {});
 
 
 const config = webpackMerge(webpackBase, {
-	entry: entries,
+	entry: webpackEntry,
 	devtool: "eval-cheap-source-map",
 	optimization: {
 		noEmitOnErrors: true,
 	},
 	plugins: [
-		new HtmlWebpackPlugin({
+		/*new HtmlWebpackPlugin({
 			inject: true,
 			filename: "index.html",
 			template: "./html/CommonTemplate.html",
-			title: "dev - K.L. Studio",
+			title: "K.L. Studio",
 			chunks: "home",
-		}),
+		}),*/
+		...entries.map(entry => new HtmlWebpackPlugin({
+			inject: true,
+			filename: entry._filename,
+			template: "./html/CommonTemplate.html",
+			title: entry.title,
+			chunks: [entry.name],
+		})),
 
 		new FriendlyErrorsWebpackPlugin({
 			compilationSuccessInfo: {
@@ -47,11 +55,11 @@ const config = webpackMerge(webpackBase, {
 	],
 });
 
-const compiler = webpack(config);
-
 
 
 module.exports = function (app) {
+	const compiler = webpack(config);
+
 	app.use(devMiddleware(compiler, {
 		publicPath: webpackBase.output.publicPath,
 		stats: "minimal",

@@ -1,10 +1,10 @@
 
 import Vue from "vue";
 
-import Home from "../home.vue";
+import App from "../home.vue";
 
 
 
 new Vue({
-	render: h => h(Home),
+	render: h => h(App),
 }).$mount("body");

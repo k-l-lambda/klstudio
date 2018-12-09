@@ -4,6 +4,7 @@ const http = require("http");
 
 require("./env.js");
 const hot = require("./hot.js");
+const entries = require("./entries.js");
 
 
 
@@ -41,11 +42,14 @@ const app = express();
 app.use("/", express.static("./static"));
 
 
-const pageRouters = {
+/*const pageRouters = {
 	"/": {
 		get: stringHandle(simpleTemplate("/bundles/home.bundle.js", {title: "K.L. Studio"}), "text/html"),
 	},
-};
+};*/
+const pageRouters = entries.reduce((result, entry) => (result[entry.path] = {
+	get: stringHandle(simpleTemplate(`/bundles/${entry.name}.bundle.js`, {title: entry.title}), "text/html"),
+}, result), {});
 
 if (development)
 	hot(app);

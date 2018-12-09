@@ -42,19 +42,17 @@ const app = express();
 app.use("/", express.static("./static"));
 
 
-/*const pageRouters = {
-	"/": {
-		get: stringHandle(simpleTemplate("/bundles/home.bundle.js", {title: "K.L. Studio"}), "text/html"),
-	},
-};*/
-const pageRouters = entries.reduce((result, entry) => (result[entry.path] = {
-	get: stringHandle(simpleTemplate(`/bundles/${entry.name}.bundle.js`, {title: entry.title}), "text/html"),
-}, result), {});
-
 if (development)
 	hot(app);
-else
-	Object.entries({...pageRouters}).forEach(([path, value]) => Object.entries(value).forEach(([method, handler]) => app[method](path, handler)));
+else {
+	/*const pageRouters = entries.reduce((result, entry) => (result[entry.path] = {
+		get: stringHandle(simpleTemplate(`/bundles/${entry.name}.bundle.js`, {title: entry.title}), "text/html"),
+	}, result), {});
+
+	Object.entries({...pageRouters}).forEach(([path, value]) => Object.entries(value).forEach(([method, handler]) => app[method](path, handler)));*/
+
+	entries.forEach(entry => app.get(entry.path, stringHandle(simpleTemplate(`/bundles/${entry.name}.bundle.js`, {title: entry.title}), "text/html")));
+}
 
 
 const httpServer = http.createServer(app);

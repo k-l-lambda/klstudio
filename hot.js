@@ -31,13 +31,6 @@ const config = webpackMerge(webpackBase, {
 		noEmitOnErrors: true,
 	},
 	plugins: [
-		/*new HtmlWebpackPlugin({
-			inject: true,
-			filename: "index.html",
-			template: "./html/CommonTemplate.html",
-			title: "K.L. Studio",
-			chunks: "home",
-		}),*/
 		...entries.map(entry => new HtmlWebpackPlugin({
 			inject: true,
 			filename: entry._filename,

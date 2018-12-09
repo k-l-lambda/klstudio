@@ -49,6 +49,10 @@
 						name: "tang-poem",
 						title: "唐诗",
 					},
+					{
+						name: "threebody3",
+						title: "三体III 死神永生",
+					},
 				],
 				theme: url.parse(location.href).query,
 				headText: null,
@@ -222,6 +226,11 @@
 	select
 	{
 		font-size: inherit;
+	}
+
+	.output pre
+	{
+		white-space: pre-wrap;
 	}
 
 	.output > *

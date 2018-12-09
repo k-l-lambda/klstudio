@@ -3,6 +3,11 @@ const express = require("express");
 const http = require("http");
 
 require("./env.js");
+const hot = require("./hot.js");
+
+
+
+const development = process.env.NODE_ENV == "development";
 
 
 const simpleTemplate = (script, {title = "", preDoc = ""} = {}) => `
@@ -31,6 +36,8 @@ const stringHandle = function(content, type) {
 const app = express();
 
 
+//express.static.mime.define({"application/wasm": ["wasm"]});
+
 app.use("/", express.static("./static"));
 
 
@@ -40,7 +47,10 @@ const pageRouters = {
 	},
 };
 
-Object.entries({...pageRouters}).forEach(([path, value]) => Object.entries(value).forEach(([method, handler]) => app[method](path, handler)));
+if (development)
+	hot(app);
+else
+	Object.entries({...pageRouters}).forEach(([path, value]) => Object.entries(value).forEach(([method, handler]) => app[method](path, handler)));
 
 
 const httpServer = http.createServer(app);

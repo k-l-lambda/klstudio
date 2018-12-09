@@ -5,6 +5,9 @@ const VueLoaderPlugin = require('vue-loader/lib/plugin');
 
 
 
+const mode = process.env.NODE_ENV == "development" ? "development" : "production";
+
+
 module.exports = {
 	entry: {
 		"home": path.resolve(__dirname, "app/entries/home.js"),
@@ -13,6 +16,7 @@ module.exports = {
 	output: {
 		path: path.resolve(__dirname, "static/bundles"),
 		filename: "[name].bundle.js",
+		publicPath: "/",
 	},
 
 	module: {
@@ -39,5 +43,5 @@ module.exports = {
 		new VueLoaderPlugin(),
 	],
 
-	mode: "development",
+	mode,
 };

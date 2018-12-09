@@ -25,6 +25,11 @@ module.exports = {
 				test: /\.vue$/,
 				include: path.resolve(__dirname, "app"),
 				loader: "vue-loader",
+				/*options: {
+					loaders: {
+						scss: "vue-style-loader!css-loader!postcss-loader",
+					},
+				},*/
 			},
 			{
 				test: /\.js$/,
@@ -36,10 +41,19 @@ module.exports = {
 					},
 				},
 			},
+			{
+				test: /\.css$/,
+				loader: "style-loader!css-loader",
+			},
 		],
 	},
 
 	plugins: [
+		new webpack.DefinePlugin({
+			"process.env": {
+				NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+			},
+		}),
 		new VueLoaderPlugin(),
 	],
 

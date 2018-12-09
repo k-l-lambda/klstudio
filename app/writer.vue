@@ -14,10 +14,10 @@
 		<section>
 			忠于原著 <input type="range" min="0.01" max="2" step="any" v-model.number="temperature" :title="temperature.toFixed(2)" /> 想象狂野
 			<button @click="onRestart">重写</button>
+			<button v-if="producing" @click="paused = !paused">{{paused ? '继续' : '暂停'}}</button>
 		</section>
-		<section>
-			<span>{{headText}}</span>
-			<pre v-text="bodyText"></pre>
+		<section class="output">
+			<span v-html="markedHeadText"></span><pre ref="output" v-text="bodyText"></pre>
 		</section>
 	</body>
 </template>
@@ -55,7 +55,33 @@
 				bodyText: "",
 				ready: false,
 				temperature: 1,
+				vocab: null,
+				producing: false,
+				paused: false,
 			};
+		},
+
+
+		computed: {
+			markedHeadText() {
+				if (!this.vocab || !this.headText)
+					return this.headText;
+
+				return this.headText.split("").map(char => Number.isInteger(this.vocab[char]) ? char : `<span class="invalid">${char}</span>`).join("");
+			},
+
+
+			sessionStatus: {
+				get() {
+					return {
+						temperature: this.temperature,
+					};
+				},
+
+				set(value) {
+					Object.assign(this, value);
+				},
+			},
 		},
 
 
@@ -64,6 +90,8 @@
 				window.__main = this;
 				window.tf = tf;
 			}
+
+			this.loadStatus();
 
 			if (this.theme)
 				this.loadTheme();
@@ -77,6 +105,18 @@
 
 
 		methods: {
+			loadStatus() {
+				const status = sessionStorage.writerStatus && JSON.parse(sessionStorage.writerStatus);
+				if (status)
+					this.sessionStatus = status;
+			},
+
+
+			saveStatus() {
+				sessionStorage.writerStatus = JSON.stringify(this.sessionStatus);
+			},
+
+
 			async loadTheme() {
 				//console.log("loadModel:", this.theme);
 				this.chars = await (await fetch(`/mlmodels/char-rnn/${this.theme}/vocab.txt`)).text();
@@ -99,6 +139,7 @@
 					return;
 
 				this.bodyText = "";
+				//this.$refs.output.textContent = "";
 
 				await this.stopProducing();
 
@@ -111,8 +152,13 @@
 				console.log("producing...");
 
 				this.producing = true;
+				this.paused = false;
 
 				let inputs = headText.split("").map(char => this.vocab[char]).filter(Number.isInteger);
+				if (!inputs.length) {
+					this.producing = false;
+					return;
+				}
 				//console.log("inputs:", inputs);
 
 				this.model = await tf.loadModel(`/mlmodels/char-rnn/${this.theme}/model.json`);
@@ -134,8 +180,12 @@
 
 					//console.log("char:", this.chars[inputs[0]]);
 					this.bodyText += this.chars[inputs[0]];
+					//this.$refs.output.textContent += this.chars[inputs[0]];
 
 					await waitAnimationFrame();
+
+					while (this.paused && !this.onProduceFinished)
+						await waitAnimationFrame();
 				}
 
 				this.producing = false;
@@ -161,6 +211,9 @@
 			theme() {
 				location.search = this.theme;
 			},
+
+
+			temperature: "saveStatus",
 		},
 	};
 </script>
@@ -169,5 +222,16 @@
 	select
 	{
 		font-size: inherit;
+	}
+
+	.output > *
+	{
+		display: inline;
+		font-size: 12px;
+	}
+
+	.output .invalid
+	{
+		background-color: #faa;
 	}
 </style>

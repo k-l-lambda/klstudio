@@ -1,3 +1,5 @@
 .vs
 *.sln
 Footages
+*.sdf
+*.opensdf

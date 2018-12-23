@@ -5,6 +5,8 @@ TODO:
 
 2018.12.23	K.L.	<k.l.lambda@gmail.com>
 
+	+	options.js: added download link.
+
 	+	background.js: report task result to options page.
 
 	+	background.js: task publish and gather implemented.

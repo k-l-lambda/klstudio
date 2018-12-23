@@ -48,12 +48,12 @@ chrome.extension.onRequest.addListener(function (request, sender, sendResponse) 
 
 							++section;
 							if (section > task.options.sectionTo) {
-								section = task.options.sectionFrom;
+								section = Number(task.options.sectionFrom);
 								++page;
 							}
 
 							if (page > task.options.pageTo) {
-								page = task.options.pageFrom;
+								page = Number(task.options.pageFrom);
 								date += 86400e+3;
 							}
 

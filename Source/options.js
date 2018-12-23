@@ -1,4 +1,8 @@
 
+const createTextDownloadUrl = text =>
+	URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+
+
 window.onload = function () {
 	document.querySelector("#renminribao .date-from").value = new Date(Date.now() - 86400000 * 30).format("yyyy-MM-dd");
 	document.querySelector("#renminribao .date-to").value = new Date().format("yyyy-MM-dd");
@@ -27,6 +31,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 				case "renminribao":
 					console.log("result:", request.text);
 					document.querySelector("#renminribao .result").value = request.text;
+
+					document.querySelector("#renminribao .link").href = createTextDownloadUrl(request.text);
 
 					break;
 			}

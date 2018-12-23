@@ -338,28 +338,36 @@
 				figure.removeClass("ready");
 				figure.addClass("checking");
 
-				ajax.post("/check-file", { path: path, fix_extension: true }, function (json) {
+				ajax.post("/check-file", { path: unescape(path), fix_extension: true }, function (json) {
 					figure.removeClass("checking");
 
 					if (json.success) {
-						console.log("check file success: ", json);
+						if (json.result == "delete") {
+							console.warn("check file failed: ", json);
 
-						if (json.rename) {
-							console.log("renamed:", json.path, "->", json.rename);
-							figure.data("path", json.rename);
-
-							var url = "/images/" + json.rename;
-							figure.find("img").attr("src", url);
-							figure.find("a").attr("href", url);
-							figure.find(".label").attr("title", json.rename);
-							figure.addClass("renamed");
+							figure.addClass("error");
+							figure.attr("title", json.description);
 						}
+						else {
+							console.log("check file success: ", json);
 
-						figure.addClass("ready");
+							if (json.rename) {
+								console.log("renamed:", json.path, "->", json.rename);
+								figure.data("path", json.rename);
 
-						if (json.duplicated) {
-							figure.addClass("duplicated");
-							figure.data("identity", json.duplicated);
+								var url = "/images/" + json.rename;
+								figure.find("img").attr("src", url);
+								figure.find("a").attr("href", url);
+								figure.find(".label").attr("title", json.rename);
+								figure.addClass("renamed");
+							}
+
+							figure.addClass("ready");
+
+							if (json.duplicated) {
+								figure.addClass("duplicated");
+								figure.data("identity", json.duplicated);
+							}
 						}
 					}
 					else {

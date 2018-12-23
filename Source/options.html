@@ -2,6 +2,12 @@
 <html>
 <head>
 	<title>Crawler</title>
+	<style>
+		input[type="number"]
+		{
+			width: 3em;
+		}
+	</style>
 </head>
 <body>
 	<section id="renminribao">
@@ -11,11 +17,14 @@
 		</p>
 		<p>
 			Sections:
-			<input class="page-from" type="number" value="1" /> - <input class="page-to" type="number" value="1"  />
-			<input class="section-from" type="number" value="1"  /> - <input class="section-to" type="number" value="4"  />
+			<input class="page-from" type="number" value="1" /> - <input class="page-to" type="number" value="1" />,
+			<input class="section-from" type="number" value="1" /> - <input class="section-to" type="number" value="4" />
 		</p>
 		<p>
 			<button class="start">start</button>
+		</p>
+		<p>
+			<textarea class="result" style="width: 28em; height: 5em"></textarea>
 		</p>
 	</section>
 

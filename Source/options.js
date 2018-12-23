@@ -17,3 +17,22 @@ window.onload = function () {
 		chrome.extension.sendRequest({ action: "startTask", profile: "renminribao", options });
 	});
 };
+
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+	//console.log("request:", request);
+	switch (request.action) {
+		case "result":
+			switch (request.profile) {
+				case "renminribao":
+					console.log("result:", request.text);
+					document.querySelector("#renminribao .result").value = request.text;
+
+					break;
+			}
+
+			break;
+		default:
+			console.log("onMessage:", request);
+	}
+});

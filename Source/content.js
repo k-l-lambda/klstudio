@@ -23,7 +23,10 @@ window.onload = function () {
 			case "renminribao":
 				const text_c = document.querySelector(".text_c");
 				if (text_c) {
-					const text = text_c.textContent;
+					document.querySelectorAll(".text_c script").forEach(e => e.remove());
+					document.querySelectorAll(".text_c p").forEach(p => p.append("\n"))
+
+					const text = text_c.textContent.replace(/\n\s+\n/g, "\n\n");
 					chrome.extension.sendRequest({ action: "got", text });
 				}
 

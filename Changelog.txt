@@ -1,7 +1,11 @@
 
 TODO:
 
-2011.12.24	K.L.	<k.l.lambda@gmail.com>
+
+
+2018.12.23	K.L.	<k.l.lambda@gmail.com>
+
+	+	background.js: report task result to options page.
 
 	+	background.js: task publish and gather implemented.
 

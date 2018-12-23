@@ -5,7 +5,7 @@ let task = null;
 chrome.extension.onRequest.addListener(function (request, sender, sendResponse) {
 	switch (request.action) {
 		case "startTask":
-			console.log("startTask:", request);
+			console.log("startTask:", request, sender);
 			/*chrome.browser.openTab({ url: "http://paper.people.com.cn/rmrb/html/2018-12/01/nw.D110000renmrb_20181201_1-01.htm" }, x => {
 				console.log("tab opened:", x);
 			});*/
@@ -14,12 +14,13 @@ chrome.extension.onRequest.addListener(function (request, sender, sendResponse) 
 			switch (request.profile) {
 				case "renminribao":
 					task = {
+						sponsor: sender.tab.id,
 						profile: request.profile,
 						options: request.options,
 						status: {
 							date: new Date(request.options.dateFrom).getTime(),
-							page: request.options.pageFrom,
-							section: request.options.sectionFrom,
+							page: Number(request.options.pageFrom),
+							section: Number(request.options.sectionFrom),
 						},
 						result: "",
 					};
@@ -57,7 +58,9 @@ chrome.extension.onRequest.addListener(function (request, sender, sendResponse) 
 							}
 
 							if (date > new Date(task.options.dateTo).getTime()) {
-								console.log("task finished.", task.result);
+								console.log("task finished.");
+								chrome.tabs.sendMessage(task.sponsor, { action: "result", profile: task.profile, text: task.result });
+
 								return;
 							}
 

@@ -1,0 +1,22 @@
+{
+  "manifest_version": 2,
+  "name": "Crawler",
+  "version": "0.1",
+  "description": "Scriptable crawler tools for Chrome browser.",
+  "icons": { "128": "logo.png" },
+  "background": {
+    "scripts": ["utils.js", "background.js"]
+  },
+  "options_page": "options.html",
+  "content_scripts": [ {
+     "js": [ "utils.js", "content.js" ],
+     "matches": [ "*://paper.people.com.cn/*" ]
+  } ],
+  "permissions": [
+    "tabs", "*://*/*"
+  ],
+  "web_accessible_resources": [
+    "logo.png",
+    "logo16.png"
+  ]
+}

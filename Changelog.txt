@@ -1,0 +1,11 @@
+
+TODO:
+
+2011.12.24	K.L.	<k.l.lambda@gmail.com>
+
+	+	background.js: task publish and gather implemented.
+
+	+	ChangeLog.txt: created.
+
+
+------------------------------------------------------- ChromeCrawler ChangeLog -------------------------------------------------------

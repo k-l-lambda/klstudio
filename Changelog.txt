@@ -3,6 +3,8 @@
 
 2018.12.30	K.L.	<k.l.lambda@gmail.com>
 
+	+	fifth-pitch-graph.vue: added points and band.
+
 	+	svg-map.vue: pan & scale by mouse implemneted.
 
 	+	app-wrapper.vue created.

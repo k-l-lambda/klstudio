@@ -1,6 +1,11 @@
 
 
 
+2018.12.30	K.L.	<k.l.lambda@gmail.com>
+
+	+	Entry of fifth pitch graph added.
+
+
 2018.12.9	K.L.	<k.l.lambda@gmail.com>
 
 	+	writer.vue: added theme of threebody3.

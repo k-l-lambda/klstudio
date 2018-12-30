@@ -24,4 +24,10 @@ module.exports = [
 		path: "/writer/",
 		title: "AI Writer",
 	},
+
+	{
+		name: "fifth-pitch-graph",
+		path: "/documents/fifth-pitch-graph",
+		title: "Fifth Pitch Graph",
+	},
 ].map(data => new Entry(data));

@@ -2,14 +2,14 @@
 	<SvgMap
 		:width="size.width"
 		:height="size.height"
-		:viewCenter="viewCenter"
+		:viewCenter.sync="viewCenter"
 		:initViewWidth="20"
 		class="svg-map"
 		v-resize="onResize"
 	>
 		<g class="axes">
-			<line :x1="-12" :x2="12" :y1="0" :y2="0" />
-			<line :y1="-12" :y2="12" :x1="0" :x2="0" />
+			<line :x1="-100" :x2="100" :y1="0" :y2="0" />
+			<line :y1="-100" :y2="100" :x1="0" :x2="0" />
 		</g>
 	</SvgMap>
 </template>

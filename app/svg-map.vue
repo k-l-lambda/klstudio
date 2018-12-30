@@ -3,8 +3,12 @@
 		:width="width"
 		:height="height"
 		:viewBox="`${viewBox.left} ${viewBox.top} ${viewBox.width} ${viewBox.height}`"
+		@mousemove="onMouseMove"
+		@mousewheel="onMouseWheel"
 	>
-		<slot></slot>
+		<g :transform="`scale(${viewScale}) translate(${-viewCenter.x}, ${-viewCenter.y})`">
+			<slot></slot>
+		</g>
 	</svg>
 </template>
 
@@ -36,6 +40,7 @@
 					width: this.initViewWidth,
 					height: this.initViewWidth / aspect,
 				},
+				viewScale: 1,
 			};
 		},
 
@@ -43,8 +48,8 @@
 		computed: {
 			viewBox() {
 				return {
-					left: this.viewCenter.x - this.viewSize.width / 2,
-					top: this.viewCenter.y - this.viewSize.height / 2,
+					left: -this.viewSize.width / 2,
+					top: -this.viewSize.height / 2,
 					width: this.viewSize.width,
 					height: this.viewSize.height,
 				};
@@ -61,6 +66,30 @@
 
 
 		mounted() {
+		},
+
+
+		methods: {
+			onMouseMove(event) {
+				switch (event.buttons) {
+					case 1:	// left button
+						//console.log("dragging:", event.movementX, event.movementY);
+						const scale = this.viewBox.width / (this.width * this.viewScale);
+
+						const center = {
+							x: this.viewCenter.x - event.movementX * scale,
+							y: this.viewCenter.y - event.movementY * scale,
+						};
+						this.$emit("update:viewCenter", center);
+
+						break;
+				}
+			},
+
+
+			onMouseWheel(event) {
+				this.viewScale *= Math.exp(event.deltaY * -0.001);
+			},
 		},
 	};
 </script>

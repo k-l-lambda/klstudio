@@ -3,6 +3,8 @@
 
 2018.12.30	K.L.	<k.l.lambda@gmail.com>
 
+	+	app-wrapper.vue created.
+
 	+	Entry of fifth pitch graph added.
 
 

@@ -41,6 +41,7 @@
   "vue": "^2.5.18",
   "vue-debounce": "^1.0.0",
   "vue-loader": "^15.4.2",
+  "vue-resize-directive": "^1.1.4",
   "vue-template-compiler": "^2.5.18",
   "webpack": "^4.27.1",
   "webpack-cli": "^3.1.2",

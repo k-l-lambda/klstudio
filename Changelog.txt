@@ -1,6 +1,11 @@
 
 
 
+2018.12.31	K.L.	<k.l.lambda@gmail.com>
+
+	+	fifth-pitch-graph.vue: added steps.
+
+
 2018.12.30	K.L.	<k.l.lambda@gmail.com>
 
 	+	fifth-pitch-graph.vue: added points and band.

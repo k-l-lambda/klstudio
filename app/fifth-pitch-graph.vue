@@ -1,40 +1,51 @@
 <template>
-	<SvgMap
-		:width="size.width"
-		:height="size.height"
-		:viewCenter.sync="viewCenter"
-		:initViewWidth="20"
-		class="svg-map"
-		v-resize="onResize"
-	>
-		<g class="axes">
-			<line :x1="-100" :x2="100" :y1="0" :y2="0" />
-			<line :y1="-100" :y2="100" :x1="0" :x2="0" />
-		</g>
-		<g class="band">
-			<path class="bg" :d="`M-100 ${CONTOUR_SLOPE * 100} L100 ${CONTOUR_SLOPE * -100} L101 ${CONTOUR_SLOPE * -100} L-99 ${CONTOUR_SLOPE * 100} Z`" />
-			<line class="contour-1" :x1="-100" :y1="CONTOUR_SLOPE * 100" :x2="100" :y2="CONTOUR_SLOPE * -100" />
-			<line class="contour-2" :x1="-99" :y1="CONTOUR_SLOPE * 100" :x2="101" :y2="CONTOUR_SLOPE * -100" />
-		</g>
-		<g class="points">
-			<g v-for="point of points" :key="`point-${point.m}-${point.n}`"
-				:transform="`translate(${point.m}, ${-point.n})`"
-				:class="{emphasize: point.onBand}"
-			>
-				<circle class="dot" :class="{axis: point.m == 0 || point.n == 0}" />
-				<text class="label" v-if="point.label" :font-size="point.onBand ? 0.24 : 0.16" :transform="`translate(${point.m == 0 ? 0.14 : 0}, -0.1)`">{{point.label}}</text>
+	<div class="fifth-pitch-graph">
+		<SvgMap
+			:width="size.width"
+			:height="size.height"
+			:initViewWidth="20"
+			class="svg-map"
+			v-resize="onResize"
+		>
+			<g class="axes">
+				<line :x1="-100" :x2="100" :y1="0" :y2="0" />
+				<line :y1="-100" :y2="100" :x1="0" :x2="0" />
 			</g>
-		</g>
-		<g class="steps">
-			<line v-for="step of steps" :key="`step-line-${step.n}`"
-				:x1="-100 + step.m" :y1="CONTOUR_SLOPE * 100 - step.n" :x2="100 + step.m" :y2="CONTOUR_SLOPE * -100 - step.n"
-			/>
-			<text v-for="step of steps" :key="`step-text-${step.n}`"
-				:transform="`translate(${step.m - 0.2}, ${-step.n + 0.4})`"
-				:font-size="0.4"
-			>{{step.name}}</text>
-		</g>
-	</SvgMap>
+			<g class="band" v-show="showBand">
+				<path class="bg" :d="`M-100 ${CONTOUR_SLOPE * 100} L100 ${CONTOUR_SLOPE * -100} L101 ${CONTOUR_SLOPE * -100} L-99 ${CONTOUR_SLOPE * 100} Z`" />
+				<line class="contour-1" :x1="-100" :y1="CONTOUR_SLOPE * 100" :x2="100" :y2="CONTOUR_SLOPE * -100" />
+				<line class="contour-2" :x1="-99" :y1="CONTOUR_SLOPE * 100" :x2="101" :y2="CONTOUR_SLOPE * -100" />
+			</g>
+			<g class="points">
+				<g v-for="point of points" :key="`point-${point.m}-${point.n}`"
+					:transform="`translate(${point.m}, ${-point.n})`"
+					:class="{emphasize: showBand && point.onBand}"
+				>
+					<circle class="dot" :class="{axis: point.m == 0 || point.n == 0, step: showSteps && point.onBand && Math.abs(point.n) <= 6}" />
+					<text class="label" v-if="point.label" v-show="showPointLabels"
+						:font-size="showBand && point.onBand ? 0.24 : 0.16"
+						:transform="`translate(${point.m == 0 ? 0.14 : 0}, -0.1)`"
+					>{{point.label}}</text>
+				</g>
+			</g>
+			<g class="steps" v-show="showSteps">
+				<line v-for="step of steps" :key="`step-line-${step.n}`"
+					:x1="-100 + step.m" :y1="CONTOUR_SLOPE * 100 - step.n" :x2="100 + step.m" :y2="CONTOUR_SLOPE * -100 - step.n"
+				/>
+				<text v-for="step of steps" :key="`step-text-${step.n}`"
+					:transform="`translate(${step.m - 0.2}, ${-step.n + 0.4})`"
+					:font-size="0.4"
+				>{{step.name}}</text>
+			</g>
+		</SvgMap>
+		<header>
+			<p>
+				<input type="checkbox" v-model="showPointLabels" title="show point labels" />
+				<input type="checkbox" v-model="showBand" title="show band" />
+				<input type="checkbox" v-model="showSteps" title="show steps" />
+			</p>
+		</header>
+	</div>
 </template>
 
 <script>
@@ -64,10 +75,9 @@
 
 		data() {
 			return {
-				viewCenter: {x: 0, y: 0},
 				size: {},
-				points: [].concat(...Array(100).fill().map((_, i) => Array(100).fill()
-					.map((_, j) => ({m: i - 50, n: j - 50}))
+				points: [].concat(...Array(60).fill().map((_, i) => Array(60).fill()
+					.map((_, j) => ({m: i - 30, n: j - 30}))
 					.map(({m, n}) => ({m, n, value: (2 ** m) * (3 ** n)}))
 					.map(({m, n, value}) => ({
 						m, n,
@@ -90,6 +100,9 @@
 					{m: 8, n: -5, name: "\u266dD"},
 					{m: 10, n: -6, name: "\u266dG"},
 				],
+				showPointLabels: false,
+				showBand: false,
+				showSteps: false,
 			};
 		},
 
@@ -124,7 +137,15 @@
 	};
 </script>
 
-<style>
+<style scoped>
+	header
+	{
+		position: absolute;
+		top: 0;
+		width: 100%;
+		text-align: center;
+	}
+
 	.svg-map
 	{
 		width: 100%;
@@ -151,7 +172,11 @@
 	.points .emphasize .dot
 	{
 		r: 0.04;
-		fill: #fbab00;
+	}
+
+	.points .dot.step
+	{
+		fill: #f54b00;
 	}
 
 	.points .dot.axis
@@ -194,7 +219,7 @@
 	{
 		font-weight: bold;
 		text-anchor: middle;
-		fill: #fbab00;
+		fill: #f54b00;
 		user-select: none;
 	}
 

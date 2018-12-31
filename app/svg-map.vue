@@ -20,10 +20,9 @@
 		props: {
 			width: Number,
 			height: Number,
-			viewCenter: {
-				validator(value) {
-					return value && typeof value.x == "number" && typeof value.y == "number";
-				},
+			initViewCenter: {
+				type: Object,
+				default: () => ({x: 0, y: 0}),
 			},
 			initViewWidth: {
 				type: Number,
@@ -36,6 +35,7 @@
 			const aspect = this.aspect || 1;
 
 			return {
+				viewCenter: this.initViewCenter,
 				viewSize: {
 					width: this.initViewWidth,
 					height: this.initViewWidth / aspect,
@@ -76,11 +76,10 @@
 						//console.log("dragging:", event.movementX, event.movementY);
 						const scale = this.viewBox.width / (this.width * this.viewScale);
 
-						const center = {
-							x: this.viewCenter.x - event.movementX * scale,
-							y: this.viewCenter.y - event.movementY * scale,
-						};
-						this.$emit("update:viewCenter", center);
+						this.viewCenter.x -= event.movementX * scale;
+						this.viewCenter.y -= event.movementY * scale;
+
+						this.$emit("update:viewCenter", this.viewCenter);
 
 						break;
 				}
@@ -89,6 +88,8 @@
 
 			onMouseWheel(event) {
 				this.viewScale *= Math.exp(event.deltaY * -0.001);
+
+				this.$emit("update:viewScale", this.viewScale);
 			},
 		},
 	};

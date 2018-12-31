@@ -26,6 +26,7 @@
 						:font-size="showBand && point.onBand ? 0.24 : 0.16"
 						:transform="`translate(${point.m == 0 ? 0.14 : 0}, -0.1)`"
 					>{{point.label}}</text>
+					<title>n: {{point.n}}, m: {{point.m}}</title>
 				</g>
 			</g>
 			<g class="steps" v-show="showSteps">
@@ -44,6 +45,16 @@
 				<input type="checkbox" v-model="showBand" title="show band" />
 				<input type="checkbox" v-model="showSteps" title="show steps" />
 			</p>
+			<div class="formations">
+				<div class="inner">
+					<p v-show="showPointLabels">
+						f(m, n) = 2<sup>m</sup> &times; 3<sup>n</sup>
+					</p>
+					<p v-show="showBand">
+						Band: 1 &le; f < 2
+					</p>
+				</div>
+			</div>
 		</header>
 	</div>
 </template>
@@ -143,6 +154,29 @@
 		position: absolute;
 		top: 0;
 		width: 100%;
+		text-align: center;
+		font-family: Arial;
+		user-select: none;
+	}
+
+	header .formations
+	{
+		padding: 0 2em;
+		text-align: right;
+		font-size: 36px;
+		font-weight: bold;
+		color: steelblue;
+	}
+
+	header .formations .inner
+	{
+		display: inline-block;
+		background-color: #fffc;
+		border-radius: 1em;
+	}
+
+	header .formations .inner p
+	{
 		text-align: center;
 	}
 

@@ -66,6 +66,7 @@
 
 
 		mounted() {
+			this.viewSize.height = this.initViewWidth / this.aspect;
 		},
 
 
@@ -90,6 +91,14 @@
 				this.viewScale *= Math.exp(event.deltaY * -0.001);
 
 				this.$emit("update:viewScale", this.viewScale);
+			},
+
+
+			clientToView(point) {
+				return {
+					x: (point.x * this.viewBox.width / this.width + this.viewBox.left) / this.viewScale + this.viewCenter.x,
+					y: (point.y * this.viewBox.height / this.height + this.viewBox.top) / this.viewScale + this.viewCenter.y,
+				};
 			},
 		},
 	};

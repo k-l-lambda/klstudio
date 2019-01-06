@@ -38,6 +38,7 @@
   "nodemon": "^1.18.7",
   "postcss-loader": "^3.0.0",
   "style-loader": "^0.23.1",
+  "url-loader": "^1.1.2",
   "vue": "^2.5.18",
   "vue-debounce": "^1.0.0",
   "vue-loader": "^15.4.2",

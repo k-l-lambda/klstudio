@@ -3,6 +3,8 @@
 
 2019.1.6	K.L.	<k.l.lambda@gmail.com>
 
+	+	equal-temperament.vue: added curve in cartesian view.
+
 	+	Page of equal temperament created.
 
 

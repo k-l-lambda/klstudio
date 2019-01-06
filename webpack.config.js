@@ -45,6 +45,16 @@ module.exports = {
 				test: /\.css$/,
 				loader: "style-loader!css-loader",
 			},
+			{
+				test: /\.(png|jpg|svg)$/,
+				include: [
+					path.resolve(__dirname, "app/images"),
+				],
+				loader: "url-loader",
+				options: {
+					limit: 0x40000,	// 256KB
+				},
+			},
 		],
 	},
 

@@ -18,6 +18,12 @@
 						:cy="0"
 					/>
 				</g>
+				<g class="steps">
+					<text class="label" v-for="step of steps"
+						:class="{focus: focusPoints[0] && focusPoints[0].x == step.pitch}"
+						:x="step.pitch" :y="0.6"
+					>{{step.name}}</text>
+				</g>
 				<g class="curve-points">
 					<g v-for="point of stepPoints"
 						:class="{bold: point.C}"
@@ -61,7 +67,7 @@
 						<line :x1="point.x" :y1="0" :x2="point.x" :y2="point.y" />
 						<circle class="dot" :cx="point.x" :cy="point.y" />
 						<text class="label" :transform="`translate(-1.6, ${point.y})`">{{(point.y / CARTESIAN_Y_SCALE).toPrecision(4)}}</text>
-						<text class="label" :transform="`translate(${point.x}, 1)`">{{point.x.toFixed(1)}}</text>
+						<text class="label" :transform="`translate(${point.x}, 1.2)`">{{point.x.toFixed(1)}}</text>
 					</g>
 				</g>
 				<circle class="cursor" v-if="cursorPoint" r="0.2" fill="red" :cx="cursorPoint.x" :cy="cursorPoint.y" />
@@ -69,17 +75,32 @@
 			<svg class="clock"
 				:width="clockSize"
 				:height="clockSize"
-				viewBox="-400 -400 800 800"
+				viewBox="-300 -300 600 600"
+				@mousemove="onClockMoving"
 			>
-				<circle class="frame" r="380" cx="0" cy="0" />
+				<circle class="frame" :r="CLOCK_RADIUS" cx="0" cy="0" />
+				<g class="scales">
+					<line v-for="p of Array(12).fill().map((_, i) => i)"
+						:x1="pToCX(p)" :y1="pToCY(p)"
+						:x2="pToCX(p, 0.98)" :y2="pToCY(p, 0.98)"
+					/>
+				</g>
+				<g class="steps">
+					<text class="label" v-for="step of steps"
+						:class="{focus: focusPoints[0] && focusPoints[0].x == step.pitch}"
+						:x="pToCX(step.pitch, 1.08)" :y="pToCY(step.pitch, 1.08) + 14"
+					>{{step.name}}</text>
+				</g>
+				<g class="focus" v-if="focusPoints[0]">
+					<line :x1="0" :y1="0" :x2="pToCX(focusPoints[0].x)" :y2="pToCY(focusPoints[0].x)" />
+					<circle class="dot" :cx="pToCX(focusPoints[0].x)" :cy="pToCY(focusPoints[0].x)" />
+				</g>
 			</svg>
 		</article>
 		<header>
 			<div class="formations">
 				<div class="inner">
-					<p>
-						<img :src="url12Equal" :style="{zoom: 2}" />
-					</p>
+					<img :src="url12Equal" :style="{zoom: 3}" />
 				</div>
 			</div>
 		</header>
@@ -97,6 +118,8 @@
 
 
 	const CARTESIAN_Y_SCALE = -4;
+
+	const CLOCK_RADIUS = 240;
 
 
 
@@ -141,8 +164,18 @@
 				})),
 				url12Equal,
 				CARTESIAN_Y_SCALE,
+				CLOCK_RADIUS,
 				cursorPoint: null,
 				focusPoints: [],
+				steps: [
+					{pitch: 0, name: "C"},
+					{pitch: 2, name: "D"},
+					{pitch: 4, name: "E"},
+					{pitch: 5, name: "F"},
+					{pitch: 7, name: "G"},
+					{pitch: 9, name: "A"},
+					{pitch: 11, name: "B"},
+				],
 			};
 		},
 
@@ -185,6 +218,30 @@
 
 				this.focusPoints = [{x: cursorPoint.x, y}];
 			},
+
+
+			onClockMoving(event) {
+				const cursorPoint = {
+					x: event.offsetX * 600 / this.clockSize - 300,
+					y: event.offsetY * 600 / this.clockSize - 300,
+				};
+
+				const angle = Math.atan(cursorPoint.y / cursorPoint.x) / Math.PI + (cursorPoint.x < 0 ? 1 : 0) + 0.5;
+				const pitch = (angle < 0 ? angle + 2 : angle) * 6;
+				const x = Math.round(pitch * 10) / 10;
+
+				this.focusPoints = [x, x - 12, x + 12].map(p => ({x: p, y: CARTESIAN_Y_SCALE * 2 ** (p / 12)}));
+			},
+
+
+			pToCX(p, r = 1) {
+				return Math.cos((p - 3) * Math.PI * 2 / 12) * CLOCK_RADIUS * r;
+			},
+
+
+			pToCY(p, r = 1) {
+				return Math.sin((p - 3) * Math.PI * 2 / 12) * CLOCK_RADIUS * r;
+			},
 		},
 	};
 </script>
@@ -199,6 +256,7 @@
 		font-family: Arial;
 		user-select: none;
 		pointer-events: none;
+		padding: 1em 0;
 	}
 
 	header .formations
@@ -315,11 +373,60 @@
 		fill: darkred;
 	}
 
+	.cartesian .steps .label
+	{
+		font-size: 0.6px;
+		fill: steelblue;
+		font-weight: normal;
+	}
+
+	.cartesian .steps .label.focus
+	{
+		font-weight: bold;
+		fill: red;
+	}
+
+	.clock
+	{
+		cursor: crosshair;
+	}
+
 	.clock .frame
 	{
 		stroke: black;
 		stroke-width: 2;
 		fill: transparent;
+	}
+
+	.clock .focus .dot
+	{
+		r: 6;
+		fill: red;
+	}
+
+	.clock .focus line
+	{
+		stroke: darkred;
+		stroke-width: 1;
+	}
+
+	.clock .scales
+	{
+		stroke: black;
+		stroke-width: 1;
+	}
+
+	.clock .steps .label
+	{
+		font-size: 36px;
+		fill: steelblue;
+		font-weight: normal;
+	}
+
+	.clock .steps .label.focus
+	{
+		font-weight: bold;
+		fill: red;
 	}
 
 	.cursor

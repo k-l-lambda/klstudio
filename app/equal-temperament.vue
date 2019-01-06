@@ -1,5 +1,5 @@
 <template>
-	<div class="equal-temperament" v-resize="onResize">
+	<div class="equal-temperament" v-resize="onResize" @click="onClick">
 		<article>
 			<SvgMap class="cartesian" ref="cartesian"
 				:width="cartesianWidth"
@@ -19,14 +19,14 @@
 					/>
 				</g>
 				<g class="steps">
-					<text class="label" v-for="step of steps"
-						:class="{focus: focusPoints[0] && focusPoints[0].x == step.pitch}"
+					<text class="label" v-for="step of steps" v-if="step.name"
+						:class="{focus: focusPoints[0] && focusPoints[0].x == step.pitch, chosen: step.chosen}"
 						:x="step.pitch" :y="0.6"
 					>{{step.name}}</text>
 				</g>
 				<g class="curve-points">
 					<g v-for="point of stepPoints"
-						:class="{bold: point.C}"
+						:class="{bold: point.C, chosen: steps[point.x] && steps[point.x].chosen}"
 					>
 						<line class="vertical"
 							:x1="point.x" :y1="0"
@@ -79,17 +79,26 @@
 				@mousemove="onClockMoving"
 			>
 				<circle class="frame" :r="CLOCK_RADIUS" cx="0" cy="0" />
-				<g class="scales">
-					<line v-for="p of Array(12).fill().map((_, i) => i)"
-						:x1="pToCX(p)" :y1="pToCY(p)"
-						:x2="pToCX(p, 0.98)" :y2="pToCY(p, 0.98)"
-					/>
-				</g>
 				<g class="steps">
-					<text class="label" v-for="step of steps"
-						:class="{focus: focusPoints[0] && focusPoints[0].x == step.pitch}"
+					<text class="label" v-for="step of steps" v-if="step.name"
+						:class="{focus: focusPoints[0] && focusPoints[0].x == step.pitch, chosen: step.chosen}"
 						:x="pToCX(step.pitch, 1.08)" :y="pToCY(step.pitch, 1.08) + 14"
 					>{{step.name}}</text>
+				</g>
+				<g class="scales">
+					<g v-for="step of steps" :key="step.pitch" :class="{chosen: step.chosen}">
+						<path class="fan" v-if="step.chosen"
+							:d="`M0 0 L${pToCX(step.pitch - 0.5)} ${pToCY(step.pitch - 0.5)} A${CLOCK_RADIUS} ${CLOCK_RADIUS} 0 0 1 ${pToCX(step.pitch + 0.5)} ${pToCY(step.pitch + 0.5)} Z`"
+						/>
+						<line
+							:x1="pToCX(step.pitch)" :y1="pToCY(step.pitch)"
+							:x2="pToCX(step.pitch, 0.98)" :y2="pToCY(step.pitch, 0.98)"
+						/>
+						<circle class="dot"
+							:cx="pToCX(step.pitch)" :cy="pToCY(step.pitch)"
+							@click="step.chosen = !step.chosen"
+						/>
+					</g>
 				</g>
 				<g class="focus" v-if="focusPoints[0]">
 					<line :x1="0" :y1="0" :x2="pToCX(focusPoints[0].x)" :y2="pToCY(focusPoints[0].x)" />
@@ -169,11 +178,16 @@
 				focusPoints: [],
 				steps: [
 					{pitch: 0, name: "C"},
+					{pitch: 1},
 					{pitch: 2, name: "D"},
+					{pitch: 3},
 					{pitch: 4, name: "E"},
 					{pitch: 5, name: "F"},
+					{pitch: 6},
 					{pitch: 7, name: "G"},
+					{pitch: 8},
 					{pitch: 9, name: "A"},
+					{pitch: 10},
 					{pitch: 11, name: "B"},
 				],
 			};
@@ -195,6 +209,11 @@
 		methods: {
 			onResize() {
 				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
+			},
+
+
+			onClick() {
+				this.focusPoints = [];
 			},
 
 
@@ -323,7 +342,13 @@
 	.curve-points line.vertical
 	{
 		stroke: #222;
-		stroke-width: 0.02;
+		stroke-width: 0.01;
+	}
+
+	.curve-points .chosen line.vertical
+	{
+		stroke: #0c0;
+		stroke-width: 0.06;
 	}
 
 	.curve-points .bold line.vertical
@@ -365,7 +390,7 @@
 	.focus-pionts line
 	{
 		stroke: darkred;
-		stroke-width: 0.07;
+		stroke-width: 0.04;
 	}
 
 	.focus-pionts .label
@@ -386,6 +411,11 @@
 		fill: red;
 	}
 
+	.cartesian .steps .label.chosen
+	{
+		fill: #0c0;
+	}
+
 	.clock
 	{
 		cursor: crosshair;
@@ -402,18 +432,42 @@
 	{
 		r: 6;
 		fill: red;
+		pointer-events: none;
 	}
 
 	.clock .focus line
 	{
 		stroke: darkred;
 		stroke-width: 1;
+		pointer-events: none;
 	}
 
-	.clock .scales
+	.clock .scales line
 	{
 		stroke: black;
 		stroke-width: 1;
+	}
+
+	.clock .scales .dot
+	{
+		r: 6;
+		fill: transparent;
+	}
+
+	.clock .scales .chosen .dot
+	{
+		fill: #0f0;
+	}
+
+	.clock .scales .dot:hover
+	{
+		stroke: #0c0;
+		stroke-width: 4;
+	}
+
+	.clock .scales .fan
+	{
+		fill: #afa;
 	}
 
 	.clock .steps .label
@@ -421,6 +475,11 @@
 		font-size: 36px;
 		fill: steelblue;
 		font-weight: normal;
+	}
+
+	.clock .steps .label.chosen
+	{
+		fill: #0c0;
 	}
 
 	.clock .steps .label.focus

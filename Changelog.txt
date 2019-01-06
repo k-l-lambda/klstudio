@@ -3,6 +3,8 @@
 
 2019.1.6	K.L.	<k.l.lambda@gmail.com>
 
+	+	equal-temperament.vue: added chosen status on steps.
+
 	+	equal-temperament.vue: clock view implemented.
 
 	+	equal-temperament.vue: added focus points on cartesian view.

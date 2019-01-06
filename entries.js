@@ -30,4 +30,10 @@ module.exports = [
 		path: "/documents/fifth-pitch-graph",
 		title: "Fifth Pitch Graph",
 	},
+
+	{
+		name: "equal-temperament",
+		path: "/documents/equal-temperament",
+		title: "12 Equal Temperament",
+	},
 ].map(data => new Entry(data));

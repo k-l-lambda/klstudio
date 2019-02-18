@@ -36,4 +36,10 @@ module.exports = [
 		path: "/documents/equal-temperament",
 		title: "12 Equal Temperament",
 	},
+
+	{
+		name: "hyperbolic",
+		path: "/documents/hyperbolic",
+		title: "Hyperbolic",
+	},
 ].map(data => new Entry(data));

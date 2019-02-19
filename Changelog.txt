@@ -1,6 +1,11 @@
 
 
 
+2019.2.19	K.L.	<k.l.lambda@gmail.com>
+
+	+	hyperbolic.vue: hyperbola curve added.
+
+
 2019.2.18	K.L.	<k.l.lambda@gmail.com>
 
 	+	Document page of hyperbolic created.

@@ -1,5 +1,5 @@
 <template>
-	<div class="hyperbolic">
+	<div class="hyperbolic" :class="{[`focus-${focusShape}`]: true}">
 		<article>
 			<SvgMap
 				:width="size.width"
@@ -26,6 +26,10 @@
 			</SvgMap>
 		</article>
 		<header>
+			<select v-model="focusShape">
+				<option value="circle">circle</option>
+				<option value="hyperbola">hyperbola</option>
+			</select>
 		</header>
 	</div>
 </template>
@@ -57,6 +61,7 @@
 			return {
 				size: {},
 				hyperbolaPoints: [...halfPoints, ...halfPoints.map(a => -a)].sort((x, y) => x - y),
+				focusShape: "circle",
 			};
 		},
 
@@ -95,24 +100,7 @@
 		text-align: center;
 		font-family: Arial;
 		user-select: none;
-		pointer-events: none;
 		padding: 1em 0;
-	}
-
-	header .formations
-	{
-		padding: 0 2em;
-		text-align: left;
-		font-size: 36px;
-		font-weight: bold;
-		color: steelblue;
-	}
-
-	header .formations .inner
-	{
-		display: inline-block;
-		background-color: #fffc;
-		border-radius: 1em;
 	}
 
 	article
@@ -135,14 +123,20 @@
 	{
 		stroke: #0004;
 		stroke-width: 0.004;
-		stroke-dasharray: 0.04 0.03;
+		stroke-dasharray: 0.03 0.02;
 	}
 
 	.shape
 	{
 		fill: transparent;
-		stroke-width: 0.03;
+		stroke-width: 0.01;
 		stroke: black;
-		/*stroke-dasharray: 0.04 0.02*/;
+		stroke-dasharray: 0.04 0.02;
+	}
+
+	.focus-circle .circle .shape, .focus-hyperbola .hyperbola .shape
+	{
+		stroke-width: 0.02;
+		stroke-dasharray: none;
 	}
 </style>

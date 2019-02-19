@@ -3,6 +3,8 @@
 
 2019.2.19	K.L.	<k.l.lambda@gmail.com>
 
+	+	hyperbolic.vue: added focus shape.
+
 	+	hyperbolic.vue: hyperbola curve added.
 
 

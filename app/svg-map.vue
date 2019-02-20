@@ -84,6 +84,8 @@
 
 						break;
 				}
+
+				this.$emit("mousemove", event);
 			},
 
 

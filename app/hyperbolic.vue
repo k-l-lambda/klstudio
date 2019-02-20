@@ -1,12 +1,13 @@
 <template>
 	<div class="hyperbolic" :class="{[`focus-${focusShape}`]: true}">
 		<article>
-			<SvgMap
+			<SvgMap ref="cartesian"
 				:width="size.width"
 				:height="size.height"
 				:initViewWidth="4"
 				:initViewCenter="{x: 0, y: 0}"
 				v-resize="onResize"
+				@mousemove="onMouseMoving"
 			>
 				<g class="axes">
 					<line x1="-100" x2="100" y1="0" y2="0" />
@@ -22,6 +23,21 @@
 				<g class="hyperbola">
 					<path class="shape" :d="hyperbolaRPath" />
 					<path class="shape" :d="hyperbolaLPath" />
+				</g>
+				<g v-if="cursorAngle">
+					<line class="ray" x1="0" y1="0" :x2="Math.cos(cursorAngle) * 100" :y2="-Math.sin(cursorAngle) * 100" />
+					<g class="circle values" v-if="circleRayPoint">
+						<line class="sin" :x1="circleRayPoint.x" :y1="-circleRayPoint.y" :x2="circleRayPoint.x" y2="0" />
+						<line class="cos" :x1="circleRayPoint.x" :y1="-circleRayPoint.y" x2="0" :y2="-circleRayPoint.y" />
+						<line class="tan" :x1="1" :y1="-tanLength" x2="1" :y2="0" />
+						<line class="ray-segment" x1="0" y1="0" :x2="circleRayPoint.x" :y2="-circleRayPoint.y" />
+					</g>
+					<g class="hyperbola values" v-if="hyperbolaRayPoint">
+						<line class="sin" :x1="hyperbolaRayPoint.x" :y1="-hyperbolaRayPoint.y" :x2="hyperbolaRayPoint.x" y2="0" />
+						<line class="cos" :x1="hyperbolaRayPoint.x" :y1="-hyperbolaRayPoint.y" x2="0" :y2="-hyperbolaRayPoint.y" />
+						<line class="tan" :x1="1" :y1="-tanLength" x2="1" :y2="0" />
+						<line class="ray-segment" x1="0" y1="0" :x2="hyperbolaRayPoint.x" :y2="-hyperbolaRayPoint.y" />
+					</g>
 				</g>
 			</SvgMap>
 		</article>
@@ -62,6 +78,7 @@
 				size: {},
 				hyperbolaPoints: [...halfPoints, ...halfPoints.map(a => -a)].sort((x, y) => x - y),
 				focusShape: "circle",
+				cursorPoint: null,
 			};
 		},
 
@@ -75,6 +92,51 @@
 			hyperbolaLPath() {
 				return "M" + this.hyperbolaPoints.map(point => `${-Math.cosh(point).toFixed(6)} ${Math.sinh(point).toFixed(6)}`).join(" L");
 			},
+
+
+			cursorAngle() {
+				if (!this.cursorPoint)
+					return null;
+
+				if (this.cursorPoint.x == 0)
+					return this.cursorPoint.y > 0 ? Math.PI / 2 : Math.PI / -2;
+
+				const angle = Math.atan(this.cursorPoint.y / this.cursorPoint.x);
+
+				return this.cursorPoint.x > 0 ? angle : angle + Math.PI;
+			},
+
+
+			circleRayPoint() {
+				if (!this.cursorAngle)
+					return null;
+
+				return {
+					x: Math.cos(this.cursorAngle),
+					y: Math.sin(this.cursorAngle),
+				};
+			},
+
+
+			hyperbolaRayPoint() {
+				if (!(this.cursorAngle < Math.PI / 4 && this.cursorAngle > -Math.PI / 4))
+					return null;
+
+				const x = Math.sqrt(1 / (1 - Math.tan(this.cursorAngle) ** 2));
+
+				return {
+					x,
+					y: x * Math.tan(this.cursorAngle),
+				};
+			},
+
+
+			tanLength() {
+				if (!this.cursorAngle)
+					return null;
+
+				return Math.tan(this.cursorAngle);
+			},
 		},
 
 
@@ -86,6 +148,14 @@
 		methods: {
 			onResize() {
 				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
+			},
+
+
+			onMouseMoving(event) {
+				const cursorPoint = this.$refs.cartesian.clientToView({x: event.offsetX, y: event.offsetY});
+				//console.log("cursorPoint:", cursorPoint);
+
+				this.cursorPoint = {x: cursorPoint.x, y: -cursorPoint.y};
 			},
 		},
 	};
@@ -138,5 +208,46 @@
 	{
 		stroke-width: 0.02;
 		stroke-dasharray: none;
+	}
+
+	.ray
+	{
+		stroke: black;
+		stroke-width: 0.001;
+	}
+
+	.ray-segment
+	{
+		stroke: black;
+	}
+
+	.sin
+	{
+		stroke: #f00;
+	}
+
+	.cos
+	{
+		stroke: #0c0;
+	}
+
+	.tan
+	{
+		stroke: #04f;
+	}
+
+	.values
+	{
+		visibility: hidden;
+	}
+
+	.values line
+	{
+		stroke-width: 0.02;
+	}
+
+	.focus-circle .circle.values, .focus-hyperbola .hyperbola.values
+	{
+		visibility: visible;
 	}
 </style>

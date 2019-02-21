@@ -27,12 +27,14 @@
 				<g v-if="cursorAngle">
 					<line class="ray" x1="0" y1="0" :x2="Math.cos(cursorAngle) * 100" :y2="-Math.sin(cursorAngle) * 100" />
 					<g class="circle values" v-if="circleRayPoint">
+						<path class="angle" :d="circleArcPath" />
 						<line class="sin" :x1="circleRayPoint.x" :y1="-circleRayPoint.y" :x2="circleRayPoint.x" y2="0" />
 						<line class="cos" :x1="circleRayPoint.x" :y1="-circleRayPoint.y" x2="0" :y2="-circleRayPoint.y" />
 						<line class="tan" :x1="1" :y1="-tanLength" x2="1" :y2="0" />
 						<line class="ray-segment" x1="0" y1="0" :x2="circleRayPoint.x" :y2="-circleRayPoint.y" />
 					</g>
 					<g class="hyperbola values" v-if="hyperbolaRayPoint">
+						<path class="angle" :d="hyperbolaArcPath" />
 						<line class="sin" :x1="hyperbolaRayPoint.x" :y1="-hyperbolaRayPoint.y" :x2="hyperbolaRayPoint.x" y2="0" />
 						<line class="cos" :x1="hyperbolaRayPoint.x" :y1="-hyperbolaRayPoint.y" x2="0" :y2="-hyperbolaRayPoint.y" />
 						<line class="tan" :x1="1" :y1="-tanLength" x2="1" :y2="0" />
@@ -136,6 +138,32 @@
 					return null;
 
 				return Math.tan(this.cursorAngle);
+			},
+
+
+			hyperbolicAngle() {
+				if (!this.hyperbolaRayPoint)
+					return null;
+
+				return Math.asinh(this.hyperbolaRayPoint.y);
+			},
+
+
+			hyperbolaArcPath() {
+				if (!this.hyperbolaRayPoint)
+					return null;
+
+				return `M${this.hyperbolaRayPoint.x} ${-this.hyperbolaRayPoint.y} L0 0 L1 0 L`
+					+ [...Array(100).keys()].map(i => i * this.hyperbolicAngle / 100).map(point => `${Math.cosh(point).toFixed(6)} ${-Math.sinh(point).toFixed(6)}`).join(" L")
+					+ "Z";
+			},
+
+
+			circleArcPath() {
+				if (!this.cursorAngle)
+					return null;
+
+				return `M${this.circleRayPoint.x} ${-this.circleRayPoint.y} L0 0 L1 0 A1 1 0 ${Math.abs(this.cursorAngle) > Math.PI ? 1 : 0} ${this.cursorAngle > 0 ? 0 : 1} ${this.circleRayPoint.x} ${-this.circleRayPoint.y} Z`;
 			},
 		},
 
@@ -249,5 +277,10 @@
 	.focus-circle .circle.values, .focus-hyperbola .hyperbola.values
 	{
 		visibility: visible;
+	}
+
+	.angle
+	{
+		fill: #0003;
 	}
 </style>

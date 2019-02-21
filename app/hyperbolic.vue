@@ -48,6 +48,36 @@
 				<option value="circle">circle</option>
 				<option value="hyperbola">hyperbola</option>
 			</select>
+			<div class="formula">
+				<div class="circle" v-if="cursorAngle">
+					<p>
+						<span class="symbol"><span class="alpha">&alpha;</span></span> = <em>{{cursorAngle.toFixed(3)}}</em>
+					</p>
+					<p>
+						<span class="symbol"><span class="sin">sin</span> <span class="alpha">&alpha;</span></span> = <em>{{Math.sin(cursorAngle).toFixed(3)}}</em>
+					</p>
+					<p>
+						<span class="symbol"><span class="cos">cos</span> <span class="alpha">&alpha;</span></span> = <em>{{Math.cos(cursorAngle).toFixed(3)}}</em>
+					</p>
+					<p>
+						<span class="symbol"><span class="tan">tan</span> <span class="alpha">&alpha;</span></span> = <em>{{Math.tan(cursorAngle).toFixed(3)}}</em>
+					</p>
+				</div>
+				<div class="hyperbola" v-if="hyperbolicAngle">
+					<p>
+						<span class="symbol"><span class="alpha">&alpha;</span></span> = <em>{{hyperbolicAngle.toFixed(3)}}</em>
+					</p>
+					<p>
+						<span class="symbol"><span class="sin">sinh</span> <span class="alpha">&alpha;</span></span> = <em>{{Math.sinh(hyperbolicAngle).toFixed(3)}}</em>
+					</p>
+					<p>
+						<span class="symbol"><span class="cos">cosh</span> <span class="alpha">&alpha;</span></span> = <em>{{Math.cosh(hyperbolicAngle).toFixed(3)}}</em>
+					</p>
+					<p>
+						<span class="symbol"><span class="tan">tanh</span> <span class="alpha">&alpha;</span></span> = <em>{{Math.tanh(hyperbolicAngle).toFixed(3)}}</em>
+					</p>
+				</div>
+			</div>
 		</header>
 	</div>
 </template>
@@ -197,8 +227,14 @@
 		width: 100%;
 		text-align: center;
 		font-family: Arial;
+		pointer-events: none;
 		user-select: none;
 		padding: 1em 0;
+	}
+
+	header select
+	{
+		pointer-events: all;
 	}
 
 	article
@@ -282,5 +318,56 @@
 	.angle
 	{
 		fill: #0003;
+	}
+
+	.formula
+	{
+		background-color: #fffe;
+		font-size: 24px;
+		width: 24em;
+	}
+
+	.formula p
+	{
+		padding: 0 4em;
+		text-align: left;
+	}
+
+	.formula .symbol
+	{
+		display: inline-block;
+		width: 4em;
+		text-align: right;
+		font-weight: bold;
+	}
+
+	.formula .sin
+	{
+		color: #f00;
+	}
+
+	.formula .cos
+	{
+		color: #0c0;
+	}
+
+	.formula .tan
+	{
+		color: #04f;
+	}
+
+	.formula .alpha
+	{
+		color: #777;
+	}
+
+	.formula > div
+	{
+		display: none;
+	}
+
+	.focus-circle .formula .circle, .focus-hyperbola .formula .hyperbola
+	{
+		display: block;
 	}
 </style>

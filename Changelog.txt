@@ -3,6 +3,8 @@
 
 2019.2.21	K.L.	<k.l.lambda@gmail.com>
 
+	+	hyperbolic.vue: formulas added.
+
 	+	hyperbolic.vue: angle area added.
 
 

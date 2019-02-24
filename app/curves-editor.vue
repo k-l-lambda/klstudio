@@ -12,10 +12,54 @@
 					<line x1="-100" x2="100" y1="0" y2="0" />
 					<line y1="-100" y2="100" x1="0" x2="0" />
 				</g>
+				<g class="curves">
+
+				</g>
 			</SvgMap>
 		</article>
 		<header>
-
+			<button class="settings" :class="{on: panelIsOn, off: !panelIsOn}" @click="panelIsOn = !panelIsOn">&#x2699;</button>
+			<div class="config" v-if="panelIsOn">
+				<table class="curves">
+					<tbody>
+						<tr v-for="(config, i) in curveConfig">
+							<td class="index">
+								{{i + 1}}.
+							</td>
+							<td>
+								<div><input type="text" placeholder="X Function" v-model="config.xExp" /></div>
+								<div><input type="text" placeholder="Y Function" v-model="config.yExp" /></div>
+							</td>
+							<td>
+								<input type="text" placeholder="Arg Function" v-model="config.argExp" />
+							</td>
+							<td>
+								<input type="text" placeholder="arg start" v-model.number="config.argLow" />
+								<input type="text" placeholder="arg end" v-model.number="config.argHigh" />
+							</td>
+							<td>
+								<input type="number" placeholder="segments" v-model.number="config.segments" />
+							</td>
+							<td>
+								<select v-model="config.style">
+									<option value="solid">solid</option>
+									<option value="dashed">dashed</option>
+								</select>
+							</td>
+							<td>
+								<input type="text" placeholder="color" v-model="config.color" />
+							</td>
+							<td>
+								<input type="text" placeholder="width" v-model="config.width" />
+							</td>
+							<td>
+								<button class="remove-curve" @click="onRemoveCurve(i)">-</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<button class="add-curve" @click="onAddCurve">+</button>
+			</div>
 		</header>
 	</body>
 </template>
@@ -25,6 +69,29 @@
 
 	import SvgMap from "./svg-map.vue";
 	import SvgCurve from "./svg-curve.vue";
+
+
+
+	class CurveConfig {
+		constructor(values = {
+			xExp: "",
+			yExp: "",
+			argExp: "",
+			argLow: 0,
+			argHigh: 0,
+			segments: 100,
+			style: "solid",
+			color: "black",
+			width: "0.1",
+		}) {
+			Object.assign(this, values);
+		}
+
+
+		get valid() {
+			return this.xFunction && this.yFunction;
+		}
+	};
 
 
 
@@ -48,6 +115,8 @@
 
 			return {
 				size: {},
+				panelIsOn: false,
+				curveConfig: [],
 			};
 		},
 
@@ -60,6 +129,16 @@
 		methods: {
 			onResize() {
 				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
+			},
+
+
+			onAddCurve() {
+				this.curveConfig.push(new CurveConfig());
+			},
+
+
+			onRemoveCurve(index) {
+				this.curveConfig.splice(index, 1);
 			},
 		},
 	};
@@ -87,9 +166,48 @@
 		padding: 1em 0;
 	}
 
+	header .settings
+	{
+		position: absolute;
+		right: 1em;
+		top: 1em;
+	}
+
+	header .config
+	{
+		background-color: #fffc;
+	}
+
+	button
+	{
+		cursor: pointer;
+	}
+
 	.axes line
 	{
 		stroke: black;
 		stroke-width: 0.01;
+	}
+
+	button.on
+	{
+		font-weight:bold;
+	}
+
+	button.off
+	{
+		background: transparent;
+		border: 0;
+		color: #000a;
+	}
+
+	.add-curve
+	{
+		color: #0c0;
+	}
+
+	.remove-curve
+	{
+		color: #d00;
 	}
 </style>

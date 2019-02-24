@@ -21,8 +21,6 @@
 					<circle class="shape" r="1" />
 				</g>
 				<g class="hyperbola">
-					<!--path class="shape" :d="hyperbolaRPath" />
-					<path class="shape" :d="hyperbolaLPath" /-->
 					<SvgCurve class="shape"
 						:argRange="[-2, 2]"
 						:segments="200"
@@ -124,7 +122,6 @@
 
 			return {
 				size: {},
-				//hyperbolaPoints: [...halfPoints, ...halfPoints.map(a => -a)].sort((x, y) => x - y),
 				focusShape: "circle",
 				cursorPoint: null,
 			};
@@ -132,16 +129,6 @@
 
 
 		computed: {
-			/*hyperbolaRPath() {
-				return "M" + this.hyperbolaPoints.map(point => `${Math.cosh(point).toFixed(6)} ${Math.sinh(point).toFixed(6)}`).join(" L");
-			},
-
-
-			hyperbolaLPath() {
-				return "M" + this.hyperbolaPoints.map(point => `${-Math.cosh(point).toFixed(6)} ${Math.sinh(point).toFixed(6)}`).join(" L");
-			},*/
-
-
 			cursorAngle() {
 				if (!this.cursorPoint)
 					return null;

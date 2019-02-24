@@ -3,6 +3,8 @@
 
 2019.2.24	K.L.	<k.l.lambda@gmail.com>
 
+	+	Page of curves editor created.
+
 	+	svg-curve.vue: created.
 
 

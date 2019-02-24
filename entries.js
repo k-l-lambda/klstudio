@@ -42,4 +42,10 @@ module.exports = [
 		path: "/documents/hyperbolic",
 		title: "Hyperbolic",
 	},
+
+	{
+		name: "curves-editor",
+		path: "/curves-editor",
+		title: "Curves Editor",
+	},
 ].map(data => new Entry(data));

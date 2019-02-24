@@ -21,8 +21,22 @@
 					<circle class="shape" r="1" />
 				</g>
 				<g class="hyperbola">
-					<path class="shape" :d="hyperbolaRPath" />
-					<path class="shape" :d="hyperbolaLPath" />
+					<!--path class="shape" :d="hyperbolaRPath" />
+					<path class="shape" :d="hyperbolaLPath" /-->
+					<SvgCurve class="shape"
+						:argRange="[-2, 2]"
+						:segments="200"
+						:argFunction="x => x * x * x"
+						:xFunction="Math.cosh"
+						:yFunction="Math.sinh"
+					/>
+					<SvgCurve class="shape"
+						:argRange="[-2, 2]"
+						:segments="200"
+						:argFunction="x => x * x * x"
+						:xFunction="x => -Math.cosh(x)"
+						:yFunction="Math.sinh"
+					/>
 				</g>
 				<g v-if="cursorAngle">
 					<line class="ray" x1="0" y1="0" :x2="Math.cos(cursorAngle) * 100" :y2="-Math.sin(cursorAngle) * 100" />
@@ -86,6 +100,7 @@
 	import resize from "vue-resize-directive";
 
 	import SvgMap from "./svg-map.vue";
+	import SvgCurve from "./svg-curve.vue";
 
 
 
@@ -100,6 +115,7 @@
 
 		components: {
 			SvgMap,
+			SvgCurve,
 		},
 
 
@@ -108,7 +124,7 @@
 
 			return {
 				size: {},
-				hyperbolaPoints: [...halfPoints, ...halfPoints.map(a => -a)].sort((x, y) => x - y),
+				//hyperbolaPoints: [...halfPoints, ...halfPoints.map(a => -a)].sort((x, y) => x - y),
 				focusShape: "circle",
 				cursorPoint: null,
 			};
@@ -116,14 +132,14 @@
 
 
 		computed: {
-			hyperbolaRPath() {
+			/*hyperbolaRPath() {
 				return "M" + this.hyperbolaPoints.map(point => `${Math.cosh(point).toFixed(6)} ${Math.sinh(point).toFixed(6)}`).join(" L");
 			},
 
 
 			hyperbolaLPath() {
 				return "M" + this.hyperbolaPoints.map(point => `${-Math.cosh(point).toFixed(6)} ${Math.sinh(point).toFixed(6)}`).join(" L");
-			},
+			},*/
 
 
 			cursorAngle() {

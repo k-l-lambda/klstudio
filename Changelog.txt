@@ -1,6 +1,11 @@
 
 
 
+2019.2.24	K.L.	<k.l.lambda@gmail.com>
+
+	+	svg-curve.vue: created.
+
+
 2019.2.21	K.L.	<k.l.lambda@gmail.com>
 
 	+	hyperbolic.vue: formulas added.

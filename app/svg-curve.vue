@@ -46,7 +46,7 @@
 
 		computed: {
 			arguments() {
-				return [...Array(this.segments).keys()].map(i => this.argRange[0] + i * (this.argRange[1] - this.argRange[0]) / this.segments).map(this.argFunction);
+				return [...Array(this.segments + 1).keys()].map(i => this.argRange[0] + i * (this.argRange[1] - this.argRange[0]) / this.segments).map(this.argFunction);
 			},
 
 

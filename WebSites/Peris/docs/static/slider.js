@@ -154,7 +154,7 @@ Peris.Slider.prototype.switchFigure = function (options) {
 			slider.Prev.empty();
 
 			f1.detach();
-			f1.css({ left: "", transform: "scale(1, 1)", "-webkittransform": "scale(1, 1)" });
+			f1.css({ left: "", transform: `scale(1, 1) rotate(${f1.data('rotate') || 0}deg)` });
 			f1.appendTo(slider.Prev);
 
 			f2.detach();
@@ -180,7 +180,7 @@ Peris.Slider.prototype.switchFigure = function (options) {
 			slider.Next.empty();
 
 			f1.detach();
-			f1.css({ left: "", transform: "scale(1, 1)", "-webkittransform": "scale(1, 1)" });
+			f1.css({ left: "", transform: `scale(1, 1) rotate(${f1.data('rotate') || 0}deg)` });
 			f1.appendTo(slider.Next);
 
 			f2.detach();
@@ -211,6 +211,17 @@ Peris.Slider.prototype.newFigure = function (index, onFinish) {
 	var path = this.Data[index].path;
 	var figure = $("<img class='figure' src=\"/images/" + encodeURI(path) + "\" alt='" + path + "'>");
 	figure.hide();
+
+	this.Viewer.loadMetaDataByIndex(index).then(() => {
+		figure.data("rotate", this.Data[index].rotate);
+		figure.css({ transform: `scale(1, 1) rotate(${this.Data[index].rotate || 0}deg)` });
+
+		switch (this.Data[index].rotate) {
+			case 90:
+			case 270:
+				figure.addClass("upset");
+		}
+	});
 
 	figure.load(function () {
 		var figure = $(this);
@@ -303,8 +314,10 @@ Peris.Slider.prototype.onSwitched = function () {
 	this.Viewer.focusSlot($(slots[index]));
 
 	var figure = this.Current.find(".figure");
-	if (!Peris.isIPad)
-		figure.css({ transform: "scale(1.3, 1.3)" });
+	if (!Peris.isIPad) {
+		figure.addClass("transition");
+		figure.css({ transform: `scale(1.3, 1.3) rotate(${figure.data('rotate') || 0}deg)` });
+	}
 
 	this.LastSwitchTime = Date.now();
 };

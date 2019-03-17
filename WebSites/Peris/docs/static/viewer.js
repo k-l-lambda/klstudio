@@ -152,6 +152,7 @@ Peris.Viewer.prototype.focusSlot = function (slot) {
 Peris.Viewer.prototype.newSlot = function (data, options) {
 	var slot = $("<div class='slot new'></div>");
 	slot.data("path", data.path);
+	slot.data("index", options.index);
 	slot.css({
 		height: "200px"
 	});
@@ -329,7 +330,7 @@ Peris.Viewer.prototype.laySlots = function (count) {
 	var start = this.SlotStream.find(".slot").length;
 	var until = Math.min(start + count, this.Data.length);
 	for (var i = start; i < until; ++i) {
-		var options = { latency: i - start, noLoad: true };
+		var options = { latency: i - start, noLoad: true, index: i };
 		var slot = this.newSlot(this.Data[i], options);
 		slot.appendTo(this.SlotStream);
 		//console.log("lay:", this.Data[i]);
@@ -636,6 +637,13 @@ Peris.Viewer.prototype.onKeyDown = function (e) {
 	}
 };
 
+ORIENTATION_DEGREES = {
+	[1]: 0,
+	[3]: 180,
+	[6]: 90,
+	[8]: 270,
+};
+
 Peris.Viewer.prototype.loadMetaData = async function (slot) {
 	//console.log("loadMetaData:", slot);
 	if (slot.data("meta-loaded"))
@@ -660,6 +668,16 @@ Peris.Viewer.prototype.loadMetaData = async function (slot) {
 				if (Number.isInteger(orientation)) {
 					//console.log("figure:", orientation, figure);
 					figure.addClass(`orientation-${orientation}`);
+					figure.data("rotate", ORIENTATION_DEGREES[orientation] || 0);
+
+					if (ORIENTATION_DEGREES[orientation])
+						this.Data[slot.data("index")].rotate = ORIENTATION_DEGREES[orientation];
+
+					switch (orientation) {
+						case 6:
+						case 8:
+							figure.addClass("orientation-upset");
+					}
 
 					slot.data("orientation", orientation);
 				}
@@ -668,4 +686,16 @@ Peris.Viewer.prototype.loadMetaData = async function (slot) {
 			resolve();
 		});
 	});
+};
+
+Peris.Viewer.prototype.loadMetaDataByIndex = async function (index) {
+	if (this.SlotStream.find(".slot").length <= index) {
+		console.warn("invalid slot index:", index, this.SlotStream.find(".slot").length);
+		return;
+	}
+
+	const slot = $(this.SlotStream.find(".slot")[index]);
+	//console.log("slot:", slot);
+
+	return this.loadMetaData(slot);
 };

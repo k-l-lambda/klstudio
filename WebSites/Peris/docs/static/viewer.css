@@ -595,6 +595,10 @@
 	bottom: 0;
 	left: 0;
 	right: 0;
+}
+
+.slider .figure.transition
+{
 	transition: transform 30s linear;
 	-webkit-transition: transform 30s linear;
 }
@@ -609,4 +613,16 @@
 {
 	width: 100vw;
 	height: auto;
+}
+
+.slider .figure.horizontal-full.upset
+{
+	width: 100vh;
+	height: auto;
+}
+
+.slider .figure.vertical-full.upset
+{
+	height: 100vw;
+	width: auto;
 }

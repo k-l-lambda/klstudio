@@ -212,13 +212,6 @@ Peris.Peer.prototype.initialize = function () {
 	this.RecentPostList.load();
 };
 
-ORIENTATION_DEGREES = {
-	[1]: 0,
-	[3]: 180,
-	[6]: 90,
-	[8]: 270,
-};
-
 Peris.Peer.prototype.open = function (slot) {
 	console.assert(slot.length <= 1, "multiple slot open in peer:", slot);
 
@@ -231,11 +224,12 @@ Peris.Peer.prototype.open = function (slot) {
 
 	this.Viewer.loadMetaData(slot).then(() => {
 		const orientation = slot.data("orientation");
-		if (orientation) {
-			this.Rotation = ORIENTATION_DEGREES[orientation] || 0;
-			this.updateTransform();
-			//console.log("r2:", this.Rotation);
+		if (orientation && this.Figure) {
+			this.Rotation = this.Figure.data("rotate") || 0;
 		}
+
+		if (this.Rotation)
+			this.updateTransform();
 	});
 
 	if (slot.hasClass("filled"))
@@ -252,8 +246,7 @@ Peris.Peer.prototype.open = function (slot) {
 
 	this.Showing = true;
 	this.Zoom = 1;
-	this.Rotation = ORIENTATION_DEGREES[slot.data("orientation")] || 0;
-	//console.log("r1:", this.Rotation);
+	this.Rotation = this.Figure.data("rotate") || 0;
 	this.Translate = { x: 0, y: 0 };
 	this.HoldingFigure = false;
 
@@ -325,6 +318,8 @@ Peris.Peer.prototype.close = function () {
 	var scale = 1 / Math.min(currentSize.width / targetSize.width, currentSize.height / targetSize.height);
 	var translation = { x: (targetPosition.x - currentPosition.x) / scale, y: (targetPosition.y - currentPosition.y) / scale };
 	this.Figure.css({ transform: "scale(" + scale + ", " + scale + ") translate(" + translation.x + "px, " + translation.y + "px)" });
+
+	this.Rotation = 0;
 
 	this.Showing = false;
 
@@ -433,7 +428,7 @@ Peris.Peer.prototype.initializePanel = function (slot) {
 	var scale = 1 / Math.min(newSize.width / oldSize.width, newSize.height / oldSize.height);
 	var translation = { x: (oldPosition.x - newPosition.x) / scale, y: (oldPosition.y - newPosition.y) / scale };
 	if (this.FigureClear)
-		this.Figure.css({ transform: "scale(" + scale + ", " + scale + ") translate(" + translation.x + "px, " + translation.y + "px)" });
+		this.Figure.css({ transform: `scale(${scale}, ${scale}) translate(${translation.x}px, ${translation.y}px) rotate(${this.Rotation || 0}deg)` });
 
 	this.Figure.detach();
 	this.Figure.appendTo(this.Panel);
@@ -442,7 +437,7 @@ Peris.Peer.prototype.initializePanel = function (slot) {
 
 	if (this.FigureClear) {
 		setTimeout(function () {
-			peer.Figure.css({ transform: `scale(1,1) translate(0, 0) rotate(${this.Rotation || 0}deg)` });
+			peer.Figure.css({ transform: `scale(1,1) translate(0, 0) rotate(${peer.Rotation || 0}deg)` });
 		}, 1);
 	}
 
@@ -617,7 +612,7 @@ Peris.Peer.prototype.onTagItemClick = function (item, e) {
 
 Peris.Peer.prototype.updateTransform = function () {
 	if (this.Figure)
-		this.Figure.css({ transform: "scale(" + this.Zoom + ", " + this.Zoom + ") translate(" + this.Translate.x + "px, " + this.Translate.y + "px) rotate(" + this.Rotation + "deg)" });
+		this.Figure.css({ transform: "scale(" + this.Zoom + ", " + this.Zoom + ") translate(" + this.Translate.x + "px, " + this.Translate.y + "px) rotate(" + (this.Rotation || 0) + "deg)" });
 };
 
 Peris.Peer.prototype.postFigureData = function (data) {

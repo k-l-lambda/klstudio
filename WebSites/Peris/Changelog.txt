@@ -3,6 +3,11 @@ TODO:
 	last read time database
 
 
+2019.3.17	K.L.	<k.l.lambda@gmail.com>
+
+	+	peer.js: rotate according to image exif orientation.
+
+
 2018.12.23	K.L.	<k.l.lambda@gmail.com>
 
 	+	Importer.html: fixed quotation path check issue.

@@ -635,3 +635,37 @@ Peris.Viewer.prototype.onKeyDown = function (e) {
 			e.preventDefault();
 	}
 };
+
+Peris.Viewer.prototype.loadMetaData = async function (slot) {
+	//console.log("loadMetaData:", slot);
+	if (slot.data("meta-loaded"))
+		return;
+
+	const figure = slot.find(".figure");
+
+	const path = slot.data("path");
+	const response = await fetch(`/images/${path}`);
+	if (!response.ok)
+		return;
+
+	const blob = await response.blob();
+
+	return new Promise(resolve => {
+		loadImage.parseMetaData(blob, data => {
+			slot.data("meta-loaded", true);
+
+			//console.log("meta:", data);
+			if (data.exif) {
+				const orientation = data.exif.get("Orientation");
+				if (Number.isInteger(orientation)) {
+					//console.log("figure:", orientation, figure);
+					figure.addClass(`orientation-${orientation}`);
+
+					slot.data("orientation", orientation);
+				}
+			}
+
+			resolve();
+		});
+	});
+};

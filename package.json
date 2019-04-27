@@ -2,13 +2,16 @@
 	"name": "peris.node",
 	"version": "1.0.0",
 	"description": "a website to manage image set",
+	"type": "module",
 	"scripts": {
-		"start": "node --experimental-modules main.mjs"
+		"start": "node --experimental-modules main.js"
 	},
 	"author": "k.l.lambda",
 	"license": "ISC",
 	"dependencies": {},
 	"devDependencies": {
+		"dotenv": "^7.0.0",
+		"dotenv-expand": "^5.1.0",
 		"express": "^4.16.3"
 	}
 }

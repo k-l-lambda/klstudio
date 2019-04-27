@@ -1,6 +1,6 @@
 ﻿*.suo
 node_modules
 .vs
-.local
+*.local
 yarn.lock
 footages

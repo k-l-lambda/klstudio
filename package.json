@@ -4,7 +4,8 @@
 	"description": "a website to manage image set",
 	"type": "module",
 	"scripts": {
-		"start": "node --experimental-modules main.js"
+		"start": "node --experimental-modules main.js",
+		"start:inspect": "node --inspect --experimental-modules main.js"
 	},
 	"author": "k.l.lambda",
 	"license": "ISC",
@@ -12,6 +13,8 @@
 	"devDependencies": {
 		"dotenv": "^7.0.0",
 		"dotenv-expand": "^5.1.0",
-		"express": "^4.16.3"
+		"express": "^4.16.3",
+		"mysql": "^2.17.1",
+		"mysql-backbone": "^1.0.2"
 	}
 }

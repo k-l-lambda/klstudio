@@ -1,5 +1,6 @@
 
 import path from "path";
+import sharp from "sharp";
 
 import * as peris from "./perisDb.js";
 
@@ -15,7 +16,16 @@ const updateItem = async id => {
 	if (!file)
 		throw new Error("file not found");
 
-	console.log("path:", path.resolve(process.env.RAW_DATA_PATH, file.path));
+	const path_input = path.resolve(process.env.RAW_DATA_PATH, file.path);
+	console.log("path:", path_input);
+
+	const image = sharp(path_input)
+		.resize({width: 1024, height: 1024, fit: "contain"})
+		.jpeg({quality: 80})
+		.toFile(path.resolve(process.env.DATASET_PATH, `${id}.jpg`));
+	//console.log("image:", image);
+
+	return image;
 };
 
 

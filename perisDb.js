@@ -50,4 +50,5 @@ export {
 	labels,
 	File,
 	files,
+	connection,
 };

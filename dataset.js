@@ -54,6 +54,30 @@ const updateItems = async query => {
 //global.updateItems = updateItems;
 
 
+const copyItems = async (query, destDir) => {
+	const result = await new Promise((resolve, reject) => peris.connection.query(query, (err, result) => {
+		if (err)
+			reject(err);
+		else
+			resolve(result);
+	}));
+
+	result.forEach(item => {
+		console.assert(item.id, "id is null.", item);
+		console.assert(item.path, "path is null.", item);
+
+		const sourcePath = datasetImagePath(item.id);
+		const destPath = path.resolve(destDir, `${item.id}.jpg`);
+
+		if (fs.existsSync(sourcePath))
+			fs.copyFile(sourcePath, destPath, err => err && console.warn("copy file error:", err));
+		else
+			console.warn("image not exist:", item.id);
+	});
+};
+global.copyItems = copyItems;
+
+
 const getItem = async id => {
 	const imagePath = datasetImagePath(id);
 

@@ -5,7 +5,8 @@
  "scripts": {
   "build": "webpack --config=./webpack.config.js --progress --hide-modules",
   "start": "node main.js",
-  "dev": "cross-env NODE_ENV=development nodemon --inspect main.js"
+  "dev": "cross-env NODE_ENV=development nodemon main.js",
+  "dev:inspect": "cross-env NODE_ENV=development nodemon --inspect main.js"
  },
  "repository": {
   "type": "git",

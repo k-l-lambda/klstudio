@@ -15,6 +15,45 @@
 				<g class="curves">
 
 				</g>
+				<!--SvgCurve
+					class="sample"
+					:argRange="[-2, 2]"
+					:segments="200"
+					:argFunction="x => x * x * x"
+					:xFunction="a => Math.sinh(a) * 2"
+					:yFunction="a => Math.cosh(a) * 2"
+				/>
+				<SvgCurve
+					class="sample"
+					:argRange="[-2, 2]"
+					:segments="200"
+					:argFunction="x => x * x * x"
+					:xFunction="a => Math.sinh(a) * 1.732"
+					:yFunction="a => Math.cosh(a) * 1.732"
+				/>
+				<SvgCurve
+					class="sample"
+					:argRange="[-2, 2]"
+					:segments="200"
+					:argFunction="x => x * x * x"
+					:xFunction="a => Math.cosh(a)"
+					:yFunction="a => Math.sinh(a)"
+				/-->
+				<SvgCurve
+					class="sample-5"
+					:argRange="[-0.9999999, 0.9999999]"
+					:xFunction="a => a"
+					:yFunction="a => Math.atanh(a)"
+				/>
+				<line class="sample-6" x1="1" y1="-100" x2="1" y2="100" />
+				<!--line class="sample-2" x1="0" y1="0" x2="-1" y2="-2" />
+				<line class="sample-2" x1="1" y1="0" x2="0" y2="-2" />
+				<line class="sample-3" x1="-100" y1="-2" x2="100" y2="-2" />
+				<line class="sample-4" x1="0" y1="0" x2="0" y2="-2" />
+				<line class="sample-2" x1="0" y1="0" x2="-1.1547" y2="-2.3094" />
+				<line class="sample-2" x1="1.1547" y1="0.57735" x2="0" y2="-1.732" />
+				<line class="sample-3" x1="-1.1547" y1="-2.3094" x2="0" y2="-1.732" />
+				<line class="sample-4" x1="0" y1="0" x2="0" y2="-1.732" /-->
 			</SvgMap>
 		</article>
 		<header>
@@ -209,5 +248,49 @@
 	.remove-curve
 	{
 		color: #d00;
+	}
+
+
+	.sample
+	{
+		stroke: #aaa;
+		stroke-width: 0.02;
+		fill: transparent;
+	}
+
+	.sample-2
+	{
+		stroke: steelblue;
+		stroke-width: 0.03;
+		fill: transparent;
+	}
+
+	.sample-3
+	{
+		stroke: #aaa;
+		stroke-width: 0.01;
+		stroke-dasharray: 0.03 0.02;
+		fill: transparent;
+	}
+
+	.sample-4
+	{
+		stroke: orange;
+		stroke-width: 0.03;
+		stroke-dasharray: 0.06 0.04;
+	}
+
+	.sample-5
+	{
+		stroke: black;
+		stroke-width: 0.03;
+		fill: transparent;
+	}
+
+	.sample-6
+	{
+		stroke: black;
+		stroke-width: 0.01;
+		stroke-dasharray: 0.03 0.02;
 	}
 </style>

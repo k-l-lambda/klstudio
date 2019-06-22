@@ -27,7 +27,7 @@ console.assert(exp4 === "j2", "exp2 normalize error:", exp4);
 
 // random test
 //const ROTATIONS = [I, I_, J, J_, K, K_];
-const patterns = new Set();
+const normalOrientations = new Set();
 for (let i = 0; i < 1000; ++i) {
 	const items = [];
 	for (let ii = 0; ii < 30; ++ii)
@@ -40,9 +40,11 @@ for (let i = 0; i < 1000; ++i) {
 	o.normalize();
 
 	//console.log("o:", originExp, "\t\t\t", o.toString());
-	patterns.add(o.toString());
+	normalOrientations.add(o.toString());
 }
-console.log("patterns:", patterns, patterns.size);
+//const patterns = Array.from(normalOrientations).sort();
+//console.log("patterns:", patterns, patterns.length);
+console.assert(normalOrientations.size === 24, "normalOrientations count error:", normalOrientations);
 
 
 console.log("cube test finished.");

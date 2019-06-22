@@ -61,6 +61,11 @@ class Item {
 	}
 
 
+	inverted () {
+		return new Item(this.unit, -this.exponent);
+	}
+
+
 	mul (other) {
 		console.assert(this.unit === other.unit);
 
@@ -75,7 +80,10 @@ class Item {
 
 	static sqauredReduce (item1, item2) {
 		if (item1.exponent === 2 && item2.exponent === 2)
-			return new Item(this.supplementaryUnit(item1, item2), 2);
+			return [new Item(this.supplementaryUnit(item1, item2), 2)];
+
+		if (item2.exponent === 2 && item2.unit === _k)
+			return [item1.inverted(), J2];
 
 		return null;
 	}
@@ -165,7 +173,7 @@ class Orientation {
 		if (this.items.length >= 2) {
 			const reduced = Item.sqauredReduce(...this.items);
 			if (reduced)
-				this.items.splice(0, 2, reduced);
+				this.items.splice(0, 2, ...reduced);
 		}
 
 		return this;

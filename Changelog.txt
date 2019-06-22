@@ -1,6 +1,11 @@
 
 
 
+2019.6.22	K.L.	<k.l.lambda@gmail.com>
+
+	+	package.json: eslint added.
+
+
 2019.2.24	K.L.	<k.l.lambda@gmail.com>
 
 	+	curves-editor.vue: curves editor added.

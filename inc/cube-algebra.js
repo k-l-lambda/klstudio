@@ -39,7 +39,7 @@ class Item {
 	normalized () {
 		let exponent = this.exponent % 4;
 
-		switch (this.exponent) {
+		switch (exponent) {
 		case 3:
 			exponent = -1;
 

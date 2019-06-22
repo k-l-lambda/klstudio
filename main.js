@@ -8,7 +8,7 @@ const entries = require("./entries.js");
 
 
 
-const development = process.env.NODE_ENV == "development";
+const development = process.env.NODE_ENV === "development";
 
 
 const simpleTemplate = (script, {title = "", preDoc = ""} = {}) => `
@@ -25,7 +25,7 @@ const simpleTemplate = (script, {title = "", preDoc = ""} = {}) => `
 `;
 
 
-const stringHandle = function(content, type) {
+const stringHandle = function (content, type) {
 	return (req, res) => {
 		res.writeHead(200, {"Content-Type": type});
 		res.write(content);

@@ -3,23 +3,14 @@
 module.exports = {
 	"root": true,
 	"env": {
+		"es6": true,
 		"node": true,
 	},
 	"parserOptions": {
 		"parser": "babel-eslint",
+		"ecmaVersion": 2017,
 	},
 	"rules": {
-		"vue/no-async-in-computed-properties": "off",
-		"vue/no-unused-components": "warn",
-		"vue/no-unused-vars": "warn",
-		"vue/no-use-v-if-with-v-for": "warn",
-		"vue/require-v-for-key": "warn",
-		"vue/no-multi-spaces": "off",
-		"vue/max-attributes-per-line": "off",
-		"vue/name-property-casing": "off",
-		"vue/require-default-prop": "off",
-		"vue/html-self-closing": "off",
-		"vue/attribute-hyphenation": ["warn", "never"],
 		"no-multiple-empty-lines": "off",
 		"no-return-assign": "off",
 		"no-sequences": "off",
@@ -32,14 +23,14 @@ module.exports = {
 			"warn",
 			"tab",
 		],
-		"vue/html-indent": [
+		/*"vue/html-indent": [
 			"warn",
 			"tab",
 			{ "baseIndent": 1 },
 		],
 		"vue/script-indent": [
 			"warn", "tab", { "baseIndent": 1 },
-		],
+		],*/
 		"no-tabs": "off",
 		"comma-dangle": ["warn", "always-multiline"],
 		"semi": ["error", "always"],
@@ -61,14 +52,15 @@ module.exports = {
 		],
 		"new-cap": "off",
 		"no-proto": "off",
-		"node/no-deprecated-api": [
+		/*"node/no-deprecated-api": [
 			"error",
 			{
 				"ignoreModuleItems": [
 					"url.parse",
 				],
 			}
-		],
+		],*/
+		"space-before-function-paren": ["warn", "always"],
 	},
 	"plugins": [
 		//"eslint-plugin-html",

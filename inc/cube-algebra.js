@@ -49,6 +49,9 @@ class Item {
 			break;
 		}
 
+		if (exponent === this.exponent)
+			return this;
+
 		return new Item(this.unit, exponent);
 	}
 
@@ -57,6 +60,19 @@ class Item {
 		console.assert(this.unit === other.unit);
 
 		return new Item(this.unit, this.exponent + other.exponent);
+	}
+
+
+	static supplementaryUnit (item1, item2) {
+		return 3 - item1.unit - item2.unit;
+	}
+
+
+	static sqauredReduce (item1, item2) {
+		if (item1.exponent === 2 && item2.exponent === 2)
+			return [new Item(this.supplementaryUnit(item1, item2), 2)];
+
+		return [item1, item2];
 	}
 };
 
@@ -76,6 +92,20 @@ class Orientation {
 
 
 	normalize () {
+		this.items = this.items.map(item => item.normalized());
+
+		// expand squred items
+		for (let i = 1; i < this.items.length; ++i) {
+			if (this.items[i].exponent === 2) {
+				const unit = new Item(this.items[i].unit, 1);
+				this.items.splice(i, 1, unit, unit);
+
+				++i;
+			}
+		}
+
+		// substitute by exchange formulas
+
 		// merge continous units
 		for (let i = 1; i < this.items.length; ++i) {
 			if (this.items[i].unit === this.items[i - 1].unit) {
@@ -85,6 +115,10 @@ class Orientation {
 		}
 
 		this.items = this.items.map(item => item.normalized());
+
+		// substitute by squared formulas
+		if (this.items.length >= 2)
+			this.items.splice(0, 2, ...Item.sqauredReduce(...this.items));
 
 		return this;
 	}
@@ -100,7 +134,7 @@ const I_ = new Item(_i, -1);
 const I2 = new Item(_i, 2);
 const J = new Item(_j, 1);
 const J_ = new Item(_j, -1);
-const J2 = new Item(_k, 2);
+const J2 = new Item(_j, 2);
 const K = new Item(_k, 1);
 const K_ = new Item(_k, -1);
 const K2 = new Item(_k, 2);

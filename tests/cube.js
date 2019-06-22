@@ -18,6 +18,9 @@ console.assert(name2 === "j2", name2);
 const exp2 = new Orientation([I, J, K, I, J, K]).normalize().toString();
 console.assert(exp2 === "1", "exp2 normalize error:", exp2);
 
+const exp3 = new Orientation([J2, K2]).normalize().toString();
+console.assert(exp3 === "i2", "exp3 normalize error:", exp3);
+
 
 console.log("cube test finished.");
 

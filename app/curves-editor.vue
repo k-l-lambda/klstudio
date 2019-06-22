@@ -22,10 +22,8 @@
 			<div class="config" v-if="panelIsOn">
 				<table class="curves">
 					<tbody>
-						<tr v-for="(config, i) in curveConfig">
-							<td class="index">
-								{{i + 1}}.
-							</td>
+					<tr v-for="(config, i) in curveConfig" :key="i">
+						<td class="index">{{i + 1}}.</td>
 							<td>
 								<div><input type="text" placeholder="X Function" v-model="config.xExp" /></div>
 								<div><input type="text" placeholder="Y Function" v-model="config.yExp" /></div>

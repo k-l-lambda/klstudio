@@ -3,6 +3,8 @@
 
 2019.6.22	K.L.	<k.l.lambda@gmail.com>
 
+	+	cube-algebra.js: item reduce methods implemented.
+
 	+	cube-algebra.js: added normalize method.
 
 	+	inc/cube-algebra.js created.

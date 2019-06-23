@@ -113,8 +113,7 @@ ij =jk = ki
 */
 const exps = [
 	"1",
-	"i", "j", "k",
-	"i'", "j'", "k'",
+	"i", "i'", "j", "j'", "k", "k'",
 	"i^2", "j^2", "k^2",
 	"ij", "i'j", "i^2j",
 	"ij'", "i'j'", "i^2j'",
@@ -176,6 +175,6 @@ export default {
 
 	th
 	{
-		padding: 0 1em;
+		width: 3em;
 	}
 </style>

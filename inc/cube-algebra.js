@@ -178,6 +178,11 @@ class Orientation {
 
 		return this;
 	}
+
+
+	mul (other) {
+		return new Orientation(this.items.concat(other.items));
+	}
 };
 
 
@@ -192,9 +197,29 @@ const K_ = new Item(_k, -1);
 const K2 = new Item(_k, 2);
 
 
+const NORMAL_ORIENTATIONS = [
+	[],
+	[I], [I_], [J], [J_], [K], [K_],
+	[I2], [J2], [K2],
+	[I, J], [I_, J], [I2, J],
+	[I, J_], [I_, J_], [I2, J_],
+	[I, K], [I_, K], [I2, K],
+	[I, K_], [I_, K_], [I2, K_],
+	[I, J2], [I_, J2],
+].map(items => new Orientation(items).normalize());
+
+const NORMAL_ORIENTATION_NAMES = NORMAL_ORIENTATIONS.map(o => o.toString());
+
+
+const MULTIPLICATION_TABLE = NORMAL_ORIENTATIONS.map(o1 => NORMAL_ORIENTATIONS.map(o2 => NORMAL_ORIENTATION_NAMES.indexOf(o1.mul(o2).normalize().toString())));
+
+
+
 module.exports = {
 	Item,
 	Orientation,
 
 	I, I_, I2, J, J_, J2, K, K_, K2,
+	NORMAL_ORIENTATIONS,
+	MULTIPLICATION_TABLE,
 };

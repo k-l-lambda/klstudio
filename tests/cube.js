@@ -44,7 +44,11 @@ for (let i = 0; i < 1000; ++i) {
 }
 //const patterns = Array.from(normalOrientations).sort();
 //console.log("patterns:", patterns, patterns.length);
-console.assert(normalOrientations.size === 24, "normalOrientations count error:", normalOrientations);
+console.assert(normalOrientations.size <= 24, "normalOrientations count error:", normalOrientations);
+
+
+const indexSum = [].concat(...MULTIPLICATION_TABLE).reduce((sum, index) => sum + index, 0);
+console.assert(indexSum === 23 * 12 * 24, "NORMAL_ORIENTATIONS check sum error:", indexSum);
 
 
 console.log("cube test finished.");

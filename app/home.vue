@@ -25,31 +25,102 @@
 </template>
 
 <script>
+/*
+document Latex
+
+
+\begin{matrix} ij \neq ji
+\\ (ij)k=i(jk)
+
+\end{matrix}
+
+
+i{i}'={i}'i=j{j}'={j}'j=k{k}'={k}'k=1
+
+
+\begin{matrix} i^{2}={i}'^{2}
+\\ j^{2}={j}'^{2}
+\\ k^{2}={k}'^{2}
+
+\end{matrix}
+
+
+
+\begin{matrix} i^3=i'
+\\ i'^3=i
+\end{matrix}
+
+
+i^4=i'^4=1
+
+
+ij =jk = ki
+
+
+\begin{matrix} i'j' =j'k = ki'
+\\ k'j'=j'i'=i'k'
+\\ k'j=ji=ik'
+
+\end{matrix}
+
+
+\begin{matrix} i^2=j^2k^2=k^2j^2
+\\ j^2=i^2k^2=k^2i^2
+\\ k^2=i^2j^2=j^2i^2
+
+\end{matrix}
+
+
+\begin{matrix} 1
+\\ i, j, k
+\\ i', j', k'
+\\ i^2, j^2, k^2
+\\ ij, i'j, i^2j, ik, i'k, i^2k, ij', i'j', i^2j', ik', i'k', i^2k', ij^2, i'j^2
+
+\end{matrix}
+
+
+\begin{matrix} ij^2=i'k^2
+\\ i'j^2=ik^2
+
+\end{matrix}
+
+
+
+\begin{align*}ijkijk
+ &= i(\mathbf{jk})ijk \\ 
+ &= i(ij)ijk \\ 
+ &= ii(\mathbf{ji})jk \\ 
+ &= ii(ik')jk \\ 
+ &= iii(\mathbf{k'j})k \\
+ &= iii(ik')k \\
+ &= (iiii)(k'k) \\
+ &= 1
+
+\end{align*}
+
+
+\begin{align*}ijji
+ &= ij(\mathbf{ji}) \\ 
+ &= ij(ik') \\ 
+ &= i(\mathbf{ji})k' \\ 
+ &= i(ik')k' \\ 
+ &= (ii)(k'k') \\
+ &= \mathbf{i^2k^2} \\
+ &= j^2
+
+\end{align*}
+*/
 const exps = [
 	"1",
-	"i",
-	"j",
-	"k",
-	"i'",
-	"j'",
-	"k'",
-	"i^2",
-	"j^2",
-	"k^2",
-	"ij",
-	"i'j",
-	"i^2j",
-	"ij'",
-	"i'j'",
-	"i^2j'",
-	"ik",
-	"i'k",
-	"i^2k",
-	"ik'",
-	"i'k'",
-	"i^2k'",
-	"ij^2",
-	"i'j^2"
+	"i", "j", "k",
+	"i'", "j'", "k'",
+	"i^2", "j^2", "k^2",
+	"ij", "i'j", "i^2j",
+	"ij'", "i'j'", "i^2j'",
+	"ik", "i'k", "i^2k",
+	"ik'", "i'k'", "i^2k'",
+	"ij^2", "i'j^2",
 ];
 
 const indices = [

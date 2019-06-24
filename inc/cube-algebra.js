@@ -199,7 +199,8 @@ const K2 = new Item(_k, 2);
 
 const NORMAL_ORIENTATIONS = [
 	[],
-	[I], [I_], [J], [J_], [K], [K_],
+	[I], [J], [K],
+	[I_], [J_], [K_],
 	[I2], [J2], [K2],
 	[I, J], [I_, J], [I2, J],
 	[I, J_], [I_, J_], [I2, J_],

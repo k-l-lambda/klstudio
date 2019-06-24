@@ -1,7 +1,12 @@
 
+TODO:
+	try typescript in nodejs.
+
 
 
 2019.6.24	K.L.	<k.l.lambda@gmail.com>
+
+	+	inc/cube3.js created.
 
 	>	package.json: fixed eslint plugin loading errors.
 

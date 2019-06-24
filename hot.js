@@ -58,5 +58,5 @@ module.exports = function (app) {
 		stats: "minimal",
 	}));
 
-	app.use(hotMiddleware(compiler, {log: false}));
+	app.use(hotMiddleware(compiler, { log: false }));
 };

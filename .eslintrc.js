@@ -64,6 +64,7 @@ module.exports = {
 			}
 		],*/
 		"space-before-function-paren": ["warn", "always"],
+		"object-property-newline": "off",
 	},
 	"plugins": [
 		"eslint-plugin-html",

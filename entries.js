@@ -1,11 +1,11 @@
 
 class Entry {
-	constructor(fields) {
+	constructor (fields) {
 		Object.assign(this, fields);
 	}
 
 
-	get _filename() {
+	get _filename () {
 		return this.filename || this.path.substr(1);
 	}
 };

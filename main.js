@@ -11,7 +11,7 @@ const entries = require("./entries.js");
 const development = process.env.NODE_ENV === "development";
 
 
-const simpleTemplate = (script, {title = "", preDoc = ""} = {}) => `
+const simpleTemplate = (script, { title = "", preDoc = "" } = {}) => `
 <!DOCTYPE html>
 <html>
 	<head>
@@ -27,7 +27,7 @@ const simpleTemplate = (script, {title = "", preDoc = ""} = {}) => `
 
 const stringHandle = function (content, type) {
 	return (req, res) => {
-		res.writeHead(200, {"Content-Type": type});
+		res.writeHead(200, { "Content-Type": type });
 		res.write(content);
 		res.end();
 	};
@@ -51,7 +51,7 @@ else {
 
 	Object.entries({...pageRouters}).forEach(([path, value]) => Object.entries(value).forEach(([method, handler]) => app[method](path, handler)));*/
 
-	entries.forEach(entry => app.get(entry.path, stringHandle(simpleTemplate(`/bundles/${entry.name}.bundle.js`, {title: entry.title}), "text/html")));
+	entries.forEach(entry => app.get(entry.path, stringHandle(simpleTemplate(`/bundles/${entry.name}.bundle.js`, { title: entry.title }), "text/html")));
 }
 
 

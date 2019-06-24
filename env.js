@@ -17,8 +17,9 @@ const dotenvFiles = [
 
 
 dotenvFiles.forEach(path => {
-	if (fs.existsSync(path))
+	if (fs.existsSync(path)) {
 		require("dotenv-expand")(
-			require("dotenv").config({path})
+			require("dotenv").config({ path })
 		);
+	}
 });

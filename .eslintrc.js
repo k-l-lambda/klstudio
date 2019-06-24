@@ -6,6 +6,9 @@ module.exports = {
 		"es6": true,
 		"node": true,
 	},
+	"extends": [
+		"@vue/standard",
+	],
 	"parserOptions": {
 		"parser": "babel-eslint",
 		"ecmaVersion": 2017,
@@ -23,14 +26,14 @@ module.exports = {
 			"warn",
 			"tab",
 		],
-		/*"vue/html-indent": [
+		"vue/html-indent": [
 			"warn",
 			"tab",
 			{ "baseIndent": 1 },
 		],
 		"vue/script-indent": [
 			"warn", "tab", { "baseIndent": 1 },
-		],*/
+		],
 		"no-tabs": "off",
 		"comma-dangle": ["warn", "always-multiline"],
 		"semi": ["error", "always"],
@@ -63,7 +66,7 @@ module.exports = {
 		"space-before-function-paren": ["warn", "always"],
 	},
 	"plugins": [
-		//"eslint-plugin-html",
-		//"eslint-plugin-vue",
+		"eslint-plugin-html",
+		"eslint-plugin-vue",
 	],
 };

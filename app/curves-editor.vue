@@ -22,8 +22,8 @@
 			<div class="config" v-if="panelIsOn">
 				<table class="curves">
 					<tbody>
-					<tr v-for="(config, i) in curveConfig" :key="i">
-						<td class="index">{{i + 1}}.</td>
+						<tr v-for="(config, i) in curveConfig" :key="i">
+							<td class="index">{{i + 1}}.</td>
 							<td>
 								<div><input type="text" placeholder="X Function" v-model="config.xExp" /></div>
 								<div><input type="text" placeholder="Y Function" v-model="config.yExp" /></div>
@@ -71,7 +71,7 @@
 
 
 	class CurveConfig {
-		constructor(values = {
+		constructor (values = {
 			xExp: "",
 			yExp: "",
 			argExp: "",
@@ -86,7 +86,7 @@
 		}
 
 
-		get valid() {
+		get valid () {
 			return this.xFunction && this.yFunction;
 		}
 	};
@@ -108,7 +108,7 @@
 		},
 
 
-		data() {
+		data () {
 			const halfPoints = [...Array(100).keys()].map(i => (i / 40) ** 2);
 
 			return {
@@ -119,23 +119,23 @@
 		},
 
 
-		mounted() {
-			//console.log("home:", document);
+		mounted () {
+		//console.log("home:", document);
 		},
 
 
 		methods: {
-			onResize() {
-				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
+			onResize () {
+				this.size = { width: this.$el.clientWidth, height: this.$el.clientHeight };
 			},
 
 
-			onAddCurve() {
+			onAddCurve () {
 				this.curveConfig.push(new CurveConfig());
 			},
 
 
-			onRemoveCurve(index) {
+			onRemoveCurve (index) {
 				this.curveConfig.splice(index, 1);
 			},
 		},

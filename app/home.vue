@@ -9,7 +9,7 @@
 		name: "home",
 
 
-		mounted() {
+		mounted () {
 			//console.log("home:", document);
 		},
 	};

@@ -38,26 +38,26 @@
 		},
 
 
-		data() {
+		data () {
 			return {
 			};
 		},
 
 
 		computed: {
-			arguments() {
+			arguments () {
 				return [...Array(this.segments + 1).keys()].map(i => this.argRange[0] + i * (this.argRange[1] - this.argRange[0]) / this.segments).map(this.argFunction);
 			},
 
 
-			path() {
+			path () {
 				let points = this.arguments.map(a => `${this.xFunction(a).toFixed(6)} ${-this.yFunction(a).toFixed(6)}`).join(" L");
 				if (this.dash)
 					points = points.replace(/L([\d\s\.\e\+\-]+)L([\d\s.\e\+\-]+)/g, "L$1M$2");
 
-				return "M"
-					+ points
-					+ this.pathAffix;
+				return "M" +
+					points +
+					this.pathAffix;
 			},
 		},
 	};

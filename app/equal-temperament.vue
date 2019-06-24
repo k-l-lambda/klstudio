@@ -158,7 +158,7 @@
 		},
 
 
-		data() {
+		data () {
 			return {
 				size: {},
 				curvePoints: Array(1080).fill().map((_, i) => ({
@@ -177,69 +177,69 @@
 				cursorPoint: null,
 				focusPoints: [],
 				steps: [
-					{pitch: 0, name: "C"},
-					{pitch: 1},
-					{pitch: 2, name: "D"},
-					{pitch: 3},
-					{pitch: 4, name: "E"},
-					{pitch: 5, name: "F"},
-					{pitch: 6},
-					{pitch: 7, name: "G"},
-					{pitch: 8},
-					{pitch: 9, name: "A"},
-					{pitch: 10},
-					{pitch: 11, name: "B"},
+					{ pitch: 0, name: "C" },
+					{ pitch: 1 },
+					{ pitch: 2, name: "D" },
+					{ pitch: 3 },
+					{ pitch: 4, name: "E" },
+					{ pitch: 5, name: "F" },
+					{ pitch: 6 },
+					{ pitch: 7, name: "G" },
+					{ pitch: 8 },
+					{ pitch: 9, name: "A" },
+					{ pitch: 10 },
+					{ pitch: 11, name: "B" },
 				],
 			};
 		},
 
 
 		computed: {
-			curvePath() {
+			curvePath () {
 				return "M" + this.curvePoints.map(point => `${point.x} ${point.y.toFixed(6)}`).join(" L");
 			},
 		},
 
 
-		mounted() {
+		mounted () {
 			//console.log("home:", document);
 		},
 
 
 		methods: {
-			onResize() {
-				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
+			onResize () {
+				this.size = { width: this.$el.clientWidth, height: this.$el.clientHeight };
 			},
 
 
-			onClick() {
+			onClick () {
 				this.focusPoints = [];
 			},
 
 
-			onFPadMoving(event) {
-				const cursorPoint = this.$refs.cartesian.clientToView({x: event.offsetX, y: event.offsetY});
+			onFPadMoving (event) {
+				const cursorPoint = this.$refs.cartesian.clientToView({ x: event.offsetX, y: event.offsetY });
 				//this.cursorPoint = cursorPoint;
 				//console.log("onFPadMoving:", this.cursorPoint);
 
 				const x = Math.log2(cursorPoint.y / CARTESIAN_Y_SCALE) * 12;
 
-				this.focusPoints = [{x, y: cursorPoint.y}];
+				this.focusPoints = [{ x, y: cursorPoint.y }];
 			},
 
 
-			onXPadMoving(event) {
-				const cursorPoint = this.$refs.cartesian.clientToView({x: event.offsetX, y: event.offsetY});
+			onXPadMoving (event) {
+				const cursorPoint = this.$refs.cartesian.clientToView({ x: event.offsetX, y: event.offsetY });
 
 				cursorPoint.x = Math.round(cursorPoint.x * 10) / 10;
 
 				const y = CARTESIAN_Y_SCALE * 2 ** (cursorPoint.x / 12);
 
-				this.focusPoints = [{x: cursorPoint.x, y}];
+				this.focusPoints = [{ x: cursorPoint.x, y }];
 			},
 
 
-			onClockMoving(event) {
+			onClockMoving (event) {
 				const cursorPoint = {
 					x: event.offsetX * 600 / this.clockSize - 300,
 					y: event.offsetY * 600 / this.clockSize - 300,
@@ -249,16 +249,16 @@
 				const pitch = (angle < 0 ? angle + 2 : angle) * 6;
 				const x = Math.round(pitch * 10) / 10;
 
-				this.focusPoints = [x, x - 12, x + 12].map(p => ({x: p, y: CARTESIAN_Y_SCALE * 2 ** (p / 12)}));
+				this.focusPoints = [x, x - 12, x + 12].map(p => ({ x: p, y: CARTESIAN_Y_SCALE * 2 ** (p / 12) }));
 			},
 
 
-			pToCX(p, r = 1) {
+			pToCX (p, r = 1) {
 				return Math.cos((p - 3) * Math.PI * 2 / 12) * CLOCK_RADIUS * r;
 			},
 
 
-			pToCY(p, r = 1) {
+			pToCY (p, r = 1) {
 				return Math.sin((p - 3) * Math.PI * 2 / 12) * CLOCK_RADIUS * r;
 			},
 		},

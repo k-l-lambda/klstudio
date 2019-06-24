@@ -25,8 +25,8 @@
 <script>
 	import url from "url";
 	import * as tf from "@tensorflow/tfjs";
-	import Vue from "vue"
-	import vueDebounce from "vue-debounce"
+	import Vue from "vue";
+	import vueDebounce from "vue-debounce";
 
 
 	Vue.use(vueDebounce);
@@ -42,7 +42,7 @@
 		name: "writer",
 
 
-		data() {
+		data () {
 			return {
 				themes: [
 					{
@@ -67,7 +67,7 @@
 
 
 		computed: {
-			markedHeadText() {
+			markedHeadText () {
 				if (!this.vocab || !this.headText)
 					return this.headText;
 
@@ -76,20 +76,20 @@
 
 
 			sessionStatus: {
-				get() {
+				get () {
 					return {
 						temperature: this.temperature,
 					};
 				},
 
-				set(value) {
+				set (value) {
 					Object.assign(this, value);
 				},
 			},
 		},
 
 
-		mounted() {
+		mounted () {
 			if (isDevelopment) {
 				window.__main = this;
 				window.tf = tf;
@@ -102,26 +102,26 @@
 		},
 
 
-		beforeDestroy() {
+		beforeDestroy () {
 			//console.log("beforeDestroy. 12");
 			this.stopProducing();
 		},
 
 
 		methods: {
-			loadStatus() {
+			loadStatus () {
 				const status = sessionStorage.writerStatus && JSON.parse(sessionStorage.writerStatus);
 				if (status)
 					this.sessionStatus = status;
 			},
 
 
-			saveStatus() {
+			saveStatus () {
 				sessionStorage.writerStatus = JSON.stringify(this.sessionStatus);
 			},
 
 
-			async loadTheme() {
+			async loadTheme () {
 				//console.log("loadModel:", this.theme);
 				this.chars = await (await fetch(`/mlmodels/char-rnn/${this.theme}/vocab.txt`)).text();
 				this.vocab = this.chars.split("").reduce((v, char, i) => (v[char] = i, v), {});
@@ -132,13 +132,13 @@
 			},
 
 
-			onHeadText() {
+			onHeadText () {
 				//console.log("onHeadText:", this.headText);
 				this.onRestart();
 			},
 
 
-			async onRestart() {
+			async onRestart () {
 				if (!this.ready)
 					return;
 
@@ -152,7 +152,7 @@
 			},
 
 
-			async produce(headText) {
+			async produce (headText) {
 				console.log("producing...");
 
 				this.producing = true;
@@ -199,7 +199,7 @@
 			},
 
 
-			async stopProducing() {
+			async stopProducing () {
 				if (this.producing) {
 					await new Promise(resolve => this.onProduceFinished = resolve);
 
@@ -212,7 +212,7 @@
 
 
 		watch: {
-			theme() {
+			theme () {
 				location.search = this.theme;
 			},
 

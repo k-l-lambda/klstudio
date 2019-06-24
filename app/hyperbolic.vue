@@ -117,7 +117,7 @@
 		},
 
 
-		data() {
+		data () {
 			const halfPoints = [...Array(100).keys()].map(i => (i / 40) ** 2);
 
 			return {
@@ -129,7 +129,7 @@
 
 
 		computed: {
-			cursorAngle() {
+			cursorAngle () {
 				if (!this.cursorPoint)
 					return null;
 
@@ -142,7 +142,7 @@
 			},
 
 
-			circleRayPoint() {
+			circleRayPoint () {
 				if (!this.cursorAngle)
 					return null;
 
@@ -153,7 +153,7 @@
 			},
 
 
-			hyperbolaRayPoint() {
+			hyperbolaRayPoint () {
 				if (!(this.cursorAngle < Math.PI / 4 && this.cursorAngle > -Math.PI / 4))
 					return null;
 
@@ -166,7 +166,7 @@
 			},
 
 
-			tanLength() {
+			tanLength () {
 				if (!this.cursorAngle)
 					return null;
 
@@ -174,7 +174,7 @@
 			},
 
 
-			hyperbolicAngle() {
+			hyperbolicAngle () {
 				if (!this.hyperbolaRayPoint)
 					return null;
 
@@ -182,17 +182,17 @@
 			},
 
 
-			hyperbolaArcPath() {
+			hyperbolaArcPath () {
 				if (!this.hyperbolaRayPoint)
 					return null;
 
-				return `M${this.hyperbolaRayPoint.x} ${-this.hyperbolaRayPoint.y} L0 0 L1 0 L`
-					+ [...Array(100).keys()].map(i => i * this.hyperbolicAngle / 100).map(point => `${Math.cosh(point).toFixed(6)} ${-Math.sinh(point).toFixed(6)}`).join(" L")
-					+ "Z";
+				return `M${this.hyperbolaRayPoint.x} ${-this.hyperbolaRayPoint.y} L0 0 L1 0 L` +
+					[...Array(100).keys()].map(i => i * this.hyperbolicAngle / 100).map(point => `${Math.cosh(point).toFixed(6)} ${-Math.sinh(point).toFixed(6)}`).join(" L") +
+					"Z";
 			},
 
 
-			circleArcPath() {
+			circleArcPath () {
 				if (!this.cursorAngle)
 					return null;
 
@@ -201,22 +201,22 @@
 		},
 
 
-		mounted() {
+		mounted () {
 			window.__main = this;
 		},
 
 
 		methods: {
-			onResize() {
-				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
+			onResize () {
+				this.size = { width: this.$el.clientWidth, height: this.$el.clientHeight };
 			},
 
 
-			onMouseMoving(event) {
-				const cursorPoint = this.$refs.cartesian.clientToView({x: event.offsetX, y: event.offsetY});
+			onMouseMoving (event) {
+				const cursorPoint = this.$refs.cartesian.clientToView({ x: event.offsetX, y: event.offsetY });
 				//console.log("cursorPoint:", cursorPoint);
 
-				this.cursorPoint = {x: cursorPoint.x, y: -cursorPoint.y};
+				this.cursorPoint = { x: cursorPoint.x, y: -cursorPoint.y };
 			},
 		},
 	};

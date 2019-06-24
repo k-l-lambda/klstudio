@@ -8,6 +8,7 @@ module.exports = {
 	},
 	"extends": [
 		"@vue/standard",
+		"plugin:vue/base",
 	],
 	"parserOptions": {
 		"parser": "babel-eslint",
@@ -67,7 +68,7 @@ module.exports = {
 		"object-property-newline": "off",
 	},
 	"plugins": [
-		"eslint-plugin-html",
-		"eslint-plugin-vue",
+		//"html",
+		"vue",
 	],
 };

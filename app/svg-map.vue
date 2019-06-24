@@ -22,7 +22,7 @@
 			height: Number,
 			initViewCenter: {
 				type: Object,
-				default: () => ({x: 0, y: 0}),
+				default: () => ({ x: 0, y: 0 }),
 			},
 			initViewWidth: {
 				type: Number,
@@ -31,7 +31,7 @@
 		},
 
 
-		data() {
+		data () {
 			const aspect = this.aspect || 1;
 
 			return {
@@ -46,7 +46,7 @@
 
 
 		computed: {
-			viewBox() {
+			viewBox () {
 				return {
 					left: -this.viewSize.width / 2,
 					top: -this.viewSize.height / 2,
@@ -56,7 +56,7 @@
 			},
 
 
-			aspect() {
+			aspect () {
 				if (!this.width || !this.height)
 					return 1;
 
@@ -65,38 +65,38 @@
 		},
 
 
-		mounted() {
+		mounted () {
 			this.viewSize.height = this.initViewWidth / this.aspect;
 		},
 
 
 		methods: {
-			onMouseMove(event) {
+			onMouseMove (event) {
 				switch (event.buttons) {
-					case 1:	// left button
-						//console.log("dragging:", event.movementX, event.movementY);
-						const scale = this.viewBox.width / (this.width * this.viewScale);
+				case 1:	// left button
+					//console.log("dragging:", event.movementX, event.movementY);
+					const scale = this.viewBox.width / (this.width * this.viewScale);
 
-						this.viewCenter.x -= event.movementX * scale;
-						this.viewCenter.y -= event.movementY * scale;
+					this.viewCenter.x -= event.movementX * scale;
+					this.viewCenter.y -= event.movementY * scale;
 
-						this.$emit("update:viewCenter", this.viewCenter);
+				this.$emit("update:viewCenter", this.viewCenter);
 
-						break;
+					break;
 				}
 
 				this.$emit("mousemove", event);
 			},
 
 
-			onMouseWheel(event) {
+			onMouseWheel (event) {
 				this.viewScale *= Math.exp(event.deltaY * -0.001);
 
 				this.$emit("update:viewScale", this.viewScale);
 			},
 
 
-			clientToView(point) {
+			clientToView (point) {
 				return {
 					x: (point.x * this.viewBox.width / this.width + this.viewBox.left) / this.viewScale + this.viewCenter.x,
 					y: (point.y * this.viewBox.height / this.height + this.viewBox.top) / this.viewScale + this.viewCenter.y,

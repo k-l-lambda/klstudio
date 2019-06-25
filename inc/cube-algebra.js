@@ -207,7 +207,7 @@ const NORMAL_ORIENTATIONS = [
 	[I, K], [I_, K], [I2, K],
 	[I, K_], [I_, K_], [I2, K_],
 	[I, J2], [I_, J2],
-].map(items => new Orientation(items).normalize());
+].map(items => new Orientation(items));
 
 const NORMAL_ORIENTATION_NAMES = NORMAL_ORIENTATIONS.map(o => o.toString());
 

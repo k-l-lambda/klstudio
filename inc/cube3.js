@@ -29,9 +29,9 @@ const unitaryMatrices = [
 	],
 	// j
 	[
-		[0, 0, -1],
+		[0, 0, 1],
 		[0, 1, 0],
-		[1, 0, 0],
+		[-1, 0, 0],
 	],
 	// k
 	[
@@ -47,9 +47,9 @@ const unitaryMatrices = [
 	],
 	// j'
 	[
-		[0, 0, 1],
+		[0, 0, -1],
 		[0, 1, 0],
-		[-1, 0, 0],
+		[1, 0, 0],
 	],
 	// k'
 	[
@@ -115,6 +115,13 @@ const manipulationToAxisRotation = manipulation => ({
 });
 
 
+const axisRotationToManipulation = (axis, rotation) => axis * 3 + Math.floor((rotation - 1) / 3);
+
+
+const timesToIndex = times => [1, 3, 2].indexOf((times + 40) % 4);
+const axisTimesToManipulation = (axis, times) => axis * 3 + timesToIndex(times);
+
+
 class Cube3 {
 	constructor () {
 		this.units = Array(3 ** 3).fill(0);
@@ -143,9 +150,11 @@ class Cube3 {
 
 
 module.exports = {
-	pointRotationTable,
-	axisPointsTable,
+	//pointRotationTable,
+	//axisPointsTable,
 	manipulationToAxisRotation,
+	axisRotationToManipulation,
+	axisTimesToManipulation,
 	axis,
 	Cube3,
 };

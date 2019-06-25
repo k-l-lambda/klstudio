@@ -1,5 +1,11 @@
 
 class Entry {
+	name: string;
+	path: string;
+	filename: string;
+	title: string;
+	
+
 	constructor (fields) {
 		Object.assign(this, fields);
 	}
@@ -12,7 +18,7 @@ class Entry {
 
 
 
-module.exports = [
+export default [
 	{
 		name: "home",
 		path: "/",

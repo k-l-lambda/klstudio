@@ -6,6 +6,8 @@ TODO:
 
 2019.6.25	K.L.	<k.l.lambda@gmail.com>
 
+	>	main.ts: converted from js to ts.
+
 	+	packge.json: added ts node.
 
 	+	cube3.js: Cube3.validate added.

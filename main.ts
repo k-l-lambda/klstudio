@@ -1,10 +1,10 @@
 
-const express = require("express");
-const http = require("http");
+import * as express from "express";
+import * as http from "http";
 
-require("./env.js");
-const hot = require("./hot.js");
-const entries = require("./entries.js");
+import "./env.js";
+import hot from "./hot";
+import entries from "./entries";
 
 
 

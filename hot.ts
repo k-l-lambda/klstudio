@@ -8,7 +8,7 @@ const FriendlyErrorsWebpackPlugin = require("friendly-errors-webpack-plugin");
 const ip = require("ip");
 
 const webpackBase = require("./webpack.config.js");
-const entries = require("./entries.js");
+import entries from "./entries";
 
 
 
@@ -50,7 +50,7 @@ const config = webpackMerge(webpackBase, {
 
 
 
-module.exports = function (app) {
+export default function (app) {
 	const compiler = webpack(config);
 
 	app.use(devMiddleware(compiler, {

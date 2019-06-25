@@ -122,14 +122,35 @@ const timesToIndex = times => [1, 3, 2].indexOf((times + 40) % 4);
 const axisTimesToManipulation = (axis, times) => axis * 3 + timesToIndex(times);
 
 
+const ENCODE_UNIT_ORDER = [0, 2, 6, 8, 18, 20, 24, 26, 1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25, 10, 12, 14, 16];
+
+
+const A = "A".charCodeAt(0);
+
+
 class Cube3 {
-	constructor () {
+	constructor (code = null) {
 		this.units = Array(3 ** 3).fill(0);
+
+		if (code)
+			this.decode(code);
 	}
 
 
 	get positions () {
 		return this.units.map((unit, index) => pointRotationTable[index][unit]);
+	}
+
+
+	encode () {
+		return ENCODE_UNIT_ORDER.map(index => this.units[index]).map(state => String.fromCharCode(A + state)).join("");
+	}
+
+
+	decode (code) {
+		console.assert(code.length === ENCODE_UNIT_ORDER.length, "invalid code, length required to be", ENCODE_UNIT_ORDER.length, code);
+
+		code.split("").map(c => c.charCodeAt(0) - A).forEach((state, index) => this.units[ENCODE_UNIT_ORDER[index]] = state);
 	}
 
 

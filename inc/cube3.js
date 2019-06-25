@@ -1,12 +1,7 @@
 
-const cubeAlgebra = require("cube-algebra");
+const math = require("mathjs");
 
-
-/*class UnitCube {
-	constructor () {
-		this.state = 0;
-	}
-};*/
+const cubeAlgebra = require("./cube-algebra");
 
 
 const axis = {
@@ -17,6 +12,80 @@ const axis = {
 	nY: 4,
 	nZ: 5,
 };
+
+
+const rotationMatrices = [
+	// 1
+	[
+		[1, 0, 0],
+		[0, 1, 0],
+		[0, 0, 1],
+	],
+	// i
+	[
+		[1, 0, 0],
+		[0, 0, -1],
+		[0, 1, 0],
+	],
+	// j
+	[
+		[0, 0, -1],
+		[0, 1, 0],
+		[1, 0, 0],
+	],
+	// k
+	[
+		[0, -1, 0],
+		[1, 0, 0],
+		[0, 0, 1],
+	],
+	// i'
+	[
+		[1, 0, 0],
+		[0, 0, 1],
+		[0, -1, 0],
+	],
+	// j'
+	[
+		[0, 0, 1],
+		[0, 1, 0],
+		[-1, 0, 0],
+	],
+	// k'
+	[
+		[0, 1, 0],
+		[-1, 0, 0],
+		[0, 0, 1],
+	],
+	// i2
+	[
+		[1, 0, 0],
+		[0, -1, 0],
+		[0, 0, -1],
+	],
+	// j2
+	[
+		[-1, 0, 0],
+		[0, 1, 0],
+		[0, 0, -1],
+	],
+	// k2
+	[
+		[-1, 0, 0],
+		[0, -1, 0],
+		[0, 0, 1],
+	],
+].map(a => math.matrix(a));
+
+
+const hashPoint = point => point.map(v => "-0+"[v + 1]).join("");
+
+const points = Array(3 ** 3).fill().map((_, i) => [i % 3 - 1, Math.floor(i / 3) % 3 - 1, Math.floor(i / 9) - 1]);
+
+const pointHashes = points.map(hashPoint);
+
+
+const pointRotationTable = points.map(point => rotationMatrices.map(matrix => pointHashes.indexOf(hashPoint(math.multiply(point, matrix)._data))));
 
 
 const manipulationToAxisRotation = manipulation => ({
@@ -39,6 +108,8 @@ class Cube3 {
 
 
 module.exports = {
+	pointHashes,
+	pointRotationTable,
 	axis,
 	Cube3,
 };

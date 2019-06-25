@@ -35,4 +35,7 @@ for (let i = 0; i < 1000; ++i) {
 }
 
 
+console.assert(cube.validate(), "validate failed:", cube);
+
+
 setTimeout(x => x, 0x7fffffff);

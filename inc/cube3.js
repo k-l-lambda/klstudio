@@ -122,7 +122,11 @@ const timesToIndex = times => [1, 3, 2].indexOf((times + 40) % 4);
 const axisTimesToManipulation = (axis, times) => axis * 3 + timesToIndex(times);
 
 
-const ENCODE_UNIT_ORDER = [0, 2, 6, 8, 18, 20, 24, 26, 1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25, 10, 12, 14, 16];
+const ENCODE_UNIT_ORDER = [
+	0, 2, 6, 8, 18, 20, 24, 26,						// corners
+	1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25,		// edges
+	10, 12, 14, 16,									// axes
+];
 
 
 const A = "A".charCodeAt(0);
@@ -142,6 +146,20 @@ class Cube3 {
 	}
 
 
+	manipulate (manipulation) {
+		// select a face according to axis, substitute unit states by rotation.
+		const { axis, rotation } = manipulationToAxisRotation(manipulation);
+
+		const movingPoints = axisPointsTable[axis];
+		const movingIndices = this.positions
+			.map((position, index) => ({ position, index }))
+			.filter(({ position }) => movingPoints.includes(position))
+			.map(({ index }) => index);
+
+		movingIndices.forEach(index => this.units[index] = cubeAlgebra.MULTIPLICATION_TABLE[this.units[index]][rotation]);
+	}
+
+
 	encode () {
 		return ENCODE_UNIT_ORDER.map(index => this.units[index]).map(state => String.fromCharCode(A + state)).join("");
 	}
@@ -154,17 +172,15 @@ class Cube3 {
 	}
 
 
-	manipulate (manipulation) {
-		// select a face according to axis, substitute unit states by rotation.
-		const { axis, rotation } = manipulationToAxisRotation(manipulation);
+	validate () {
+		const positions = this.positions;
 
-		const movingPoints = axisPointsTable[axis];
-		const movingIndices = this.positions
-			.map((position, index) => ({ position, index }))
-			.filter(({ position }) => movingPoints.includes(position))
-			.map(({ index }) => index);
+		for (let i = 0; i < this.units.length; ++i) {
+			if (positions.filter(p => p === i).length !== 1)
+				return false;
+		}
 
-		movingIndices.forEach(index => this.units[index] = cubeAlgebra.MULTIPLICATION_TABLE[this.units[index]][rotation]);
+		return true;
 	}
 };
 

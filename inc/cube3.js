@@ -101,9 +101,17 @@ const pointHashes = points.map(hashPoint);
 const pointRotationTable = points.map(point => rotationMatrices.map(matrix => pointHashes.indexOf(hashPoint(math.multiply(point, matrix)._data))));
 
 
+const pointIndices = [...Array(3 ** 3).keys()];
+const axisPointsTable = Array(6).fill().map((_, axis) => pointIndices.filter(index => {
+	const positive = axis < 3;
+
+	return points[index][axis % 3] === (positive ? 1 : -1);
+}));
+
+
 const manipulationToAxisRotation = manipulation => ({
 	axis: Math.floor(manipulation / 3),
-	rotation: (manipulation % 3) + 3 * Math.floor(manipulation / 6) + 1,
+	rotation: 3 * (manipulation % 3) + Math.floor(manipulation / 3) % 3 + 1,
 });
 
 
@@ -113,16 +121,31 @@ class Cube3 {
 	}
 
 
+	get positions () {
+		return this.units.map((unit, index) => pointRotationTable[index][unit]);
+	}
+
+
 	manipulate (manipulation) {
-		// TODO: select a face according to axis, substitute unit states by rotation.
+		// select a face according to axis, substitute unit states by rotation.
+		const { axis, rotation } = manipulationToAxisRotation(manipulation);
+
+		const movingPoints = axisPointsTable[axis];
+		const movingIndices = this.positions
+			.map((position, index) => ({ position, index }))
+			.filter(({ position }) => movingPoints.includes(position))
+			.map(({ index }) => index);
+
+		movingIndices.forEach(index => this.units[index] = cubeAlgebra.MULTIPLICATION_TABLE[this.units[index]][rotation]);
 	}
 };
 
 
 
 module.exports = {
-	pointHashes,
 	pointRotationTable,
+	axisPointsTable,
+	manipulationToAxisRotation,
 	axis,
 	Cube3,
 };

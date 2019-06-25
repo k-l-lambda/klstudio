@@ -8,6 +8,7 @@
 		"dev": "cross-env NODE_ENV=development nodemon main.js",
 		"dev:inspect": "cross-env NODE_ENV=development nodemon --inspect main.js",
 		"node-inspect": "cross-env NODE_ENV=development nodemon --inspect",
+		"ts-dev": "ts-node-dev --inspect --",
 		"lint": "./node_modules/.bin/eslint"
 	},
 	"repository": {
@@ -60,6 +61,9 @@
 		"webpack-merge": "^4.1.4"
 	},
 	"dependencies": {
-		"express": "^4.16.4"
+		"express": "^4.16.4",
+		"ts-node": "^8.3.0",
+		"ts-node-dev": "^1.0.0-pre.40",
+		"typescript": "^3.5.2"
 	}
 }

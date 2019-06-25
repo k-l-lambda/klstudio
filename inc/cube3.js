@@ -134,7 +134,7 @@ const A = "A".charCodeAt(0);
 
 class Cube3 {
 	constructor (code = null) {
-		this.units = Array(3 ** 3).fill(0);
+		this.units = new Uint8Array(3 ** 3).fill(0);
 
 		if (code)
 			this.decode(code);
@@ -151,7 +151,7 @@ class Cube3 {
 		const { axis, rotation } = manipulationToAxisRotation(manipulation);
 
 		const movingPoints = axisPointsTable[axis];
-		const movingIndices = this.positions
+		const movingIndices = Array.from(this.positions)
 			.map((position, index) => ({ position, index }))
 			.filter(({ position }) => movingPoints.includes(position))
 			.map(({ index }) => index);

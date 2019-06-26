@@ -6,7 +6,20 @@ import {
 	I, I_, I2, J, J_, J2, K, K_, K2,
 	NORMAL_ORIENTATIONS,
 	MULTIPLICATION_TABLE,
+	DIVISION_TABLE,
 } from "../inc/cube-algebra";
+
+
+declare let global:any;
+Object.assign(global, {
+	Item,
+	Orientation,
+
+	I, I_, I2, J, J_, J2, K, K_, K2,
+	NORMAL_ORIENTATIONS,
+	MULTIPLICATION_TABLE,
+	DIVISION_TABLE,
+});
 
 
 const exp1 = new Orientation([I, J_, K2]);

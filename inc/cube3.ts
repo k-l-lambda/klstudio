@@ -124,6 +124,13 @@ const timesToIndex = times => [1, 3, 2].indexOf((times + 40) % 4);
 const axisTimesToManipulation = (axis, times) => axis + timesToIndex(times) * 6;
 
 
+const MANIPULATION_NAMES = [
+	"R-", "L", "U-", "D", "F-", "B",
+	"R", "L-", "U", "D-", "F", "B-",
+	"R2", "L2", "U2", "D2", "F2", "B2",
+];
+
+
 const ENCODE_UNIT_ORDER = [
 	0, 2, 6, 8, 18, 20, 24, 26,						// corners
 	1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25,		// edges
@@ -165,6 +172,14 @@ class Cube3 {
 	}
 
 
+	divide(cube: Cube3) : Cube3 {
+		const result = new Cube3();
+		result.units = cube.units.map((state, index) => cubeAlgebra.DIVISION_TABLE[state][this.units[index]]);
+
+		return result;
+	}
+
+
 	encode () {
 		return ENCODE_UNIT_ORDER.map(index => this.units[index]).map(state => String.fromCharCode(A + state)).join("");
 	}
@@ -198,5 +213,6 @@ export {
 	axisRotationToManipulation,
 	axisTimesToManipulation,
 	axis,
+	MANIPULATION_NAMES,
 	Cube3,
 };

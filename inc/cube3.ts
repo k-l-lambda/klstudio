@@ -1,7 +1,8 @@
 
 const math = require("mathjs");
 
-import * as cubeAlgebra from "./cube-algebra";
+// @ts-ignore
+import * as cubeAlgebra from "./cube-algebra.ts";
 
 
 const axis = {

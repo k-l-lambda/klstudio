@@ -32,8 +32,11 @@ module.exports = {
 				},*/
 			},
 			{
-				test: /\.js$/,
-				include: path.resolve(__dirname, "app"),
+				test: /\.(js|ts)$/,
+				include: [
+					path.resolve(__dirname, "app"),
+					path.resolve(__dirname, "inc"),
+				],
 				use: {
 					loader: "babel-loader",
 					options: {

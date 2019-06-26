@@ -27,7 +27,7 @@ for (let i = 0; i < 18; ++i) {
 	c.manipulate(manipulation);
 
 	const sum = c.positions.reduce((sum, p) => sum + p, 0);
-	console.assert(sum === 13 * 27, sum.toString(), manipulation, c.positions, c.units);
+	console.assert(sum === 13 * 27, "unit manipulation sumcheck failed:", sum.toString(), manipulation, c.positions, c.units);
 }
 
 
@@ -37,7 +37,7 @@ for (let i = 0; i < 1000; ++i) {
 	cube.manipulate(manipulation);
 
 	const sum = cube.positions.reduce((sum, p) => sum + p, 0);
-	console.assert(sum === 13 * 27, sum.toString(), manipulation, cube.positions, cube.units);
+	console.assert(sum === 13 * 27, "continuous manipulations sumcheck failed:", sum.toString(), manipulation, cube.positions, cube.units);
 }
 
 

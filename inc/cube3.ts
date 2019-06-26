@@ -5,12 +5,13 @@ import * as math from "mathjs";
 import * as cubeAlgebra from "./cube-algebra.ts";
 
 
+
 enum axis {
 	pX,
-	pY,
-	pZ,
 	nX,
+	pY,
 	nY,
+	pZ,
 	nZ,
 };
 
@@ -104,23 +105,23 @@ const pointRotationTable = points.map(point => rotationMatrices.map(matrix => po
 
 const pointIndices = [...Array(3 ** 3).keys()];
 const axisPointsTable = Array(6).fill(null).map((_, axis) => pointIndices.filter(index => {
-	const positive = axis < 3;
+	const positive = axis % 2 === 0;
 
-	return points[index][axis % 3] === (positive ? 1 : -1);
+	return points[index][Math.floor(axis / 2)] === (positive ? 1 : -1);
 }));
 
 
 const manipulationToAxisRotation = manipulation => ({
-	axis: Math.floor(manipulation / 3),
-	rotation: 3 * (manipulation % 3) + Math.floor(manipulation / 3) % 3 + 1,
+	axis: manipulation % 6,
+	rotation: Math.floor(manipulation / 2) + 1,
 });
 
 
-const axisRotationToManipulation = (axis, rotation) => axis * 3 + Math.floor((rotation - 1) / 3);
+const axisRotationToManipulation = (axis, rotation) => axis % 2 + (rotation - 1) * 2;
 
 
 const timesToIndex = times => [1, 3, 2].indexOf((times + 40) % 4);
-const axisTimesToManipulation = (axis, times) => axis * 3 + timesToIndex(times);
+const axisTimesToManipulation = (axis, times) => axis + timesToIndex(times) * 6;
 
 
 const ENCODE_UNIT_ORDER = [

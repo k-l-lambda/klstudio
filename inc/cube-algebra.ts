@@ -222,6 +222,7 @@ const NORMAL_ORIENTATION_NAMES = NORMAL_ORIENTATIONS.map(o => o.toString());
 
 const MULTIPLICATION_TABLE = NORMAL_ORIENTATIONS.map(o1 => NORMAL_ORIENTATIONS.map(o2 => NORMAL_ORIENTATION_NAMES.indexOf(o1.mul(o2).normalize().toString())));
 
+// TODO: divide table
 
 
 export {

@@ -9,13 +9,13 @@ class Item {
 	exponent: number;
 
 
-	constructor (unit, exponent) {
+	constructor (unit: number, exponent: number) {
 		this.unit = unit;
 		this.exponent = exponent;
 	}
 
 
-	toString () {
+	toString () : string {
 		let postfix;
 
 		switch (this.exponent) {
@@ -40,7 +40,7 @@ class Item {
 	}
 
 
-	normalized () {
+	normalized () : Item {
 		let exponent = this.exponent % 4;
 
 		switch (exponent) {
@@ -65,19 +65,19 @@ class Item {
 	}
 
 
-	inverted () {
+	inverted () : Item {
 		return new Item(this.unit, -this.exponent);
 	}
 
 
-	mul (other) {
+	mul (other) : Item {
 		console.assert(this.unit === other.unit);
 
 		return new Item(this.unit, this.exponent + other.exponent);
 	}
 
 
-	static supplementaryUnit (item1, item2) {
+	static supplementaryUnit (item1, item2) : number {
 		return 3 - item1.unit - item2.unit;
 	}
 
@@ -124,7 +124,7 @@ class Orientation {
 	}
 
 
-	toString () {
+	toString () : string {
 		if (!this.items.length)
 			return "1";
 
@@ -188,7 +188,7 @@ class Orientation {
 	}
 
 
-	mul (other) {
+	mul (other) : Orientation {
 		return new Orientation(this.items.concat(other.items));
 	}
 };

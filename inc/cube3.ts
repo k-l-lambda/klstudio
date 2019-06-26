@@ -1,17 +1,17 @@
 
-const math = require("mathjs");
+import * as math from "mathjs";
 
 // @ts-ignore
 import * as cubeAlgebra from "./cube-algebra.ts";
 
 
-const axis = {
-	pX: 0,
-	pY: 1,
-	pZ: 2,
-	nX: 3,
-	nY: 4,
-	nZ: 5,
+enum axis {
+	pX,
+	pY,
+	pZ,
+	nX,
+	nY,
+	nZ,
 };
 
 
@@ -137,7 +137,7 @@ class Cube3 {
 	units: Uint8Array;
 
 
-	constructor (code = null) {
+	constructor (code: string = null) {
 		this.units = new Uint8Array(3 ** 3).fill(0);
 
 		if (code)
@@ -150,7 +150,7 @@ class Cube3 {
 	}
 
 
-	manipulate (manipulation) {
+	manipulate (manipulation: number) {
 		// select a face according to axis, substitute unit states by rotation.
 		const { axis, rotation } = manipulationToAxisRotation(manipulation);
 
@@ -169,7 +169,7 @@ class Cube3 {
 	}
 
 
-	decode (code) {
+	decode (code: string) {
 		console.assert(code.length === ENCODE_UNIT_ORDER.length, "invalid code, length required to be", ENCODE_UNIT_ORDER.length, code);
 
 		code.split("").map(c => c.charCodeAt(0) - A).forEach((state, index) => this.units[ENCODE_UNIT_ORDER[index]] = state);

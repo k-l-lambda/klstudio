@@ -1,7 +1,12 @@
 
-const cube = require("../inc/cube-algebra.js");
+import {
+	Item,
+	Orientation,
 
-Object.assign(global, cube);
+	I, I_, I2, J, J_, J2, K, K_, K2,
+	NORMAL_ORIENTATIONS,
+	MULTIPLICATION_TABLE,
+} from "../inc/cube-algebra";
 
 
 const exp1 = new Orientation([I, J_, K2]);
@@ -21,8 +26,11 @@ console.assert(exp2 === "1", "exp2 normalize error:", exp2);
 const exp3 = new Orientation([J2, K2]).normalize().toString();
 console.assert(exp3 === "i2", "exp3 normalize error:", exp3);
 
-const exp4 = new Orientation([I, J, J, I]).normalize().toString();
-console.assert(exp4 === "j2", "exp2 normalize error:", exp4);
+const exp4 = new Orientation([I2, K2]).normalize().toString();
+console.assert(exp4 === "j2", "exp4 normalize error:", exp4);
+
+const exp5 = new Orientation([I, J, J, I]).normalize().toString();
+console.assert(exp5 === "j2", "exp2 normalize error:", exp5);
 
 
 // random test

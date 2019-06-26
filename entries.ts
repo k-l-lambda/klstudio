@@ -11,7 +11,7 @@ class Entry {
 	}
 
 
-	get _filename () {
+	get _filename () : string {
 		return this.filename || this.path.substr(1);
 	}
 };
@@ -53,5 +53,11 @@ export default [
 		name: "curves-editor",
 		path: "/curves-editor",
 		title: "Curves Editor",
+	},
+
+	{
+		name: "cube3-player",
+		path: "/cube3-player",
+		title: "3-order Magic Cube Player",
 	},
 ].map(data => new Entry(data));

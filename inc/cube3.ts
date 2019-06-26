@@ -1,7 +1,7 @@
 
 const math = require("mathjs");
 
-const cubeAlgebra = require("./cube-algebra");
+import * as cubeAlgebra from "./cube-algebra";
 
 
 const axis = {
@@ -94,7 +94,7 @@ const rotationMatrices = unitaryMatrices.concat(dualRotations);
 
 
 const hashPoint = point => point.map(v => "-0+"[v + 1]).join("");
-const points = Array(3 ** 3).fill().map((_, i) => [i % 3 - 1, Math.floor(i / 3) % 3 - 1, Math.floor(i / 9) - 1]);
+const points = Array(3 ** 3).fill(null).map((_, i) => [i % 3 - 1, Math.floor(i / 3) % 3 - 1, Math.floor(i / 9) - 1]);
 const pointHashes = points.map(hashPoint);
 
 
@@ -102,7 +102,7 @@ const pointRotationTable = points.map(point => rotationMatrices.map(matrix => po
 
 
 const pointIndices = [...Array(3 ** 3).keys()];
-const axisPointsTable = Array(6).fill().map((_, axis) => pointIndices.filter(index => {
+const axisPointsTable = Array(6).fill(null).map((_, axis) => pointIndices.filter(index => {
 	const positive = axis < 3;
 
 	return points[index][axis % 3] === (positive ? 1 : -1);
@@ -133,6 +133,9 @@ const A = "A".charCodeAt(0);
 
 
 class Cube3 {
+	units: Uint8Array;
+
+
 	constructor (code = null) {
 		this.units = new Uint8Array(3 ** 3).fill(0);
 
@@ -186,7 +189,7 @@ class Cube3 {
 
 
 
-module.exports = {
+export {
 	//pointRotationTable,
 	//axisPointsTable,
 	manipulationToAxisRotation,

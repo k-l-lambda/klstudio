@@ -5,6 +5,10 @@ const _k = 2;
 
 
 class Item {
+	unit: number;
+	exponent: number;
+
+
 	constructor (unit, exponent) {
 		this.unit = unit;
 		this.exponent = exponent;
@@ -78,6 +82,7 @@ class Item {
 	}
 
 
+	static sqauredReduce(...items: Array<Item>)
 	static sqauredReduce (item1, item2) {
 		if (item1.exponent === 2 && item2.exponent === 2)
 			return [new Item(this.supplementaryUnit(item1, item2), 2)];
@@ -111,6 +116,9 @@ class Item {
 
 
 class Orientation {
+	items: Array<Item>;
+
+
 	constructor (items = []) {
 		this.items = items;
 	}
@@ -216,7 +224,7 @@ const MULTIPLICATION_TABLE = NORMAL_ORIENTATIONS.map(o1 => NORMAL_ORIENTATIONS.m
 
 
 
-module.exports = {
+export {
 	Item,
 	Orientation,
 

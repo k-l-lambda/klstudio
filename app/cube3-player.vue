@@ -2,7 +2,11 @@
 	<div v-resize="onResize" class="cube3-player">
 		<Cube3
 			:size="size"
+			@fps="onFps"
 		/>
+		<span class="status">
+			<span v-if="fps" class="fps">fps <em>{{fps}}</em></span>
+		</span>
 	</div>
 </template>
 
@@ -27,16 +31,23 @@
 		},
 
 
-		data() {
+		data () {
 			return {
 				size: undefined,
+				fps: null,
 			};
 		},
 
 
 		methods: {
-			onResize() {
+			onResize () {
 				this.size = { width: this.$el.clientWidth, height: this.$el.clientHeight };
+			},
+
+
+			onFps (data) {
+				//console.log("fps:", data);
+				this.fps = data.fps;
 			},
 		},
 	};
@@ -47,5 +58,25 @@
 	{
 		width: 100%;
 		height: 100%;
+	}
+
+	.status
+	{
+		position: absolute;
+		right: 0;
+		bottom: 0;
+		padding: 4px;
+		color: #0006;
+		pointer-events: none;
+	}
+
+	.fps
+	{
+		font-size: 9px;
+	}
+
+	.fps em
+	{
+		font-weight: bold;
 	}
 </style>

@@ -71,4 +71,12 @@ module.exports = {
 		//"html",
 		"vue",
 	],
+	"overrides": [
+		{
+			files: ["*.vue"],
+			rules: {
+				indent: "off",
+			}
+		}
+	  ]
 };

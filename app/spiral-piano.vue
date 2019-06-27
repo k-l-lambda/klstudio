@@ -92,7 +92,15 @@
 						{{name}}
 					</text>
 				</g>
-				<g class="groups"></g>
+				<g class="groups">
+					<g v-for="(group, i) of groups" :key="i" class="group" :data-index="group.index">
+						<path v-for="(key, ii) of group.keys" :key="ii" class="key"
+							:data-pitch="key.pitch"
+							:data-step="key.step"
+							:d="key.path"
+						/>
+					</g>
+				</g>
 			</g>
 		</svg>
 	</div>
@@ -194,6 +202,38 @@
 	};
 
 
+	/*const Synesthesias = {
+		Rainbow: {
+			0: "#ff0000",
+			1: "#ff8600",
+			2: "#ffb400",
+			3: "#ffe400",
+			4: "#eaff00",
+			5: "#6cff00",
+			6: "#00ff96",
+			7: "#00fff6",
+			8: "#008cff",
+			9: "#0003ff",
+			10: "#8e00ff",
+			11: "#f000ff",
+		},
+		FifthRainbow: {
+			1: "#ff0000",
+			8: "#ff8600",
+			3: "#ffb400",
+			10: "#ffe400",
+			5: "#eaff00",
+			0: "#6cff00",
+			7: "#00ff96",
+			2: "#00fff6",
+			9: "#008cff",
+			4: "#0003ff",
+			11: "#8e00ff",
+			6: "#f000ff",
+		},
+	};*/
+
+
 
 	export default {
 		name: "spiral-piano",
@@ -208,12 +248,14 @@
 			return {
 				Config,
 				size: null,
-				extends: [],
-				keyPoints: [],
+				extends: getSpanExtends(45, 84),
+				keyRadius: Array(Config.KeyCount + Config.GroupLen + 1).fill().map((_, k) => Config.InnerRadius + k * Config.ScrewPitch / Config.GroupLen),
+				keyPoints: null,
 				modalOffset: 0,
 				keyWidthRatio: 0.5,
 				mode: Config.Mode.Major,
-				wideRange: {Start: 51, End: 83},
+				wideRange: {Start: 45, End: 84},
+				synesthesiaScheme: "FifthRainbow",
 			};
 		},
 
@@ -241,22 +283,62 @@
 					};
 				});
 			},
+
+
+			keys () {
+				if (!this.keyPoints)
+					return null;
+
+				return Array(Config.KeyCount).fill().map((_, k) => {
+					const pitch = keyToPitch(k);
+					const group = pitchToGroup(pitch);
+
+					const [index0, index1, index2, index3] = [k, k + 1, k + Config.GroupLen + 1, k + Config.GroupLen];
+
+					return {
+						pitch,
+						group,
+						step: pitchToStep(pitch),
+						path: `M${this.keyPoints[index0].x},${this.keyPoints[index0].y}
+							A${this.keyRadius[index0]},${this.keyRadius[index0]} 0 0 0 ${this.keyPoints[index1].x},${this.keyPoints[index1].y}
+							L${this.keyPoints[index2].x},${this.keyPoints[index2].y}
+							A${this.keyRadius[index3]},${this.keyRadius[index3]} 0 0 1 ${this.keyPoints[index3].x},${this.keyPoints[index3].y}
+							Z`.replace(/\n/g, ""),
+					};
+				});
+			},
+
+
+			groups () {
+				if (!this.keys)
+					return null;
+
+				return Array(9).fill().map((_, i) => ({
+					index: i + 1,
+					keys: this.keys.filter(key => key.group === i + 1),
+				}));
+			},
+
+
+			/*synesthesia () {
+				return Synesthesias[this.synesthesiaScheme];
+			},*/
 		},
 
 
-		created() {
+		/*created () {
 			for (let k = 0; k < Config.KeyCount + Config.GroupLen + 1; ++k) {
-				this.keyPoints[k] = Config.InnerRadius + k * Config.ScrewPitch / Config.GroupLen;
+				this.keyRadius[k] = Config.InnerRadius + k * Config.ScrewPitch / Config.GroupLen;
 			}
 			this.extends = getSpanExtends(this.wideRange.Start, this.wideRange.End);
-		},
+		},*/
 
 
 		mounted () {
 			//window.MidiPlayer = MidiPlayer;
 			MidiPlayer.loadPlugin().then(() => console.log("MIDI loaded."));
 
-			this.updateKeyPoints();
+			this.updateKeyRadius();
 		},
 
 
@@ -266,13 +348,24 @@
 			},
 
 
-			updateKeyPoints () {
+			updateKeyRadius () {
 				for (let k = 0; k < Config.KeyCount + Config.GroupLen + 1; ++k) {
 					let exts = 0;
 					for (let g = Math.floor(k / Config.GroupLen); g > 0; --g)
 						exts += this.extends[k - g * Config.GroupLen];
-					this.keyPoints[k] = Config.InnerRadius + k * Config.ScrewPitch / Config.GroupLen + exts;
+					this.keyRadius[k] = Config.InnerRadius + k * Config.ScrewPitch / Config.GroupLen + exts;
 				}
+
+				this.keyPoints = Array(Config.KeyCount + Config.GroupLen + 1).fill().map((_, p) => {
+					const offsetAngle = this.getOffsetAngles(keyToPitch(p) - this.modalOffset);
+					const angle = Math.PI * (1.5 - (this.modalOffset + p - offsetAngle) * 2 / Config.GroupLen);
+					const radius = (this.keyRadius[p] + (p > 0 ? this.keyRadius[p - 1] : this.keyRadius[p])) / 2;
+
+					return {
+						x: Math.cos(angle) * radius,
+						y: Math.sin(angle) * radius,
+					};
+				});
 			},
 
 
@@ -317,8 +410,113 @@
 	{
 		fill: #ccc;
 	}
+
 	.region.deputy
 	{
 		fill: #777;
+	}
+
+	.key
+	{
+		stroke: white;
+		stroke-width: 0;
+		filter: url(#filter-grey);
+		cursor: pointer;
+		opacity: 0.8;
+	}
+
+	.key:hover
+	{
+		filter: url(#filter-middle-saturate);
+		opacity: 1;
+	}
+
+	.key.active
+	{
+		filter: url(#filter-brilliancy) !important;
+		opacity: 1;
+		stroke-width: 2px;
+	}
+
+	.key[data-step="1"]
+	{
+		fill: #ff0000;
+	}
+	.key[data-step="8"]
+	{
+		fill: #ff8600;
+	}
+	.key[data-step="3"]
+	{
+		fill: #ffb400;
+	}
+	.key[data-step="10"]
+	{
+		fill: #ffe400;
+	}
+	.key[data-step="5"]
+	{
+		fill: #eaff00;
+	}
+	.key[data-step="0"]
+	{
+		fill: #6cff00;
+	}
+	.key[data-step="7"]
+	{
+		fill: #00ff96;
+	}
+	.key[data-step="2"]
+	{
+		fill: #00fff6;
+	}
+	.key[data-step="9"]
+	{
+		fill: #008cff;
+	}
+	.key[data-step="4"]
+	{
+		fill: #0003ff;
+	}
+	.key[data-step="11"]
+	{
+		fill: #8e00ff;
+	}
+	.key[data-step="6"]
+	{
+		fill: #f000ff;
+	}
+
+	.group[data-index="1"]
+	{
+		filter: url(#filter-brightness-n4);
+	}
+	.group[data-index="2"]
+	{
+		filter: url(#filter-brightness-n3);
+	}
+	.group[data-index="3"]
+	{
+		filter: url(#filter-brightness-n2);
+	}
+	.group[data-index="4"]
+	{
+		filter: url(#filter-brightness-n1);
+	}
+	.group[data-index="6"]
+	{
+		filter: url(#filter-brightness-1);
+	}
+	.group[data-index="7"]
+	{
+		filter: url(#filter-brightness-2);
+	}
+	.group[data-index="8"]
+	{
+		filter: url(#filter-brightness-3);
+	}
+	.group[data-index="9"]
+	{
+		filter: url(#filter-brightness-4);
 	}
 </style>

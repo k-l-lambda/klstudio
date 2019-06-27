@@ -172,12 +172,20 @@ class Cube3 {
 	}
 
 
-	divide(cube: Cube3) : Cube3 {
+	/*multiply (cube: Cube3) : Cube3 {
+		const result = new Cube3();
+		result.units = this.units.map((state, index) => cubeAlgebra.MULTIPLICATION_TABLE[state][cube.units[index]]);
+
+		return result;
+	}
+
+
+	divide (cube: Cube3) : Cube3 {
 		const result = new Cube3();
 		result.units = cube.units.map((state, index) => cubeAlgebra.DIVISION_TABLE[state][this.units[index]]);
 
 		return result;
-	}
+	}*/
 
 
 	encode () {

@@ -117,45 +117,61 @@
 		Mode: {
 			Major: {
 				MainPitches: { 0: true, 2: true, 4: true, 5: true, 7: true, 9: true, 11: true },
-				SyllableNames: ["do", null, "re", null, "mi", "fa", null, "so", null, "la", null, "ti"]
+				SyllableNames: ["do", null, "re", null, "mi", "fa", null, "so", null, "la", null, "ti"],
 			},
 			Minor: {
 				MainPitches: { 0: true, 2: true, 3: true, 5: true, 7: true, 8: true, 11: true },
-				SyllableNames: ["do", null, "re", "mi", null, "fa", null, "so", "la", null, null, "ti"]
+				SyllableNames: ["do", null, "re", "mi", null, "fa", null, "so", "la", null, null, "ti"],
 			}
 		},
 		KeySerials: {
 			White: [0, 2, 4, 5, 7, 9, 11],
-			BlackPosition: {
+			/*BlackPosition: {
 				1: 0.4,
 				3: 1.6,
 				6: 3.34,
 				8: 4.5,
-				10: 5.66
-			}
+				10: 5.66,
+			},*/
 		},
 		SpanKeyWidth: 9,
 	};
 
 
-	const keyToNote = function(key){
+	const keyToPitch = function (key) {
 		return Config.NoteEnd - key;
 	};
 
-	const noteToKey = function (note) {
-		return Config.NoteEnd - note;
+	const pitchToKey = function (pitch) {
+		return Config.NoteEnd - pitch;
 	};
 
-	const noteToPitch = function (note) {
-		let pitch = note % Config.GroupLen;
-		if (pitch < 0)
-			pitch += Config.GroupLen;
-		return pitch;
+	const pitchToStep = function (pitch) {
+		let step = pitch % Config.GroupLen;
+		if (step < 0)
+			step += Config.GroupLen;
+		return step;
 	};
 
-	const noteToGroup = function(note){
-		return Math.floor(note / Config.GroupLen);
+	const pitchToGroup = function (pitch) {
+		return Math.floor(pitch / Config.GroupLen);
 	};
+
+	/*var pitchToX = function (pitch) {
+		var group = noteToGroup(pitch);
+		var pitch = noteToPitch(pitch);
+		var pos = Config.KeySerials.White.indexOf(pitch);
+		if (pos < 0)
+			pos = Config.KeySerials.BlackPosition[pitch];
+		return group * Config.KeySerials.White.length + pos - 12;
+	};
+
+	var xToPitch = function (x) {
+		var pos = Math.floor(x / Config.SpanKeyWidth) + 12;
+		var group = Math.floor(pos / 7);
+		var step = Config.KeySerials.White[pos % 7];
+		return group * 12 + step;
+	};*/
 
 	const keyToOffset = function (key) {
 		let offset = (key * 7) % 12;
@@ -171,7 +187,7 @@
 		const avg = (low + high) / 2;
 		const unit = (low - high) / 2;
 		for (let k = 0; k < Config.KeyCount + Config.GroupLen + 1; ++k) {
-			const x = (keyToNote(k) - avg) / unit;
+			const x = (keyToPitch(k) - avg) / unit;
 			exts[k] = Math.exp(-x * x * x * x / 2) * 70;
 		}
 		return exts;
@@ -221,7 +237,7 @@
 							y: Math.sin(boderAngle) * Config.RegionRadius,
 						},
 						nextIndex: (i > 0) ? i - 1 : Config.GroupLen - 1,
-						main: noteToPitch(i + this.modalOffset) in this.mode.MainPitches,
+						main: pitchToStep(i + this.modalOffset) in this.mode.MainPitches,
 					};
 				});
 			},
@@ -260,8 +276,8 @@
 			},
 
 
-			getOffsetAngles (note) {
-				const mains = [noteToPitch(note + 1) in this.mode.MainPitches, noteToPitch(note) in this.mode.MainPitches];
+			getOffsetAngles (pitch) {
+				const mains = [pitchToStep(pitch + 1) in this.mode.MainPitches, pitchToStep(pitch) in this.mode.MainPitches];
 				return (mains[0] === mains[1]) ? 0.5 : (mains[0] ? 1 - this.keyWidthRatio : this.keyWidthRatio);
 			},
 		},

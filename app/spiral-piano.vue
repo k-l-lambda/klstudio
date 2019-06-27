@@ -95,9 +95,12 @@
 				<g class="groups">
 					<g v-for="(group, i) of groups" :key="i" class="group" :data-index="group.index">
 						<path v-for="(key, ii) of group.keys" :key="ii" class="key"
+							:class="{active: keyStatus[key.pitch].active}"
 							:data-pitch="key.pitch"
 							:data-step="key.step"
 							:d="key.path"
+							@mousedown="onKeyDown(key.pitch)"
+							@mouseup="onKeyUp(key.pitch)"
 						/>
 					</g>
 				</g>
@@ -256,6 +259,7 @@
 				mode: Config.Mode.Major,
 				wideRange: {Start: 45, End: 84},
 				synesthesiaScheme: "FifthRainbow",
+				keyStatus: Array(Config.NoteEnd + 1).fill().map((_, k) => ({active: false})),
 			};
 		},
 
@@ -326,14 +330,6 @@
 		},
 
 
-		/*created () {
-			for (let k = 0; k < Config.KeyCount + Config.GroupLen + 1; ++k) {
-				this.keyRadius[k] = Config.InnerRadius + k * Config.ScrewPitch / Config.GroupLen;
-			}
-			this.extends = getSpanExtends(this.wideRange.Start, this.wideRange.End);
-		},*/
-
-
 		mounted () {
 			//window.MidiPlayer = MidiPlayer;
 			MidiPlayer.loadPlugin().then(() => console.log("MIDI loaded."));
@@ -372,6 +368,25 @@
 			getOffsetAngles (pitch) {
 				const mains = [pitchToStep(pitch + 1) in this.mode.MainPitches, pitchToStep(pitch) in this.mode.MainPitches];
 				return (mains[0] === mains[1]) ? 0.5 : (mains[0] ? 1 - this.keyWidthRatio : this.keyWidthRatio);
+			},
+
+
+			activateKey (pitch, on) {
+				this.keyStatus[pitch].active = on;
+			},
+
+
+			onKeyDown (pitch) {
+				this.activateKey(pitch, true);
+
+				MidiPlayer.noteOn(0, pitch, 100, 0);
+			},
+
+
+			onKeyUp (pitch) {
+				this.activateKey(pitch, false);
+
+				MidiPlayer.noteOff(0, pitch, 0);
 			},
 		},
 	};

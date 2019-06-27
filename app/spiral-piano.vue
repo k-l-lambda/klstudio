@@ -379,6 +379,27 @@
 					break;
 				}
 			});
+
+			MIDI.Player.addListener(data => {
+				switch (data.message) {
+					case 144:
+						this.activateKey(data.note, true);
+
+						break;
+					case 128:
+						this.activateKey(data.note, false);
+
+						break;
+					case "meta":
+						switch (data.subtype) {
+							case "keySignature":
+								this.modalOffset = keyToOffset(data.key);
+
+								break;
+						}
+						break;
+				}
+			});
 		},
 
 
@@ -390,6 +411,9 @@
 
 			async onDropFiles(event) {
 				this.drageHover = false;
+
+				MidiPlayer.Player.stop();
+				this.isPlaying = false;
 
 				const file = event.dataTransfer.files[0];
 				console.log("file:", file);

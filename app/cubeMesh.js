@@ -47,5 +47,5 @@ const positions = [
 const geometries = Array(6).fill().map(_ => new THREE.Geometry());
 geometries.forEach((geometry, i) => {
 	geometry.vertices = positions[i].map(v => new THREE.Vector3(v));
-	geometry.face = new THREE.Face3(0, 1, 2, 0, 2, 3);
+	geometry.faces = [new THREE.Face3(0, 1, 2), new THREE.Face3(0, 2, 3)];
 });

@@ -6,6 +6,8 @@ TODO:
 
 2019.6.27	K.L.	<k.l.lambda@gmail.com>
 
+	+	cubeMesh.js created.
+
 	+	spiral-piano.vue: activate key according to player events.
 
 	+	spiral-piano.vue: MIDI file player added.

@@ -75,13 +75,19 @@
 					</feComponentTransfer>
 				</filter>
 			</defs>
-			<g class="regions"></g>
+			<g class="regions">
+				<path v-for="(region, i) of regions" :key="i" class="region"
+					:class="{main: region.main, deputy: !region.main}"
+					:d="`M0,0 L${region.point.x},${region.point.y} A${Config.RegionRadius},${Config.RegionRadius} 0 0,0 ${regions[region.nextIndex].point.x},${regions[region.nextIndex].point.y} Z`"
+				/>
+			</g>
 			<g class="labels"></g>
 			<g class="keys">
 				<g class="labels">
 					<text v-for="(name, i) of mode.SyllableNames" :key="i" class="syllable"
-						:x="Math.cos(regionAngles[i]) * (Config.InnerRadius - 8)"
-						:y="Math.sin(regionAngles[i]) * (Config.InnerRadius - 8)"
+						:x="Math.cos(regions[i].angle) * (Config.InnerRadius - 8)"
+						:y="Math.sin(regions[i].angle) * (Config.InnerRadius - 8) + 3"
+						v-show="name != null"
 					>
 						{{name}}
 					</text>
@@ -111,11 +117,11 @@
 		Mode: {
 			Major: {
 				MainPitches: { 0: true, 2: true, 4: true, 5: true, 7: true, 9: true, 11: true },
-				SyllableNames: ["do", null, "re", null, "mi", "fa", null, "so", null, "la", null, "si"]
+				SyllableNames: ["do", null, "re", null, "mi", "fa", null, "so", null, "la", null, "ti"]
 			},
 			Minor: {
 				MainPitches: { 0: true, 2: true, 3: true, 5: true, 7: true, 8: true, 11: true },
-				SyllableNames: ["do", null, "re", "mi", null, "fa", null, "so", "la", null, null, "si"]
+				SyllableNames: ["do", null, "re", "mi", null, "fa", null, "so", "la", null, null, "ti"]
 			}
 		},
 		KeySerials: {
@@ -189,7 +195,7 @@
 				extends: [],
 				keyPoints: [],
 				modalOffset: 0,
-				keyWidthRatio: 0.7,
+				keyWidthRatio: 0.5,
 				mode: Config.Mode.Major,
 				wideRange: {Start: 51, End: 83},
 			};
@@ -202,8 +208,22 @@
 			},
 
 
-			regionAngles () {
-				return Array(Config.GroupLen).fill().map((_, i) => Math.PI * (1.5 + i * 2 / Config.GroupLen));
+			regions () {
+				return Array(Config.GroupLen).fill().map((_, i) => {
+					const angle = Math.PI * (1.5 + i * 2 / Config.GroupLen);
+					const boderAngle = Math.PI * (1.5 + (i + this.getOffsetAngles(i)) * 2 / Config.GroupLen);
+
+					return {
+						angle,
+						boderAngle,
+						point: {
+							x: Math.cos(boderAngle) * Config.RegionRadius,
+							y: Math.sin(boderAngle) * Config.RegionRadius,
+						},
+						nextIndex: (i > 0) ? i - 1 : Config.GroupLen - 1,
+						main: noteToPitch(i + this.modalOffset) in this.mode.MainPitches,
+					};
+				});
 			},
 		},
 
@@ -238,6 +258,12 @@
 					this.keyPoints[k] = Config.InnerRadius + k * Config.ScrewPitch / Config.GroupLen + exts;
 				}
 			},
+
+
+			getOffsetAngles (note) {
+				const mains = [noteToPitch(note + 1) in this.mode.MainPitches, noteToPitch(note) in this.mode.MainPitches];
+				return (mains[0] === mains[1]) ? 0.5 : (mains[0] ? 1 - this.keyWidthRatio : this.keyWidthRatio);
+			},
 		},
 	};
 </script>
@@ -262,5 +288,21 @@
 	.syllable
 	{
 		font-size: 9px;
+		text-anchor: middle;
+	}
+
+	.region
+	{
+		stroke: white;
+		stroke-width: 1px;
+	}
+
+	.region.main
+	{
+		fill: #ccc;
+	}
+	.region.deputy
+	{
+		fill: #777;
 	}
 </style>

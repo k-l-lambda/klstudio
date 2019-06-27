@@ -106,6 +106,17 @@
 				</g>
 			</g>
 		</svg>
+		<div class="dashboard" v-show="showDashboard">
+			<table>
+				<tbody>
+					<tr>
+						<td>
+							<MidiDevices @midiInput="onMidiInputMessage" />
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
 	</div>
 </template>
 
@@ -113,6 +124,8 @@
 	import resize from "vue-resize-directive";
 
 	import MidiPlayer from "./MidiPlayer";
+
+	import MidiDevices from "./midi-devices.vue";
 
 
 
@@ -247,11 +260,16 @@
 		},
 
 
+		components: {
+			MidiDevices,
+		},
+
+
 		data() {
 			return {
 				Config,
 				size: null,
-				extends: getSpanExtends(45, 84),
+				extends: null,
 				keyRadius: Array(Config.KeyCount + Config.GroupLen + 1).fill().map((_, k) => Config.InnerRadius + k * Config.ScrewPitch / Config.GroupLen),
 				keyPoints: null,
 				modalOffset: 0,
@@ -260,6 +278,7 @@
 				wideRange: {Start: 45, End: 84},
 				synesthesiaScheme: "FifthRainbow",
 				keyStatus: Array(Config.NoteEnd + 1).fill().map((_, k) => ({active: false})),
+				showDashboard: false,
 			};
 		},
 
@@ -335,6 +354,16 @@
 			MidiPlayer.loadPlugin().then(() => console.log("MIDI loaded."));
 
 			this.updateKeyRadius();
+
+			window.addEventListener("keydown", event => {
+				switch (event.keyCode) {
+				// F9
+				case 120:
+					this.showDashboard = !this.showDashboard;
+
+					break;
+				}
+			});
 		},
 
 
@@ -345,6 +374,8 @@
 
 
 			updateKeyRadius () {
+				this.extends = getSpanExtends(this.wideRange.Start, this.wideRange.End);
+
 				for (let k = 0; k < Config.KeyCount + Config.GroupLen + 1; ++k) {
 					let exts = 0;
 					for (let g = Math.floor(k / Config.GroupLen); g > 0; --g)
@@ -387,6 +418,32 @@
 				this.activateKey(pitch, false);
 
 				MidiPlayer.noteOff(0, pitch, 0);
+			},
+
+
+			onMidiInputMessage (message) {
+				console.log("message:", message);
+				const cmd = message.data[0] >> 4;
+				const channel = message.data[0] & 0xf;
+				const pitch = message.data[1];
+				const velocity = message.data[2];
+
+				switch (cmd) {
+				case 9: // note on
+					if (velocity > 0) {
+						this.activateKey(pitch, true);
+						MidiPlayer.noteOn(channel, pitch, velocity, 0);
+
+						break;
+					}
+				// break omitted: when velocity is 0, the event type is note off
+
+				case 8: // note off
+					this.activateKey(pitch, false);
+					MidiPlayer.noteOff(channel, pitch, 0);
+
+					break;
+				}
 			},
 		},
 	};
@@ -533,5 +590,16 @@
 	.group[data-index="9"]
 	{
 		filter: url(#filter-brightness-4);
+	}
+
+	.dashboard
+	{
+		position: fixed;
+		bottom: 50px;
+		right: 50px;
+		background-color: #fffe;
+		padding: 2em;
+		border-radius: 2em;
+		box-shadow: 4px 4px 20px #000a;
 	}
 </style>

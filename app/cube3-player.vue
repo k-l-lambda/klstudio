@@ -53,7 +53,7 @@
 	};
 </script>
 
-<style>
+<style scoped>
 	.cube3-player
 	{
 		width: 100%;

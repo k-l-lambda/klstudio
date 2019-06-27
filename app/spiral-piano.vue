@@ -1,6 +1,11 @@
 <template>
-	<div v-resize="onResize" class="spiral-piano">
-		<svg class="canvas" viewBox="-500 -500 1000 1000" :class="{['full-width']: fullWidth, ['full-height']: !fullWidth}">
+	<div v-resize="onResize" class="spiral-piano"
+		:class="{'drag-hover': drageHover}"
+		@dragover.prevent="drageHover = true"
+		@dragleave="drageHover = false"
+		@drop.prevent="onDropFiles"
+	>
+		<svg class="canvas" viewBox="-500 -500 1000 1000" :class="{'full-width': fullWidth, 'full-height': !fullWidth}">
 			<defs>
 				<filter id="filter-brilliancy">
 					<feColorMatrix type="saturate" values="1.2"/>
@@ -114,6 +119,12 @@
 							<MidiDevices @midiInput="onMidiInputMessage" />
 						</td>
 					</tr>
+					<tr v-if="midiFileName">
+						<td>
+							<button @click="onPlayFile">{{isPlaying ? '\u23f8' : '\u25b6'}}</button>
+							<span>{{midiFileName}}</span>
+						</td>
+					</tr>
 				</tbody>
 			</table>
 		</div>
@@ -124,6 +135,7 @@
 	import resize from "vue-resize-directive";
 
 	import MidiPlayer from "./MidiPlayer";
+	import "./utils.js";
 
 	import MidiDevices from "./midi-devices.vue";
 
@@ -279,6 +291,9 @@
 				synesthesiaScheme: "FifthRainbow",
 				keyStatus: Array(Config.NoteEnd + 1).fill().map((_, k) => ({active: false})),
 				showDashboard: false,
+				drageHover: false,
+				isPlaying: false,
+				midiFileName: null,
 			};
 		},
 
@@ -373,6 +388,42 @@
 			},
 
 
+			async onDropFiles(event) {
+				this.drageHover = false;
+
+				const file = event.dataTransfer.files[0];
+				console.log("file:", file);
+				switch (file.type) {
+					case "audio/mid":
+					case "audio/midi":
+						const buffer = await file.readAs("ArrayBuffer");
+						const blob = new Blob([buffer], {type: file.type});
+						const url = URL.createObjectURL(blob);
+						await MidiPlayer.Player.loadFile(url);
+
+						console.log("MIDI file loaded.");
+
+						this.midiFileName = file.name;
+
+						break;
+				}
+			},
+
+
+			onPlayFile () {
+				if (this.isPlaying) {
+					MidiPlayer.Player.pause();
+
+					this.isPlaying = false;
+				}
+				else {
+					MidiPlayer.Player.resume();
+
+					this.isPlaying = true;
+				}
+			},
+
+
 			updateKeyRadius () {
 				this.extends = getSpanExtends(this.wideRange.Start, this.wideRange.End);
 
@@ -454,6 +505,12 @@
 	{
 		width: 100%;
 		height: 100%;
+	}
+
+	.drag-hover
+	{
+		outline: 4px #4f4 solid;
+		background-color: #cfc;
 	}
 
 	.full-width

@@ -4,7 +4,7 @@ class Entry {
 	path: string;
 	filename: string;
 	title: string;
-	
+
 
 	constructor (fields) {
 		Object.assign(this, fields);
@@ -59,5 +59,11 @@ export default [
 		name: "cube3-player",
 		path: "/cube3-player",
 		title: "3-order Magic Cube Player",
+	},
+
+	{
+		name: "spiral-piano",
+		path: "/spiral-piano",
+		title: "Spiral Piano",
 	},
 ].map(data => new Entry(data));

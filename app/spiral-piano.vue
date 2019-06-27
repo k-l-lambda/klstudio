@@ -416,7 +416,7 @@
 				this.isPlaying = false;
 
 				const file = event.dataTransfer.files[0];
-				console.log("file:", file);
+				//console.log("file:", file);
 				switch (file.type) {
 					case "audio/mid":
 					case "audio/midi":

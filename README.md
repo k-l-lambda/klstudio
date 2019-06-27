@@ -6,4 +6,5 @@
 > npm run start
 
 ## Local ENV
+*	**HOST**
 *	**PORT**

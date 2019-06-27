@@ -58,6 +58,6 @@ else {
 const httpServer = http.createServer(app);
 
 const port = Number(process.env.PORT);
-httpServer.listen(port, "127.0.0.1", () => {
-	console.log("K.L. Studio server online:", `http://localhost:${port}`);
+httpServer.listen(port, process.env.HOST, () => {
+	console.log("K.L. Studio server online:", `http://${process.env.HOST}:${port}`);
 });

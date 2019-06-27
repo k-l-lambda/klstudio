@@ -66,6 +66,7 @@ module.exports = {
 		],*/
 		"space-before-function-paren": ["warn", "always"],
 		"object-property-newline": "off",
+		"standard/no-callback-literal": "off",
 	},
 	"plugins": [
 		//"html",

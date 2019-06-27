@@ -6,6 +6,8 @@ TODO:
 
 2019.6.27	K.L.	<k.l.lambda@gmail.com>
 
+	+	MidiPlayer imported.
+
 	+	Entry of spiral-piano created.
 
 

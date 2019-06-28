@@ -1,7 +1,13 @@
 
 TODO:
+	cube3 multiply & divide test
 	Cube3 state-path table
 
+
+
+2019.6.28	K.L.	<k.l.lambda@gmail.com>
+
+	+	cube3.vue: fixed multiply & divide.
 
 
 2019.6.27	K.L.	<k.l.lambda@gmail.com>

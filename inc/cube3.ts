@@ -138,6 +138,9 @@ const ENCODE_UNIT_ORDER = [
 ];
 
 
+const deorder = (keys, values) => Array.from(keys).map((k, i) => ({k, i})).sort((x1, x2) => x1.k - x2.k).map(({i}) => values[i]);
+
+
 const A = "A".charCodeAt(0);
 
 
@@ -172,9 +175,11 @@ class Cube3 {
 	}
 
 
-	/*multiply (cube: Cube3) : Cube3 {
+	multiply (cube: Cube3) : Cube3 {
+		const positions = this.positions;
+
 		const result = new Cube3();
-		result.units = this.units.map((state, index) => cubeAlgebra.MULTIPLICATION_TABLE[state][cube.units[index]]);
+		result.units = this.units.map((state, index) => cubeAlgebra.MULTIPLICATION_TABLE[state][cube.units[positions[index]]]);
 
 		return result;
 	}
@@ -182,10 +187,11 @@ class Cube3 {
 
 	divide (cube: Cube3) : Cube3 {
 		const result = new Cube3();
-		result.units = cube.units.map((state, index) => cubeAlgebra.DIVISION_TABLE[state][this.units[index]]);
+		const units = cube.units.map((state, index) => cubeAlgebra.DIVISION_TABLE[state][this.units[index]]);
+		result.units = deorder(cube.positions, units);
 
 		return result;
-	}*/
+	}
 
 
 	encode () {
@@ -221,6 +227,7 @@ export {
 	axisRotationToManipulation,
 	axisTimesToManipulation,
 	axis,
+	//deorder,
 	MANIPULATION_NAMES,
 	Cube3,
 };

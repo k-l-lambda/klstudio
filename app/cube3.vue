@@ -7,7 +7,7 @@
 </template>
 
 <script>
-	//import cube3 from "../inc/cube3.ts";
+	import * as cube3 from "../inc/cube3.ts";
 	import * as THREE from "three";
 
 	import { animationDelay } from "./delay";
@@ -27,6 +27,8 @@
 
 
 		mounted () {
+			//window.cube3 = cube3;
+
 			this.rendererActive = true;
 
 			this.initializeRenderer();

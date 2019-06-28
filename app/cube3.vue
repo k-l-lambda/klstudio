@@ -3,14 +3,21 @@
 		ref="canvas"
 		:width="size.width"
 		:height="size.height"
+		@mousemove="onMouseMove"
 	/>
 </template>
 
 <script>
-	import * as cube3 from "../inc/cube3.ts";
 	import * as THREE from "three";
 
 	import { animationDelay } from "./delay";
+	import CubeObject from "./cubeObject.js";
+
+
+
+	const BASIC_MATERIALS = [
+		"green", "blue", "orange", "red", "white", "yellow", "black",
+	].map(color => new THREE.MeshBasicMaterial({ color: new THREE.Color(color) }));
 
 
 
@@ -33,16 +40,25 @@
 
 			this.initializeRenderer();
 
+			this.cube = new CubeObject({ materials: BASIC_MATERIALS });
+			this.scene.add(this.cube.graph);
+			console.log("this.cube:", this.cube);
+
 			this.render();
 		},
 
 
 		methods: {
 			initializeRenderer () {
-				this.renderer = new THREE.WebGLRenderer({ antialias: true, canvas: this.$refs.canvas, alpha: true });
+				this.renderer = new THREE.WebGLRenderer({ antialias: true, canvas: this.$refs.canvas, alpha: false });
+				this.renderer.setClearColor(new THREE.Color("#777777"), 1);
+				this.renderer.setSize(this.size.width, this.size.height, false);
 
-				this.camera = new THREE.OrthographicCamera(-0.5, 0.5, this.ratio / 2, this.ratio / -2, 0, 100);
-				this.camera.position.z = 1;
+				//this.camera = new THREE.OrthographicCamera(-0.5, 0.5, this.ratio / 2, this.ratio / -2, 0, 100);
+				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 5, 12);
+				this.camera.position.set(0, 0, 8);
+				this.camera.lookAt(0, 0, 0);
+
 				this.scene = new THREE.Scene();
 			},
 
@@ -54,11 +70,11 @@
 				let stuck = 0;
 
 				while (this.rendererActive) {
-					this.$emit("beforeRender");
+					//this.$emit("beforeRender");
 
 					this.renderer.render(this.scene, this.camera);
 
-					this.$emit("afterRender");
+					//this.$emit("afterRender");
 
 					++frames;
 
@@ -80,6 +96,15 @@
 					lastTime = now;
 
 					await animationDelay();
+				}
+			},
+
+
+			onMouseMove (event) {
+				//console.log("onMouseMove:", event);
+				if (this.cube) {
+					this.cube.graph.rotateX(event.movementX * 1e-2);
+					this.cube.graph.rotateY(event.movementY * 1e-2);
 				}
 			},
 		},

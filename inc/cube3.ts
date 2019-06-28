@@ -156,7 +156,7 @@ class Cube3 {
 	}
 
 
-	get positions () {
+	get positions () : Uint8Array {
 		return this.units.map((unit, index) => pointRotationTable[index][unit]);
 	}
 
@@ -188,7 +188,7 @@ class Cube3 {
 	divide (cube: Cube3) : Cube3 {
 		const result = new Cube3();
 		const units = cube.units.map((state, index) => cubeAlgebra.DIVISION_TABLE[state][this.units[index]]);
-		result.units = deorder(cube.positions, units);
+		result.units = Uint8Array.from(deorder(cube.positions, units));
 
 		return result;
 	}

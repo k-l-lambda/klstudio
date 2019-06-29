@@ -76,13 +76,14 @@ export default class CubeObject {
 			let now = Date.now();
 			while (now < endTime) {
 				const progress = 1 - (endTime - now) / this.twistDuration;
+				const smooth = 3 * progress ** 2 - 2 * progress ** 3;
 
 				movingIndices.forEach(index => {
 					const end = new THREE.Quaternion(...QUATERNIONS[this.algebra.units[index]]);
 					const start = end.clone();
 					start.premultiply(rot);
 
-					THREE.Quaternion.slerp(start, end, this.graph.children[index].quaternion, progress);
+					THREE.Quaternion.slerp(start, end, this.graph.children[index].quaternion, smooth);
 				});
 
 				await animationDelay();

@@ -18,6 +18,10 @@
 
 
 
+	const TWIST_KEYS = "lRdUbFLrDuBf";
+
+
+
 	export default {
 		name: "cube3-player",
 
@@ -42,6 +46,14 @@
 
 		mounted () {
 			window.$cube = this.$refs.viewer.cube;
+
+			document.addEventListener("keydown", event => {
+				//console.log("keydown:", event);
+
+				const twist = TWIST_KEYS.indexOf(event.key);
+				if (twist >= 0)
+					this.$refs.viewer.cube.twist(twist);
+			});
 		},
 
 

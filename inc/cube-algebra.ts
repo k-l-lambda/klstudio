@@ -4,6 +4,14 @@ const _j = 1;
 const _k = 2;
 
 
+const quaternionProduct = ([b2, c2, d2, a2] : Array<number>, [b1, c1, d1, a1] : Array<number>) : Array<number> => [
+	a1 * b2 + b1 * a2 + c1 * d2 - d1 * c2,
+	a1 * c2 - b1 * d2 + c1 * a2 + d1 * b2,
+	a1 * d2 + b1 * c2 - c1 * b2 + d1 * a2,
+	a1 * a2 - b1 * b2 - c1 * c2 - d1 * d2,
+];
+
+
 class Item {
 	unit: number;
 	exponent: number;
@@ -37,6 +45,23 @@ class Item {
 		}
 
 		return "ijk"[this.unit] + postfix;
+	}
+
+
+	toQuaternion() : Array<number> {
+		const axis = [0, 0, 0];
+		axis[this.unit] = 1;
+
+		const angle = -Math.PI * 0.5 * this.exponent;
+		const sina = Math.sin(angle / 2);
+		const cosa = Math.cos(angle / 2);
+
+		return [
+			axis[0] * sina,
+			axis[1] * sina,
+			axis[2] * sina,
+			cosa,
+		];
 	}
 
 
@@ -129,6 +154,14 @@ class Orientation {
 			return "1";
 
 		return this.items.map(item => item.toString()).join("");
+	}
+
+
+	toQuaternion() : Array<number> {
+		const production = this.items.reduce((product, item) => quaternionProduct(product, item.toQuaternion()), [0, 0, 0, 1]);
+		const magnitude = 1;//Math.sqrt(production[0] * production[0] + production[1] * production[1] + production[2] * production[2] + production[3] * production[3]);
+
+		return production.map(x => x / magnitude);
 	}
 
 
@@ -233,4 +266,6 @@ export {
 	NORMAL_ORIENTATIONS,
 	MULTIPLICATION_TABLE,
 	DIVISION_TABLE,
+
+	//quaternionProduct,
 };

@@ -7,6 +7,8 @@ import {
 	NORMAL_ORIENTATIONS,
 	MULTIPLICATION_TABLE,
 	DIVISION_TABLE,
+
+	//quaternionProduct,
 } from "../inc/cube-algebra";
 
 
@@ -19,6 +21,8 @@ Object.assign(global, {
 	NORMAL_ORIENTATIONS,
 	MULTIPLICATION_TABLE,
 	DIVISION_TABLE,
+
+	//quaternionProduct,
 });
 
 

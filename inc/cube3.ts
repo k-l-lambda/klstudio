@@ -7,12 +7,12 @@ import * as cubeAlgebra from "./cube-algebra.ts";
 
 
 enum axis {
-	pX,
 	nX,
-	pY,
+	pX,
 	nY,
-	pZ,
+	pY,
 	nZ,
+	pZ,
 };
 
 
@@ -105,7 +105,7 @@ const pointRotationTable = points.map(point => rotationMatrices.map(matrix => po
 
 const pointIndices = [...Array(3 ** 3).keys()];
 const axisPointsTable = Array(6).fill(null).map((_, axis) => pointIndices.filter(index => {
-	const positive = axis % 2 === 0;
+	const positive = axis % 2 > 0;
 
 	return points[index][Math.floor(axis / 2)] === (positive ? 1 : -1);
 }));
@@ -124,7 +124,7 @@ const timesToIndex = times => [1, 3, 2].indexOf((times + 40) % 4);
 const axisTimesToTwist = (axis, times) => axis + timesToIndex(times) * 6;
 
 
-const MANIPULATION_NAMES = [
+const TWIST_NAMES = [
 	"R-", "L", "U-", "D", "F-", "B",
 	"R", "L-", "U", "D-", "F", "B-",
 	"R2", "L2", "U2", "D2", "F2", "B2",
@@ -134,7 +134,7 @@ const MANIPULATION_NAMES = [
 const ENCODE_UNIT_ORDER = [
 	0, 2, 6, 8, 18, 20, 24, 26,						// corners
 	1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25,		// edges
-	10, 12, 14, 16,									// axes
+	4, 10, 12, 14, 16, 22,							// axes
 ];
 
 
@@ -228,6 +228,6 @@ export {
 	axisTimesToTwist,
 	axis,
 	//deorder,
-	MANIPULATION_NAMES,
+	TWIST_NAMES,
 	Cube3,
 };

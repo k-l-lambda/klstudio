@@ -2,8 +2,9 @@
 import * as THREE from "three";
 
 import { NORMAL_ORIENTATIONS } from "../inc/cube-algebra.ts";
-import { Cube3 } from "../inc/cube3.ts";
+import { Cube3, twistToAxisRotation } from "../inc/cube3.ts";
 import { createCube3Meshes } from "./cubeMesh.js";
+import { animationDelay } from "./delay.js";
 
 
 
@@ -13,6 +14,15 @@ const UNIT_SCALE = 0.92;
 
 
 const QUATERNIONS = NORMAL_ORIENTATIONS.map(o => o.toQuaternion());
+
+const AXES = [
+	new THREE.Vector3(-1, 0, 0),
+	new THREE.Vector3(-1, 0, 0),
+	new THREE.Vector3(0, -1, 0),
+	new THREE.Vector3(0, -1, 0),
+	new THREE.Vector3(0, 0, -1),
+	new THREE.Vector3(0, 0, -1),
+];
 
 
 
@@ -34,6 +44,8 @@ export default class CubeObject {
 		});
 
 		this.updateGraph();
+
+		this.animation = Promise.resolve();
 	}
 
 
@@ -45,8 +57,43 @@ export default class CubeObject {
 	}
 
 
-	twist (twist) {
-		this.algebra.twist(twist);
-		this.updateGraph();
+	twist (twist, { useAnimation = true } = {}) {
+		if (!useAnimation) {
+			this.algebra.twist(twist);
+			this.updateGraph();
+		}
+
+		this.animation = this.animation.then(async () => {
+			this.algebra.twist(twist);
+
+			const endTime = Date.now() + this.twistDuration;
+
+			const { axis, rotation } = twistToAxisRotation(twist);
+			const movingIndices = this.algebra.faceIndicesFromAxis(axis);
+			const span = [Math.PI * -0.5, Math.PI * 0.5, Math.PI][Math.floor((rotation - 1) / 3)];
+			const rot = new THREE.Quaternion().setFromAxisAngle(AXES[axis], span);
+
+			let now = Date.now();
+			while (now < endTime) {
+				const progress = 1 - (endTime - now) / this.twistDuration;
+
+				movingIndices.forEach(index => {
+					const end = new THREE.Quaternion(...QUATERNIONS[this.algebra.units[index]]);
+					const start = end.clone();
+					start.premultiply(rot);
+
+					THREE.Quaternion.slerp(start, end, this.graph.children[index].quaternion, progress);
+				});
+
+				await animationDelay();
+				now = Date.now();
+			}
+
+			this.updateGraph();
+
+			await animationDelay();
+		});
+
+		return this.animation;
 	}
 };

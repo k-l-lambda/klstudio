@@ -161,15 +161,20 @@ class Cube3 {
 	}
 
 
-	twist (twist: number) {
-		// select a face according to axis, substitute unit states by rotation.
-		const { axis, rotation } = twistToAxisRotation(twist);
-
+	faceIndicesFromAxis(axis: number) : Array<number> {
 		const movingPoints = axisPointsTable[axis];
-		const movingIndices = Array.from(this.positions)
+		
+		return Array.from(this.positions)
 			.map((position, index) => ({ position, index }))
 			.filter(({ position }) => movingPoints.includes(position))
 			.map(({ index }) => index);
+	}
+
+
+	twist (twist: number) {
+		// select a face according to axis, substitute unit states by rotation.
+		const { axis, rotation } = twistToAxisRotation(twist);
+		const movingIndices = this.faceIndicesFromAxis(axis);
 
 		movingIndices.forEach(index => this.units[index] = cubeAlgebra.MULTIPLICATION_TABLE[this.units[index]][rotation]);
 	}
@@ -194,7 +199,7 @@ class Cube3 {
 	}
 
 
-	encode () {
+	encode () : string {
 		return ENCODE_UNIT_ORDER.map(index => this.units[index]).map(state => String.fromCharCode(A + state)).join("");
 	}
 
@@ -206,7 +211,7 @@ class Cube3 {
 	}
 
 
-	validate () {
+	validate () : boolean {
 		const positions = this.positions;
 
 		for (let i = 0; i < this.units.length; ++i) {

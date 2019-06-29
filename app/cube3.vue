@@ -12,6 +12,7 @@
 
 	import { animationDelay } from "./delay";
 	import CubeObject from "./cubeObject.js";
+	//window.THREE = THREE;
 
 
 

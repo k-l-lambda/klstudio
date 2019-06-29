@@ -1,6 +1,6 @@
 <template>
 	<div v-resize="onResize" class="cube3-player">
-		<Cube3
+		<Cube3 ref="viewer"
 			class="viewer"
 			:size="size"
 			@fps="onFps"
@@ -37,6 +37,11 @@
 				size: undefined,
 				fps: null,
 			};
+		},
+
+
+		mounted () {
+			window.$cube = this.$refs.viewer.cube;
 		},
 
 

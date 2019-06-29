@@ -158,10 +158,7 @@ class Orientation {
 
 
 	toQuaternion() : Array<number> {
-		const production = this.items.reduce((product, item) => quaternionProduct(product, item.toQuaternion()), [0, 0, 0, 1]);
-		const magnitude = 1;//Math.sqrt(production[0] * production[0] + production[1] * production[1] + production[2] * production[2] + production[3] * production[3]);
-
-		return production.map(x => x / magnitude);
+		return this.items.reduce((product, item) => quaternionProduct(product, item.toQuaternion()), [0, 0, 0, 1]);
 	}
 
 
@@ -266,6 +263,4 @@ export {
 	NORMAL_ORIENTATIONS,
 	MULTIPLICATION_TABLE,
 	DIVISION_TABLE,
-
-	//quaternionProduct,
 };

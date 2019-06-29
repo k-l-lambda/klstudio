@@ -138,7 +138,7 @@ const ENCODE_UNIT_ORDER = [
 ];
 
 
-const deorder = (keys, values) => Array.from(keys).map((k, i) => ({k, i})).sort((x1, x2) => x1.k - x2.k).map(({i}) => values[i]);
+const deorder = (keys : Array<number>, values) => Array.from(keys).map((k, i) => ({k, i})).sort((x1, x2) => x1.k - x2.k).map(({i}) => values[i]);
 
 
 const A = "A".charCodeAt(0);

@@ -1,6 +1,7 @@
 <template>
 	<div v-resize="onResize" class="cube3-player">
 		<Cube3
+			class="viewer"
 			:size="size"
 			@fps="onFps"
 		/>
@@ -66,7 +67,7 @@
 		right: 0;
 		bottom: 0;
 		padding: 4px;
-		color: #0006;
+		color: #fffc;
 		pointer-events: none;
 	}
 
@@ -78,5 +79,10 @@
 	.fps em
 	{
 		font-weight: bold;
+	}
+
+	.viewer
+	{
+		background-color: #444;
 	}
 </style>

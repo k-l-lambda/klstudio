@@ -50,8 +50,8 @@
 
 		methods: {
 			initializeRenderer () {
-				this.renderer = new THREE.WebGLRenderer({ antialias: true, canvas: this.$refs.canvas, alpha: false });
-				this.renderer.setClearColor(new THREE.Color("#777777"), 1);
+				this.renderer = new THREE.WebGLRenderer({ antialias: true, canvas: this.$refs.canvas, alpha: true });
+				this.renderer.setClearColor(new THREE.Color("black"), 0);
 				this.renderer.setSize(this.size.width, this.size.height, false);
 
 				//this.camera = new THREE.OrthographicCamera(-0.5, 0.5, this.ratio / 2, this.ratio / -2, 0, 100);
@@ -101,11 +101,21 @@
 
 
 			onMouseMove (event) {
-				//console.log("onMouseMove:", event);
-				if (this.cube) {
-					this.cube.graph.rotateX(event.movementX * 1e-2);
-					this.cube.graph.rotateY(event.movementY * 1e-2);
+				//console.log("onMouseMove:", event.button, event.buttons);
+				if (this.cube && event.buttons === 1) {
+					this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 1e-2);
+					this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), event.movementY * 1e-2);
 				}
+			},
+		},
+
+
+		watch: {
+			size (value) {
+				this.camera.aspect = value.width / value.height;
+				this.camera.updateProjectionMatrix();
+
+				this.renderer.setSize(value.width, value.height, false);
 			},
 		},
 	};

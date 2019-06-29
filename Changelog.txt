@@ -5,6 +5,11 @@ TODO:
 
 
 
+2019.6.29	K.L.	<k.l.lambda@gmail.com>
+
+	+	cube3.vue: rotate by mouse implemented.
+
+
 2019.6.28	K.L.	<k.l.lambda@gmail.com>
 
 	+	cube3.vue: cube graph rendering added.

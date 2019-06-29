@@ -21,23 +21,23 @@ global.cube = cube;
 
 
 for (let i = 0; i < 18; ++i) {
-	const manipulation = i;
+	const twist = i;
 
 	const c = new cube3.Cube3();
-	c.manipulate(manipulation);
+	c.twist(twist);
 
 	const sum = c.positions.reduce((sum, p) => sum + p, 0);
-	console.assert(sum === 13 * 27, "unit manipulation sumcheck failed:", sum.toString(), manipulation, c.positions, c.units);
+	console.assert(sum === 13 * 27, "unit twist sumcheck failed:", sum.toString(), twist, c.positions, c.units);
 }
 
 
 for (let i = 0; i < 1000; ++i) {
-	const manipulation = Math.floor(Math.random() * 18);
-	//console.log("manipulate:", manipulation);
-	cube.manipulate(manipulation);
+	const twist = Math.floor(Math.random() * 18);
+	//console.log("twist:", twist);
+	cube.twist(twist);
 
 	const sum = cube.positions.reduce((sum, p) => sum + p, 0);
-	console.assert(sum === 13 * 27, "continuous manipulations sumcheck failed:", sum.toString(), manipulation, cube.positions, cube.units);
+	console.assert(sum === 13 * 27, "continuous twists sumcheck failed:", sum.toString(), twist, cube.positions, cube.units);
 }
 
 

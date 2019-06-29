@@ -111,17 +111,17 @@ const axisPointsTable = Array(6).fill(null).map((_, axis) => pointIndices.filter
 }));
 
 
-const manipulationToAxisRotation = manipulation => ({
-	axis: manipulation % 6,
-	rotation: Math.floor(manipulation / 2) + 1,
+const twistToAxisRotation = twist => ({
+	axis: twist % 6,
+	rotation: Math.floor(twist / 2) + 1,
 });
 
 
-const axisRotationToManipulation = (axis, rotation) => axis % 2 + (rotation - 1) * 2;
+const axisRotationToTwist = (axis, rotation) => axis % 2 + (rotation - 1) * 2;
 
 
 const timesToIndex = times => [1, 3, 2].indexOf((times + 40) % 4);
-const axisTimesToManipulation = (axis, times) => axis + timesToIndex(times) * 6;
+const axisTimesToTwist = (axis, times) => axis + timesToIndex(times) * 6;
 
 
 const MANIPULATION_NAMES = [
@@ -138,7 +138,7 @@ const ENCODE_UNIT_ORDER = [
 ];
 
 
-const deorder = (keys : Array<number>, values) => Array.from(keys).map((k, i) => ({k, i})).sort((x1, x2) => x1.k - x2.k).map(({i}) => values[i]);
+const deorder = (keys: ArrayLike<number>, values: ArrayLike<any>) => Array.from(keys).map((k, i) => ({k, i})).sort((x1, x2) => x1.k - x2.k).map(({i}) => values[i]);
 
 
 const A = "A".charCodeAt(0);
@@ -161,9 +161,9 @@ class Cube3 {
 	}
 
 
-	manipulate (manipulation: number) {
+	twist (twist: number) {
 		// select a face according to axis, substitute unit states by rotation.
-		const { axis, rotation } = manipulationToAxisRotation(manipulation);
+		const { axis, rotation } = twistToAxisRotation(twist);
 
 		const movingPoints = axisPointsTable[axis];
 		const movingIndices = Array.from(this.positions)
@@ -223,9 +223,9 @@ class Cube3 {
 export {
 	//pointRotationTable,
 	//axisPointsTable,
-	manipulationToAxisRotation,
-	axisRotationToManipulation,
-	axisTimesToManipulation,
+	twistToAxisRotation,
+	axisRotationToTwist,
+	axisTimesToTwist,
 	axis,
 	//deorder,
 	MANIPULATION_NAMES,

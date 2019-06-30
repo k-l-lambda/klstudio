@@ -13,9 +13,12 @@
 </template>
 
 <script>
+	import url from "url";
 	import resize from "vue-resize-directive";
 
 	import Cube3 from "./cube3.vue";
+
+	import { TWIST_NAMES } from "../inc/cube3.ts";
 
 
 
@@ -82,9 +85,27 @@
 
 
 			onHashChange () {
-				const code = location.hash.substr(1);
+				const hash = location.hash.substr(1);
+				//console.log("url:", hash, url.parse("abc?a=1", true));
+				const hashurl = url.parse(hash, true);
+
+				const code = hashurl.pathname;
 				if (code)
 					this.code = code;
+
+				if (hashurl.query.path) {
+					//console.log("path:", hashurl.query.path);
+					const twists = hashurl.query.path.match(/\w['2]?/g);
+					if (twists.length) {
+						const twist = TWIST_NAMES.indexOf(twists[0]);
+						if (twist >= 0) {
+							this.$refs.viewer.cube.twist(twist).then(() => {
+								const rest = twists.slice(1).join("");
+								location.hash = `${this.code}?path=${rest}`;
+							});
+						}
+					}
+				}
 			},
 		},
 

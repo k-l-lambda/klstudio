@@ -125,9 +125,9 @@ const axisTimesToTwist = (axis, times) => axis + timesToIndex(times) * 6;
 
 
 const TWIST_NAMES = [
-	"R'", "L", "U'", "D", "F'", "B",
-	"R", "L'", "U", "D'", "F", "B'",
-	"R2", "L2", "U2", "D2", "F2", "B2",
+	"L'", "R", "D'", "U", "B'", "F",
+	"L", "R'", "D", "U'", "B", "F'",
+	"L2", "R2", "D2", "U2", "B2", "F2",
 ];
 
 

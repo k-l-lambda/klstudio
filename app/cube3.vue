@@ -17,7 +17,8 @@
 
 
 	const BASIC_MATERIALS = [
-		"green", "blue", "orange", "red", "white", "yellow", "black",
+		//"green", "blue", "orange", "red", "white", "yellow", "black",
+		"#f90", "#d00", "#ff2", "white", "blue", "#0e0", "black",
 	].map(color => new THREE.MeshBasicMaterial({ color: new THREE.Color(color) }));
 
 

@@ -22,7 +22,7 @@
 
 
 
-	const TWIST_KEYS = "lRdUbFLrDuBf";
+	const TWIST_KEYS = "LrDuBflRdUbF";
 
 
 

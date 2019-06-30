@@ -31,6 +31,7 @@
 				type: Object,
 				default: () => ({ width: 800, height: 800 }),
 			},
+			code: String,
 		},
 
 
@@ -41,9 +42,9 @@
 
 			this.initializeRenderer();
 
-			this.cube = new CubeObject({ materials: BASIC_MATERIALS });
+			this.cube = new CubeObject({ materials: BASIC_MATERIALS, onChange: algebra => this.onChange(algebra) });
 			this.scene.add(this.cube.graph);
-			console.log("this.cube:", this.cube);
+			//console.log("this.cube:", this.cube);
 
 			this.render();
 		},
@@ -108,6 +109,12 @@
 					this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), event.movementY * 1e-2);
 				}
 			},
+
+
+			onChange (algebra) {
+				this.innerCode = algebra.encode();
+				this.$emit("update:code", this.innerCode);
+			},
 		},
 
 
@@ -117,6 +124,13 @@
 				this.camera.updateProjectionMatrix();
 
 				this.renderer.setSize(value.width, value.height, false);
+			},
+
+
+			code (value) {
+				//console.log("code changed:", value);
+				if (this.innerCode !== value)
+					this.cube.setState(value);
 			},
 		},
 	};

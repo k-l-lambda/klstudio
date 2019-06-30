@@ -27,10 +27,11 @@ const AXES = [
 
 
 export default class CubeObject {
-	constructor ({ materials, twistDuration = 300 }) {
+	constructor ({ materials, twistDuration = 300, onChange = null }) {
 		this.algebra = new Cube3();
 
 		this.twistDuration = twistDuration;
+		this.onChange = onChange;
 
 		this.graph = new THREE.Object3D();
 
@@ -54,6 +55,23 @@ export default class CubeObject {
 			const q = QUATERNIONS[this.algebra.units[i]];
 			cube.quaternion.set(...q);
 		});
+
+		if (this.onChange)
+			this.onChange(this.algebra);
+	}
+
+
+	reset () {
+		this.algebra.reset();
+		this.updateGraph();
+	}
+
+
+	setState (code) {
+		this.algebra.decode(code);
+		console.assert(this.algebra.validate(), "invalid cube state:", code);
+
+		this.updateGraph();
 	}
 
 
@@ -61,6 +79,8 @@ export default class CubeObject {
 		if (!useAnimation) {
 			this.algebra.twist(twist);
 			this.updateGraph();
+
+			return;
 		}
 
 		this.animation = this.animation.then(async () => {

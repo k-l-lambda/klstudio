@@ -3,6 +3,7 @@
 		<Cube3 ref="viewer"
 			class="viewer"
 			:size="size"
+			:code.sync="code"
 			@fps="onFps"
 		/>
 		<span class="status">
@@ -40,6 +41,7 @@
 			return {
 				size: undefined,
 				fps: null,
+				code: null,
 			};
 		},
 
@@ -50,10 +52,20 @@
 			document.addEventListener("keydown", event => {
 				//console.log("keydown:", event);
 
-				const twist = TWIST_KEYS.indexOf(event.key);
-				if (twist >= 0)
-					this.$refs.viewer.cube.twist(twist);
+				switch (event.key) {
+				case "Home":
+					this.$refs.viewer.cube.reset();
+
+					break;
+				default:
+					const twist = TWIST_KEYS.indexOf(event.key);
+					if (twist >= 0)
+						this.$refs.viewer.cube.twist(twist);
+				}
 			});
+
+			window.onhashchange = () => this.onHashChange();
+			this.onHashChange();
 		},
 
 
@@ -66,6 +78,20 @@
 			onFps (data) {
 				//console.log("fps:", data);
 				this.fps = data.fps;
+			},
+
+
+			onHashChange () {
+				const code = location.hash.substr(1);
+				if (code)
+					this.code = code;
+			},
+		},
+
+
+		watch: {
+			code (value) {
+				location.hash = value;
 			},
 		},
 	};

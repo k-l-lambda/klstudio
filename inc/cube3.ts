@@ -149,7 +149,7 @@ class Cube3 {
 
 
 	constructor (code: string = null) {
-		this.units = new Uint8Array(3 ** 3).fill(0);
+		this.reset();
 
 		if (code)
 			this.decode(code);
@@ -158,6 +158,11 @@ class Cube3 {
 
 	get positions () : Uint8Array {
 		return this.units.map((unit, index) => pointRotationTable[index][unit]);
+	}
+
+
+	reset () {
+		this.units = new Uint8Array(3 ** 3).fill(0);
 	}
 
 

@@ -44,6 +44,7 @@ for (let i = 0; i < 1000; ++i) {
 console.assert(cube.validate(), "validate failed:", cube);
 
 
+// multiplication & divide
 for (let i = 0; i < 100; ++i) {
 	const cube1 = new cube3.Cube3();
 	const cube2 = new cube3.Cube3();
@@ -66,6 +67,29 @@ for (let i = 0; i < 100; ++i) {
 	//console.log("test:", code2, codeq);
 	console.assert(codeq === code2, "multiplication - divide inversibility failed:", code2, codeq);
 }
+
+
+// path inverse
+const codeZero = new cube3.Cube3().encode();
+for (let i = 0; i < 100; ++i) {
+	const cube1 = new cube3.Cube3();
+	const cube2 = new cube3.Cube3();
+
+	const path = Array(30).fill(0).map(() => ~~(Math.random() * 18));
+	const invertPath = cube3.invertPath(path);
+
+	path.forEach(twist => cube1.twist(twist));
+	invertPath.forEach(twist => cube2.twist(twist));
+
+	const production1 = cube1.multiply(cube2);
+	const production2 = cube2.multiply(cube1);
+	//console.log("production:", production1.encode(), production2.encode(), path, invertPath);
+
+	console.assert(production1.encode() === codeZero && production2.encode() === codeZero, "path inverse failed.");
+}
+
+
+console.log("cube3 test finished.");
 
 
 setTimeout(x => x, 0x7fffffff);

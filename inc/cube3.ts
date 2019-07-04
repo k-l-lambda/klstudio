@@ -124,6 +124,11 @@ const timesToIndex = times => [1, 3, 2].indexOf((times + 40) % 4);
 const axisTimesToTwist = (axis, times) => axis + timesToIndex(times) * 6;
 
 
+const invertTwist = twist => twist >= 12 ? twist : (twist >= 6 ? twist - 6 : twist + 6);
+
+const invertPath = (path: Array<number>) => [...path].reverse().map(invertTwist);
+
+
 const TWIST_NAMES = [
 	"L'", "R", "D'", "U", "B'", "F",
 	"L", "R'", "D", "U'", "B", "F'",
@@ -168,7 +173,7 @@ class Cube3 {
 
 	faceIndicesFromAxis(axis: number) : Array<number> {
 		const movingPoints = axisPointsTable[axis];
-		
+
 		return Array.from(this.positions)
 			.map((position, index) => ({ position, index }))
 			.filter(({ position }) => movingPoints.includes(position))
@@ -234,6 +239,8 @@ export {
 	//pointRotationTable,
 	//axisPointsTable,
 	twistToAxisRotation,
+	invertTwist,
+	invertPath,
 	axisRotationToTwist,
 	axisTimesToTwist,
 	axis,

@@ -14,7 +14,7 @@
 					<feColorMatrix type="saturate" values="0.7"/>
 				</filter>
 				<filter id="filter-grey">
-					<feColorMatrix type="saturate" values="0.04"/>
+					<feColorMatrix type="saturate" values="0.06"/>
 				</filter>
 				<filter id="filter-brightness-n4">
 					<feComponentTransfer>
@@ -74,9 +74,9 @@
 				</filter>
 				<filter id="filter-brightness-5">
 					<feComponentTransfer>
-						<feFuncR type="linear" intercept="0.4" slope="1"/>
-						<feFuncG type="linear" intercept="0.4" slope="1"/>
-						<feFuncB type="linear" intercept="0.4" slope="1"/>
+						<feFuncR type="linear" intercept="0.5" slope="1"/>
+						<feFuncG type="linear" intercept="0.5" slope="1"/>
+						<feFuncB type="linear" intercept="0.5" slope="1"/>
 					</feComponentTransfer>
 				</filter>
 			</defs>

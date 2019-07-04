@@ -44,4 +44,28 @@ for (let i = 0; i < 1000; ++i) {
 console.assert(cube.validate(), "validate failed:", cube);
 
 
+for (let i = 0; i < 100; ++i) {
+	const cube1 = new cube3.Cube3();
+	const cube2 = new cube3.Cube3();
+
+	for (let ii = 0; ii < 30; ++ii) {
+		cube1.twist(~~(Math.random() * 18));
+		cube2.twist(~~(Math.random() * 18));
+	}
+
+	console.assert(cube1.validate() && cube2.validate(), "random twists validation failed:", cube1, cube2);
+
+	const production = cube1.multiply(cube2);
+	console.assert(production.validate(), "multiplication validation failed:", production);
+
+	const quotient = production.divide(cube1);
+	console.assert(quotient.validate(), "divide validation failed:", quotient);
+
+	const code2 = cube2.encode();
+	const codeq = quotient.encode();
+	//console.log("test:", code2, codeq);
+	console.assert(codeq === code2, "multiplication - divide inversibility failed:", code2, codeq);
+}
+
+
 setTimeout(x => x, 0x7fffffff);

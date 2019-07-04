@@ -115,18 +115,28 @@
 			<table>
 				<tbody>
 					<tr>
+						<th></th>
 						<td>
 							<MidiDevices @midiInput="onMidiInputMessage" />
 						</td>
 					</tr>
 					<tr>
+						<th></th>
 						<td>
 							<input type="range" v-model.number="wideRange.Start" min="21" :max="wideRange.End - 1" />
 							<input type="range" v-model.number="wideRange.End" :min="wideRange.Start + 1" max="108" />
 							<span>[{{wideRange.Start}} - {{wideRange.End}}]</span>
 						</td>
 					</tr>
+					<tr>
+						<th>Modal</th>
+						<td>
+							<input type="range" v-model.number="modalOffset" min="-7" :max="7" />
+							{{modalOffset}}
+						</td>
+					</tr>
 					<tr v-if="midiFileName">
+						<th></th>
 						<td>
 							<button @click="onPlayFile">{{isPlaying ? '\u23f8' : '\u25b6'}}</button>
 							<span>{{midiFileName}}</span>
@@ -208,9 +218,13 @@
 		const unit = (low - high) / 2;
 		for (let k = 0; k < Config.KeyCount + Config.GroupLen + 1; ++k) {
 			const x = (keyToPitch(k) - avg) / unit;
-			exts[k] = Math.exp(-x * x * x * x / 2) * 70;
+			exts[k] = Math.exp(-x * x * x * x / 2);
 		}
-		return exts;
+
+		const sum = exts.reduce((sum, ext) => sum + ext, 0);
+		const scale = (Config.RegionRadius * 0.9 - Config.InnerRadius) * 12 / sum;
+
+		return exts.map(ext => ext * scale);
 	};
 
 
@@ -271,7 +285,7 @@
 				modalOffset: 0,
 				keyWidthRatio: 0.5,
 				mode: Config.Mode.Major,
-				wideRange: { Start: 45, End: 84 },
+				wideRange: { Start: 54, End: 77 },
 				synesthesiaScheme: "FifthRainbow",
 				keyStatus: Array(Config.NoteEnd + 1).fill().map(() => ({ active: false })),
 				showDashboard: false,
@@ -419,6 +433,8 @@
 					console.log("MIDI file loaded.");
 
 					this.midiFileName = file.name;
+
+					this.onPlayFile();
 
 					break;
 				}

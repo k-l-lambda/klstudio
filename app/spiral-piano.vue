@@ -119,6 +119,13 @@
 							<MidiDevices @midiInput="onMidiInputMessage" />
 						</td>
 					</tr>
+					<tr>
+						<td>
+							<input type="range" v-model.number="wideRange.Start" min="21" :max="wideRange.End - 1" />
+							<input type="range" v-model.number="wideRange.End" :min="wideRange.Start + 1" max="108" />
+							<span>[{{wideRange.Start}} - {{wideRange.End}}]</span>
+						</td>
+					</tr>
 					<tr v-if="midiFileName">
 						<td>
 							<button @click="onPlayFile">{{isPlaying ? '\u23f8' : '\u25b6'}}</button>
@@ -158,17 +165,10 @@
 			Minor: {
 				MainPitches: { 0: true, 2: true, 3: true, 5: true, 7: true, 8: true, 11: true },
 				SyllableNames: ["do", null, "re", "mi", null, "fa", null, "so", "la", null, null, "ti"],
-			}
+			},
 		},
 		KeySerials: {
 			White: [0, 2, 4, 5, 7, 9, 11],
-			/*BlackPosition: {
-				1: 0.4,
-				3: 1.6,
-				6: 3.34,
-				8: 4.5,
-				10: 5.66,
-			},*/
 		},
 		SpanKeyWidth: 9,
 	};
@@ -178,9 +178,9 @@
 		return Config.NoteEnd - key;
 	};
 
-	const pitchToKey = function (pitch) {
+	/*const pitchToKey = function (pitch) {
 		return Config.NoteEnd - pitch;
-	};
+	};*/
 
 	const pitchToStep = function (pitch) {
 		let step = pitch % Config.GroupLen;
@@ -192,22 +192,6 @@
 	const pitchToGroup = function (pitch) {
 		return Math.floor(pitch / Config.GroupLen);
 	};
-
-	/*var pitchToX = function (pitch) {
-		var group = noteToGroup(pitch);
-		var pitch = noteToPitch(pitch);
-		var pos = Config.KeySerials.White.indexOf(pitch);
-		if (pos < 0)
-			pos = Config.KeySerials.BlackPosition[pitch];
-		return group * Config.KeySerials.White.length + pos - 12;
-	};
-
-	var xToPitch = function (x) {
-		var pos = Math.floor(x / Config.SpanKeyWidth) + 12;
-		var group = Math.floor(pos / 7);
-		var step = Config.KeySerials.White[pos % 7];
-		return group * 12 + step;
-	};*/
 
 	const keyToOffset = function (key) {
 		let offset = (key * 7) % 12;
@@ -277,7 +261,7 @@
 		},
 
 
-		data() {
+		data () {
 			return {
 				Config,
 				size: null,
@@ -287,9 +271,9 @@
 				modalOffset: 0,
 				keyWidthRatio: 0.5,
 				mode: Config.Mode.Major,
-				wideRange: {Start: 45, End: 84},
+				wideRange: { Start: 45, End: 84 },
 				synesthesiaScheme: "FifthRainbow",
-				keyStatus: Array(Config.NoteEnd + 1).fill().map((_, k) => ({active: false})),
+				keyStatus: Array(Config.NoteEnd + 1).fill().map(() => ({ active: false })),
 				showDashboard: false,
 				drageHover: false,
 				isPlaying: false,
@@ -361,10 +345,17 @@
 			/*synesthesia () {
 				return Synesthesias[this.synesthesiaScheme];
 			},*/
+
+
+			wideRangeHash () {
+				return `${this.wideRange.Start}|${this.wideRange.End}`;
+			},
 		},
 
 
 		mounted () {
+			window.$main = this;
+
 			//window.MidiPlayer = MidiPlayer;
 			MidiPlayer.loadPlugin().then(() => console.log("MIDI loaded."));
 
@@ -380,24 +371,24 @@
 				}
 			});
 
-			MIDI.Player.addListener(data => {
+			MidiPlayer.Player.addListener(data => {
 				switch (data.message) {
-					case 144:
-						this.activateKey(data.note, true);
+				case 144:
+					this.activateKey(data.note, true);
+
+					break;
+				case 128:
+					this.activateKey(data.note, false);
+
+					break;
+				case "meta":
+					switch (data.subtype) {
+					case "keySignature":
+						this.modalOffset = keyToOffset(data.key);
 
 						break;
-					case 128:
-						this.activateKey(data.note, false);
-
-						break;
-					case "meta":
-						switch (data.subtype) {
-							case "keySignature":
-								this.modalOffset = keyToOffset(data.key);
-
-								break;
-						}
-						break;
+					}
+					break;
 				}
 			});
 		},
@@ -409,7 +400,7 @@
 			},
 
 
-			async onDropFiles(event) {
+			async onDropFiles (event) {
 				this.drageHover = false;
 
 				MidiPlayer.Player.stop();
@@ -418,18 +409,18 @@
 				const file = event.dataTransfer.files[0];
 				//console.log("file:", file);
 				switch (file.type) {
-					case "audio/mid":
-					case "audio/midi":
-						const buffer = await file.readAs("ArrayBuffer");
-						const blob = new Blob([buffer], {type: file.type});
-						const url = URL.createObjectURL(blob);
-						await MidiPlayer.Player.loadFile(url);
+				case "audio/mid":
+				case "audio/midi":
+					const buffer = await file.readAs("ArrayBuffer");
+					const blob = new Blob([buffer], { type: file.type });
+					const url = URL.createObjectURL(blob);
+					await MidiPlayer.Player.loadFile(url);
 
-						console.log("MIDI file loaded.");
+					console.log("MIDI file loaded.");
 
-						this.midiFileName = file.name;
+					this.midiFileName = file.name;
 
-						break;
+					break;
 				}
 			},
 
@@ -520,6 +511,11 @@
 					break;
 				}
 			},
+		},
+
+
+		watch: {
+			wideRangeHash: "updateKeyRadius",
 		},
 	};
 </script>

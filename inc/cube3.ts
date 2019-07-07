@@ -153,11 +153,14 @@ class Cube3 {
 	units: Uint8Array;
 
 
-	constructor (code: string = null) {
+	constructor ({code, path} : {code?: string, path?: number[]} = {}) {
 		this.reset();
 
 		if (code)
 			this.decode(code);
+
+		if (path)
+			this.twists(path);
 	}
 
 
@@ -187,6 +190,11 @@ class Cube3 {
 		const movingIndices = this.faceIndicesFromAxis(axis);
 
 		movingIndices.forEach(index => this.units[index] = cubeAlgebra.MULTIPLICATION_TABLE[this.units[index]][rotation]);
+	}
+
+
+	twists (path: number[]) {
+		path.forEach(twist => this.twist(twist));
 	}
 
 

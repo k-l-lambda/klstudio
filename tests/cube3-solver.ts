@@ -2,10 +2,16 @@
 import * as fs from "fs";
 
 import * as cube3 from "../inc/cube3";
+import {QUARTER_DISTANCES} from "../inc/cube-algebra";
 
 
 
 const decodePath = path => path.split("").map(char => parseInt(char, 18));
+
+
+const seperatedDistance = state => state.map(orientation => QUARTER_DISTANCES[orientation]).reduce((sum, distance) => sum + distance, 0);
+
+const speciesDistance = state => new Set(state).size;
 
 
 const tableContent = fs.readFileSync("./static/cube3-table-6.json");
@@ -18,9 +24,9 @@ const states = Object.keys(table);
 //console.log("states:", states.length);
 
 
-// divide test
+// table-divide test
 for (let i = 0; i < 20; ++i) {
-	const path = Array(13).fill(null).map(() => ~~(Math.random() * 12));
+	const path = Array(12).fill(null).map(() => ~~(Math.random() * 12));
 	const end = new cube3.Cube3({path});
 	let solution: number[] = null;
 
@@ -29,8 +35,15 @@ for (let i = 0; i < 20; ++i) {
 		const quotient = end.divide(start).encode();
 
 		if (quotient in table) {
-			solution = [...decodePath(table[code]), ...decodePath(table[quotient])];
-			break;
+			const path = [...decodePath(table[code]), ...decodePath(table[quotient])];
+			if (!solution || path.length < solution.length) {
+				console.log("better solution found:", `${table[code].length}+${table[quotient].length}`);
+
+				solution = path;
+
+				// this maybe reasonable?
+				break;
+			}
 		}
 	}
 
@@ -38,4 +51,22 @@ for (let i = 0; i < 20; ++i) {
 		console.log("solution found:", end.encode(), cube3.stringifyPath(solution), cube3.stringifyPath(path));
 	else
 		console.warn("solution not found:", end.encode(), cube3.stringifyPath(path));
+
+	// show heuristic distance
+	const cube = new cube3.Cube3();
+	const distances1 = [];
+	const distances2 = [];
+	const distances3 = [];
+	for (const twist of solution) {
+		cube.twist(twist);
+
+		const d1 = seperatedDistance(cube.units);
+		const d2 = speciesDistance(cube.units);
+		const d3 = d1 * d2;
+
+		distances1.push(d1);
+		distances2.push(d2);
+		distances3.push(d3);
+	}
+	console.log("distances:", distances1, distances2, distances3);
 }

@@ -255,12 +255,40 @@ const MULTIPLICATION_TABLE = NORMAL_ORIENTATIONS.map(o1 => NORMAL_ORIENTATIONS.m
 const DIVISION_TABLE = MULTIPLICATION_TABLE.map(line => Array(line.length).fill(null).map((_, product) => line.indexOf(product)));
 
 
+const QUARTER_DISTANCES = [
+	0,
+	1, 1, 1,
+	1, 1, 1,
+	2, 2, 2,
+	2, 2, 3,
+	2, 2, 3,
+	2, 2, 3,
+	2, 2, 3,
+	3, 3,
+];
+
+
+const HALF_DISTANCES = [
+	0,
+	1, 1, 1,
+	1, 1, 1,
+	1, 1, 1,
+	2, 2, 2,
+	2, 2, 2,
+	2, 2, 2,
+	2, 2, 2,
+	2, 2,
+];
+
+
 export {
 	Item,
 	Orientation,
 
 	I, I_, I2, J, J_, J2, K, K_, K2,
 	NORMAL_ORIENTATIONS,
+	QUARTER_DISTANCES,
+	HALF_DISTANCES,
 	MULTIPLICATION_TABLE,
 	DIVISION_TABLE,
 };

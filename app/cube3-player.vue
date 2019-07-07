@@ -18,7 +18,7 @@
 
 	import Cube3 from "./cube3.vue";
 
-	import { TWIST_NAMES } from "../inc/cube3.ts";
+	import { stringifyPath, parsePath } from "../inc/cube3.ts";
 
 
 
@@ -95,12 +95,12 @@
 
 				if (hashurl.query.path) {
 					//console.log("path:", hashurl.query.path);
-					const twists = hashurl.query.path.match(/\w['2]?/g);
+					const twists = parsePath(hashurl.query.path);
 					if (twists.length) {
-						const twist = TWIST_NAMES.indexOf(twists[0]);
+						const twist = twists[0];
 						if (twist >= 0) {
 							this.$refs.viewer.cube.twist(twist).then(() => {
-								const rest = twists.slice(1).join("");
+								const rest = stringifyPath(twists.slice(1));
 								location.hash = `${this.code}?path=${rest}`;
 							});
 						}

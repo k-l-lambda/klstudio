@@ -135,6 +135,9 @@ const TWIST_NAMES = [
 	"L2", "R2", "D2", "U2", "B2", "F2",
 ];
 
+const stringifyPath = (path: number[]) => path.map(twist => TWIST_NAMES[twist]).join("");
+const parsePath = (source: string) => source.match(/\w['2]?/g).map(word => TWIST_NAMES.indexOf(word));
+
 
 const ENCODE_UNIT_ORDER = [
 	0, 2, 6, 8, 18, 20, 24, 26,						// corners
@@ -254,5 +257,7 @@ export {
 	axis,
 	//deorder,
 	TWIST_NAMES,
+	stringifyPath,
+	parsePath,
 	Cube3,
 };

@@ -13,6 +13,8 @@ const seperatedDistance = state => state.map(orientation => QUARTER_DISTANCES[or
 
 const speciesDistance = state => new Set(state).size;
 
+const mergeDistance = state => Array.from(new Set(state)).map((orientation: number) => QUARTER_DISTANCES[orientation]).reduce((sum, distance) => sum + distance, 0);
+
 
 const tableContent = fs.readFileSync("./static/cube3-table-6.json");
 const table = JSON.parse(tableContent.toString());
@@ -57,16 +59,19 @@ for (let i = 0; i < 20; ++i) {
 	const distances1 = [];
 	const distances2 = [];
 	const distances3 = [];
+	const distances4 = [];
 	for (const twist of solution) {
 		cube.twist(twist);
 
 		const d1 = seperatedDistance(cube.units);
 		const d2 = speciesDistance(cube.units);
 		const d3 = d1 * d2;
+		const d4 = mergeDistance(cube.units);
 
 		distances1.push(d1);
 		distances2.push(d2);
 		distances3.push(d3);
+		distances4.push(d4);
 	}
-	console.log("distances:", distances1, distances2, distances3);
+	console.log("distances:", distances3, distances4);
 }

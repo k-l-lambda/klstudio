@@ -6,16 +6,16 @@ import * as cube3 from "../inc/cube3";
 
 
 
-const DEEP = argv.deep || 3;
+const DEPTH = argv.depth || 3;
 const TWISTS_LEN = 12;	// 12 for quarter turn, 18 for half turn
 
 
 const table: { [key: string] : string; } = {};
 
 
-const genTable = (deep: number) : void => {
-	for (let i = 0; i < TWISTS_LEN ** deep; ++i) {
-		const path = Array(deep).fill(null).map((_, t) => Math.floor(i / (TWISTS_LEN ** t)) % TWISTS_LEN).reverse();
+const genTable = (depth: number) : void => {
+	for (let i = 0; i < TWISTS_LEN ** depth; ++i) {
+		const path = Array(depth).fill(null).map((_, t) => Math.floor(i / (TWISTS_LEN ** t)) % TWISTS_LEN).reverse();
 		const code = new cube3.Cube3({path}).encode();
 
 		if (!(code in table))
@@ -25,10 +25,10 @@ const genTable = (deep: number) : void => {
 };
 
 
-for (let deep = 0; deep <= DEEP; ++deep) {
-	genTable(deep);
+for (let depth = 0; depth <= DEPTH; ++depth) {
+	genTable(depth);
 
-	console.log("table size:", deep, Object.keys(table).length);
+	console.log("table size:", depth, Object.keys(table).length);
 }
 
 

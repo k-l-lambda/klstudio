@@ -10,7 +10,9 @@ const table: { [key: string] : string; } = JSON.parse(tableContent.toString());
 const entries = Object.entries(table);
 
 
-const output = fs.createWriteStream("./static/cube3-solver-map.data");
+const streamStates = fs.createWriteStream("./static/cube3-solver-states.data");
+const streamTwist = fs.createWriteStream("./static/cube3-solver-twist.data");
+const streamLength = fs.createWriteStream("./static/cube3-solver-length.data");
 
 const A = "A".charCodeAt(0);
 
@@ -25,7 +27,9 @@ for (const [code, path] of entries) {
 	const twist = invertTwist(parseInt(path[path.length - 1], 18));
 	const length = path.length;
 
-	output.write(new Uint8Array([...states, length, twist]));
+	streamStates.write(new Uint8Array(states));
+	streamTwist.write(new Uint8Array([twist]));
+	streamLength.write(new Uint8Array([length]));
 }
 
 

@@ -1,9 +1,12 @@
 
 TODO:
+	cube3-gen-solver-map.ts: refined twist data as categories.
 
 
 
 2019.7.20	K.L.	<k.l.lambda@gmail.com>
+
+	+	tools/cube3-train-solver.ts created.
 
 	+	tools/cube3-gen-solver-map.ts created.
 

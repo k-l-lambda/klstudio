@@ -2,6 +2,8 @@
 
 *	2019.8.4	K.L.	<k.l.lambda@gmail.com>
 
+	*	main.py: refined dataset.
+
 	*	main.py: model added.
 
 	*	Model topology experiment:

@@ -42,7 +42,7 @@ def main(argv):
 	dataLength = readBytesFile('./data/cube3-solver-length.data', (-1, 1))
 	dataState = readBytesFile('./data/cube3-solver-states.data', (-1, STATE_SIZE))
 
-	dataset = tf.data.Dataset.from_tensor_slices((dataState, dataLength)).shuffle(1).batch(32)
+	dataset = tf.data.Dataset.from_tensor_slices((dataState, dataLength)).shuffle(1).repeat().batch(32)
 
 	trainAndSaveModel(dataset, "cube-solver")
 

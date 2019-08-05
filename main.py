@@ -35,7 +35,7 @@ def trainAndSaveModel(dataset, modelName):
 
 	model.fit(dataset, epochs = 10, steps_per_epoch = 10000)
 
-	model.save_weights('./models/%s.h5' % modelName, save_format = 'h5')
+	model.save('./models/%s.h5' % modelName)
 
 
 def main(argv):

@@ -1,5 +1,10 @@
 
 
+*	2019.8.5	K.L.	<k.l.lambda@gmail.com>
+
+	*	main.py: fixed model save.
+
+
 *	2019.8.4	K.L.	<k.l.lambda@gmail.com>
 
 	*	main.py: refined dataset.

@@ -62,6 +62,12 @@ export default [
 	},
 
 	{
+		name: "cube3-solver",
+		path: "/cube3-solver",
+		title: "Cube3 Solver",
+	},
+
+	{
 		name: "spiral-piano",
 		path: "/spiral-piano",
 		title: "Spiral Piano",

@@ -165,7 +165,7 @@
 				}
 				//console.log("inputs:", inputs);
 
-				this.model = await tf.loadModel(`/mlmodels/char-rnn/${this.theme}/model.json`);
+				this.model = await tf.loadLayersModel(`/mlmodels/char-rnn/${this.theme}/model.json`);
 
 				console.log("model loaded.");
 

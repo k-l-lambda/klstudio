@@ -10,7 +10,9 @@
 		"node-inspect": "cross-env NODE_ENV=development nodemon --inspect",
 		"ts-dev": "cross-env NODE_OPTIONS='--max-old-space-size=4096' ts-node-dev --",
 		"ts-dev:inspect": "ts-node-dev --inspect --",
-		"lint": "./node_modules/.bin/eslint"
+		"lint": "./node_modules/.bin/eslint",
+		"cube3-gentable6": "cross-env NODE_OPTIONS='--max-old-space-size=4096' ts-node-dev -- ./tools/cube3-gentable.ts --outputFile=./static/cube3-table-6.json --depth=6",
+		"cube3-gensolvermap": "cross-env NODE_OPTIONS='--max-old-space-size=4096' ts-node-dev -- ./tools/cube3-gen-solver-map.ts"
 	},
 	"repository": {
 		"type": "git",
@@ -32,7 +34,7 @@
 	"devDependencies": {
 		"@babel/core": "^7.2.0",
 		"@babel/preset-typescript": "^7.3.3",
-		"@tensorflow/tfjs": "^0.14.1",
+		"@tensorflow/tfjs": "^1.2.6",
 		"@tensorflow/tfjs-node": "^1.2.4",
 		"@tensorflow/tfjs-node-gpu": "^1.2.4",
 		"@vue/eslint-config-standard": "^4.0.0",

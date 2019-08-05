@@ -4,12 +4,22 @@
 </template>
 
 <script>
+	import * as tf from "@tensorflow/tfjs";
+
+
 	export default {
 		name: "cube3-solver",
 
 
 		mounted () {
-			//console.log("home:", document);
+			this.loadModel();
+		},
+
+
+		methods: {
+			async loadModel () {
+				this.model = await tf.loadLayersModel("/mlmodels/cube3/length/model.json");
+			},
 		},
 	};
 </script>

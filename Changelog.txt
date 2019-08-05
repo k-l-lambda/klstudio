@@ -6,6 +6,8 @@ TODO:
 
 2019.8.5	K.L.	<k.l.lambda@gmail.com>
 
+	+	cube3-solver.vue: loadModel implemented.
+
 	+	Entry of cube3-solver created.
 
 
@@ -217,7 +219,7 @@ TODO:
 
 	+	fifth-pitch-graph.vue: added points and band.
 
-	+	svg-map.vue: pan & scale by mouse implemneted.
+	+	svg-map.vue: pan & scale by mouse implemented.
 
 	+	app-wrapper.vue created.
 

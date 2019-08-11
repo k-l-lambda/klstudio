@@ -1,5 +1,10 @@
 
 
+*	2019.8.11	K.L.	<k.l.lambda@gmail.com>
+
+	+	cubeDatasets.py created.
+
+
 *	2019.8.5	K.L.	<k.l.lambda@gmail.com>
 
 	*	main.py: fixed model save.

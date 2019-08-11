@@ -1,7 +1,11 @@
 
 TODO:
-	cube3-gen-solver-map.ts: refined twist data as categories.
 
+
+
+2019.8.11	K.L.	<k.l.lambda@gmail.com>
+
+	+	cube3-gen-solver-map.ts: export twists data.
 
 
 2019.8.6	K.L.	<k.l.lambda@gmail.com>

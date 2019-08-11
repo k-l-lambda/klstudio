@@ -177,6 +177,14 @@ class Cube3 {
 	}
 
 
+	clone () {
+		const cube = new Cube3();
+		cube.units = new Uint8Array(this.units);
+
+		return cube;
+	}
+
+
 	faceIndicesFromAxis(axis: number) : Array<number> {
 		const movingPoints = axisPointsTable[axis];
 

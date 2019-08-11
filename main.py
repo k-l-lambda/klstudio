@@ -14,10 +14,15 @@ STATE_SIZE = 24 * 26
 def trainAndSaveModel(dataset, modelName):
 	#print('read:', dataLength.shape, dataState.shape)
 	model = tf.keras.Sequential([
-		tf.keras.layers.Dense(STATE_SIZE, activation = 'relu', input_shape = (STATE_SIZE + 12,)),
-		tf.keras.layers.Dense(STATE_SIZE, activation = 'relu'),
-		tf.keras.layers.Dense(STATE_SIZE, activation = 'relu'),
-		tf.keras.layers.Dense(STATE_SIZE, activation = 'relu'),
+		tf.keras.layers.Dense(STATE_SIZE + 12, activation = 'relu', input_shape = (STATE_SIZE + 12,)),
+		tf.keras.layers.Dense(STATE_SIZE + 12, activation = 'relu'),
+		tf.keras.layers.Dense(STATE_SIZE + 12, activation = 'relu'),
+		tf.keras.layers.Dense(STATE_SIZE + 12, activation = 'relu'),
+		tf.keras.layers.Dense(STATE_SIZE + 12, activation = 'relu'),
+		tf.keras.layers.Dense(STATE_SIZE + 12, activation = 'relu'),
+		tf.keras.layers.Dense(STATE_SIZE + 12, activation = 'relu'),
+		tf.keras.layers.Dense(STATE_SIZE + 12, activation = 'relu'),
+		tf.keras.layers.Dense(STATE_SIZE + 12, activation = 'relu'),
 		tf.keras.layers.Dense(1),
 	])
 
@@ -37,7 +42,7 @@ def main(argv):
 	dataState = readBytesFile('./data/cube3-solver-states.data', (-1, STATE_SIZE))
 
 	dataset = tf.data.Dataset.from_tensor_slices((dataState, dataLength)).shuffle(1).repeat().batch(32)'''
-	dataset = cubeDatasets.loadStatesTwists().shuffle(1).repeat().batch(32)
+	dataset = cubeDatasets.loadStatesTwists().shuffle(1024).repeat().batch(32)
 
 	trainAndSaveModel(dataset, "cube-solver")
 

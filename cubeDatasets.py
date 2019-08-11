@@ -31,6 +31,8 @@ def loadStatesTwists():
 				input = sum(map((lambda state: sparseVector(state, 24)), dataStates[s]), []) + sparseVector(t, 12)
 				result = dataTwists[s * 12][t]
 
-				yield (input, result)
+				repeat = 10 if result == 0 else 1
+				for r in range(repeat):
+					yield (input, result)
 
 	return tf.data.Dataset.from_generator(gen, (tf.float32, tf.float32), (tf.TensorShape([STATE_SIZE + 12]), tf.TensorShape([])))

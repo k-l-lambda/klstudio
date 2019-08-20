@@ -14,7 +14,7 @@
 
 
 
-	const A = "A".charCodeAt(0);
+	//const A = "A".charCodeAt(0);
 
 
 
@@ -33,7 +33,7 @@
 
 
 		mounted () {
-			this.loadModel();
+			//this.loadModel();
 		},
 
 
@@ -45,7 +45,7 @@
 
 			solve () {
 				const cube = this.$refs.player.$refs.viewer.cube.algebra;
-				const units = cube.encode().split("").map(c => c.charCodeAt(0) - A);
+				/*const units = cube.encode().split("").map(c => c.charCodeAt(0) - A);
 				const states = [].concat(...units.map(unit => Array(24).fill(null).map((_, i) => unit === i ? 1 : 0)));
 				//console.log("states:", states);
 
@@ -57,7 +57,15 @@
 					return predictions.dataSync()[0];
 				});
 
-				console.log("result:", result);
+				console.log("result:", result);*/
+
+				//console.log("cube:", cube.encode(), cube.units.reduce((sum, unit) => sum + unit, 0));
+				const sumcheck = cube => cube.units.reduce((sum, unit) => sum + unit, 0);
+				let c1 = cube.clone();
+				for (let steps = 0; sumcheck(c1) > 0; ++steps) {
+					c1 = c1.multiply(cube);
+					console.log("c1:", c1.encode(), sumcheck(c1), steps + 2);
+				}
 			},
 		},
 	};

@@ -12,9 +12,22 @@
 
 	import Cube3Player from "./cube3-player.vue";
 
+	import { TWIST_NAMES } from "../inc/cube3.ts";
+
 
 
 	//const A = "A".charCodeAt(0);
+
+
+	const isOrigin = cube => cube.units.reduce((sum, unit) => sum + unit, 0) === 0;
+
+	const cubeLoop = cube => {
+		let length = 1;
+		for (let c = cube.clone(); !isOrigin(c); c = c.multiply(cube))
+			++length;
+
+		return length;
+	};
 
 
 
@@ -59,13 +72,12 @@
 
 				console.log("result:", result);*/
 
-				//console.log("cube:", cube.encode(), cube.units.reduce((sum, unit) => sum + unit, 0));
-				const sumcheck = cube => cube.units.reduce((sum, unit) => sum + unit, 0);
-				let c1 = cube.clone();
-				for (let steps = 0; sumcheck(c1) > 0; ++steps) {
-					c1 = c1.multiply(cube);
-					console.log("c1:", c1.encode(), sumcheck(c1), steps + 2);
-				}
+				console.log("cube:", cubeLoop(cube));
+				Array(12).fill().forEach((_, i) => {
+					const c = cube.clone();
+					c.twist(i);
+					console.log(TWIST_NAMES[i], cubeLoop(c));
+				});
 			},
 		},
 	};

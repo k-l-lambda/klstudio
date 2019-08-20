@@ -1,3 +1,4 @@
 # generate this file by: yarn ts-dev ./tools/cube3-gentable.ts --outputFile=./static/cube3-table-6.json --deep=6
 cube3-table-6.json
+cube-loop.json
 *.data

@@ -76,8 +76,8 @@ const loopStatistics = loopTable => {
 const loopStats = loopStatistics(loopTable);
 
 
-//fs.writeFile("./static/cube-loop.json", JSON.stringify(loopTable), error => console.log("output file write finished:", error));
-fs.writeFile("./static/cube-loop.json", JSON.stringify(loopStats), error => console.log("output file write finished:", error));
+fs.writeFile("./static/cube-loop.json", JSON.stringify(loopTable), error => console.log("output file write finished:", error));
+fs.writeFile("./static/cube-loop-stats.json", JSON.stringify(loopStats), error => console.log("output file write finished:", error));
 
 
 

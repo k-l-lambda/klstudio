@@ -73,5 +73,6 @@ for (let i = 0; i < 20; ++i) {
 		distances3.push(d3);
 		distances4.push(d4);
 	}
-	console.log("distances:", distances3, distances4);
+	//console.log("distances:", distances1, distances3, distances4);
+	console.log("distances:", distances1, distances1.map(d => (d / 9).toFixed(1)));		// heuristic function result is less or equal to real value
 }

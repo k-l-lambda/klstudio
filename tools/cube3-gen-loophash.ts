@@ -122,9 +122,9 @@ const deriveLoopHash = async depth => {
 			const state = cube.encode();
 			const readableHash = printHash(hash);
 
-			if (table[hash])
-				console.assert(table[hash].twist === twist, "inconsistent hash twist:", readableHash, table[hash], state, twist);
-			else {
+			//if (table[hash])
+			//	console.assert(table[hash].twist === twist, "inconsistent hash twist:", readableHash, table[hash], state, twist);
+			if (!table[hash] || (table[hash].state !== state && table[hash].twist !== twist)) {
 				table[hash] = {
 					state,
 					twist,

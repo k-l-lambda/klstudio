@@ -58,13 +58,14 @@ const loadHashes = async depth => {
 
 		const reader = readline.createInterface({input: fs.createReadStream(inputFileName)});
 		reader.on("line", line => {
-			const [readableHash, state, twist] = line.split("\t");
+			const [readableHash, state, twist, recovery] = line.split("\t");
 			//console.log("line:", readableHash, state, twist);
 
 			result.push({
 				hash: parseHash(readableHash),
 				state,
-				twist,
+				twist: parseInt(twist, 18),
+				recovery: parseInt(recovery, 18),
 			});
 		});
 
@@ -95,6 +96,9 @@ const deriveLoopHash = async depth => {
 
 	parentHashes.forEach(parentHash => {
 		Array(12).fill(null).forEach((_, t) => {
+			if (parentHash.recovery === t)
+				return;
+
 			const cube = new Cube3({code: parentHash.state, path: [t]});
 
 			const selfLoop = cubeLoop(cube);
@@ -105,19 +109,19 @@ const deriveLoopHash = async depth => {
 			const recovery = invertTwist(t);
 			const twist = TWIST_PERMUTATION_48[min.index].indexOf(recovery);
 			const state = cube.encode();
+			const readableHash = printHash(hash);
 
 			if (table[hash])
-				console.assert(table[hash].twist === twist, "inconsistent hash twist:", table[hash], state, twist);
+				console.assert(table[hash].twist === twist, "inconsistent hash twist:", readableHash, table[hash], state, twist);
 			else {
 				table[hash] = {
 					state,
 					twist,
 				};
 
-				const readableHash = printHash(hash);
-				console.log("hash:", readableHash, state, twist);
+				console.log("hash:", readableHash, state, twist, recovery);
 
-				output.write(`${readableHash}\t${state}\t${twist.toString(18)}\n`);
+				output.write(`${readableHash}\t${state}\t${twist.toString(18)}\t${recovery.toString(18)}\n`);
 			}
 		});
 	});

@@ -101,6 +101,10 @@ const deriveLoopHash = async depth => {
 
 	const output = fs.createWriteStream(dataFileName(depth));
 
+	//process.stdout.write(".".repeat(parentHashes.length));
+	//process.stdout.write("\b".repeat(parentHashes.length));
+	//process.stdout.write("\u001b[F");
+
 	parentHashes.forEach((parentHash, parentIndex) => {
 		Array(12).fill(null).forEach((_, t) => {
 			//if (parentHash.recovery === t)
@@ -124,18 +128,28 @@ const deriveLoopHash = async depth => {
 
 			//if (table[hash])
 			//	console.assert(table[hash].twist === twist, "inconsistent hash twist:", readableHash, table[hash], state, twist);
-			if (!table[hash] || (table[hash].state !== state && table[hash].twist !== twist)) {
+			if (!table[hash]/* || (table[hash].state !== state && table[hash].twist !== twist)*/) {
 				table[hash] = {
 					state,
 					twist,
 				};
 
-				console.log("hash:", readableHash, state, twist, recovery);
+				//console.log("hash:", readableHash, state, twist, recovery);
+
+				/*if (table[hash]) {
+					const same = hash[twist] === hash[table[hash].twist];
+					console.log("hash collision:", same ? "OOOOO" : "XXXXX");
+				}*/
 
 				output.write(`${readableHash}\t${twist.toString(18)}\t${state}\t${parentIndex}\n`);
 			}
 		});
+
+		//process.stdout.write("\u25a0");
+		process.stdout.write(`\r${'╌/╎\\'[parentIndex % 4]} ${(parentIndex * 100 / parentHashes.length).toFixed(0)}%`);
 	});
+
+	process.stdout.write("\n")
 
 	output.end();
 };

@@ -58,13 +58,14 @@ const loadHashes = async depth => {
 
 		const reader = readline.createInterface({input: fs.createReadStream(inputFileName)});
 		reader.on("line", line => {
-			const [readableHash, state, twist] = line.split("\t");
+			const [readableHash, twist, state, parentIndex] = line.split("\t");
 			//console.log("line:", readableHash, state, twist);
 
 			result.push({
 				hash: parseHash(readableHash),
 				state,
 				twist: parseInt(twist, 18),
+				parentIndex: parseInt(parentIndex),
 			});
 		});
 
@@ -100,7 +101,7 @@ const deriveLoopHash = async depth => {
 
 	const output = fs.createWriteStream(dataFileName(depth));
 
-	parentHashes.forEach(parentHash => {
+	parentHashes.forEach((parentHash, parentIndex) => {
 		Array(12).fill(null).forEach((_, t) => {
 			//if (parentHash.recovery === t)
 			//	return;
@@ -131,7 +132,7 @@ const deriveLoopHash = async depth => {
 
 				console.log("hash:", readableHash, state, twist, recovery);
 
-				output.write(`${readableHash}\t${state}\t${twist.toString(18)}\n`);
+				output.write(`${readableHash}\t${twist.toString(18)}\t${state}\t${parentIndex}\n`);
 			}
 		});
 	});

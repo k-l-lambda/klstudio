@@ -58,14 +58,13 @@ const loadHashes = async depth => {
 
 		const reader = readline.createInterface({input: fs.createReadStream(inputFileName)});
 		reader.on("line", line => {
-			const [readableHash, state, twist, recovery] = line.split("\t");
+			const [readableHash, state, twist] = line.split("\t");
 			//console.log("line:", readableHash, state, twist);
 
 			result.push({
 				hash: parseHash(readableHash),
 				state,
 				twist: parseInt(twist, 18),
-				recovery: parseInt(recovery, 18),
 			});
 		});
 
@@ -76,15 +75,22 @@ const loadHashes = async depth => {
 		return result;
 	}
 
-	const origin = new Cube3();
+	if (depth === 0) {
+		const origin = new Cube3();
 
-	return [{state: origin.encode(), hash: loopHash(origin)}];
+		return [{state: origin.encode(), hash: loopHash(origin)}];
+	}
+
+	return [];
 };
 
 
 const deriveLoopHash = async depth => {
-	console.log("Loading hashes-", depth - 1);
+	console.log("Loading grand parent hashes-", depth - 2);
+	const grandHashes = new Set((await loadHashes(depth - 2)).map(({hash}) => hash));
+	//console.log("grandHashes:", printHash(grandHashes[0]));
 
+	console.log("Loading parent hashes-", depth - 1);
 	const parentHashes = await loadHashes(depth - 1);
 	//console.log("parentHashes:", parentHashes);
 
@@ -96,8 +102,8 @@ const deriveLoopHash = async depth => {
 
 	parentHashes.forEach(parentHash => {
 		Array(12).fill(null).forEach((_, t) => {
-			if (parentHash.recovery === t)
-				return;
+			//if (parentHash.recovery === t)
+			//	return;
 
 			const cube = new Cube3({code: parentHash.state, path: [t]});
 
@@ -105,6 +111,10 @@ const deriveLoopHash = async depth => {
 			const min = minHash(cube);
 
 			const hash = String.fromCharCode(selfLoop) + min.code;
+
+			// avoid backwards
+			if (grandHashes.has(hash))
+				return;
 
 			const recovery = invertTwist(t);
 			const twist = TWIST_PERMUTATION_48[min.index].indexOf(recovery);
@@ -121,7 +131,7 @@ const deriveLoopHash = async depth => {
 
 				console.log("hash:", readableHash, state, twist, recovery);
 
-				output.write(`${readableHash}\t${state}\t${twist.toString(18)}\t${recovery.toString(18)}\n`);
+				output.write(`${readableHash}\t${state}\t${twist.toString(18)}\n`);
 			}
 		});
 	});

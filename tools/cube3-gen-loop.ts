@@ -8,7 +8,7 @@ import {invertTwist, Cube3} from "../inc/cube3";
 
 const DEPTH = argv.depth || 3;
 
-const tableContent = fs.readFileSync("./static/cube3-table-6.json");
+const tableContent = fs.readFileSync("./static/data/cube3-table-6.json");
 const table: { [key: string] : string; } = JSON.parse(tableContent.toString());
 //const states = Object.entries(table).filter(([state, path]) => path.length <= DEPTH).map(([state, path]) => state);
 const states = Object.keys(table);

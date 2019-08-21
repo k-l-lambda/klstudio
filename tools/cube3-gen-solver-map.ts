@@ -5,13 +5,13 @@ import {invertTwist, Cube3} from "../inc/cube3";
 
 
 
-const tableContent = fs.readFileSync("./static/cube3-table-6.json");
+const tableContent = fs.readFileSync("./static/data/cube3-table-6.json");
 const table: { [key: string] : string; } = JSON.parse(tableContent.toString());
 const entries = Object.entries(table);
 
 
-const streamStates = fs.createWriteStream("./static/cube3-solver-states.data");
-const streamTwist = fs.createWriteStream("./static/cube3-solver-twists.data");
+const streamStates = fs.createWriteStream("./static/data/cube3-solver-states.data");
+const streamTwist = fs.createWriteStream("./static/data/cube3-solver-twists.data");
 //const streamLength = fs.createWriteStream("./static/cube3-solver-length.data");
 
 const A = "A".charCodeAt(0);

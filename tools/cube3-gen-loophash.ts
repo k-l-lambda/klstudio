@@ -2,7 +2,7 @@
 import {argv} from "yargs";
 import * as fs from "fs";
 
-import { Cube3, TWIST_PERMUTATION_48, permutate } from "../inc/cube3";
+import { Cube3, TWIST_PERMUTATION_48, permutate, invertTwist } from "../inc/cube3";
 
 
 
@@ -18,9 +18,7 @@ const cubeLoop = cube => {
 };
 
 
-const loopHash = cube => {
-	const selfLoop = cubeLoop(cube);
-
+const minHash = cube => {
 	const neighborLoops = Array(12).fill(null).map((_, t) => {
 		const c = cube.clone();
 		c.twist(t);
@@ -29,9 +27,16 @@ const loopHash = cube => {
 	});
 
 	const permutatedCodes = TWIST_PERMUTATION_48.map(permutation => permutate(permutation, neighborLoops).map(loop => String.fromCharCode(loop)).join(""));
-	const minCode = permutatedCodes.reduce((min: {code: string, index: number}, code, index) => (!min || code < min.code) ? {index, code} : min, null);
 
-	return minCode;
+	return permutatedCodes.reduce((min: {code: string, index: number}, code, index) => (!min || code < min.code) ? {index, code} : min, null)
+};
+
+
+const loopHash = cube => {
+	const selfLoop = cubeLoop(cube);
+	const min = minHash(cube);
+
+	return String.fromCharCode(selfLoop) + min.code;
 };
 
 
@@ -39,19 +44,51 @@ const loadHashes = depth => {
 	if (depth > 0) {
 		// TODO:
 	}
-	else
-		return [loopHash(new Cube3())];
+
+	const origin = new Cube3();
+
+	return [{state: origin.encode(), hash: loopHash(origin)}];
 };
+
+
+const printHash = hash => hash.split("").map(c => c.charCodeAt(0).toString()).join(",");
 
 
 const deriveLoopHash = depth => {
 	const parentHashes = loadHashes(depth - 1);
+	//console.log("parentHashes:", parentHashes);
 
+	const table = {};
+
+	parentHashes.forEach(parentHash => {
+		Array(12).fill(null).forEach((_, t) => {
+			const cube = new Cube3({code: parentHash.state, path: [t]});
+
+			const selfLoop = cubeLoop(cube);
+			const min = minHash(cube);
+
+			const hash = String.fromCharCode(selfLoop) + min.code;
+
+			const recovery = invertTwist(t);
+			const twist = TWIST_PERMUTATION_48[min.index].indexOf(recovery);
+			const state = cube.encode();
+
+			if (table[hash])
+				console.assert(table[hash].twist === twist, "inconsistent hash twist:", table[hash], state);
+			else {
+				table[hash] = {
+					state,
+					twist,
+				};
+
+				console.log("hash:", printHash(hash), state, twist);
+			}
+		});
+	});
 };
 
 
-//deriveLoopHash(argv.depth || 1);
-console.log("hash:", loopHash(new Cube3({path: [4]})));
+deriveLoopHash(argv.depth || 1);
 
 
 

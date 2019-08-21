@@ -253,6 +253,46 @@ class Cube3 {
 };
 
 
+// twist permutations
+const permutate = (indices: Array<number>, values: ArrayLike<any>) => indices.map(index => values[index]);
+const depermutate = deorder;
+
+const unitTwistPermutation = [
+	[0, 1, 11, 10, 2, 3, 6, 7, 5, 4, 8, 9],	// i
+	[4, 5, 2, 3, 7, 6, 10, 11, 8, 9, 1, 0],	// j
+	[9, 8, 0, 1, 4, 5, 3, 2, 6, 7, 10, 11],	// k
+];
+const mirrorTwistPermutation = [6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5];
+
+const identityPermutation = Array(12).fill(null).map((_, i) => i);
+
+const itemToPermutation = ({unit, exponent}) => {
+	const unitP = unitTwistPermutation[unit];
+
+	switch (exponent) {
+		case 1:
+			return unitP;
+
+		case -1:
+			return depermutate(unitP, identityPermutation);
+
+		case 2:
+			return permutate(unitP, unitP);
+
+		default:
+			console.assert(false, "invalid exponent:", exponent);
+	}
+};
+const orientationToPermutation = orientation => orientation.items.reduce(
+	(value, item) => permutate(itemToPermutation(item), value), identityPermutation);
+
+const TWIST_PERMUTATION_24 = cubeAlgebra.NORMAL_ORIENTATIONS.map(orientation => orientationToPermutation(orientation));
+const TWIST_PERMUTATION_48 = [
+	...TWIST_PERMUTATION_24,
+	...TWIST_PERMUTATION_24.map(permutation => permutate(permutation, mirrorTwistPermutation)),
+];
+
+
 
 export {
 	//pointRotationTable,
@@ -268,4 +308,5 @@ export {
 	stringifyPath,
 	parsePath,
 	Cube3,
+	TWIST_PERMUTATION_48,
 };

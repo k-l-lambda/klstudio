@@ -10,6 +10,12 @@ declare let global:any;
 global.cube3 = cube3;
 
 
+const alphabet48 = cube3.TWIST_PERMUTATION_48.map(p => p.map(c => String.fromCharCode(97 + c)).join(""));
+//console.log("TWIST_PERMUTATION_48:", alphabet48);
+
+const alphabetSet = new Set(alphabet48);
+console.assert(alphabetSet.size === 48, "TWIST_PERMUTATION_48 has repeated items:", alphabetSet.size);
+
 //console.log("cube3.pointHashes:", cube3.pointHashes);
 //console.log("cube3.pointRotationTable:", cube3.pointRotationTable);
 //console.log("cube3.axisPointsTable:", cube3.axisPointsTable);

@@ -309,4 +309,6 @@ export {
 	parsePath,
 	Cube3,
 	TWIST_PERMUTATION_48,
+	permutate,
+	depermutate,
 };

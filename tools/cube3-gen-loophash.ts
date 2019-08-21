@@ -1,9 +1,13 @@
 
 import {argv} from "yargs";
 import * as fs from "fs";
+import * as readline from "readline";
 
 import { Cube3, TWIST_PERMUTATION_48, permutate, invertTwist } from "../inc/cube3";
 
+
+
+const dataFileName = depth => `./static/data/cube3-loophash-${depth}.txt`;
 
 
 const isOrigin = cube => cube.units.reduce((sum, unit) => sum + unit, 0) === 0;
@@ -40,9 +44,35 @@ const loopHash = cube => {
 };
 
 
-const loadHashes = depth => {
+const printHash = hash => hash.split("").map(c => c.charCodeAt(0).toString()).join(",");
+const parseHash = source => source.split(",").map(Number).map(c => String.fromCharCode(c)).join("");
+
+
+const loadHashes = async depth => {
 	if (depth > 0) {
-		// TODO:
+		const inputFileName = dataFileName(depth);
+		if (!fs.existsSync(inputFileName))
+			throw new Error(`input file not exist: ${inputFileName}`);
+
+		const result = [];
+
+		const reader = readline.createInterface({input: fs.createReadStream(inputFileName)});
+		reader.on("line", line => {
+			const [readableHash, state, twist] = line.split("\t");
+			//console.log("line:", readableHash, state, twist);
+
+			result.push({
+				hash: parseHash(readableHash),
+				state,
+				twist,
+			});
+		});
+
+		await new Promise(resolve => reader.on("close", resolve));
+
+		console.log(result.length, "hashed read.");
+
+		return result;
 	}
 
 	const origin = new Cube3();
@@ -51,14 +81,17 @@ const loadHashes = depth => {
 };
 
 
-const printHash = hash => hash.split("").map(c => c.charCodeAt(0).toString()).join(",");
+const deriveLoopHash = async depth => {
+	console.log("Loading hashes-", depth - 1);
 
-
-const deriveLoopHash = depth => {
-	const parentHashes = loadHashes(depth - 1);
+	const parentHashes = await loadHashes(depth - 1);
 	//console.log("parentHashes:", parentHashes);
 
+	console.log("Writing hashes-", depth);
+
 	const table = {};
+
+	const output = fs.createWriteStream(dataFileName(depth));
 
 	parentHashes.forEach(parentHash => {
 		Array(12).fill(null).forEach((_, t) => {
@@ -74,22 +107,23 @@ const deriveLoopHash = depth => {
 			const state = cube.encode();
 
 			if (table[hash])
-				console.assert(table[hash].twist === twist, "inconsistent hash twist:", table[hash], state);
+				console.assert(table[hash].twist === twist, "inconsistent hash twist:", table[hash], state, twist);
 			else {
 				table[hash] = {
 					state,
 					twist,
 				};
 
-				console.log("hash:", printHash(hash), state, twist);
+				const readableHash = printHash(hash);
+				console.log("hash:", readableHash, state, twist);
+
+				output.write(`${readableHash}\t${state}\t${twist.toString(18)}\n`);
 			}
 		});
 	});
+
+	output.end();
 };
 
 
-deriveLoopHash(argv.depth || 1);
-
-
-
-console.log("Finished.");
+deriveLoopHash(argv.depth || 1).then(() => console.log("Finished."));

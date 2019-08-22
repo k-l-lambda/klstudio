@@ -1,5 +1,5 @@
 
-import {ENCODE_UNIT_ORDER} from "./cube3";
+import {ENCODE_UNIT_ORDER} from "./cube3.ts";
 
 
 
@@ -67,10 +67,10 @@ const cubePartitionCode = cube => {
 };
 
 
-const cubePartitionComplexity = cube => {
+const cubePartitionComplexity = (cube, {units = 26} = {}) => {
 	//const partitions = cubePartitions(cube);
 	//return partitions.corners.length + partitions.edges.length;
-	return ENCODE_UNIT_ORDER.slice(0, 20)
+	return ENCODE_UNIT_ORDER.slice(0, units)
 		.map(index => cube.units[index])
 		.reduce((counts, state) => (++counts[state], counts), Array(24).fill(0))
 		.filter(count => count > 0)

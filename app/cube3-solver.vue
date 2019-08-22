@@ -12,22 +12,18 @@
 
 	import Cube3Player from "./cube3-player.vue";
 
-	import { TWIST_NAMES } from "../inc/cube3.ts";
+	import * as cube3 from "../inc/cube3.ts";
+	import { cubeLoop } from "../inc/cube3-loop.ts";
+	import { cubePartitionComplexity } from "../inc/cube3-partition.ts";
 
 
 
 	//const A = "A".charCodeAt(0);
 
 
-	const isOrigin = cube => cube.units.reduce((sum, unit) => sum + unit, 0) === 0;
-
-	const cubeLoop = cube => {
-		let length = 1;
-		for (let c = cube.clone(); !isOrigin(c); c = c.multiply(cube))
-			++length;
-
-		return length;
-	};
+	window.cube3 = cube3;
+	window.cubeLoop = cubeLoop;
+	window.cubePartitionComplexity = cubePartitionComplexity;
 
 
 
@@ -72,11 +68,11 @@
 
 				console.log("result:", result);*/
 
-				console.log("cube:", cubeLoop(cube));
+				console.log("cube:", cubeLoop(cube), cubePartitionComplexity(cube));
 				Array(12).fill().forEach((_, i) => {
 					const c = cube.clone();
 					c.twist(i);
-					console.log(TWIST_NAMES[i], cubeLoop(c));
+					console.log(cube3.TWIST_NAMES[i], cubeLoop(c));
 				});
 			},
 		},

@@ -111,7 +111,7 @@ for (let i = 0; i < 100; ++i) {
 		loops[loop] = (loops[loop] || 0) + 1;
 		partitions[partition] = (partitions[partition] || 0) + 1;
 
-		const complexity = cubePartitionComplexity(cube);
+		const complexity = cubePartitionComplexity(cube, {units: 20});
 		if (complexity < 9)
 			console.log("cube:", cube.encode(), complexity);
 

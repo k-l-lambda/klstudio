@@ -103,7 +103,7 @@ for (let i = 0; i < 100; ++i) {
 	const loops = {};
 	const partitions = {};
 
-	for (let i = 0; i < 100000; ++i) {
+	for (let i = 0; i < 10000; ++i) {
 		const loop = cubeLoop(cube);
 		const partition = cubePartitionCode(cube);
 		//console.log("cube:", cube.encode(), loop, partition);
@@ -112,7 +112,7 @@ for (let i = 0; i < 100; ++i) {
 		partitions[partition] = (partitions[partition] || 0) + 1;
 
 		const complexity = cubePartitionComplexity(cube);
-		if (complexity < 10)
+		if (complexity < 9)
 			console.log("cube:", cube.encode(), complexity);
 
 		cube.twist(Math.floor(Math.random() * 12));

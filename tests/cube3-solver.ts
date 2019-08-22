@@ -16,7 +16,7 @@ const speciesDistance = state => new Set(state).size;
 const mergeDistance = state => Array.from(new Set(state)).map((orientation: number) => QUARTER_DISTANCES[orientation]).reduce((sum, distance) => sum + distance, 0);
 
 
-const tableContent = fs.readFileSync("./static/cube3-table-6.json");
+const tableContent = fs.readFileSync("./static/data/cube3-table-6.json");
 const table = JSON.parse(tableContent.toString());
 
 console.log("table6 read.");

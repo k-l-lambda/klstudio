@@ -1,5 +1,7 @@
 
 import * as cube3 from "../inc/cube3";
+import { cubeLoop } from "../inc/cube3-loop";
+import { cubeStatePartition } from "../inc/cube3-partition";
 
 
 
@@ -92,6 +94,28 @@ for (let i = 0; i < 100; ++i) {
 	//console.log("production:", production1.encode(), production2.encode(), path, invertPath);
 
 	console.assert(production1.encode() === codeZero && production2.encode() === codeZero, "path inverse failed.");
+}
+
+
+// random roaming
+{
+	cube.reset();
+	const loops = {};
+	const partitions = {};
+
+	for (let i = 0; i < 10000; ++i) {
+		const loop = cubeLoop(cube);
+		const partition = cubeStatePartition(cube);
+		//console.log("cube:", cube.encode(), loop, partition);
+
+		loops[loop] = (loops[loop] || 0) + 1;
+		partitions[partition] = (partitions[partition] || 0) + 1;
+
+		cube.twist(Math.floor(Math.random() * 12));
+	}
+
+	console.log("roaming result:", loops, partitions);
+	console.log("roaming result.2:", Object.keys(loops).length, Object.keys(partitions).length);
 }
 
 

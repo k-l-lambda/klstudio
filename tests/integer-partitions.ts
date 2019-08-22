@@ -1,6 +1,6 @@
 
 import { Cube3 } from "../inc/cube3";
-import { enumPartitions, PARTITIONS_6, PARTITIONS_8, PARTITIONS_12, cubeStatePartition } from "../inc/cube3-partition";
+import { enumPartitions, PARTITIONS_6, PARTITIONS_8, PARTITIONS_12, cubePartitionCode } from "../inc/cube3-partition";
 
 
 
@@ -34,9 +34,9 @@ console.log("PARTITIONS_6:", PARTITIONS_6);
 console.log("PARTITIONS_8:", PARTITIONS_8);
 console.log("PARTITIONS_12:", PARTITIONS_12);
 
-console.log("p0:", cubeStatePartition(new Cube3()));
-console.log("p1:", cubeStatePartition(new Cube3({path: [0]})).toString(16));
-console.log("p2:", cubeStatePartition(new Cube3({path: [0, 1]})).toString(16));
-console.log("p3:", cubeStatePartition(new Cube3({path: Array(50).fill(null).map(() => ~~(Math.random() * 12))})).toString(16));
+console.log("p0:", cubePartitionCode(new Cube3()));
+console.log("p1:", cubePartitionCode(new Cube3({path: [0]})).toString(16));
+console.log("p2:", cubePartitionCode(new Cube3({path: [0, 1]})).toString(16));
+console.log("p3:", cubePartitionCode(new Cube3({path: Array(50).fill(null).map(() => ~~(Math.random() * 12))})).toString(16));
 
 //Array(12).fill(null).forEach((_, i) => console.log(enumPartitions(i + 1, i + 1)));

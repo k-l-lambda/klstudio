@@ -5,7 +5,7 @@ import * as readline from "readline";
 
 import { Cube3, TWIST_PERMUTATION_48, permutate, invertTwist } from "../inc/cube3";
 import { cubeLoop } from "../inc/cube3-loop";
-import { cubeStatePartition } from "../inc/cube3-partition";
+import { cubePartitionCode } from "../inc/cube3-partition";
 
 
 
@@ -18,7 +18,7 @@ const minHash = cube => {
 		c.twist(t);
 
 		return cubeLoop(c);
-		//return cubeStatePartition(c);
+		//return cubePartitionCode(c);
 	});
 
 	const permutatedCodes = TWIST_PERMUTATION_48.map(permutation => permutate(permutation, neighborLoops).map(loop => String.fromCharCode(loop)).join(""));
@@ -29,7 +29,7 @@ const minHash = cube => {
 
 const loopHash = cube => {
 	const selfLoop = cubeLoop(cube);
-	//const selfLoop = cubeStatePartition(cube);
+	//const selfLoop = cubePartitionCode(cube);
 	const min = minHash(cube);
 
 	return String.fromCharCode(selfLoop) + min.code;
@@ -105,7 +105,7 @@ const deriveLoopHash = async depth => {
 			const cube = new Cube3({code: parentHash.state, path: [t]});
 
 			const selfLoop = cubeLoop(cube);
-			//const selfLoop = cubeStatePartition(cube);
+			//const selfLoop = cubePartitionCode(cube);
 			const min = minHash(cube);
 
 			const hash = String.fromCharCode(selfLoop) + min.code;

@@ -1,7 +1,7 @@
 
 import * as cube3 from "../inc/cube3";
 import { cubeLoop } from "../inc/cube3-loop";
-import { cubeStatePartition } from "../inc/cube3-partition";
+import { cubePartitionCode, cubePartitionComplexity } from "../inc/cube3-partition";
 
 
 
@@ -103,18 +103,22 @@ for (let i = 0; i < 100; ++i) {
 	const loops = {};
 	const partitions = {};
 
-	for (let i = 0; i < 10000; ++i) {
+	for (let i = 0; i < 100000; ++i) {
 		const loop = cubeLoop(cube);
-		const partition = cubeStatePartition(cube);
+		const partition = cubePartitionCode(cube);
 		//console.log("cube:", cube.encode(), loop, partition);
 
 		loops[loop] = (loops[loop] || 0) + 1;
 		partitions[partition] = (partitions[partition] || 0) + 1;
 
+		const complexity = cubePartitionComplexity(cube);
+		if (complexity < 10)
+			console.log("cube:", cube.encode(), complexity);
+
 		cube.twist(Math.floor(Math.random() * 12));
 	}
 
-	console.log("roaming result:", loops, partitions);
+	//console.log("roaming result:", loops, partitions);
 	console.log("roaming result.2:", Object.keys(loops).length, Object.keys(partitions).length);
 }
 

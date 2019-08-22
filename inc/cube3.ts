@@ -307,6 +307,7 @@ export {
 	TWIST_NAMES,
 	stringifyPath,
 	parsePath,
+	ENCODE_UNIT_ORDER,
 	Cube3,
 	TWIST_PERMUTATION_48,
 	permutate,

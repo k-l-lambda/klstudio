@@ -70,5 +70,9 @@ module.exports = {
 		new VueLoaderPlugin(),
 	],
 
+	resolve: {
+		extensions: [".ts", ".js"],
+	},
+
 	mode,
 };

@@ -14,7 +14,7 @@
 
 	import * as cube3 from "../inc/cube3.ts";
 	import { cubeLoop } from "../inc/cube3-loop.ts";
-	import { cubePartitionComplexity } from "../inc/cube3-partition.ts";
+	import { cubePartitionComplexity, cubePartitionCode } from "../inc/cube3-partition.ts";
 
 
 
@@ -68,12 +68,12 @@
 
 				console.log("result:", result);*/
 
-				console.log("cube:", cubeLoop(cube), cubePartitionComplexity(cube));
-				Array(12).fill().forEach((_, i) => {
+				console.log("cube:", cubeLoop(cube), cubePartitionComplexity(cube), cubePartitionCode(cube));
+				/*Array(12).fill().forEach((_, i) => {
 					const c = cube.clone();
 					c.twist(i);
 					console.log(cube3.TWIST_NAMES[i], cubeLoop(c));
-				});
+				});*/
 			},
 		},
 	};

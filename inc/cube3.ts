@@ -201,11 +201,15 @@ class Cube3 {
 		const movingIndices = this.faceIndicesFromAxis(axis);
 
 		movingIndices.forEach(index => this.units[index] = cubeAlgebra.MULTIPLICATION_TABLE[this.units[index]][rotation]);
+
+		return this;
 	}
 
 
 	twists (path: number[]) {
 		path.forEach(twist => this.twist(twist));
+
+		return this;
 	}
 
 

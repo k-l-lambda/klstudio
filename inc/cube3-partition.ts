@@ -1,5 +1,5 @@
 
-import {ENCODE_UNIT_ORDER} from "./cube3.ts";
+import {ENCODE_UNIT_ORDER} from "./cube3";
 
 
 

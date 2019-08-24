@@ -246,11 +246,13 @@ class Cube3 {
 	transform (transformation: number) {
 		const permutation = this.units.map((unit, index) => pointRotationTable[index][transformation]);
 
-		this.units = new Uint8Array(depermutate(permutation, this.units).map(unit => 
-			cubeAlgebra.DIVISION_TABLE
-				[transformation][
+		const rotation = transformation % 24;
+
+		this.units = new Uint8Array(depermutate(permutation, this.units)
+			.map(unit => cubeAlgebra.DIVISION_TABLE
+				[rotation][
 					cubeAlgebra.MULTIPLICATION_TABLE
-						[unit][transformation]
+						[unit][rotation]
 				]
 			));
 

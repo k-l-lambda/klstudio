@@ -101,8 +101,15 @@ for (let i = 0; i < 100; ++i) {
 for (let i = 0; i < 100; ++i) {
 	const cube = new cube3.Cube3({path: Array(50).fill(null).map(() => ~~(Math.random() * 18))});
 
-	for (let t = 0; t < 24; ++t)
-		console.assert(cube.clone().transform(t).validate(), "transformation validation failed:", cube.encode(), t);
+	const codes = new Set();
+	for (let t = 0; t < 48; ++t) {
+		const flipped = cube.clone().transform(t);
+		codes.add(flipped.encode());
+		
+		console.assert(flipped.validate(), "transformation validation failed:", cube.encode(), t);
+	}
+
+	console.assert(codes.size === 48, "repeated transformation exists:", codes.size);
 }
 
 

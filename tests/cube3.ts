@@ -97,7 +97,16 @@ for (let i = 0; i < 100; ++i) {
 }
 
 
-// random roaming
+// transform
+for (let i = 0; i < 100; ++i) {
+	const cube = new cube3.Cube3({path: Array(50).fill(null).map(() => ~~(Math.random() * 18))});
+
+	for (let t = 0; t < 24; ++t)
+		console.assert(cube.clone().transform(t).validate(), "transformation validation failed:", cube.encode(), t);
+}
+
+
+/*// random roaming
 {
 	cube.reset();
 	const loops = {};
@@ -120,7 +129,7 @@ for (let i = 0; i < 100; ++i) {
 
 	//console.log("roaming result:", loops, partitions);
 	console.log("roaming result.2:", Object.keys(loops).length, Object.keys(partitions).length);
-}
+}*/
 
 
 console.log("cube3 test finished.");

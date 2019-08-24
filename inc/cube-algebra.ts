@@ -250,8 +250,10 @@ const NORMAL_ORIENTATIONS = [
 const NORMAL_ORIENTATION_NAMES = NORMAL_ORIENTATIONS.map(o => o.toString());
 
 
+// a * b => MULTIPLICATION_TABLE[b][a]
 const MULTIPLICATION_TABLE = NORMAL_ORIENTATIONS.map(o1 => NORMAL_ORIENTATIONS.map(o2 => NORMAL_ORIENTATION_NAMES.indexOf(o1.mul(o2).normalize().toString())));
 
+// a / b => DIVISION_TABLE[b][a]
 const DIVISION_TABLE = MULTIPLICATION_TABLE.map(line => Array(line.length).fill(null).map((_, product) => line.indexOf(product)));
 
 

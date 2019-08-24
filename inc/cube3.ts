@@ -79,6 +79,12 @@ const unitaryMatrices = [
 	],
 ].map(a => math.matrix(a));
 
+const mirrorMatrix = math.matrix([
+	[-1, 0, 0],
+	[0, -1, 0],
+	[0, 0, -1],
+]);
+
 
 const unitaryItems = [
 	1,
@@ -92,7 +98,10 @@ const dualRotations = cubeAlgebra.NORMAL_ORIENTATIONS.slice(10).map(o => o.items
 		unitaryMatrices[unitaryItems.indexOf(i2)]));
 
 
-const rotationMatrices = unitaryMatrices.concat(dualRotations);
+const normalRotationMatrices = unitaryMatrices.concat(dualRotations);
+const mirrorRotationMatrices = normalRotationMatrices.map(mat => math.multiply(mirrorMatrix, mat));
+
+const rotationMatrices = normalRotationMatrices.concat(mirrorRotationMatrices);
 
 
 const hashPoint = point => point.map(v => "-0+"[v + 1]).join("");
@@ -146,7 +155,9 @@ const ENCODE_UNIT_ORDER = [
 ];
 
 
-const deorder = (keys: ArrayLike<number>, values: ArrayLike<any>) => Array.from(keys).map((k, i) => ({k, i})).sort((x1, x2) => x1.k - x2.k).map(({i}) => values[i]);
+const permutate = (indices: Array<number>, values: ArrayLike<any>) => indices.map(index => values[index]);
+const depermutate = (keys: ArrayLike<number>, values: ArrayLike<any>) => Array.from(keys).map((k, i) => ({k, i})).sort((x1, x2) => x1.k - x2.k).map(({i}) => values[i]);
+
 
 
 const A = "A".charCodeAt(0);
@@ -226,9 +237,24 @@ class Cube3 {
 	divide (cube: Cube3) : Cube3 {
 		const result = new Cube3();
 		const units = cube.units.map((state, index) => cubeAlgebra.DIVISION_TABLE[state][this.units[index]]);
-		result.units = Uint8Array.from(deorder(cube.positions, units));
+		result.units = Uint8Array.from(depermutate(cube.positions, units));
 
 		return result;
+	}
+
+
+	transform (transformation: number) {
+		const permutation = this.units.map((unit, index) => pointRotationTable[index][transformation]);
+
+		this.units = new Uint8Array(depermutate(permutation, this.units).map(unit => 
+			cubeAlgebra.DIVISION_TABLE
+				[transformation][
+					cubeAlgebra.MULTIPLICATION_TABLE
+						[unit][transformation]
+				]
+			));
+
+		return this;
 	}
 
 
@@ -258,9 +284,6 @@ class Cube3 {
 
 
 // twist permutations
-const permutate = (indices: Array<number>, values: ArrayLike<any>) => indices.map(index => values[index]);
-const depermutate = deorder;
-
 const unitTwistPermutation = [
 	[0, 1, 11, 10, 2, 3, 6, 7, 5, 4, 8, 9],	// i
 	[4, 5, 2, 3, 7, 6, 10, 11, 8, 9, 1, 0],	// j
@@ -307,7 +330,6 @@ export {
 	axisRotationToTwist,
 	axisTimesToTwist,
 	axis,
-	//deorder,
 	TWIST_NAMES,
 	stringifyPath,
 	parsePath,

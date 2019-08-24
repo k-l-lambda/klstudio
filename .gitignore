@@ -5,4 +5,5 @@ static/bundles
 *.local
 Footages
 yarn.lock
+package-lock.json
 *.log

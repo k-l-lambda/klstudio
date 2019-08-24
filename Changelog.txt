@@ -1,6 +1,12 @@
 
 TODO:
+	cube mirror transformation issue
 
+
+
+2019.8.24	K.L.	<k.l.lambda@gmail.com>
+
+	+	cube3.ts: Cube3.tranform added.
 
 
 2019.8.23	K.L.	<k.l.lambda@gmail.com>

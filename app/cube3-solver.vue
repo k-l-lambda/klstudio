@@ -15,6 +15,7 @@
 	import * as cube3 from "../inc/cube3.ts";
 	import { cubeLoop } from "../inc/cube3-loop.ts";
 	import { cubePartitionComplexity, cubePartitionCode } from "../inc/cube3-partition.ts";
+	import * as cube3Hash from "../inc/cube3-hash.ts";
 
 
 
@@ -24,6 +25,7 @@
 	window.cube3 = cube3;
 	window.cubeLoop = cubeLoop;
 	window.cubePartitionComplexity = cubePartitionComplexity;
+	window.cube3Hash = cube3Hash;
 
 
 
@@ -38,6 +40,8 @@
 
 		created () {
 			window.$main = this;
+
+			this.loadHashes();
 		},
 
 
@@ -49,6 +53,21 @@
 		methods: {
 			async loadModel () {
 				this.model = await tf.loadLayersModel("/mlmodels/cube3/length/model.json");
+			},
+
+
+			async loadHashes () {
+				if (cube3Hash.hashLibrary.length > 7)
+					return;
+
+				for (let depth = 1; depth <= 7; ++depth) {
+					const res = await fetch(`/data/cube3-hash-${depth}.txt`);
+					const content = await res.text();
+
+					cube3Hash.loadHashes(depth, { * [Symbol.iterator] () {
+						yield * content.split("\n");
+					} });
+				}
 			},
 
 

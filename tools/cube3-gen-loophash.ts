@@ -9,17 +9,11 @@ import { cubePartitionCode } from "../inc/cube3-partition";
 
 
 
-const dataFileName = depth => `./static/data/cube3-loophash-${depth}.txt`;
+const dataFileName = depth => `./static/data/cube3-hash-${depth}.txt`;
 
 
 const minHash = cube => {
-	const neighborLoops = Array(12).fill(null).map((_, t) => {
-		const c = cube.clone();
-		c.twist(t);
-
-		return cubeLoop(c);
-		//return cubePartitionCode(c);
-	});
+	const neighborLoops = Array(12).fill(null).map((_, t) => cubePartitionCode(cube.clone().twist(t)));
 
 	const permutatedCodes = TWIST_PERMUTATION_48.map(permutation => permutate(permutation, neighborLoops).map(loop => String.fromCharCode(loop)).join(""));
 
@@ -29,10 +23,10 @@ const minHash = cube => {
 
 const loopHash = cube => {
 	const selfLoop = cubeLoop(cube);
-	//const selfLoop = cubePartitionCode(cube);
+	const selfPartition = cubePartitionCode(cube);
 	const min = minHash(cube);
 
-	return String.fromCharCode(selfLoop) + min.code;
+	return String.fromCharCode(selfLoop) + String.fromCharCode(selfPartition) + min.code;
 };
 
 
@@ -105,10 +99,10 @@ const deriveLoopHash = async depth => {
 			const cube = new Cube3({code: parentHash.state, path: [t]});
 
 			const selfLoop = cubeLoop(cube);
-			//const selfLoop = cubePartitionCode(cube);
+			const selfPartition = cubePartitionCode(cube);
 			const min = minHash(cube);
 
-			const hash = String.fromCharCode(selfLoop) + min.code;
+			const hash = String.fromCharCode(selfLoop) + String.fromCharCode(selfPartition) + min.code;
 
 			// avoid backwards
 			if (grandHashes.has(hash))

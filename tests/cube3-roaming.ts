@@ -13,7 +13,7 @@ const partitionMap = {};
 const getCubePartitionCode = cube => {
 	const cubeCode = cube.encode();
 	if (!(cubeCode in partitionMap))
-		partitionMap[cubeCode] = cubePartitionCode(cube)
+		partitionMap[cubeCode] = cubePartitionCode(cube);
 
 	return partitionMap[cubeCode];
 };

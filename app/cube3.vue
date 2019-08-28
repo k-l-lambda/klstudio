@@ -58,8 +58,8 @@
 				this.renderer.setSize(this.size.width, this.size.height, false);
 
 				//this.camera = new THREE.OrthographicCamera(-0.5, 0.5, this.ratio / 2, this.ratio / -2, 0, 100);
-				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 5, 12);
-				this.camera.position.set(0, 0, 8);
+				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 3, 12);
+				this.camera.position.set(0, 0, 6.4);
 				this.camera.lookAt(0, 0, 0);
 
 				this.scene = new THREE.Scene();

@@ -26,6 +26,7 @@
 	window.cubeLoop = cubeLoop;
 	window.cubePartitionComplexity = cubePartitionComplexity;
 	window.cube3Hash = cube3Hash;
+	window.cubePartitionCode = cubePartitionCode;
 
 
 

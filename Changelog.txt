@@ -1,5 +1,8 @@
 
 TODO:
+	cube3 transform inconsistent with TWIST_PERMUTATION_48
+		cube"KCKABCBACKAABCBACBAAACBAAA".transform(30).encode() == "EACCEARRAEACEACCAEARAAEACA"
+		permutate(TWIST_PERMUTATION_48[30], neighbor"KCKABCBACKAABCBACBAAACBAAA") ~= neighbor"EACCEARRAEACEACCAEARAAEACA"	(a little difference?)
 
 
 

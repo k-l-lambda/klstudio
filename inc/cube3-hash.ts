@@ -10,9 +10,9 @@ const hashIndices = {};
 
 
 const minCode = cube => {
-	const neighborLoops = Array(12).fill(null).map((_, t) => cubePartitionCode(cube.clone().twist(t)));
+	const neighborPartitions = Array(12).fill(null).map((_, t) => cubePartitionCode(cube.clone().twist(t)));
 
-	const permutatedCodes = TWIST_PERMUTATION_48.map(permutation => permutate(permutation, neighborLoops).map(loop => String.fromCharCode(loop)).join(""));
+	const permutatedCodes = TWIST_PERMUTATION_48.map(permutation => permutate(permutation, neighborPartitions).map(partition => String.fromCharCode(partition)).join(""));
 
 	return permutatedCodes.reduce((min: {code: string, index: number}, code, index) => (!min || code < min.code) ? {index, code} : min, null)
 };

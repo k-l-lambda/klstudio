@@ -147,6 +147,8 @@ const TWIST_NAMES = [
 const stringifyPath = (path: number[]) => path.map(twist => TWIST_NAMES[twist]).join("");
 const parsePath = (source: string) => source.match(/\w['2]?/g).map(word => TWIST_NAMES.indexOf(word));
 
+const quarterfyPath = (path: number[]) => [].concat(...path.map(t => t >= 12 ? [t % 6, t % 6] : [t]));
+
 
 const ENCODE_UNIT_ORDER = [
 	0, 2, 6, 8, 18, 20, 24, 26,						// corners
@@ -345,6 +347,7 @@ export {
 	TWIST_NAMES,
 	stringifyPath,
 	parsePath,
+	quarterfyPath,
 	ENCODE_UNIT_ORDER,
 	Cube3,
 	TWIST_PERMUTATION_48,

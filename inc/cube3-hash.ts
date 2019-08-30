@@ -1,5 +1,5 @@
 
-import { Cube3, TWIST_PERMUTATION_48, permutate } from "../inc/cube3";
+import { Cube3, TWIST_PERMUTATION_48, permutate, quarterfyPath, invertPath } from "../inc/cube3";
 import { cubeLoop } from "../inc/cube3-loop";
 import { cubePartitionCode } from "../inc/cube3-partition";
 
@@ -66,7 +66,7 @@ const loadHashes = (depth: number, iterator) => {
 };
 
 
-const solveCube = cube => {
+const solveCube = (cube: Cube3) => {
 	if (cube.isZero())
 		return [];
 
@@ -81,7 +81,47 @@ const solveCube = cube => {
 };
 
 
-const solveState = state => solveCube(new Cube3({code: state}));
+const solveState = (state: string) => solveCube(new Cube3({code: state}));
+
+
+const solvePath = (path: number[]) => solveCube(new Cube3({path}));
+
+
+// TODO: solveStateDouble
+
+
+const simplifyQuaterPath = (path: number[]) => {
+	const solution = solvePath(path);
+	if (solution)
+		return invertPath(solution);
+
+	for (let sublen = path.length - 1; sublen >= hashLibrary.length; --sublen) {
+		const rest = path.length - sublen;
+
+		const solutions = Array(rest).fill(null).map((_, i) => {
+			const subpath = path.slice(i, sublen);
+			const solution = solvePath(subpath);
+			if (solution) {
+				console.log("simplified:", subpath, "->", invertPath(solution));
+
+				return [].concat(...path.slice(0, i), invertPath(solution), ...path.slice(i + sublen));
+			}
+
+			return null;
+		}).filter(solution => solution);
+
+		if (solutions.length) {
+			const refinedSolutions = solutions.map(solution => simplifyQuaterPath(solution));
+
+			return refinedSolutions.reduce((best: number[], solution: number[]) => solution.length < best.length ? solution : best);
+		} 
+	}
+
+	return null;
+};
+
+
+const simplifyPath = (path: number[]) => simplifyQuaterPath(quarterfyPath(path));
 
 
 
@@ -93,4 +133,5 @@ export {
 	parseHash,
 	loadHashes,
 	solveState,
+	simplifyPath,
 };

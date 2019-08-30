@@ -67,7 +67,7 @@
 					const res = await fetch(`/data/cube3-hash-${depth}.txt`);
 					const content = await res.text();
 
-					cube3Hash.loadHashes(depth, { * [Symbol.iterator] () {
+					await cube3Hash.loadHashes(depth, { * [Symbol.iterator] () {
 						yield * content.split("\n");
 					} });
 				}

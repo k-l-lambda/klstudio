@@ -1,5 +1,5 @@
 
-import { Cube3, TWIST_PERMUTATION_48, permutate, quarterfyPath, invertPath } from "../inc/cube3";
+import { Cube3, TWIST_PERMUTATION_48, permutate, quarterfyPath, invertPath, stringifyPath } from "../inc/cube3";
 import { cubeLoop } from "../inc/cube3-loop";
 import { cubePartitionCode } from "../inc/cube3-partition";
 
@@ -34,7 +34,7 @@ const printHash = (hash: string) => hash.split("").map(c => c.charCodeAt(0).toSt
 const parseHash = (source: string) => source.split(",").map(Number).map(c => String.fromCharCode(c)).join("");
 
 
-const loadHashes = (depth: number, iterator) => {
+const loadHashes = async (depth: number, iterator) => {
 	if (hashLibrary[depth]) {
 		console.warn("hash depth load duplicated:", depth);
 
@@ -43,7 +43,7 @@ const loadHashes = (depth: number, iterator) => {
 
 	hashLibrary[depth] = [];
 
-	for (const line of iterator) {
+	for await (const line of iterator) {
 		if (!line)
 			continue;
 
@@ -66,7 +66,10 @@ const loadHashes = (depth: number, iterator) => {
 };
 
 
-const solveCube = (cube: Cube3) => {
+const solveCube = (cube: Cube3, depth: number = 0) => {
+	if (depth > 26)	// stack overflow protection
+		return null;
+
 	if (cube.isZero())
 		return [];
 
@@ -77,7 +80,7 @@ const solveCube = (cube: Cube3) => {
 
 	const twist = TWIST_PERMUTATION_48[index][hashIndices[hash].twist];
 
-	return [twist, ...solveCube(cube.twist(twist))];
+	return [twist, ...(solveCube(cube.twist(twist), depth + 1) || [])];
 };
 
 
@@ -99,10 +102,16 @@ const simplifyQuaterPath = (path: number[]) => {
 		const rest = path.length - sublen;
 
 		const solutions = Array(rest).fill(null).map((_, i) => {
-			const subpath = path.slice(i, sublen);
+			const subpath = path.slice(i, sublen + i);
 			const solution = solvePath(subpath);
 			if (solution) {
-				console.log("simplified:", subpath, "->", invertPath(solution));
+				if (solution.length >= hashLibrary.length)
+					console.warn("invalid solution:", solution, subpath);
+
+				if (solution.length >= subpath.length)
+					return null;
+
+				//console.log("simplified:", stringifyPath(subpath), "->", stringifyPath(invertPath(solution)));
 
 				return [].concat(...path.slice(0, i), invertPath(solution), ...path.slice(i + sublen));
 			}
@@ -111,7 +120,7 @@ const simplifyQuaterPath = (path: number[]) => {
 		}).filter(solution => solution);
 
 		if (solutions.length) {
-			const refinedSolutions = solutions.map(solution => simplifyQuaterPath(solution));
+			const refinedSolutions = solutions.map(solution => simplifyQuaterPath(solution) || solution);
 
 			return refinedSolutions.reduce((best: number[], solution: number[]) => solution.length < best.length ? solution : best);
 		} 

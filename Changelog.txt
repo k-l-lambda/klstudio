@@ -1,9 +1,13 @@
 
 TODO:
+	cube3-hash
+		invalid solution issue.
 
 
 
 2019.8.30	K.L.	<k.l.lambda@gmail.com>
+
+	+	tests/cube3/path-simplify.ts created.
 
 	+	cube3-hash.ts: simplifyPath added.
 

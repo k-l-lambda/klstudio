@@ -13,28 +13,6 @@ import { hashCube, printHash, parseHash } from "../inc/cube3-hash";
 const dataFileName = depth => `./static/data/cube3-hash-${depth}.txt`;
 
 
-/*const minHash = cube => {
-	const neighborLoops = Array(12).fill(null).map((_, t) => cubePartitionCode(cube.clone().twist(t)));
-
-	const permutatedCodes = TWIST_PERMUTATION_48.map(permutation => permutate(permutation, neighborLoops).map(loop => String.fromCharCode(loop)).join(""));
-
-	return permutatedCodes.reduce((min: {code: string, index: number}, code, index) => (!min || code < min.code) ? {index, code} : min, null)
-};
-
-
-const loopHash = cube => {
-	const selfLoop = cubeLoop(cube);
-	const selfPartition = cubePartitionCode(cube);
-	const min = minHash(cube);
-
-	return String.fromCharCode(selfLoop) + String.fromCharCode(selfPartition) + min.code;
-};
-
-
-const printHash = hash => hash.split("").map(c => c.charCodeAt(0).toString()).join(",");
-const parseHash = source => source.split(",").map(Number).map(c => String.fromCharCode(c)).join("");*/
-
-
 const _loadHashes = async depth => {
 	if (depth > 0) {
 		const inputFileName = dataFileName(depth);
@@ -73,7 +51,7 @@ const _loadHashes = async depth => {
 };
 
 
-const deriveLoopHash = async depth => {
+const deriveHash = async depth => {
 	console.log("Loading grand parent hashes-", depth - 2);
 	const grandHashes = new Set((await _loadHashes(depth - 2)).map(({hash}) => hash));
 	//console.log("grandHashes:", printHash(grandHashes[0]));
@@ -101,9 +79,6 @@ const deriveLoopHash = async depth => {
 
 			const selfLoop = cubeLoop(cube);
 			const selfPartition = cubePartitionCode(cube);
-			//const min = minHash(cube);
-
-			//const hash = String.fromCharCode(selfLoop) + String.fromCharCode(selfPartition) + min.code;
 			const {hash, index} = hashCube(cube);
 
 			// avoid backwards
@@ -144,4 +119,4 @@ const deriveLoopHash = async depth => {
 };
 
 
-deriveLoopHash(argv.depth || 1).then(() => console.log("Finished."));
+deriveHash(argv.depth || 1).then(() => console.log("Finished."));

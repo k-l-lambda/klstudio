@@ -1,8 +1,8 @@
 
 import * as fs from "fs";
 
-import * as cube3 from "../inc/cube3";
-import {QUARTER_DISTANCES} from "../inc/cube-algebra";
+import * as cube3 from "../../inc/cube3";
+import {QUARTER_DISTANCES} from "../../inc/cube-algebra";
 
 
 

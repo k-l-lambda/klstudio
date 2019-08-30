@@ -1,7 +1,7 @@
 
-import * as cube3 from "../inc/cube3";
-import { cubeLoop } from "../inc/cube3-loop";
-import { cubePartitionCode, cubePartitionComplexity } from "../inc/cube3-partition";
+import * as cube3 from "../../inc/cube3";
+import { cubeLoop } from "../../inc/cube3-loop";
+import { cubePartitionCode, cubePartitionComplexity } from "../../inc/cube3-partition";
 
 
 

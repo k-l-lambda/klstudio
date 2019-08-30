@@ -1,6 +1,6 @@
 
-import * as cube3 from "../inc/cube3";
-import { cubePartitionCode } from "../inc/cube3-partition";
+import * as cube3 from "../../inc/cube3";
+import { cubePartitionCode } from "../../inc/cube3-partition";
 
 
 

@@ -1,9 +1,9 @@
 
 import * as fs from "fs";
 
-import { Cube3, TWIST_PERMUTATION_48, permutate } from "../inc/cube3";
-import { cubePartitionCode } from "../inc/cube3-partition";
-import { cubeLoop } from "../inc/cube3-loop";
+import { Cube3, TWIST_PERMUTATION_48, permutate } from "../../inc/cube3";
+import { cubePartitionCode } from "../../inc/cube3-partition";
+import { cubeLoop } from "../../inc/cube3-loop";
 
 
 

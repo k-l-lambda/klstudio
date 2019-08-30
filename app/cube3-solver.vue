@@ -58,10 +58,12 @@
 
 
 			async loadHashes () {
-				if (cube3Hash.hashLibrary.length > 7)
+				const LIBRARY_DEPTH = 7;
+
+				if (cube3Hash.hashLibrary.length > LIBRARY_DEPTH)
 					return;
 
-				for (let depth = 1; depth <= 7; ++depth) {
+				for (let depth = 1; depth <= LIBRARY_DEPTH; ++depth) {
 					const res = await fetch(`/data/cube3-hash-${depth}.txt`);
 					const content = await res.text();
 

@@ -6,13 +6,14 @@ import * as readline from "readline";
 import { Cube3, TWIST_PERMUTATION_48, permutate, invertTwist } from "../inc/cube3";
 import { cubeLoop } from "../inc/cube3-loop";
 import { cubePartitionCode } from "../inc/cube3-partition";
+import { hashCube, printHash, parseHash } from "../inc/cube3-hash";
 
 
 
 const dataFileName = depth => `./static/data/cube3-hash-${depth}.txt`;
 
 
-const minHash = cube => {
+/*const minHash = cube => {
 	const neighborLoops = Array(12).fill(null).map((_, t) => cubePartitionCode(cube.clone().twist(t)));
 
 	const permutatedCodes = TWIST_PERMUTATION_48.map(permutation => permutate(permutation, neighborLoops).map(loop => String.fromCharCode(loop)).join(""));
@@ -31,10 +32,10 @@ const loopHash = cube => {
 
 
 const printHash = hash => hash.split("").map(c => c.charCodeAt(0).toString()).join(",");
-const parseHash = source => source.split(",").map(Number).map(c => String.fromCharCode(c)).join("");
+const parseHash = source => source.split(",").map(Number).map(c => String.fromCharCode(c)).join("");*/
 
 
-const loadHashes = async depth => {
+const _loadHashes = async depth => {
 	if (depth > 0) {
 		const inputFileName = dataFileName(depth);
 		if (!fs.existsSync(inputFileName))
@@ -65,7 +66,7 @@ const loadHashes = async depth => {
 	if (depth === 0) {
 		const origin = new Cube3();
 
-		return [{state: origin.encode(), hash: loopHash(origin)}];
+		return [{state: origin.encode(), hash: hashCube(origin).hash}];
 	}
 
 	return [];
@@ -74,11 +75,11 @@ const loadHashes = async depth => {
 
 const deriveLoopHash = async depth => {
 	console.log("Loading grand parent hashes-", depth - 2);
-	const grandHashes = new Set((await loadHashes(depth - 2)).map(({hash}) => hash));
+	const grandHashes = new Set((await _loadHashes(depth - 2)).map(({hash}) => hash));
 	//console.log("grandHashes:", printHash(grandHashes[0]));
 
 	console.log("Loading parent hashes-", depth - 1);
-	const parentHashes = await loadHashes(depth - 1);
+	const parentHashes = await _loadHashes(depth - 1);
 	//console.log("parentHashes:", parentHashes);
 
 	console.log("Writing hashes-", depth);
@@ -100,16 +101,17 @@ const deriveLoopHash = async depth => {
 
 			const selfLoop = cubeLoop(cube);
 			const selfPartition = cubePartitionCode(cube);
-			const min = minHash(cube);
+			//const min = minHash(cube);
 
-			const hash = String.fromCharCode(selfLoop) + String.fromCharCode(selfPartition) + min.code;
+			//const hash = String.fromCharCode(selfLoop) + String.fromCharCode(selfPartition) + min.code;
+			const {hash, index} = hashCube(cube);
 
 			// avoid backwards
 			if (grandHashes.has(hash))
 				return;
 
 			const recovery = invertTwist(t);
-			const twist = TWIST_PERMUTATION_48[min.index].indexOf(recovery);
+			const twist = TWIST_PERMUTATION_48[index].indexOf(recovery);
 			const state = cube.encode();
 			const readableHash = printHash(hash);
 

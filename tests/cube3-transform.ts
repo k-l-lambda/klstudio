@@ -15,7 +15,7 @@ const n0ps = cube3.TWIST_PERMUTATION_48.map(p => cube3.permutate(p, n0));
 const n0ds = cube3.TWIST_PERMUTATION_48.map(p => cube3.depermutate(p, n0));
 
 
-console.table(Array(48).fill(null).map((_, i) => [ns[i].toString(), n0ds[i].toString()]));
+console.table(Array(48).fill(null).map((_, i) => [ns[i].toString(), n0ps[i].toString()]));
 
 
 setTimeout(x => x, 0x7fffffff);

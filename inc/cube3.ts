@@ -291,7 +291,8 @@ const unitTwistPermutation = [
 	[4, 5, 2, 3, 7, 6, 10, 11, 8, 9, 1, 0],	// j
 	[9, 8, 0, 1, 4, 5, 3, 2, 6, 7, 10, 11],	// k
 ];
-const mirrorTwistPermutation = [6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5];
+//const mirrorTwistPermutation = [6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5];
+const mirrorTwistPermutation = [1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10];
 
 const identityPermutation = Array(12).fill(null).map((_, i) => i);
 
@@ -313,7 +314,7 @@ const itemToPermutation = ({unit, exponent}) => {
 	}
 };
 const orientationToPermutation = orientation => orientation.items.reduce(
-	(value, item) => permutate(itemToPermutation(item), value), identityPermutation);
+	(value, item) => depermutate(itemToPermutation(item), value), identityPermutation);
 
 const TWIST_PERMUTATION_24 = cubeAlgebra.NORMAL_ORIENTATIONS.map(orientation => orientationToPermutation(orientation));
 const TWIST_PERMUTATION_48 = [

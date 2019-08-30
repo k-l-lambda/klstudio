@@ -1,5 +1,6 @@
 
 TODO:
+	refine cube3-gen-loophash.ts
 	cube3 transform inconsistent with TWIST_PERMUTATION_48
 		cube"KCKABCBACKAABCBACBAAACBAAA".transform(30).encode() == "EACCEARRAEACEACCAEARAAEACA"
 		permutate(TWIST_PERMUTATION_48[30], neighbor"KCKABCBACKAABCBACBAAACBAAA") ~= neighbor"EACCEARRAEACEACCAEARAAEACA"	(a little difference?)
@@ -7,6 +8,8 @@ TODO:
 
 
 2019.8.30	K.L.	<k.l.lambda@gmail.com>
+
+	>	cube3.ts: fix twist permutations.
 
 	+	tests/cube3-transform.ts created.
 

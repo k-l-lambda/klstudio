@@ -17,8 +17,8 @@ async function main() {
 		await loadHashes(depth, hashLoader(depth));
 
 
-	for (let length = 8; length < 50; ++length) {
-		const results = Array(100).fill(null).map((_, i) => {
+	for (let length = 50; length < 100; length +=10) {
+		const results = Array(2).fill(null).map((_, i) => {
 			const path = Array(length).fill(null).map((_, i) => ~~(Math.random() * 12));
 			const result = simplifyPath(path);
 

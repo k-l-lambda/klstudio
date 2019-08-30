@@ -106,7 +106,7 @@ const simplifyQuaterPath = (path: number[]) => {
 			const solution = solvePath(subpath);
 			if (solution) {
 				if (solution.length >= hashLibrary.length)
-					console.warn("invalid solution:", solution, subpath);
+					console.warn("invalid solution:", stringifyPath(subpath), "->", stringifyPath(solution));
 
 				if (solution.length >= subpath.length)
 					return null;

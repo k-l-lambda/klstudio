@@ -34,7 +34,7 @@ const printHash = (hash: string) => hash.split("").map(c => c.charCodeAt(0).toSt
 const parseHash = (source: string) => source.split(",").map(Number).map(c => String.fromCharCode(c)).join("");
 
 
-const loadHashes = (depth: number, iterator: Iterator<string>) => {
+const loadHashes = (depth: number, iterator) => {
 	if (hashLibrary[depth]) {
 		console.warn("hash depth load duplicated:", depth);
 
@@ -66,8 +66,10 @@ const loadHashes = (depth: number, iterator: Iterator<string>) => {
 };
 
 
-const solveState = state => {
-	const cube = new Cube3({code: state});
+const solveCube = cube => {
+	if (cube.isZero())
+		return [];
+
 	const {hash, index} = hashCube(cube);
 
 	if (!hashIndices[hash])
@@ -75,10 +77,11 @@ const solveState = state => {
 
 	const twist = TWIST_PERMUTATION_48[index][hashIndices[hash].twist];
 
-	// TODO: failed for state 'EACCEARRAEACEACCAEARAAEACA' (UL)?
-
-	return twist;
+	return [twist, ...solveCube(cube.twist(twist))];
 };
+
+
+const solveState = state => solveCube(new Cube3({code: state}));
 
 
 

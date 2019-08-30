@@ -195,6 +195,15 @@ class Cube3 {
 		return cube;
 	}
 
+	
+	isZero() {
+		for (const unit of this.units)
+			if (unit)
+				return false;
+
+		return true;
+	}
+
 
 	faceIndicesFromAxis(axis: number) : Array<number> {
 		const movingPoints = axisPointsTable[axis];

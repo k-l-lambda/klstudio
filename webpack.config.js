@@ -10,6 +10,9 @@ const entries = require("./entries").default;
 const mode = process.env.NODE_ENV === "development" ? "development" : "production";
 
 
+const envDict = variables => variables.reduce((dict, variable) => (dict[variable] = JSON.stringify(process.env[variable]), dict), {});
+
+
 module.exports = {
 	entry: entries.reduce((result, entry) => (result[entry.name] = path.resolve(__dirname, `app/entries/${entry.name}.js`), result), {}),
 
@@ -65,6 +68,9 @@ module.exports = {
 		new webpack.DefinePlugin({
 			"process.env": {
 				NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+				...envDict([
+					"CUBE3_HASH_LIBRARY_SIZE",
+				]),
 			},
 		}),
 		new VueLoaderPlugin(),

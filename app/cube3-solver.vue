@@ -58,12 +58,16 @@
 
 
 			async loadHashes () {
-				const LIBRARY_DEPTH = 7;
+				const LIBRARY_SIZE = process.env.CUBE3_HASH_LIBRARY_SIZE;
+				if (!LIBRARY_SIZE) {
+					console.warn("CUBE3_HASH_LIBRARY_SIZE is zero, loading skipped.");
+					return;
+				}
 
-				if (cube3Hash.hashLibrary.length > LIBRARY_DEPTH)
+				if (cube3Hash.hashLibrary.length > LIBRARY_SIZE)
 					return;
 
-				for (let depth = 1; depth <= LIBRARY_DEPTH; ++depth) {
+				for (let depth = 1; depth <= LIBRARY_SIZE; ++depth) {
 					const res = await fetch(`/data/cube3-hash-${depth}.txt`);
 					const content = await res.text();
 

@@ -66,7 +66,7 @@ const loadHashes = async (depth: number, iterator) => {
 };
 
 
-const solveCube = (cube: Cube3, depth: number = 0) => {
+const solveCube = (cube: Cube3, depth: number = 0) : number[] => {
 	if (depth > 26)	// stack overflow protection
 		return null;
 
@@ -84,13 +84,34 @@ const solveCube = (cube: Cube3, depth: number = 0) => {
 };
 
 
-const solveState = (state: string) => solveCube(new Cube3({code: state}));
+const solveCubeBinaryFixed = (cube: Cube3) : number[] => {
+	// TODO:
+
+	return null;
+};
 
 
-const solvePath = (path: number[]) => solveCube(new Cube3({path}));
+const solveCubeBinary = (cube: Cube3) : number[] => {
+	const unitaryResult = solveCube(cube);
+	if (unitaryResult)
+		return unitaryResult;
+
+	const transformTable = Array(48).fill(null).map((_, i) => cube.clone().transform(i)).reduce((table, c) => (table[c.encode()] = c, table), {});
+	const uniqueTransformed : Cube3[] = Object.values(transformTable);
+	for (const transformed of uniqueTransformed) {
+		const result = solveCubeBinaryFixed(transformed);
+		if (result)
+			return result;
+	}
+
+	return null;
+};
 
 
-// TODO: solveStateDouble
+const solveState = (state: string) : number[] => solveCube(new Cube3({code: state}));
+
+
+const solvePath = (path: number[]) : number[] => solveCube(new Cube3({path}));
 
 
 const simplifyQuaterPath = (path: number[]) => {

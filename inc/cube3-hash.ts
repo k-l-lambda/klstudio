@@ -85,7 +85,15 @@ const solveCube = (cube: Cube3, depth: number = 0) : number[] => {
 
 
 const solveCubeBinaryFixed = (cube: Cube3) : number[] => {
-	// TODO:
+	for (const library of hashLibrary) {
+		for (const {state, twist, parentIndex} of library) {
+			const medium = new Cube3({code: state});
+			const quotient = cube.divide(medium);
+			const resolution = solveCube(quotient);
+			if (resolution)
+				return [...resolution, ...solveCube(medium)];
+		}
+	}
 
 	return null;
 };
@@ -96,12 +104,13 @@ const solveCubeBinary = (cube: Cube3) : number[] => {
 	if (unitaryResult)
 		return unitaryResult;
 
-	const transformTable = Array(48).fill(null).map((_, i) => cube.clone().transform(i)).reduce((table, c) => (table[c.encode()] = c, table), {});
-	const uniqueTransformed : Cube3[] = Object.values(transformTable);
+	const transformTable = Array(48).fill(null).map((_, i) => cube.clone().transform(i)).reduce((table, c, i) => (table[c.encode()] = {cube: c, transform: i}, table), {});
+	const uniqueTransformed : {cube: Cube3, transform: number}[] = Object.values(transformTable);
+
 	for (const transformed of uniqueTransformed) {
-		const result = solveCubeBinaryFixed(transformed);
+		const result = solveCubeBinaryFixed(transformed.cube);
 		if (result)
-			return result;
+			return result.map(twist => TWIST_PERMUTATION_48[transformed.transform].indexOf(twist));
 	}
 
 	return null;

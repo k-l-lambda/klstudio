@@ -173,4 +173,5 @@ export {
 	loadHashes,
 	solveState,
 	simplifyPath,
+	solveCubeBinary,
 };

@@ -21,11 +21,13 @@ async function main() {
 
 
 	for (let i = 0; i < 10; ++i) {
-		const path = randomPath(7);
+		const path = randomPath(8);
 		const cube = new Cube3({path: path});
 		const solution = solveCubeBinary(cube);
 
-		console.log("solution:", cube.encode(), stringifyPath(path), stringifyPath(solution));
+		const testCube = new Cube3({path: path.concat(solution)});
+
+		console.log("solution:", testCube.isZero() ? "success" : "failure", cube.encode(), stringifyPath(path), stringifyPath(solution));
 	}
 }
 

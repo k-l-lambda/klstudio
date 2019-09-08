@@ -86,6 +86,9 @@ const solveCube = (cube: Cube3, depth: number = 0) : number[] => {
 
 const solveCubeBinaryFixed = (cube: Cube3) : number[] => {
 	for (const library of hashLibrary) {
+		if (!library)
+			continue;
+
 		for (const {state, twist, parentIndex} of library) {
 			const medium = new Cube3({code: state});
 			const quotient = cube.divide(medium);

@@ -80,7 +80,7 @@ const solveCube = (cube: Cube3, depth: number = 0) : number[] => {
 
 	const twist = TWIST_PERMUTATION_48[index][hashIndices[hash].twist];
 
-	return [twist, ...(solveCube(cube.twist(twist), depth + 1) || [])];
+	return [twist, ...(solveCube(cube.clone().twist(twist), depth + 1) || [])];
 };
 
 
@@ -153,7 +153,7 @@ const simplifyQuaterPath = (path: number[]) => {
 			const refinedSolutions = solutions.map(solution => simplifyQuaterPath(solution) || solution);
 
 			return refinedSolutions.reduce((best: number[], solution: number[]) => solution.length < best.length ? solution : best);
-		} 
+		}
 	}
 
 	return null;

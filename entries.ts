@@ -72,4 +72,10 @@ export default [
 		path: "/spiral-piano",
 		title: "Spiral Piano",
 	},
+
+	{
+		name: "cube-cayley-graph",
+		path: "/cube-cayley-graph",
+		title: "Cube Cayley Graph",
+	},
 ].map(data => new Entry(data));

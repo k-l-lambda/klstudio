@@ -112,7 +112,7 @@ class Item {
 		if (item1.exponent === 2 && item2.exponent === 2)
 			return [new Item(this.supplementaryUnit(item1, item2), 2)];
 
-		if (item2.exponent === 2 && item2.unit === _k)
+		if (item2.exponent === 2 && item2.unit === _k && item1.unit === _i)
 			return [item1.inverted(), J2];
 
 		return null;

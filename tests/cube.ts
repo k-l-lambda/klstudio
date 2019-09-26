@@ -47,7 +47,10 @@ const exp4 = new Orientation([I2, K2]).normalize().toString();
 console.assert(exp4 === "j2", "exp4 normalize error:", exp4);
 
 const exp5 = new Orientation([I, J, J, I]).normalize().toString();
-console.assert(exp5 === "j2", "exp2 normalize error:", exp5);
+console.assert(exp5 === "j2", "exp5 normalize error:", exp5);
+
+const exp6 = new Orientation([J, K2]).normalize().toString();
+console.assert(exp6 === "i2j", "exp6 normalize error:", exp6);
 
 
 // random test

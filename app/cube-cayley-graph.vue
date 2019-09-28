@@ -1,7 +1,7 @@
 <template>
 	<div class="cube-cayley-graph" v-resize="onResize">
 		<article>
-			<canvas :width="size.width" :height="size.height" />
+			<canvas ref="canvas" :width="size.width" :height="size.height" />
 			<span class="status">
 				<span v-if="fps" class="fps">fps <em>{{fps}}</em></span>
 			</span>
@@ -65,13 +65,13 @@
 
 	const sphericalToCartesian = (r, theta, phi) => new THREE.Vector3(
 		r * Math.sin(theta) * Math.cos(phi),
+		r * Math.cos(theta),
 		r * Math.sin(theta) * Math.sin(phi),
-		r * Math.cos(theta)
 	);
 
 	const elem = (index, angles, r = 1) => ({ index, position: sphericalToCartesian(r, ...angles) });
 
-	const elements = [
+	const elementsSchema = [
 		// identity
 		elem(0, [0, 0]),
 
@@ -92,6 +92,7 @@
 		// octave
 		// TODO
 	];
+	//console.log("elementsSchema:", elementsSchema);
 
 
 
@@ -112,6 +113,11 @@
 		},
 
 
+		created () {
+			window.$main = this;
+		},
+
+
 		mounted () {
 			this.initializeRenderer();
 
@@ -129,17 +135,19 @@
 
 			initializeRenderer () {
 				this.renderer = new THREE.WebGLRenderer({ antialias: true, canvas: this.$refs.canvas, alpha: true });
-				this.renderer.setClearColor(new THREE.Color("black"), 0);
+				this.renderer.setClearColor(new THREE.Color("steelblue"), 1);
 				this.renderer.setSize(this.size.width, this.size.height, false);
 
-				//this.camera = new THREE.OrthographicCamera(-0.5, 0.5, this.ratio / 2, this.ratio / -2, 0, 100);
-				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 3, 12);
-				this.camera.position.set(0, 0, 6.4);
+				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 10, 1000);
+				this.camera.position.set(0, 0, 240);
 				this.camera.lookAt(0, 0, 0);
 
 				this.scene = new THREE.Scene();
 
 				this.rendererActive = true;
+
+				this.sphere = new THREE.SphereGeometry(6, 32, 16);
+				//this.sphereMesh = new THREE.Mesh(sphereGeometry, new THREE.MeshBasicMaterial({ color: "#0cf" }));
 			},
 
 
@@ -180,7 +188,16 @@
 
 
 			createElements () {
-				// TODO
+				this.elements = [];
+
+				elementsSchema.forEach(element => {
+					const elemObj = new THREE.Mesh(this.sphere, new THREE.MeshBasicMaterial({ color: new THREE.Color("#fc0") }));
+					this.elements.push(elemObj);
+
+					elemObj.position.copy(element.position.clone().multiplyScalar(100));
+
+					this.scene.add(elemObj);
+				});
 			},
 		},
 	};

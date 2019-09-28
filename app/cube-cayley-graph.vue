@@ -19,7 +19,7 @@
 
 
 
-	const OCTAVE = 1 / Math.sqrt(3);
+	/*const OCTAVE = 1 / Math.sqrt(3);
 	const POLAR = 3;
 	const BEYOND = 9;
 
@@ -49,6 +49,48 @@
 		elem(22, [BEYOND, 0, 0]), elem(23, [-BEYOND, 0, 0]),
 		elem(12, [0, BEYOND, 0]), elem(15, [0, -BEYOND, 0]),
 		elem(18, [0, 0, BEYOND]), elem(21, [0, 0, -BEYOND]),
+	];*/
+
+
+	const DEG30 = Math.PI / 6;
+
+	// tetrahedron theta angle
+	const TT = Math.atan(2 * Math.sqrt(2));
+
+	const SL = Math.sqrt(2 + Math.sqrt(3) * 2 / 9);
+	const TS = 2 * Math.asin(SL / 2);
+	const TSD = Math.PI * 2 - TT - TS;
+	//console.log("TS:", TS);
+
+
+	const sphericalToCartesian = (r, theta, phi) => new THREE.Vector3(
+		r * Math.sin(theta) * Math.cos(phi),
+		r * Math.sin(theta) * Math.sin(phi),
+		r * Math.cos(theta)
+	);
+
+	const elem = (index, angles, r = 1) => ({ index, position: sphericalToCartesian(r, ...angles) });
+
+	const elements = [
+		// identity
+		elem(0, [0, 0]),
+
+		// generators & anti-generators
+		elem(1, [TT / 2, DEG30]), elem(2, [TT / 2, DEG30 * 5]), elem(3, [TT / 2, DEG30 * -3]),
+		elem(4, [TT / 2, -DEG30]), elem(5, [TT / 2, DEG30 * 3]), elem(6, [TT / 2, DEG30 * -5]),
+
+		// squared
+		elem(7, [TT, 0]),
+		elem(8, [TT, DEG30 * 4]),
+		elem(9, [TT, DEG30 * -4]),
+
+		// triad
+		elem(22, [TS, DEG30 * 6]), elem(23, [TSD, DEG30 * 6]),
+		elem(12, [TS, DEG30 * -2]), elem(15, [TS, DEG30 * -2]),
+		elem(18, [TS, DEG30 * 2]), elem(21, [TS, DEG30 * 2]),
+
+		// octave
+		// TODO
 	];
 
 
@@ -73,7 +115,7 @@
 		mounted () {
 			this.initializeRenderer();
 
-			this.rendererActive = true;
+			this.createElements();
 
 			this.render();
 		},
@@ -96,6 +138,8 @@
 				this.camera.lookAt(0, 0, 0);
 
 				this.scene = new THREE.Scene();
+
+				this.rendererActive = true;
 			},
 
 
@@ -132,6 +176,11 @@
 
 					await animationDelay();
 				}
+			},
+
+
+			createElements () {
+				// TODO
 			},
 		},
 	};

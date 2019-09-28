@@ -1,7 +1,10 @@
 <template>
 	<div class="cube-cayley-graph" v-resize="onResize">
-		<article>
-			<canvas ref="canvas" :width="size.width" :height="size.height" />
+		<article
+			@mousemove="onMouseMove"
+			@mousewheel="onMouseWheel"
+		>
+			<canvas ref="canvas" :width="size.width" :height="size.height"/>
 			<span class="status">
 				<span v-if="fps" class="fps">fps <em>{{fps}}</em></span>
 			</span>
@@ -55,7 +58,7 @@
 	const DEG30 = Math.PI / 6;
 
 	// tetrahedron theta angle
-	const TT = Math.atan(2 * Math.sqrt(2));
+	const TT = Math.PI - Math.atan(2 * Math.sqrt(2));
 
 	const SL = Math.sqrt(2 + Math.sqrt(3) * 2 / 9);
 	const TS = 2 * Math.asin(SL / 2);
@@ -75,19 +78,19 @@
 		// identity
 		elem(0, [0, 0]),
 
-		// generators & anti-generators
-		elem(1, [TT / 2, DEG30]), elem(2, [TT / 2, DEG30 * 5]), elem(3, [TT / 2, DEG30 * -3]),
-		elem(4, [TT / 2, -DEG30]), elem(5, [TT / 2, DEG30 * 3]), elem(6, [TT / 2, DEG30 * -5]),
-
 		// squared
 		elem(7, [TT, 0]),
 		elem(8, [TT, DEG30 * 4]),
 		elem(9, [TT, DEG30 * -4]),
 
+		// generators & anti-generators
+		elem(1, [TT / 2, DEG30]), elem(2, [TT / 2, DEG30 * 5]), elem(3, [TT / 2, DEG30 * -3]),
+		elem(4, [TT / 2, -DEG30]), elem(5, [TT / 2, DEG30 * 3]), elem(6, [TT / 2, DEG30 * -5]),
+
 		// triad
 		elem(22, [TS, DEG30 * 6]), elem(23, [TSD, DEG30 * 6]),
-		elem(12, [TS, DEG30 * -2]), elem(15, [TS, DEG30 * -2]),
-		elem(18, [TS, DEG30 * 2]), elem(21, [TS, DEG30 * 2]),
+		elem(12, [TS, DEG30 * -2]), elem(15, [TSD, DEG30 * -2]),
+		elem(18, [TS, DEG30 * 2]), elem(21, [TSD, DEG30 * 2]),
 
 		// octave
 		// TODO
@@ -135,19 +138,22 @@
 
 			initializeRenderer () {
 				this.renderer = new THREE.WebGLRenderer({ antialias: true, canvas: this.$refs.canvas, alpha: true });
-				this.renderer.setClearColor(new THREE.Color("steelblue"), 1);
+				this.renderer.setClearColor(new THREE.Color("lightblue"), 1);
 				this.renderer.setSize(this.size.width, this.size.height, false);
 
 				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 10, 1000);
-				this.camera.position.set(0, 0, 240);
-				this.camera.lookAt(0, 0, 0);
+				//this.camera.position.set(0, 0, 240);
+				//this.camera.lookAt(0, 0, 0);
+
+				this.viewTheta = Math.PI * 0.3;
+				this.viewPhi = 0;
+				this.viewRadius = 360;
 
 				this.scene = new THREE.Scene();
 
 				this.rendererActive = true;
 
 				this.sphere = new THREE.SphereGeometry(6, 32, 16);
-				//this.sphereMesh = new THREE.Mesh(sphereGeometry, new THREE.MeshBasicMaterial({ color: "#0cf" }));
 			},
 
 
@@ -159,6 +165,9 @@
 
 				while (this.rendererActive) {
 					//this.$emit("beforeRender");
+
+					this.camera.position.copy(sphericalToCartesian(this.viewRadius, this.viewTheta, this.viewPhi));
+					this.camera.lookAt(0, 0, 0);
 
 					this.renderer.render(this.scene, this.camera);
 
@@ -191,13 +200,40 @@
 				this.elements = [];
 
 				elementsSchema.forEach(element => {
-					const elemObj = new THREE.Mesh(this.sphere, new THREE.MeshBasicMaterial({ color: new THREE.Color("#fc0") }));
+					const elemObj = new THREE.Mesh(this.sphere, new THREE.MeshBasicMaterial({ color: new THREE.Color("#044") }));
 					this.elements.push(elemObj);
 
 					elemObj.position.copy(element.position.clone().multiplyScalar(100));
 
 					this.scene.add(elemObj);
 				});
+			},
+
+
+			onMouseMove (event) {
+				//console.log("onMouseMove:", event.button, event.buttons);
+				if (event.buttons === 1) {
+					this.viewPhi += event.movementX * 0.01;
+					this.viewTheta -= event.movementY * 0.01;
+
+					this.viewTheta = Math.max(Math.min(this.viewTheta, Math.PI - 0.01), 0.01);
+				}
+			},
+
+
+			onMouseWheel (event) {
+				//console.log("onMouseWheel:", events);
+				this.viewRadius *= Math.exp(event.deltaY * 0.001);
+			},
+		},
+
+
+		watch: {
+			size (value) {
+				this.camera.aspect = value.width / value.height;
+				this.camera.updateProjectionMatrix();
+
+				this.renderer.setSize(value.width, value.height, false);
 			},
 		},
 	};

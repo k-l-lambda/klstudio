@@ -8,6 +8,8 @@ TODO:
 
 2019.9.28	K.L.	<k.l.lambda@gmail.com>
 
+	+	cube-cayley-graph.vue: mouse manipulation implemented.
+
 	+	cube-cayley-graph.vue: element graph objects added.
 
 	+	cube-cayley-graph.vue: tetrahedron element position schema added.

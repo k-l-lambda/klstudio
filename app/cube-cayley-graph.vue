@@ -91,21 +91,24 @@
 		elem(22, "2i", [TS, DEG30 * 6]), elem(23, "2i-", [TSD, DEG30 * 6]),
 		elem(12, "2j", [TS, DEG30 * -2]), elem(15, "2j-", [TSD, DEG30 * -2]),
 		elem(18, "2k", [TS, DEG30 * 2]), elem(21, "2k-", [TSD, DEG30 * 2]),
-
-		// octave
-		// TODO
-		/*
-			10, "ijk",
-			19, "k-ji",
-			16, "kj-i",
-			13, "ij-k-",
-			17, "kji-",
-			11, "i-jk-",
-			14, "i-j-k",
-			20, "k-j-i-",
-		*/
 	];
 	//console.log("elementsSchema:", elementsSchema);
+
+
+	const pointsCenter = points => points.reduce((sum, v) => sum.add(v), new THREE.Vector3()).multiplyScalar(1 / points.length);
+	const centerElem = (index, label, indices) => ({ index, label, position: pointsCenter(indices.map(i => elementsSchema[i].position)) });
+
+	// octave elements
+	[
+		[10, "ijk", [4, 5, 6, 10, 12, 14]],
+		[19, "k-ji", [4, 5, 9, 10, 12, 15]],
+		[16, "kj-i", [4, 8, 6, 10, 13, 14]],
+		[13, "ij-k-", [4, 8, 9, 10, 13, 15]],
+		[17, "kji-", [7, 5, 6, 11, 12, 14]],
+		[11, "i-jk-", [7, 5, 9, 11, 12, 15]],
+		[14, "i-j-k", [7, 8, 6, 11, 13, 14]],
+		[20, "k-j-i-", [7, 8, 9, 11, 13, 15]],
+	].forEach(item => elementsSchema.push(centerElem(...item)));
 
 
 
@@ -210,7 +213,6 @@
 				this.elements = [];
 
 				return Promise.all(elementsSchema.map(async element => {
-					//const elemObj = new THREE.Mesh(this.sphere, new THREE.MeshBasicMaterial({ color: new THREE.Color("#044") }));
 					const { default: tex } = await import(`./images/cube-algebra/${element.label}.png`);
 
 					const elemObj = new THREE.Mesh(this.sphere, new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load(tex) }));

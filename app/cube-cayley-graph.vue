@@ -72,28 +72,38 @@
 		r * Math.sin(theta) * Math.sin(phi),
 	);
 
-	const elem = (index, angles, r = 1) => ({ index, position: sphericalToCartesian(r, ...angles) });
+	const elem = (index, label, angles, r = 1) => ({ index, label, position: sphericalToCartesian(r, ...angles) });
 
 	const elementsSchema = [
 		// identity
-		elem(0, [0, 0]),
+		elem(0, "1", [0, 0]),
 
 		// squared
-		elem(7, [TT, 0]),
-		elem(8, [TT, DEG30 * 4]),
-		elem(9, [TT, DEG30 * -4]),
+		elem(7, "i2", [TT, 0]),
+		elem(8, "j2", [TT, DEG30 * 4]),
+		elem(9, "k2", [TT, DEG30 * -4]),
 
 		// generators & anti-generators
-		elem(1, [TT / 2, DEG30]), elem(2, [TT / 2, DEG30 * 5]), elem(3, [TT / 2, DEG30 * -3]),
-		elem(4, [TT / 2, -DEG30]), elem(5, [TT / 2, DEG30 * 3]), elem(6, [TT / 2, DEG30 * -5]),
+		elem(1, "i", [TT / 2, DEG30]), elem(2, "j", [TT / 2, DEG30 * 5]), elem(3, "k", [TT / 2, DEG30 * -3]),
+		elem(4, "i-", [TT / 2, -DEG30]), elem(5, "j-", [TT / 2, DEG30 * 3]), elem(6, "k-", [TT / 2, DEG30 * -5]),
 
 		// triad
-		elem(22, [TS, DEG30 * 6]), elem(23, [TSD, DEG30 * 6]),
-		elem(12, [TS, DEG30 * -2]), elem(15, [TSD, DEG30 * -2]),
-		elem(18, [TS, DEG30 * 2]), elem(21, [TSD, DEG30 * 2]),
+		elem(22, "2i", [TS, DEG30 * 6]), elem(23, "2i-", [TSD, DEG30 * 6]),
+		elem(12, "2j", [TS, DEG30 * -2]), elem(15, "2j-", [TSD, DEG30 * -2]),
+		elem(18, "2k", [TS, DEG30 * 2]), elem(21, "2k-", [TSD, DEG30 * 2]),
 
 		// octave
 		// TODO
+		/*
+			10, "ijk",
+			19, "k-ji",
+			16, "kj-i",
+			13, "ij-k-",
+			17, "kji-",
+			11, "i-jk-",
+			14, "i-j-k",
+			20, "k-j-i-",
+		*/
 	];
 	//console.log("elementsSchema:", elementsSchema);
 
@@ -196,17 +206,20 @@
 			},
 
 
-			createElements () {
+			async createElements () {
 				this.elements = [];
 
-				elementsSchema.forEach(element => {
-					const elemObj = new THREE.Mesh(this.sphere, new THREE.MeshBasicMaterial({ color: new THREE.Color("#044") }));
+				return Promise.all(elementsSchema.map(async element => {
+					//const elemObj = new THREE.Mesh(this.sphere, new THREE.MeshBasicMaterial({ color: new THREE.Color("#044") }));
+					const { default: tex } = await import(`./images/cube-algebra/${element.label}.png`);
+
+					const elemObj = new THREE.Mesh(this.sphere, new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load(tex) }));
 					this.elements.push(elemObj);
 
 					elemObj.position.copy(element.position.clone().multiplyScalar(100));
 
 					this.scene.add(elemObj);
-				});
+				}));
 			},
 
 

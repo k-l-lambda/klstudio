@@ -19,6 +19,7 @@
 	import * as THREE from "three";
 
 	import { animationDelay } from "./delay";
+	import { MULTIPLICATION_TABLE } from "../inc/cube-algebra";
 
 
 
@@ -138,6 +139,7 @@
 			this.initializeRenderer();
 
 			this.createElements();
+			this.createEdges();
 
 			this.render();
 		},
@@ -155,8 +157,6 @@
 				this.renderer.setSize(this.size.width, this.size.height, false);
 
 				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 10, 1000);
-				//this.camera.position.set(0, 0, 240);
-				//this.camera.lookAt(0, 0, 0);
 
 				this.viewTheta = Math.PI * 0.3;
 				this.viewPhi = 0;
@@ -167,6 +167,7 @@
 				this.rendererActive = true;
 
 				this.sphere = new THREE.SphereGeometry(6, 32, 16);
+				this.cone = new THREE.ConeGeometry(1, 1, 16);
 			},
 
 
@@ -209,7 +210,7 @@
 			},
 
 
-			async createElements () {
+			createElements () {
 				this.elements = [];
 
 				return Promise.all(elementsSchema.map(async element => {
@@ -222,6 +223,36 @@
 
 					this.scene.add(elemObj);
 				}));
+			},
+
+
+			createEdges () {
+				const unitColors = ["red", "#0f0", "blue"];
+				const up = new THREE.Vector3(0, 1, 0);
+
+				elementsSchema.forEach(element => {
+					for (let unit = 1; unit <= 3; ++unit) {
+						const target = MULTIPLICATION_TABLE[unit][element.index];
+
+						const basis = element.position;
+						const tip = elementsSchema.find(elem => elem.index === target).position;
+						const direction = tip.clone().sub(basis);
+						const axis = up.clone().cross(direction).normalize();
+						const angle = Math.acos(direction.clone().normalize().dot(up));
+
+						const base = new THREE.Object3D();
+						base.position.copy(basis.clone().multiplyScalar(100));
+						base.quaternion.setFromAxisAngle(axis, angle);
+						base.scale.x = base.scale.z = 2;
+						base.scale.y = direction.length() * 100;
+
+						const edge = new THREE.Mesh(this.cone, new THREE.MeshBasicMaterial({ color: new THREE.Color(unitColors[unit - 1]) }));
+						edge.position.y = 0.5;
+
+						base.add(edge);
+						this.scene.add(base);
+					}
+				});
 			},
 
 
@@ -268,7 +299,7 @@
 		right: 0;
 		bottom: 0;
 		padding: 4px;
-		color: #000a;
+		color: #0006;
 		pointer-events: none;
 	}
 

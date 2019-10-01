@@ -166,7 +166,7 @@
 
 				this.rendererActive = true;
 
-				this.sphere = new THREE.SphereGeometry(6, 32, 16);
+				this.sphere = new THREE.SphereGeometry(4, 32, 16);
 				this.cone = new THREE.ConeGeometry(1, 1, 16);
 			},
 
@@ -232,7 +232,7 @@
 
 				elementsSchema.forEach(element => {
 					for (let unit = 1; unit <= 3; ++unit) {
-						const target = MULTIPLICATION_TABLE[unit][element.index];
+						const target = MULTIPLICATION_TABLE[element.index][unit];
 
 						const basis = element.position;
 						const tip = elementsSchema.find(elem => elem.index === target).position;
@@ -243,7 +243,7 @@
 						const base = new THREE.Object3D();
 						base.position.copy(basis.clone().multiplyScalar(100));
 						base.quaternion.setFromAxisAngle(axis, angle);
-						base.scale.x = base.scale.z = 2;
+						base.scale.x = base.scale.z = 1;
 						base.scale.y = direction.length() * 100;
 
 						const edge = new THREE.Mesh(this.cone, new THREE.MeshBasicMaterial({ color: new THREE.Color(unitColors[unit - 1]) }));

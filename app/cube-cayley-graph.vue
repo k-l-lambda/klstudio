@@ -97,18 +97,18 @@
 
 
 	const pointsCenter = points => points.reduce((sum, v) => sum.add(v), new THREE.Vector3()).multiplyScalar(1 / points.length);
-	const centerElem = (index, label, indices) => ({ index, label, position: pointsCenter(indices.map(i => elementsSchema[i].position)) });
+	const centerElem = (index, label, indices, scalar = 1) => ({ index, label, position: pointsCenter(indices.map(i => elementsSchema[i].position)).multiplyScalar(scalar) });
 
 	// octave elements
 	[
 		[10, "ijk", [4, 5, 6, 10, 12, 14]],
-		[19, "k-ji", [4, 5, 9, 11, 13, 14]],
-		[16, "kj-i", [4, 8, 6, 11, 12, 15]],
+		[19, "k-ji", [4, 5, 9, 11, 13, 14], 3],
+		[16, "kj-i", [4, 8, 6, 11, 12, 15], 3],
 		[13, "ij-k-", [4, 8, 9, 10, 13, 15]],
-		[17, "kji-", [7, 5, 6, 10, 13, 15]],
+		[17, "kji-", [7, 5, 6, 10, 13, 15], 3],
 		[11, "i-jk-", [7, 5, 9, 11, 12, 15]],
 		[14, "i-j-k", [7, 8, 6, 11, 13, 14]],
-		[20, "k-j-i-", [7, 8, 9, 10, 12, 14]],
+		[20, "k-j-i-", [7, 8, 9, 10, 12, 14], 3],
 	].forEach(item => elementsSchema.push(centerElem(...item)));
 
 
@@ -227,7 +227,7 @@
 
 
 			createEdges () {
-				const unitColors = ["red", "#0f0", "blue"];
+				const unitColors = ["red", "green", "blue"];
 				const up = new THREE.Vector3(0, 1, 0);
 
 				elementsSchema.forEach(element => {

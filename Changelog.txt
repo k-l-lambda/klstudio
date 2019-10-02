@@ -6,6 +6,11 @@ TODO:
 
 
 
+2019.10.2	K.L.	<k.l.lambda@gmail.com>
+
+	>	cube-cayley-graph.vue: fixed triad element indices.
+
+
 2019.10.1	K.L.	<k.l.lambda@gmail.com>
 
 	+	cube-cayley-graph.vue: edge meshes added.

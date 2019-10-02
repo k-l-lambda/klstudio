@@ -89,9 +89,9 @@
 		elem(4, "i-", [TT / 2, -DEG30]), elem(5, "j-", [TT / 2, DEG30 * 3]), elem(6, "k-", [TT / 2, DEG30 * -5]),
 
 		// triad
-		elem(22, "2i", [TS, DEG30 * 6]), elem(23, "2i-", [TSD, DEG30 * 6]),
-		elem(12, "2j", [TS, DEG30 * -2]), elem(15, "2j-", [TSD, DEG30 * -2]),
-		elem(18, "2k", [TS, DEG30 * 2]), elem(21, "2k-", [TSD, DEG30 * 2]),
+		elem(22, "2i", [TSD, DEG30 * 6]), elem(23, "2i-", [TS, DEG30 * 6]),
+		elem(12, "2j", [TSD, DEG30 * -2]), elem(15, "2j-", [TS, DEG30 * -2]),
+		elem(21, "2k", [TSD, DEG30 * 2]), elem(18, "2k-", [TS, DEG30 * 2]),
 	];
 	//console.log("elementsSchema:", elementsSchema);
 
@@ -102,13 +102,13 @@
 	// octave elements
 	[
 		[10, "ijk", [4, 5, 6, 10, 12, 14]],
-		[19, "k-ji", [4, 5, 9, 10, 12, 15]],
-		[16, "kj-i", [4, 8, 6, 10, 13, 14]],
+		[19, "k-ji", [4, 5, 9, 11, 13, 14]],
+		[16, "kj-i", [4, 8, 6, 11, 12, 15]],
 		[13, "ij-k-", [4, 8, 9, 10, 13, 15]],
-		[17, "kji-", [7, 5, 6, 11, 12, 14]],
+		[17, "kji-", [7, 5, 6, 10, 13, 15]],
 		[11, "i-jk-", [7, 5, 9, 11, 12, 15]],
 		[14, "i-j-k", [7, 8, 6, 11, 13, 14]],
-		[20, "k-j-i-", [7, 8, 9, 11, 13, 15]],
+		[20, "k-j-i-", [7, 8, 9, 10, 12, 14]],
 	].forEach(item => elementsSchema.push(centerElem(...item)));
 
 

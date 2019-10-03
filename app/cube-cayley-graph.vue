@@ -10,6 +10,21 @@
 			</span>
 		</article>
 		<header>
+			<svg class="control" width="240" height="240" viewBox="-120 -120 240 240">
+				<g>
+					<g v-for="i in 6" :class="`unit${i}`">
+						<line class="track" x1="0" y1="0" :x2="100 * Math.cos((i + 3.5) * Math.PI / 3)" :y2="100 * Math.sin((i + 3.5) * Math.PI / 3)" />
+						<circle class="tip"
+							:cx="100 * Math.cos((i + 3.5) * Math.PI / 3)"
+							:cy="100 * Math.sin((i + 3.5) * Math.PI / 3)"
+							@click="rotate(i)"
+						/>
+					</g>
+				</g>
+				<g class="handle">
+					<circle :cx="handlePosition.x" :cy="handlePosition.y" />
+				</g>
+			</svg>
 		</header>
 	</div>
 </template>
@@ -126,7 +141,27 @@
 			return {
 				size: { width: 800, height: 800 },
 				fps: 0,
+				rotationIndex: 0,
+				rotationT: 0,
 			};
+		},
+
+
+		computed: {
+			handlePosition () {
+				if (this.rotationIndex === 0)
+					return { x: 0, y: 0 };
+
+				const angle = Math.PI * (this.rotationIndex + 3.5) / 3;
+				const radius = 100;
+
+				const p = 3 * (this.rotationT ** 2) - 2 * (this.rotationT ** 3);
+
+				return {
+					x: Math.cos(angle) * radius * p,
+					y: Math.sin(angle) * radius * p,
+				};
+			},
 		},
 
 
@@ -202,6 +237,12 @@
 						lastSeconds = seconds;
 					}
 
+					if (this.rotationIndex > 0) {
+						this.rotationT += (now - lastTime) * 2e-3;
+						if (this.rotationT >= 1)
+							this.permute(this.rotationIndex);
+					}
+
 					//const interval = now - lastTime;
 					lastTime = now;
 
@@ -271,6 +312,19 @@
 				//console.log("onMouseWheel:", events);
 				this.viewRadius *= Math.exp(event.deltaY * 0.001);
 			},
+
+
+			rotate (index) {
+				this.rotationIndex = index;
+			},
+
+
+			permute (index) {
+				// TODO:
+
+				this.rotationIndex = 0;
+				this.rotationT = 0;
+			},
 		},
 
 
@@ -311,5 +365,70 @@
 	.fps em
 	{
 		font-weight: bold;
+	}
+
+	header
+	{
+		position: absolute;
+		right: 0;
+		top: 0;
+	}
+
+	.control .handle circle
+	{
+		r: 8;
+		stroke-width: 1;
+		stroke: #000c;
+		fill: #fffc;
+	}
+
+	.control .tip
+	{
+		r: 6;
+		stroke-width: 1;
+		stroke: #0004;
+		cursor: pointer;
+	}
+
+	.control .tip:hover
+	{
+		stroke-width: 2;
+		r: 12;
+	}
+
+	.control .unit1 .tip
+	{
+		fill: #f00a;
+	}
+
+	.control .unit2 .tip
+	{
+		fill: #0c0a;
+	}
+
+	.control .unit3 .tip
+	{
+		fill: #00fa;
+	}
+
+	.control .unit4 .tip
+	{
+		fill: #0dda;
+	}
+
+	.control .unit5 .tip
+	{
+		fill: #e0ea;
+	}
+
+	.control .unit6 .tip
+	{
+		fill: #dd0a;
+	}
+
+	.control .track
+	{
+		stroke: #0003;
+		stroke-width: 1;
 	}
 </style>

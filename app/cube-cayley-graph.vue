@@ -201,7 +201,7 @@
 
 				this.rendererActive = true;
 
-				this.sphere = new THREE.SphereGeometry(4, 32, 16);
+				this.sphere = new THREE.SphereGeometry(8, 32, 16);
 				this.cone = new THREE.ConeGeometry(1, 1, 16);
 			},
 

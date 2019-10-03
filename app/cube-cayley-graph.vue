@@ -12,7 +12,7 @@
 		<header>
 			<svg class="control" width="240" height="240" viewBox="-120 -120 240 240">
 				<g>
-					<g v-for="i in 6" :class="`unit${i}`">
+					<g v-for="i in 6" :class="`unit${i}`" :key="i">
 						<line class="track" x1="0" y1="0" :x2="100 * Math.cos((i + 3.5) * Math.PI / 3)" :y2="100 * Math.sin((i + 3.5) * Math.PI / 3)" />
 						<circle class="tip"
 							:cx="100 * Math.cos((i + 3.5) * Math.PI / 3)"
@@ -241,6 +241,17 @@
 						this.rotationT += (now - lastTime) * 2e-3;
 						if (this.rotationT >= 1)
 							this.permute(this.rotationIndex);
+						else {
+							this.elements.forEach((e, i) => {
+								const target = MULTIPLICATION_TABLE[elementsSchema[i].index][this.rotationIndex];
+								const p0 = this.elementPositions[elementsSchema[i].index];
+								const p1 = this.elementPositions[target];
+
+								const p = 3 * (this.rotationT ** 2) - 2 * (this.rotationT ** 3);
+
+								e.position.copy(p0.clone().lerp(p1, p));
+							});
+						}
 					}
 
 					//const interval = now - lastTime;
@@ -251,10 +262,10 @@
 			},
 
 
-			createElements () {
+			async createElements () {
 				this.elements = [];
 
-				return Promise.all(elementsSchema.map(async element => {
+				await Promise.all(elementsSchema.map(async element => {
 					const { default: tex } = await import(`./images/cube-algebra/${element.label}.png`);
 
 					const elemObj = new THREE.Mesh(this.sphere, new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load(tex) }));
@@ -264,6 +275,8 @@
 
 					this.scene.add(elemObj);
 				}));
+
+				this.elementPositions = this.elements.reduce((ps, e, i) => ((ps[elementsSchema[i].index] = e.position.clone()), ps), []);
 			},
 
 
@@ -320,7 +333,12 @@
 
 
 			permute (index) {
-				// TODO:
+				//const positions = this.elements.reduce((ps, e, i) => ((ps[elementsSchema[i].index] = this.elementPositions[i]), ps), []);
+				this.elements.forEach((e, i) => {
+					const target = MULTIPLICATION_TABLE[elementsSchema[i].index][index];
+					e.position.copy(this.elementPositions[target]);
+				});
+				this.elementPositions = this.elements.reduce((ps, e, i) => ((ps[elementsSchema[i].index] = e.position.clone()), ps), []);
 
 				this.rotationIndex = 0;
 				this.rotationT = 0;

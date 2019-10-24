@@ -79,6 +79,11 @@
 		},
 
 
+		beforeDestroy () {
+			this.rendererActive = false;
+		},
+
+
 		methods: {
 			onResize () {
 				this.size = { width: this.$el.clientWidth, height: this.$el.clientHeight };

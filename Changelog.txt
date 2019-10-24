@@ -6,6 +6,36 @@ TODO:
 
 
 
+2019.10.3	K.L.	<k.l.lambda@gmail.com>
+
+	+	cube-cayley-graph.vue: rotation implemented.
+
+	+	cube-cayley-graph.vue: control panel added.
+
+
+2019.10.2	K.L.	<k.l.lambda@gmail.com>
+
+	>	cube-cayley-graph.vue: fixed triad element indices.
+
+
+2019.10.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	cube-cayley-graph.vue: edge meshes added.
+
+	+	cube-cayley-graph.vue: octave elements added.
+
+	+	cube-cayley-graph.vue: element textures added.
+
+
+2019.9.28	K.L.	<k.l.lambda@gmail.com>
+
+	+	cube-cayley-graph.vue: mouse manipulation implemented.
+
+	+	cube-cayley-graph.vue: element graph objects added.
+
+	+	cube-cayley-graph.vue: tetrahedron element position schema added.
+
+
 2019.9.27	K.L.	<k.l.lambda@gmail.com>
 
 	+	cube-cayley-graph.vue: added WebGL canvas.

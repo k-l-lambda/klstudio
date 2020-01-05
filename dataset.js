@@ -10,13 +10,14 @@ import * as peris from "./perisDb.js";
 
 const RAW_DATA_PATH = process.env.RAW_DATA_PATH;
 const DATASET_PATH = process.env.DATASET_PATH;
+const IMAGE_DIMENSION = process.env.IMAGE_DIMENSION;
 
 
 const datasetImagePath = id => path.resolve(DATASET_PATH, `${id}.jpg`);
 
 
 const formatItem = (inputPath, outputPath) => sharp(inputPath)
-	.resize({width: 1024, height: 1024, fit: "contain"})
+	.resize({width: IMAGE_DIMENSION, height: IMAGE_DIMENSION, fit: "contain"})
 	.jpeg({quality: 80})
 	.toFile(outputPath);
 

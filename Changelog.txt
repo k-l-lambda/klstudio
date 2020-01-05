@@ -1,9 +1,12 @@
 TODO:
+	make validation dataset
 	train score evaluator
 
 
 
 2020.1.5	K.L.	<k.l.lambda@gmail.com>
+
+	+	appraiser/models.py created.
 
 	+	appraiser/training.py created.
 

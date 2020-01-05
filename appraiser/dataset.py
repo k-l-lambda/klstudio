@@ -16,32 +16,13 @@ def getDataFrames(splitter):
 	filenamesValidation = filter(splitter, filenames)
 
 	dataframe = pd.read_csv('./footages/labels.csv')
+	dataframe = dataframe[dataframe['score'] > 0]
 	dataframe['filename'] = [hash + ".jpg" for hash in dataframe.hash]
 
 	trainingData = dataframe[dataframe.filename.isin(filenamesTraining)]
 	validationData = dataframe[dataframe.filename.isin(filenamesValidation)]
 
 	return trainingData, validationData
-
-'''	trainGen = ImageDataGenerator(rescale = 1./255).flow_from_dataframe(trainingData,
-		directory = DATASET_PATH,
-		x_col = 'filename',
-		y_col = 'score',
-		target_size = (IMAGE_DIMENSION, IMAGE_DIMENSION),
-		class_mode = 'other',
-		shuffle = True,
-		)
-
-	validationGen = ImageDataGenerator(rescale = 1./255).flow_from_dataframe(validationData,
-		directory = DATASET_PATH,
-		x_col = 'filename',
-		y_col = 'score',
-		target_size = (IMAGE_DIMENSION, IMAGE_DIMENSION),
-		class_mode = 'other',
-		)
-
-	return trainGen, validationGen
-'''
 
 
 def makeDataGenerator(dataframe, **kwargs):

@@ -100,7 +100,7 @@ const exportLabels = async (fetchOptions, featureTags) => {
 		const features = featureTags.map(tag => tags.has(tag) ? 1 : 0);
 
 		featureTags.forEach(tag => tags.delete(tag));
-		console.assert(tags.size <= 1, "multiple identity:", [...tags]);
+		console.assert(tags.size <= 1, "multiple identity:", item.hash, [...tags]);
 		const identity = [...tags].join("|");
 
 		const fields = [item.hash, item.score, ...features, identity];

@@ -91,8 +91,30 @@ const getItem = async id => {
 };
 
 
+const exportLabels = async (fetchOptions, featureTags) => {
+	let result = ["hash", "score", ...featureTags, "identity"].join(",") + "\n";
+
+	const data = await peris.labels.fetch(fetchOptions);
+	for (const item of data) {
+		const tags = new Set((item.tags || "").split("|"));
+		const features = featureTags.map(tag => tags.has(tag) ? 1 : 0);
+
+		featureTags.forEach(tag => tags.delete(tag));
+		console.assert(tags.size <= 1, "multiple identity:", [...tags]);
+		const identity = [...tags].join("|");
+
+		const fields = [item.hash, item.score, ...features, identity];
+
+		result += fields.join(",") + "\n";
+	}
+
+	return result;
+};
+
+
 
 export {
 	getItem,
 	updateItems,
+	exportLabels,
 };

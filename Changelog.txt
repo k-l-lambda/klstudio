@@ -1,3 +1,12 @@
+TODO:
+	export ablum into label.csv
+	load dataset by python pandas
+
+
+
+2020.1.5	K.L.	<k.l.lambda@gmail.com>
+
+	+	dataset.js: exportLabels added.
 
 
 2019.5.5	K.L.	<k.l.lambda@gmail.com>

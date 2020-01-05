@@ -22,6 +22,14 @@ const handleGetDatasetItem = async function (req, res) {
 };
 
 
+const testExportLabel = async () => {
+	const featureTags = process.env.FEATURE_TAGS.split(",");
+	const labels = await dataset.exportLabels({limit: 1000}, featureTags);
+	console.log("labels:", labels);
+};
+global.testExportLabel = testExportLabel;
+
+
 
 export default {
 	"/get-dataset-item": {

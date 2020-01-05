@@ -6,6 +6,8 @@ TODO:
 
 2020.1.5	K.L.	<k.l.lambda@gmail.com>
 
+	+	training.py: checkpoint saving added.
+
 	+	appraiser/dataset.py created.
 
 	+	appraiser/models.py created.

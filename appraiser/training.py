@@ -2,6 +2,7 @@
 #import os
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
+import tensorflow as tf
 
 
 load_dotenv(dotenv_path = './.env.local')
@@ -46,7 +47,7 @@ def plotHistory(history):
 	plt.show()
 
 
-batch_size = 128
+batch_size = 16
 epochs = 15
 
 
@@ -66,11 +67,22 @@ model.compile(optimizer = 'adam', loss = 'mean_squared_error', metrics = ['accur
 #model.summary()
 
 
+checkpoint_path = "./apprraiser/training/cp-{epoch:04d}.ckpt"
+#checkpoint_dir = os.path.dirname(checkpoint_path)
+
+cp_callback = tf.keras.callbacks.ModelCheckpoint(
+	filepath = checkpoint_path, 
+	verbose = 1,
+	save_weights_only = True,
+	period = 1)
+
+
 history = model.fit_generator(
 	trainGen,
 	steps_per_epoch = len(trainingData.index) // batch_size,
 	epochs = epochs,
 	validation_data = validationGen,
-	validation_steps = len(validationData.index) // batch_size
+	validation_steps = len(validationData.index) // batch_size,
+	callbacks = [cp_callback],
 )
 plotHistory(history)

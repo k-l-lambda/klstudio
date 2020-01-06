@@ -25,8 +25,8 @@ def plotImages(images_arr):
 
 def plotHistory(history):
 	#print('history.history:', history.history)
-	acc = history.history['acc']
-	val_acc = history.history['val_acc']
+	acc = history.history['mean_squared_error']
+	val_acc = history.history['val_mean_squared_error']
 
 	loss = history.history['loss']
 	val_loss = history.history['val_loss']
@@ -63,7 +63,7 @@ validationGen = dataset.makeDataGenerator(validationData, batch_size = batch_siz
 #plotImages(sample_images)
 
 
-model.compile(optimizer = 'adam', loss = 'mean_squared_error', metrics = ['accuracy'])
+model.compile(optimizer = 'adam', loss = 'mean_squared_error', metrics = ['mse'])
 
 #model.summary()
 

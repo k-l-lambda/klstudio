@@ -24,8 +24,9 @@ def plotImages(images_arr):
 
 
 def plotHistory(history):
-	acc = history.history['accuracy']
-	val_acc = history.history['val_accuracy']
+	#print('history.history:', history.history)
+	acc = history.history['acc']
+	val_acc = history.history['val_acc']
 
 	loss = history.history['loss']
 	val_loss = history.history['val_loss']
@@ -67,13 +68,13 @@ model.compile(optimizer = 'adam', loss = 'mean_squared_error', metrics = ['accur
 #model.summary()
 
 
-checkpoint_path = "./apprraiser/training/cp-{epoch:04d}.ckpt"
+checkpoint_path = "./appraiser/training/cp-{epoch:04d}.ckpt"
 #checkpoint_dir = os.path.dirname(checkpoint_path)
 
 cp_callback = tf.keras.callbacks.ModelCheckpoint(
 	filepath = checkpoint_path, 
 	verbose = 1,
-	save_weights_only = True,
+	save_weights_only = False,
 	period = 1)
 
 

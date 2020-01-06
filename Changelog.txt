@@ -1,7 +1,12 @@
 TODO:
-	make validation dataset
 	train score evaluator
+		evalution
 
+
+
+2020.1.6	K.L.	<k.l.lambda@gmail.com>
+
+	>	training.py: fixed value errors.
 
 
 2020.1.5	K.L.	<k.l.lambda@gmail.com>

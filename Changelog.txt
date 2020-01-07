@@ -4,6 +4,11 @@ TODO:
 
 
 
+2020.1.7	K.L.	<k.l.lambda@gmail.com>
+
+	+	appraiser/predictor.py created.
+
+
 2020.1.6	K.L.	<k.l.lambda@gmail.com>
 
 	>	training.py: fixed value errors.

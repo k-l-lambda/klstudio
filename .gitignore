@@ -8,6 +8,6 @@ yarn.lock
 package-lock.json
 *.log
 *.sln
-dist
+docs
 
 public/mlmodels/*

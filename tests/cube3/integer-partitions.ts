@@ -1,6 +1,6 @@
 
-import { Cube3 } from "../../inc/cube3";
-import { enumPartitions, PARTITIONS_6, PARTITIONS_8, PARTITIONS_12, cubePartitionCode } from "../../inc/cube3-partition";
+import {Cube3} from "../../inc/cube3";
+import {/*enumPartitions,*/ PARTITIONS_6, PARTITIONS_8, PARTITIONS_12, cubePartitionCode} from "../../inc/cube3-partition";
 
 
 

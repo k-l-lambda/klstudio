@@ -1,9 +1,9 @@
 
 import * as fs from "fs";
 
-import { Cube3, TWIST_PERMUTATION_48, permutate } from "../../inc/cube3";
-import { cubePartitionCode } from "../../inc/cube3-partition";
-import { cubeLoop } from "../../inc/cube3-loop";
+import {Cube3, TWIST_PERMUTATION_48, permutate} from "../../inc/cube3";
+import {cubePartitionCode} from "../../inc/cube3-partition";
+import {cubeLoop} from "../../inc/cube3-loop";
 
 
 
@@ -24,7 +24,7 @@ const minHash = cube => {
 
 	const permutatedCodes = TWIST_PERMUTATION_48.map(permutation => permutate(permutation, neighborLoops).map(loop => String.fromCharCode(loop)).join(""));
 
-	return permutatedCodes.reduce((min: {code: string, index: number}, code, index) => (!min || code < min.code) ? {index, code} : min, null)
+	return permutatedCodes.reduce((min: {code: string, index: number}, code, index) => (!min || code < min.code) ? {index, code} : min, null);
 };
 
 
@@ -66,9 +66,9 @@ const traverseCubes = (cube, depth = 0) => {
 			return;
 		}
 
-		for (let t = 0; t < 12; ++t) {
+		for (let t = 0; t < 12; ++t) 
 			traverseCubes(cube.clone().twist(t), depth + 1);
-		}
+		
 	}
 };
 

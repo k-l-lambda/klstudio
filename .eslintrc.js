@@ -1,57 +1,57 @@
 // https://eslint.org/docs/user-guide/configuring
 
 module.exports = {
-	"root": true,
-	"env": {
-		"es6": true,
-		"node": true,
+	root: true,
+	env: {
+		es6: true,
+		node: true,
 	},
-	"extends": [
-		"@vue/standard",
+	extends: [
+		"@vue/typescript",
 		"plugin:vue/base",
 	],
-	"parserOptions": {
-		"parser": "babel-eslint",
-		"ecmaVersion": 2017,
+	parserOptions: {
+		parser: "babel-eslint",
+		ecmaVersion: 2017,
 	},
-	"rules": {
+	rules: {
 		"no-multiple-empty-lines": "off",
 		"no-return-assign": "off",
 		"no-sequences": "off",
 		"no-extend-native": "off",
-		"quotes": [
+		quotes: [
 			"warn",
 			"double",
 		],
-		"indent": [
+		indent: [
 			"warn",
 			"tab",
 		],
 		"vue/html-indent": [
 			"warn",
 			"tab",
-			{ "baseIndent": 1 },
+			{baseIndent: 1},
 		],
 		"vue/script-indent": [
-			"warn", "tab", { "baseIndent": 1 },
+			"warn", "tab", {baseIndent: 1},
 		],
 		"no-tabs": "off",
 		"comma-dangle": ["warn", "always-multiline"],
-		"semi": ["error", "always"],
-		"curly": ["warn", "multi-or-nest"],
-		"eqeqeq": "warn",
+		semi: ["error", "always"],
+		curly: ["warn", "multi-or-nest"],
+		eqeqeq: "warn",
 		"spaced-comment": "off",
 		"object-curly-spacing": "warn",
 		"brace-style": ["error", "stroustrup"],
-		"camelcase": "off",
+		camelcase: "off",
 		"no-useless-escape": "warn",
-		"no-unused-vars": ["warn", { varsIgnorePattern: "_" }],
+		"no-unused-vars": ["warn", {varsIgnorePattern: "_"}],
 		"quote-props": ["warn", "as-needed"],
 		"prefer-const": "warn",
 		"no-fallthrough": [
 			"error",
 			{
-				"commentPattern": "break[\\s\\w]*omitted",
+				commentPattern: "break[\\s\\w]*omitted",
 			},
 		],
 		"new-cap": "off",
@@ -67,17 +67,17 @@ module.exports = {
 		"space-before-function-paren": ["warn", "always"],
 		"object-property-newline": "off",
 		"standard/no-callback-literal": "off",
+		"no-debugger": process.env.NODE_ENV === "production" ? "error" : "off",
 	},
-	"plugins": [
-		//"html",
-		"vue",
-	],
-	"overrides": [
+	overrides: [
 		{
 			files: ["*.vue"],
 			rules: {
 				indent: "off",
-			}
-		}
-	  ]
+			},
+		},
+	],
+	parserOptions: {
+		parser: "@typescript-eslint/parser",
+	},
 };

@@ -6,7 +6,7 @@ const htmlCommonTemplate = "./app/html/CommonTemplate.html";
 module.exports = {
 	pages: {
 		index: {
-			entry: "./app/entries/home.ts",
+			entry: "./app/main.ts",
 			template: htmlCommonTemplate,
 			title: "K.L. Studio",
 		},

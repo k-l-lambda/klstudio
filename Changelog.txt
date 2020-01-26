@@ -8,6 +8,8 @@ TODO:
 
 2020.1.26	K.L.	<k.l.lambda@gmail.com>
 
+	+	App router added.
+
 	+	Front end config of vue-cli added.
 
 

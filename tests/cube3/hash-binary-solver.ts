@@ -13,7 +13,7 @@ const hashLoader = depth => readline.createInterface({input: fs.createReadStream
 const randomPath = length => Array(length).fill(null).map(() => ~~(Math.random() * 12));
 
 
-async function main() {
+async function main () {
 	console.log("loading library...");
 
 	for (let depth = 1; depth <= 7; ++depth)

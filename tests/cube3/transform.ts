@@ -1,6 +1,6 @@
 
 import * as cube3 from "../../inc/cube3";
-import { cubePartitionCode } from "../../inc/cube3-partition";
+import {cubePartitionCode} from "../../inc/cube3-partition";
 
 
 
@@ -12,7 +12,7 @@ const n0 = neighbors(cube);
 const trans = Array(48).fill(null).map((_, i) => cube.clone().transform(i));
 const ns = trans.map(c => neighbors(c));
 const n0ps = cube3.TWIST_PERMUTATION_48.map(p => cube3.permutate(p, n0));
-const n0ds = cube3.TWIST_PERMUTATION_48.map(p => cube3.depermutate(p, n0));
+//const n0ds = cube3.TWIST_PERMUTATION_48.map(p => cube3.depermutate(p, n0));
 
 
 console.table(Array(48).fill(null).map((_, i) => [ns[i].toString(), n0ps[i].toString()]));

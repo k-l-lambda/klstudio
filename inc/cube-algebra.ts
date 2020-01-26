@@ -95,20 +95,20 @@ class Item {
 	}
 
 
-	mul (other) : Item {
+	mul (other : Item) : Item {
 		console.assert(this.unit === other.unit);
 
 		return new Item(this.unit, this.exponent + other.exponent);
 	}
 
 
-	static supplementaryUnit (item1, item2) : number {
+	static supplementaryUnit (item1 : Item, item2 : Item) : number {
 		return 3 - item1.unit - item2.unit;
 	}
 
 
-	static sqauredReduce(...items: Array<Item>)
-	static sqauredReduce (item1, item2) {
+	static sqauredReduce(...items: Array<Item>) : Item[]
+	static sqauredReduce (item1 : Item, item2 : Item) {
 		if (item1.exponent === 2 && item2.exponent === 2)
 			return [new Item(this.supplementaryUnit(item1, item2), 2)];
 
@@ -119,7 +119,7 @@ class Item {
 	}
 
 
-	static exchangeReduce (item1, item2) {
+	static exchangeReduce (item1 : Item, item2 : Item) {
 		if (item1.unit === _i)
 			return null;
 
@@ -133,7 +133,7 @@ class Item {
 		const otherUnit = Item.supplementaryUnit(item1, item2);
 		const otherItem = new Item(otherUnit, otherExponent);
 
-		const exps = [item1, item2, otherItem].reduce((map, item) => (map[item.unit] = item.exponent, map), []);
+		const exps = [item1, item2, otherItem].reduce((map : any, item) => (map[item.unit] = item.exponent, map), []);
 
 		return [new Item(_i, exps[_i]), new Item(u2, exps[u2])];
 	}
@@ -144,7 +144,7 @@ class Orientation {
 	items: Array<Item>;
 
 
-	constructor (items = []) {
+	constructor (items : Item[] = []) {
 		this.items = items;
 	}
 
@@ -218,7 +218,7 @@ class Orientation {
 	}
 
 
-	mul (other) : Orientation {
+	mul (other : Orientation) : Orientation {
 		return new Orientation(this.items.concat(other.items));
 	}
 };

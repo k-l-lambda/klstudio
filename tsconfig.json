@@ -1,7 +1,36 @@
 {
 	"compilerOptions": {
-		"downlevelIteration": true,
-		"lib": ["es2017"],
-		"target": "es6"
+		"target": "esnext",
+		"module": "esnext",
+		"strict": true,
+		"importHelpers": true,
+		"moduleResolution": "node",
+		"experimentalDecorators": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"sourceMap": true,
+		"baseUrl": ".",
+		"types": [
+			"webpack-env"
+		],
+		"paths": {
+			"@/*": [
+				"app/*"
+			]
+		},
+		"lib": [
+			"esnext",
+			"dom",
+			"dom.iterable",
+			"scripthost"
+		],
+		"skipLibCheck": true
 	},
+	"include": [
+		"app/**/*.ts",
+		"app/**/*.vue"
+	],
+	"exclude": [
+		"./node_modules/*"
+	]
 }

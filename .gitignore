@@ -7,3 +7,5 @@ Footages
 yarn.lock
 package-lock.json
 *.log
+*.sln
+dist

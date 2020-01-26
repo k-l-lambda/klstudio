@@ -1,8 +1,8 @@
 
 import * as fs from "fs";
 
-//import * as tf from "@tensorflow/tfjs";
-import * as tf from "@tensorflow/tfjs-node-gpu";
+import * as tf from "@tensorflow/tfjs";
+//import * as tf from "@tensorflow/tfjs-node-gpu";
 
 
 

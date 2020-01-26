@@ -9,5 +9,6 @@ package-lock.json
 *.log
 *.sln
 #docs
+docs/**/*.js.map
 
 public/mlmodels/*

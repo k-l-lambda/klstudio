@@ -123,7 +123,7 @@
 
 			async loadTheme () {
 				//console.log("loadModel:", this.theme);
-				this.chars = await (await fetch(`/mlmodels/char-rnn/${this.theme}/vocab.txt`)).text();
+				this.chars = await (await fetch(`./mlmodels/char-rnn/${this.theme}/vocab.txt`)).text();
 				this.vocab = this.chars.split("").reduce((v, char, i) => (v[char] = i, v), {});
 
 				this.ready = true;
@@ -165,7 +165,7 @@
 				}
 				//console.log("inputs:", inputs);
 
-				this.model = await tf.loadLayersModel(`/mlmodels/char-rnn/${this.theme}/model.json`);
+				this.model = await tf.loadLayersModel(`./mlmodels/char-rnn/${this.theme}/model.json`);
 
 				console.log("model loaded.");
 

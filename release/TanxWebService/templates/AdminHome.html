@@ -1,0 +1,46 @@
+<html>
+	<head>
+		<title>Tanx Web Service Admin</title>
+		<link href="../static/admin.css" rel="stylesheet" type="text/css" />
+		<script src="../static/admin.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<div id="header">
+			<div id="account-bar">
+				<b>{{current_user.email}}</b> |
+				<a href="{{logout_url}}">logout</a>
+			</div>
+			<div>
+				<a href="./">Admin Home</a>
+			</div>
+		</div>
+		<h1 class="clear">Tanx Web Service Admin</h1>
+		<div class="section">
+			<h2>Applications</h2>
+			<form action="delete-app" method="post">
+				<table class="long-table">
+					<tr>
+						<th><input type="checkbox" onclick="checkAll(this, 'appchk')" title="select all/none" /></th>
+						<th>id</th>
+						<th>session count</th>
+					</tr>
+					{% for app in applications %}
+						<tr>
+							<td class="head-check"><input type="checkbox" name="id" value="{{app.id}}" class="appchk"/></td>
+							<td><a href="app/{{app.id}}/">{{app.id}}</a></td>
+							<td>{{app.sessionList.count}}</td>
+						</tr>
+					{% endfor %}
+				</table>
+				<input type="submit" value="Delete" onClick="confirmEvent('Sure to delete selected application(s)?')" />
+			</form>
+		</div>
+		<div class="section">
+			<h2>Create Application</h2>
+			<form action="create-app" method="post">
+				<input type="text" name="id" title="id" />
+				<input type="submit" value="Create" />
+			</form>
+		</div>
+	</body>
+</html>

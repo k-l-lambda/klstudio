@@ -1,0 +1,165 @@
+
+html
+{
+	font-family: arial, sans-serif;
+	font-size: 80%;
+}
+
+body
+{
+	margin: 0;
+}
+
+h2
+{
+	margin: 0;
+	font-size: 100%;
+}
+
+iframe
+{
+	width: 100%;
+	border: none;
+}
+
+img
+{
+	border: 0;
+}
+
+
+#header
+{
+	border-bottom: solid 1px #c9d7f1;
+	padding-bottom: 2px;
+}
+
+#logo
+{
+	height: 54px;
+	padding: 2px 0 2px 8px;
+}
+
+#account-bar
+{
+	float: right;
+}
+
+#nav
+{
+	float: left;
+	width: 240px;
+}
+
+#canvas
+{
+	margin-left: 240px;
+	border-top: solid 1px #c2cff1;
+	border-left: solid 1px #c2cff1;
+}
+
+#dialogs_frame
+{
+	float: right;
+	height: 100%;
+	margin: 0 12px;
+	visibility: hidden;
+}
+
+.nav-section
+{
+	padding: 0 8px;
+	overflow-y: auto;
+	border-top: 1px solid #E3E9FF;
+}
+
+#online-frame
+{
+	height: 180px;
+}
+
+#contacts-frame
+{
+}
+
+.layer-container
+{
+	position: absolute;
+	visibility: hidden;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.float-right
+{
+	float: right;
+}
+
+.clickable
+{
+	cursor: pointer;
+}
+
+.icon-close
+{
+	background-image: url(/projects/ChatRoom/static/ui.png);
+	background-position: -40px -80px;
+	width: 16px;
+	height: 16px;
+}
+
+.icon-close:hover
+{
+	background-color: #3072fe;
+}
+
+
+/* dialog-form */
+.dialog-form-wrapper
+{
+	position: relative;
+	float: right;
+	width: 360px;
+	height: 100%;
+	margin-right: 6px;
+}
+
+.dialog-form
+{
+	visibility: visible;
+	position: absolute;
+	float: left;
+	margin: 0 4px;
+	bottom: 0;
+	width: 100%;
+}
+
+.dialog-form-title
+{
+	background-color: #73a6ff;
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px;
+	padding: 2px 4px;
+}
+
+.dialog-form-title-text
+{
+	font-weight: bold;
+	color: White;
+}
+
+.dialog-form-body
+{
+	border-left: solid 1px #bbb;
+	border-right: solid 1px #bbb;
+	height: 240px;
+}
+
+.dialog-form-body-frame
+{
+	height: 100%;
+	font-family: arial, sans-serif;
+	font-size: 80%;
+}

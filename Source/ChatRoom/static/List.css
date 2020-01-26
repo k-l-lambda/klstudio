@@ -1,0 +1,123 @@
+
+html
+{
+	font-family: arial, sans-serif;
+	font-size: 80%;
+}
+
+body
+{
+	margin: 0;
+}
+
+h2
+{
+	margin: 0;
+	font-size: 100%;
+}
+
+ul
+{
+	margin: 2px 0;
+	padding-left: 20px;
+}
+
+
+.hidden
+{
+	visibility: hidden;
+}
+
+.clickable
+{
+	cursor: pointer;
+}
+
+.clear
+{
+	clear: both;
+}
+
+.title-status
+{
+	font-size: small;
+	color: #aaa;
+}
+
+.list-selfitem
+{
+	color: #66c;
+	font-weight: bold;
+}
+
+.list-item
+{
+}
+
+.list-selfitem:hover, .list-item:hover
+{
+	background-color: #e3e9ff;
+}
+
+.contact
+{
+	height: 36px;
+	overflow: hidden;
+}
+
+.profile
+{
+	float: right;
+	margin: 2px 0;
+	width: 32px;
+	height: 32px;
+}
+
+.status
+{
+	float: left;
+	margin: 10px;
+}
+
+.nickname
+{
+	float: left;
+	width: 133px;
+	line-height: 36px;
+	vertical-align: middle;
+	overflow: hidden;
+}
+
+.contacts-list
+{
+	list-style-type: none;
+	padding-left: 0;
+}
+
+.icon-available, .icon-absence, .icon-invisible
+{
+	background-image: url(/projects/ChatRoom/static/icons.png);
+	width: 16px;
+	height: 16px;
+}
+
+.icon-available
+{
+	background-position: 0px -80px;
+}
+
+.icon-absence
+{
+	background-position: -40px -80px;
+}
+
+.icon-invisible
+{
+	background-position: -60px -80px;
+}
+
+
+#list li
+{
+	cursor: pointer;
+}

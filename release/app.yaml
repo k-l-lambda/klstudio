@@ -1,0 +1,79 @@
+application: klstudioindieg-hrd
+version: 3
+runtime: python27
+api_version: 1
+threadsafe: false
+
+default_expiration: 7d
+
+libraries:
+- name: django
+  version: "1.2"
+
+handlers:
+- url: /robots.txt
+  static_files: robots.txt
+  upload: robots.txt
+
+- url: /
+  script: main.py
+
+- url: /MessageBoard
+  script: main.py
+
+- url: /MessageBoard/.*
+  script: main.py
+
+- url: /about/.*
+  script: main.py
+
+- url: /html/.*
+  script: main.py
+
+
+- url: /tanx-web-service/v1/static/
+  static_dir: TanxWebService/static
+
+- url: /tanx-web-service/v1/admin/.*
+  script: TanxWebService/admin.py
+  login: admin
+
+- url: /tanx-web-service/v1/.*
+  script: TanxWebService/main.py
+  login: required
+
+
+- url: /projects/ChatRoom/static/
+  static_dir: ChatRoom/static
+
+- url: /projects/ChatRoom/.*
+  script: ChatRoom/main.py
+  login: required
+
+
+- url: /PageTracer/static/
+  static_dir: PageTracer/static
+
+- url: /PageTracer/.*
+  script: PageTracer/main.py
+
+
+- url: /projects/PicasaUploader/static/
+  static_dir: PicasaUploader/static
+
+- url: /projects/PicasaUploader/.*
+  script: PicasaUploader/main.py
+
+
+- url: /(.*\.png)$
+  static_files: static/\1
+  upload: static/.*\.png$
+  mime_type: image/png
+
+- url: /(.*\.tanxzip)$
+  static_files: static/\1
+  upload: static/.*\.tanxzip$
+  mime_type: application/x-klstudio.tanx
+
+- url: /
+  static_dir: static

@@ -1,0 +1,51 @@
+
+h1 { text-align: center; }
+
+
+.section
+{
+	margin-top: 40px;
+	border-bottom: 1px dashed #d4d4d4;
+}
+
+.clear
+{
+	clear: both;
+}
+
+.head-check { text-align: justify; padding: 0; }
+
+.long-table tr td
+{
+	text-align: left;
+	padding: 0 10px;
+	white-space: nowrap;
+}
+.long-table tr td form
+{
+	margin-bottom: 0;
+}
+
+.property-table tr th
+{
+	text-align: left;
+	padding: 0 20px;
+}
+
+.title-status
+{
+	font-size: smaller;
+	font-weight: lighter;
+	color: #888;
+}
+
+
+#header
+{
+	font-size: small;
+}
+
+#account-bar
+{
+	float: right;
+}

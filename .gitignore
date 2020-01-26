@@ -1,0 +1,9 @@
+.svn
+.vs
+Footages
+*.sln
+*.suo
+*.log
+*.log.txt
+*.pyc
+*.pyd

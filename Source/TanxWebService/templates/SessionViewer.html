@@ -1,0 +1,180 @@
+<html>
+	<head>
+		<title>Tanx Web Service Admin - Session {{session.id}}</title>
+		<link href="../../../../../static/admin.css" rel="stylesheet" type="text/css" />
+		<script src="../../../../../static/admin.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<div id="header">
+			<div id="account-bar">
+				<b>{{current_user.email}}</b> |
+				<a href="{{logout_url}}">logout</a>
+			</div>
+			<div>
+				<a href="../../../../">Admin Home</a> -&gt;
+				<a href="../../">Application <b>{{session.parent.id}}</b></a> -&gt;
+				<a href="./">Session <b>{{session.id}}</b></a>
+			</div>
+		</div>
+		<h1>
+			Session <i>{{session.id}}</i>
+			{% if session.isCached %}
+				<span class="title-status">(cached)</span>
+			{% endif %}
+		</h1>
+		<div class="section">
+			<table class="property-table">
+				<tr>
+					<th>id</th>
+					<td>{{session.id}}</td>
+				</tr>
+				<tr>
+					<th>host</th>
+					<td>{{session.host.email}}</td>
+				</tr>
+				<tr>
+					<th>setup_time</th>
+					<td>{{session.setup_time}}</td>
+				</tr>
+				<tr>
+					<th>alive_time</th>
+					<td>{{session.alive_time}}</td>
+				</tr>
+				<tr>
+					<th>alive</th>
+					<td>{{session.alive}}</td>
+				</tr>
+				<tr>
+					<th>next_host_message_id</th>
+					<td>{{session.next_host_message_id}}</td>
+				</tr>
+				<tr>
+					<th>next_guest_message_id</th>
+					<td>{{session.next_guest_message_id}}</td>
+				</tr>
+				<tr>
+					<th>tags</th>
+					<td>
+						<div id="tags-viewer"><span>{{session.tags}}</span><button onclick="editTags();">edit</button></div>
+						<div id="tags-editor" style="display:none">
+							<form action="edit-tags" method="post" style="margin:0">
+								<input id="tags-text" type="text" name="tags" value="{{session.tags}}" size="40" />
+								<input type="submit" value="Edit" />
+							</form>
+						</div>
+					</td>
+				</tr>
+			</table>
+			<br />
+			<form action="../../../../../app/{{session.parent.id}}/session/{{session.id}}/keep-alive" method="post">
+				<input type="submit" value="Keep Alive" />
+			</form>
+			<form action="../../../../../app/{{session.parent.id}}/session/{{session.id}}/end" method="post">
+				<input type="submit" value="End" onclick="if(!confirm('Sure to end this session?')) event.preventDefault();" />
+			</form>
+		</div>
+		<div class="section">
+			<h2>Channels</h2>
+			<table class="long-table">
+				<tr>
+					<th>id</th>
+					<th>members</th>
+				</tr>
+				{% for channel in session.channels %}
+					<tr>
+						<td>{{channel.key.name}}</td>
+						<td>{{channel.members}}</td>
+						<td>
+							<form action="../../../../../app/{{session.parent.id}}/session/{{session.id}}/channel/{{channel.key.name}}/remove-member" method="post">
+								member:<input type="text" name="member" title="member email" size="12" />
+								<input type="submit" value="Remove" />
+							</form>
+						</td>
+						<td>
+							<form action="../../../../../app/{{session.parent.id}}/session/{{session.id}}/channel/{{channel.key.name}}/clear-members" method="post">
+								<input type="submit" value="Clear" />
+							</form>
+						</td>
+					</tr>
+				{% endfor %}
+			</table>
+			<br />
+			<form action="add-channel-member" method="post">
+				channel:<input type="text" name="channel" title="channel id" size="5" />
+				member:<input type="text" name="member" title="member email" size="12" />
+				<input type="submit" value="Add" />
+			</form>
+		</div>
+		<div class="section">
+			<h2>Host Messages</h2>
+			<table class="long-table">
+				<tr>
+					<th>time</th>
+					<th>channels</th>
+					<th>audiences</th>
+					<th>data</th>
+				</tr>
+				{% for message in session.hostMessages %}
+					<tr>
+						<td>{{message.time}}</td>
+						<td>{{message.channels}}</td>
+						<td>{{message.audiences}}</td>
+						<td>{{message.data}}</td>
+					</tr>
+				{% endfor %}
+			</table>
+		</div>
+		<div class="section">
+			<h2>Guest Messages</h2>
+			<table class="long-table">
+				<tr>
+					<th>time</th>
+					<th>sender</th>
+					<th>data</th>
+				</tr>
+				{% for message in session.guestMessages %}
+					<tr>
+						<td>{{message.time}}</td>
+						<td>{{message.sender}}</td>
+						<td>{{message.data}}</td>
+					</tr>
+				{% endfor %}
+			</table>
+		</div>
+		<div class="section">
+			<h2>Post a Message</h2>
+			<form action="../../../../../app/{{session.parent.id}}/session/{{session.id}}/post-message" method="post">
+				<table class="property-table">
+					<tr>
+						<th>data</th>
+						<td><input type="text" name="data" size="120" /></td>
+					</tr>
+					{% if is_host %}
+						<script type="text/javascript">
+							function addChannelField() {
+								var fields = document.getElementById('channel-fields')
+								fields.innerHTML += '<input type="text" name="channel" size="5" />'
+							}
+
+							function addAudienceField() {
+								var fields = document.getElementById('channel-audience')
+								fields.innerHTML += '<input type="text" name="audience" size="12" />'
+							}
+						</script>
+						<tr>
+							<th>channels(<a href="#" onclick="addChannelField()">+</a>)</th>
+							<td id="channel-fields"></td>
+						</tr>
+						<tr>
+							<th>audience(<a href="#" onclick="addAudienceField()">+</a>)</th>
+							<td id="channel-audience"></td>
+						</tr>
+					{% endif %}
+					<tr>
+						<th><input type="submit" value="Post" /></th>
+					</tr>
+				</table>
+			</form>
+		</div>
+	</body>
+</html>

@@ -1,0 +1,75 @@
+<html>
+	<head>
+		<title>Page Tracer URL Generator</title>
+		<style>
+			body
+			{
+				margin: 0;
+			}
+
+			#fill
+			{
+				margin: 4px;
+			}
+
+			#viewer
+			{
+				border: none;
+				width: 100%;
+			}
+		</style>
+		<script type="text/javascript">
+			var updateSize = function() {
+				var viewer = document.getElementById("viewer");
+				viewer.style.height = (window.innerHeight - document.getElementById("fill").offsetHeight - 8) + "px";
+			};
+
+			var generateUrl = function() {
+				var url = location.protocol + "//" + location.host + "/PageTracer/"
+					+ "?msg=" + encodeURIComponent(document.getElementById("msg").value);
+
+				if (!document.getElementById("mail").checked)
+					url += "&mail=off";
+
+				var redirect = document.getElementById("redirect").value;
+				if (redirect)
+					url += "&redirect=" + encodeURIComponent(redirect);
+
+				document.getElementById("result").value = url;
+			};
+
+			var onLoad = function() {
+				updateSize();
+
+				window.onresize = function() {
+					updateSize();
+				};
+			};
+		</script>
+	</head>
+	<body onload="onLoad()">
+		<form id="fill" action="." method="get" target="viewer">
+			<table>
+				<tr>
+					<th>msg</th><td><input id="msg" type="text" name="msg" value="" size="60" /></td>
+				</tr>
+				<tr>
+					<th>mail</th><td><input id="mail" type="checkbox" name="mail" checked="checked" /></td>
+				</tr>
+				<tr>
+					<th>redirect</th><td><input id="redirect" type="text" name="redirect" value="" size="60" /></td>
+				</tr>
+				<tr>
+					<th></th><td><input type="button" value="generate" onclick="generateUrl()" /></td>
+				</tr>
+				<tr>
+					<th></th><td><input type="submit" value="test" /></td>
+				</tr>
+				<tr>
+					<th>result</th><td><input id="result" type="text" readonly="readonly" size="120" /></td>
+				</tr>
+			</table>
+		</form>
+		<iframe id="viewer"></iframe>
+	</body>
+</html>

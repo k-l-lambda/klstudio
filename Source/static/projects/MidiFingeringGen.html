@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>MIDI Fingering Generator</title>
+		<style type="text/css">
+			body
+			{
+				font-family: Verdana, Arial, Helvetica, sans-serif;
+				margin: 0.6em;
+				font-size: 11px;
+			}
+
+			.drag-hover .midi-file
+			{
+				border: 2px solid red;
+			}
+
+			.loading .midi-file
+			{
+				color: #ccc;
+				background-color: #ff8;
+			}
+
+			.note-bar
+			{
+				fill: #fff;
+				stroke: #aaa;
+				stroke-width: 1px;
+			}
+
+			#file
+			{
+				visibility: hidden;
+			}
+
+			.step-0 .note-bar
+			{
+				fill: #ffcccc;
+			}
+
+			.step-1 .note-bar
+			{
+				fill: #ffe0cc;
+			}
+
+			.step-2 .note-bar
+			{
+				fill: #fff0cc;
+			}
+
+			.step-3 .note-bar
+			{
+				fill: #fffacc;
+			}
+
+			.step-4 .note-bar
+			{
+				fill: #fbffcc;
+			}
+
+			.step-5 .note-bar
+			{
+				fill: #e1ffcc;
+			}
+
+			.step-6 .note-bar
+			{
+				fill: #ccffea;
+			}
+
+			.step-7 .note-bar
+			{
+				fill: #ccfffd;
+			}
+
+			.step-8 .note-bar
+			{
+				fill: #cce8ff;
+			}
+
+			.step-9 .note-bar
+			{
+				fill: #cccdff;
+			}
+
+			.step-10 .note-bar
+			{
+				fill: #efccff;
+			}
+
+			.step-11 .note-bar
+			{
+				fill: #fdccff;
+			}
+		</style>
+		<script src="../js/jquery.js" type="text/javascript"></script>
+		<script src="../js/jquery.svg.js" type="text/javascript"></script>
+		<script src="../js/MIDI/AudioDetect.js" type="text/javascript"></script>
+		<script src="../js/MIDI/LoadPlugin.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Plugin.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Player.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Window/DOMLoader.XMLHttp.js" type="text/javascript"></script>
+		<script src="../js/MIDI/Window/DOMLoader.script.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/WebMIDIAPI.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/Base64.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/base64binary.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/replayer.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/midifile.js" type="text/javascript"></script>
+		<script src="../js/MIDI/inc/stream.js" type="text/javascript"></script>
+		<script src="../js/MusicalUtils.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			var MidiData = null;
+			var Notations = null;
+
+			var Config = {
+				KeyWidth: 40,
+				ScoreHeightScale: 0.1,
+			};
+
+			var PinaoConfig = {
+				PitchStart: 21,
+				PitchEnd: 108,
+				MiddleC: 60,
+				KeySerials: {
+					White: [0, 2, 4, 5, 7, 9, 11],
+					BlackPosition: {
+						1: 0.94,
+						3: 2.06,
+						6: 3.92,
+						8: 5,
+						10: 6.08
+					}
+				},
+			};
+
+			var PedalControllerTypes = {
+				64: "Sustain",
+				65: "Portamento",
+				66: "Sostenuto",
+				67: "Soft"
+			};
+
+			var loadMidiFile = function (data, filename, onload) {
+				MIDI.Player.loadFile(data, function () {
+					MidiData = MIDI.Player.data;
+
+					if (onload)
+						onload();
+				});
+
+				localStorage["data"] = data;
+				localStorage["filename"] = filename;
+			};
+
+			var parseMidiNotation = function (data) {
+				var channelStatus = [];
+				var pedalStatus = {};
+				var pedals = {};
+				var channels = [];
+				var bars = [];
+				var time = 0;
+				var millisecondsPerBeat = 60000 / 120;
+				var beats = 0;
+				var tempos = 4;
+				var tempoIndex = 0;
+				var keyRange = {};
+				var fingeringPattern = null;
+				var fingerings = [];
+				var fingeringMap = [];
+				var ticks = 0;
+
+				for (var n = 0; n < data.length; ++n) {
+					ticks += data[n][0].ticksToEvent;
+
+					if (data[n][1] > 0) {
+						var deltaBeats = data[n][1] / millisecondsPerBeat;
+						for (var b = Math.ceil(beats) ; b < beats + deltaBeats; ++b) {
+							var t = time + (b - beats) * millisecondsPerBeat;
+							bars.push({ time: t, index: tempoIndex % tempos });
+
+							++tempoIndex;
+						}
+
+						beats += deltaBeats;
+					}
+
+					time += data[n][1];
+
+					var event = data[n][0].event;
+					switch (event.type) {
+						case "channel":
+							channelStatus[event.channel] = channelStatus[event.channel] || [];
+
+							switch (event.subtype) {
+								case "noteOn":
+									pitch = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
+									//if (channelStatus[event.channel][pitch])
+									//	console.warn("unexpected noteOn: ", n, time, event);
+									channelStatus[event.channel][pitch] = { startTick: ticks, start: time, velocity: event.velocity };
+
+									keyRange.low = Math.min(keyRange.low || pitch, pitch);
+
+									break;
+								case "noteOff":
+									pitch = event.noteNumber - (MIDI.Player.MIDIOffset || 0);
+
+									channels[event.channel] = channels[event.channel] || [];
+
+									var status = channelStatus[event.channel][pitch];
+									if (!status)
+										console.warn("unexpected noteOff: ", n, time, event);
+									else {
+										channels[event.channel].push({ startTick: status.startTick, endTick: ticks, pitch: pitch, start: status.start, duration: time - status.start, velocity: status.velocity });
+										channelStatus[event.channel][pitch] = null;
+									}
+
+									keyRange.high = Math.max(keyRange.high || pitch, pitch);
+
+									break;
+								case "controller":
+									switch (event.controllerType) {
+										// pedal controllers  
+										case 64:
+										case 65:
+										case 66:
+										case 67:
+											var pedalType = PedalControllerTypes[event.controllerType];
+
+											pedalStatus[event.channel] = pedalStatus[event.channel] || {};
+											pedals[event.channel] = pedals[event.channel] || [];
+
+											var status = pedalStatus[event.channel][pedalType];
+
+											if (event.value > 0) {
+												if (!status)
+													pedalStatus[event.channel][pedalType] = { start: time, value: event.value };
+											}
+											else {
+												if (status) {
+													pedals[event.channel].push({ type: pedalType, start: status.start, duration: time - status.start, value: status.value });
+
+													pedalStatus[event.channel][pedalType] = null;
+												}
+											}
+
+											break;
+									}
+
+									break;
+							}
+
+							break;
+						case "meta":
+							switch (event.subtype) {
+								case "setTempo":
+									millisecondsPerBeat = event.microsecondsPerBeat / 1000;
+									//console.log(beats, 60000 / millisecondsPerBeat);
+									//beats = Math.round(beats);
+
+									break;
+								case "timeSignature":
+									tempos = event.numerator;
+									tempoIndex = 0;
+
+									break;
+								case "text":
+									var matches = event.text.match(/fingering-marker-pattern:(.*)/);
+									if (matches && matches[1])
+										fingeringPattern = new RegExp(matches[1]);
+
+									break;
+								case "marker":
+									if (fingeringPattern) {
+										var matches = event.text.match(fingeringPattern);
+										if (matches && matches.length > 2) {
+											var pitch = Number(matches[1]);
+											var fingers = matches[2];
+
+											fingerings.push({ tick: ticks, start: time, pitch: pitch, fingers: fingers });
+
+											fingeringMap[ticks] = fingeringMap[ticks] || [];
+											fingeringMap[ticks][pitch] = fingers;
+										}
+									}
+
+									break;
+							}
+
+							break;
+					}
+				}
+
+				var notes = [];
+				for (var c in channels) {
+					for (var n in channels[c]) {
+						notes.push(channels[c][n]);
+					}
+				}
+				notes.sort(function (n1, n2) {
+					return n1.start - n2.start;
+				});
+
+				for (var i in notes)
+					notes[i].index = i;
+
+				return { channels: channels, notes: notes, pedals: pedals, bars: bars, endTime: time, keyRange: keyRange, fingerings: fingerings, fingeringMap: fingeringMap };
+			};
+
+			var pickMidiFile = function (file) {
+				var elem = $("#file-button");
+
+				if (file && (file.type == "audio/mid" || file.type == "audio/midi")) {
+					var fr = new FileReader();
+					fr.onloadend = function (e) {
+						elem.text(file.name);
+						elem.addClass("loading");
+
+						loadMidiFile(e.currentTarget.result, file.name, function () {
+							elem.removeClass("loading");
+
+							console.log("MIDI file loaded:", file.name);
+
+							Notations = parseMidiNotation(MidiData);
+							paintScore();
+						});
+					};
+					fr.readAsDataURL(file);
+				}
+			};
+
+			var pitchToX = function (pitch) {
+				var group = Musical.noteGroup(pitch);
+				var step = Musical.notePitch(pitch);
+				var pos = PinaoConfig.KeySerials.White.indexOf(step);
+				if (pos < 0)
+					pos = PinaoConfig.KeySerials.BlackPosition[step];
+
+				return group * PinaoConfig.KeySerials.White.length + pos - 12;
+			};
+
+			var svg = function (selector) {
+				return new $.svg._wrapperClass($(selector)[0]);
+			};
+
+			var paintScore = function () {
+				$("#score").html("");
+
+				var canvasWidth = Config.KeyWidth * (pitchToX(PinaoConfig.PitchEnd) + 1);
+				$("#canvas").attr("viewBox", "-10 -10 " + (canvasWidth + 20) + " " + (Notations.endTime * Config.ScoreHeightScale + 20));
+
+				var group = svg("#score");
+
+				for (var i in Notations.notes) {
+					var note = Notations.notes[i];
+
+					var step = Musical.notePitch(note.pitch);
+					var is_white = PinaoConfig.KeySerials.White.indexOf(step) >= 0;
+
+					var width = is_white ? Config.KeyWidth : Config.KeyWidth * 0.6;
+
+					var left = pitchToX(note.pitch) * Config.KeyWidth - width / 2;
+					var top = note.start * Config.ScoreHeightScale;
+					var height = note.duration * Config.ScoreHeightScale;
+
+					note.position = { x: left + Config.KeyWidth * 0.5, y: top };
+
+					note.graph = note.graph || {}
+
+					var note_elem = group.group({ class: "note " + (is_white ? "white" : "black") + " step-" + step, "data-index": i });
+					var note_group = svg(note_elem);
+
+					var cornorRadius = is_white ? 5 : 0;
+
+					note.graph.group = note_elem;
+					note.graph.bar = note_group.rect(left, top, width, height, cornorRadius, cornorRadius, { class: "note-bar" });
+				}
+			};
+
+			var runInFrames = function (it, on_end) {
+				var f;
+				f = function () {
+					var done = it.next().done;
+
+					if (!done)
+						setTimeout(f, 0);
+					else if (on_end)
+						on_end();
+				};
+
+				f();
+			};
+
+			var navigationIsRunning = false;
+
+			var navigationThread = function () {
+				// waiting for last thread
+				while (navigationIsRunning)
+					yield;
+
+				navigationIsRunning = true;
+
+				navigationIsRunning = false;
+			};
+
+			var runNavigation = function () {
+				var iterator = navigationThread();
+				runInFrames(iterator, function () {
+					console.log("Navigation end.");
+				});
+			};
+
+			$(function () {
+				$("body").each(function (i, elem) {
+					elem.ondragover = function (e) {
+						$(elem).addClass("drag-hover");
+						e.preventDefault();
+					};
+					elem.ondragleave = function () {
+						$(elem).removeClass("drag-hover");
+					};
+
+					elem.ondrop = function (e) {
+						$(elem).removeClass("drag-hover");
+
+						pickMidiFile(e.dataTransfer.files[0]);
+
+						e.preventDefault();
+						return false;
+					};
+				});
+
+				$(".midi-file").click(function () {
+					$("#file").click();
+				});
+
+				$("#file").change(function () {
+					if (event.target.files[0])
+						pickMidiFile(event.target.files[0]);
+				});
+
+				if (localStorage.data) {
+					loadMidiFile(localStorage.data, localStorage.filename, function () {
+						Notations = parseMidiNotation(MidiData);
+						paintScore();
+					});
+					$("#file-button").text(localStorage.filename);
+				}
+			});
+		</script>
+	</head>
+	<body>
+		<div id="input">
+			<button id="file-button" class="midi-file">...</button>
+			<input id="file" type="file" accept="audio/mid,audio/midi" />
+		</div>
+		<div id="viewer">
+			<svg id="canvas" preserveAspectRatio="none">
+				<g id="score"></g>
+			</svg>
+		</div>
+	</body>
+</html>

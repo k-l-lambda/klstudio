@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Field Graph</title>
+		<style>
+			body
+			{
+				text-align: center;
+			}
+
+			#clear
+			{
+				margin-right: 3em;
+			}
+
+			#density
+			{
+				display: inline-block;
+				width: 6em;
+				text-align: left;
+				font-weight: bold;
+			}
+
+			#mass
+			{
+				width: 3em;
+				margin-right: 1em;
+			}
+
+			#cx, #cy
+			{
+				width: 3em;
+			}
+
+			#viewport
+			{
+				width: 800px;
+				height: 800px;
+				
+				border: 1px solid #ccc;
+
+				cursor: default;
+			}
+
+			.particle
+			{
+				stroke: #000;
+				fill: transparent;
+			}
+
+			.line
+			{
+				stroke: #666;
+				fill: transparent;
+			}
+		</style>
+		<script src="../js/jquery.js" type="text/javascript"></script>
+		<script src="../js/jquery.svg.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			var svg = function (selector) {
+				return new $.svg._wrapperClass($(selector)[0]);
+			};
+
+			var LINE_DIRECTIONS = 60;
+			var STEP_LEGTH = 2;
+			var STEP_COUNT_MAX = 400;
+
+			var paticles = [];
+			var currentPoint = null;
+
+			var advancePoint = function (point, line, x, y) {
+				var length = Math.sqrt(x * x + y * y);
+
+				var dx = x * STEP_LEGTH / length;
+				var dy = y * STEP_LEGTH / length;
+
+				point.x += dx;
+				point.y += dy;
+
+				line.line(point.x, point.y);
+			};
+
+			var computeFoce = function (point) {
+				point.mass = point.mass || 1;
+
+				var force = { x: 0, y: 0 };
+				for (var i in paticles) {
+					var dx = point.x - paticles[i].x;
+					var dy = point.y - paticles[i].y;
+					var d2 = dx * dx + dy * dy;
+					var dis = Math.sqrt(d2);
+					var mm = point.mass * paticles[i].mass;
+
+					force.x += 10000 * mm * (dx / dis) / d2;
+					force.y += 10000 * mm * (dy / dis) / d2;
+				}
+
+				return force;
+			}
+
+			var paintField = function () {
+				var canvas = svg("#canvas");
+				$("#canvas").empty();
+
+				for (var i in paticles) {
+					canvas.circle(paticles[i].x, paticles[i].y, 3, { class: "particle" });
+
+					for (var d = 0; d < LINE_DIRECTIONS; ++d) {
+						var line = canvas.createPath();
+						line.move(paticles[i].x, paticles[i].y);
+
+						var angle = Math.PI * 2 * d / LINE_DIRECTIONS;
+						var point = { x: paticles[i].x, y: paticles[i].y };
+						advancePoint(point, line, Math.cos(angle), Math.sin(angle));
+
+						for (var step = 0; step < STEP_COUNT_MAX; ++step) {
+							if (point.x < 0 || point.x > 800 || point.y < 0 || point.y > 800)
+								break;
+
+							var force = computeFoce(point);
+
+							advancePoint(point, line, force.x * paticles[i].mass, force.y * paticles[i].mass);
+						}
+
+						var shape = canvas.path(line, { class: "line" });
+					}
+				}
+			}
+
+			$(function () {
+				/*$("#viewport").click(function () {
+				paticles.push({ x: event.offsetX, y: event.offsetY });
+				paintField();
+				});*/
+				$("#viewport").mousedown(function () {
+					currentPoint = { x: event.offsetX, y: event.offsetY, mass: Number($("#mass").val()) };
+					paticles.push(currentPoint);
+					paintField();
+				});
+
+				$("#viewport").mouseup(function () {
+					currentPoint = null;
+				});
+
+				$("#viewport").mousemove(function () {
+					var force = computeFoce({ x: event.offsetX, y: event.offsetY });
+					var magnitude = Math.sqrt(force.x * force.x + force.y * force.y);
+
+					$("#density").text(magnitude.toPrecision(5));
+
+					$("#cx").val(event.offsetX);
+					$("#cy").val(event.offsetY);
+
+					if (currentPoint) {
+						currentPoint.x = event.offsetX
+						currentPoint.y = event.offsetY;
+
+						paintField();
+					}
+				});
+
+				$("#clear").click(function () {
+					paticles = [];
+					paintField();
+				});
+
+				$("#add-point").click(function () {
+					paticles.push({ x: Number($("#cx").val()), y: Number($("#cy").val()) });
+					paintField();
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<p id="controls">
+			<button id="clear">Clear Paticles</button>
+			Density: <span id="density"></span>
+			Mass: <input id="mass" type="text" value="1" />
+			<span id="coordinate">X: <input id="cx" type="text" /> Y: <input id="cy" type="text" /> <button id="add-point">Add Point</button></span>
+		</p>
+		<svg id="viewport" viewBox="0 0 800 800">
+			<g id="canvas"></g>
+		</svg>
+	</body>
+</html>

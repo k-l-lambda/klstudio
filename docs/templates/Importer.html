@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Peris Importer</title>
+		<style type="text/css">
+			.error
+			{
+				color: #800;
+			}
+
+			.detail
+			{
+				font-weight: normal;
+				font-size: 60%;
+			}
+
+			.clear
+			{
+				clear: both;
+			}
+
+			.section
+			{
+				margin: 1em;
+			}
+
+			#check-status.querying
+			{
+				color: #ccc;
+			}
+
+			#import-queue
+			{
+				margin: 0;
+				padding: 0;
+			}
+
+			#import-queue li
+			{
+				float: left;
+				list-style: none;
+				padding: 0 6px;
+				height: 170px;
+				position: relative;
+			}
+
+			#import-queue img
+			{
+				width: 120px;
+				height: 120px;
+			}
+
+			#import-queue p
+			{
+				margin: 0.2em 0;
+			}
+
+			.pending img
+			{
+				outline: 2px solid #ccc;
+			}
+
+			.checking img
+			{
+				outline: 2px solid #a2ff00;
+			}
+
+			.ready img
+			{
+				outline: 1px solid rgba(0, 64, 192, 0.3);
+			}
+
+			.error img
+			{
+				outline: 2px solid #ff0000;
+			}
+
+			.duplicated img
+			{
+				outline: 4px solid #fa0;
+			}
+
+			#import-queue li .marker
+			{
+				position: absolute;
+				right: 18px;
+				bottom: 48px;
+				display: inline-block;
+				width: 18px;
+				height: 18px;
+				background-image: url(/static/icons.png);
+			}
+
+			#import-queue .pending .marker
+			{
+				background-position: 0 -250px;
+			}
+
+			#import-queue .checking .marker
+			{
+				background-position: 0 -100px;
+			}
+
+			#import-queue .ready .marker
+			{
+				background-position: 0 -150px;
+			}
+
+			#import-queue .error .marker
+			{
+				background-position: 0 -200px;
+			}
+
+			body
+			{
+				margin: 0;
+				padding: 0;
+			}
+
+			#header
+			{
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				padding: 1em;
+				background: #eee;
+				z-index: 100;
+			}
+
+			#footer
+			{
+				position: fixed;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				padding: 0 1em;
+				z-index: 100;
+				text-align: right;
+			}
+
+			#scroll
+			{
+				margin: 0;
+				padding-top: 160px;
+			}
+
+			#files-status
+			{
+				text-shadow: 1px 1px 1px #ccc;
+			}
+
+			#ajax-status
+			{
+				display: inline-block;
+				width: 0.8em;
+				height: 0.8em;
+				border-radius: 0.4em;
+				vertical-align: middle;
+			}
+
+			#ajax-status.busy
+			{
+				background: #f00;
+			}
+
+			#ajax-status.working
+			{
+				background: #eb0;
+			}
+
+			#ajax-status.idle
+			{
+				background: #0f0;
+			}
+
+			.renamed .label
+			{
+				color: #a60;
+			}
+		</style>
+		<script src="/static/jquery.min.js" type="text/javascript"></script>
+		<script src="/static/utils.js" type="text/javascript"></script>
+		<script src="/static/ajax_queue.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			var QUERY_LIST_INTERVAL = 30000;
+
+			var queries = Peris.parseQueries(location.search);
+
+			var ajax;
+			var check_list = [];
+			var ready_list = [];
+			var last_query_list_time;
+			var check_list_paused = false;
+
+			var onIdle = function (capability) {
+				// process pending files
+				if (capability >= 2) {
+					var pendings = $("#import-queue li.pending");
+					if (pendings.length > 0) {
+						var figure = $(pendings[0]);
+						var path = figure.data("path");
+						checkFile(path, figure);
+					}
+				}
+
+				if (!check_list_paused) {
+					// process check list
+					if (check_list.length > 0) {
+						$("#check-status").html("<em>" + check_list.length + "</em> files in checking: <span class='detail'>" + check_list[0] + "</span>");
+						$("#pause").text("Pause");
+
+						while (check_list.length > 0 && ready_list.indexOf(check_list[0]) >= 0 && check_list.length % 100 > 0)
+							check_list.splice(0, 1);
+
+						if (check_list.length > 0 && ready_list.indexOf(check_list[0]) < 0) {
+							(function (path) {
+								ajax.getJSON("/query?query=existence&path=" + encodeURIComponent(path), function (json) {
+									if (json.result == "success") {
+										if (!json.data) {
+											console.log("New file found: " + path);
+
+											addCheckFile(path);
+										}
+									}
+									else if (json.result == "fail") {
+										console.warn("query file info " + path + " failed:", json.error);
+										check_list_paused = true;
+									}
+									else
+										console.error("unexpect json result:", json);
+
+									ready_list.push(path);
+								});
+							})(check_list[0]);
+						}
+
+						check_list.splice(0, 1);
+
+						ajax.busy();
+					}
+					else {
+						var now = new Date().getTime();
+						if (now - last_query_list_time > QUERY_LIST_INTERVAL) {
+							if (!$("#check-status").hasClass("querying"))
+								queryDirList();
+							else
+								$("#pause").text("Pause");
+						}
+						else {
+							var waiting = Math.ceil((last_query_list_time + QUERY_LIST_INTERVAL - now) / 1000);
+							if (!$("#check-status").hasClass("querying"))
+								$("#check-status").html("Waiting <em>" + waiting + "s</em>, query list again.");
+							$("#pause").text("Start");
+						}
+					}
+				}
+				else {
+					$("#check-status").html("Paused.");
+					if (check_list.length > 0) {
+						$("#check-status").html($("#check-status").html() + " <em>" + check_list.length + "</em> files in checking");
+					}
+
+					$("#pause").text("Start");
+				}
+
+				if (ajax)
+					$("#ajax-status").attr("class", ajax.pending_requests >= ajax.busy_threshold ? "busy" : (ajax.pending_requests > 0 ? "working" : "idle"));
+			};
+
+			var queryDirList = function () {
+				$("#check-status").html("Querying directory <em>" + decodeURIComponent(queries.dir) + "</em>");
+				$("#check-status").addClass("querying");
+
+				var search = "";
+				if (queries.dir)
+					search += "dir=" + queries.dir + "&";
+				if (queries.orderby)
+					search += "orderby=" + queries.orderby;
+				ajax.get("/list-dir?" + search, function (json) {
+					$("#check-status").removeClass("querying");
+
+					if (json.success) {
+						check_list = json.files;
+					}
+					else {
+						console.error("get list dir failed:", json.error);
+						$("#check-status").html("<span class='error'>query directory failed: <span class='detail'>" + json.error + "</span></span>");
+					}
+				});
+
+				last_query_list_time = new Date().getTime();
+			};
+
+			var updateFilesStatus = function () {
+				$("#files-status").html("<em>" + $("#import-queue li.ready").length + " / " + $("#import-queue li").length + "</em> new files");
+			};
+
+			var addCheckFile = function (path) {
+				path = path.replace(/'/g, "%27");
+
+				var url = "/images/" + path;
+				var name = path;
+				if (name.length > 17)
+					name = name.substr(0, 5) + ".." + name.substr(name.length - 10, 10);
+
+				var figure = $("<li class='pending' data-path='" + path + "'><p><span class='marker'></span><a target='_blank' href='" + url + "'><img src='" + url + "' /></a></p><p class='label' title='" + path + "'>" + name + "</p></li>");
+				figure.appendTo("#import-queue");
+
+				figure.click(function () {
+					(function () {
+						//var path_ = path;
+						var figure_ = figure;
+
+						if (event.ctrlKey) {
+							Peris.showFileInFolder(figure_.data("path"));
+
+							var identity = figure_.data("identity");
+							if (identity)
+								Peris.showFileInFolder(identity);
+
+							event.preventDefault();
+						}
+					})();
+				});
+
+				figure.find(".marker").click(function () {
+					if (figure.hasClass("pending") || figure.hasClass("error") || figure.hasClass("ready"))
+						checkFile(path, figure);
+				});
+
+				updateFilesStatus();
+			};
+
+			var checkFile = function (path, figure) {
+				figure.removeClass("pending");
+				figure.removeClass("error");
+				figure.removeClass("ready");
+				figure.addClass("checking");
+
+				ajax.post("/check-file", { path: unescape(path), fix_extension: true }, function (json) {
+					figure.removeClass("checking");
+
+					if (json.success) {
+						if (json.result == "delete") {
+							console.warn("check file failed: ", json);
+
+							figure.addClass("error");
+							figure.attr("title", json.description);
+						}
+						else {
+							console.log("check file success: ", json);
+
+							if (json.rename) {
+								console.log("renamed:", json.path, "->", json.rename);
+								figure.data("path", json.rename);
+
+								var url = "/images/" + json.rename;
+								figure.find("img").attr("src", url);
+								figure.find("a").attr("href", url);
+								figure.find(".label").attr("title", json.rename);
+								figure.addClass("renamed");
+							}
+
+							figure.addClass("ready");
+
+							if (json.duplicated) {
+								figure.addClass("duplicated");
+								figure.data("identity", json.duplicated);
+							}
+						}
+					}
+					else {
+						console.warn("check file failed: ", json);
+
+						figure.addClass("error");
+						figure.attr("title", json.error);
+					}
+
+					updateFilesStatus();
+				});
+			};
+
+			var moveDuplicatedFiles = function () {
+				var paths = $("li.duplicated").toArray().map(l =>[{ path: $(l).data("identity"), hash: $(l).data("path") }, { path: $(l).data("path"), hash: $(l).data("path") }]);
+				paths = [].concat(...paths);
+
+				Peris.moveDuplicatedFigureFiles(paths);
+			};
+
+			$(function () {
+				ajax = new ajax_queue({ onIdle: onIdle });
+
+				queryDirList();
+
+				$("#pause").click(function () {
+					if (check_list_paused)
+						check_list_paused = false;
+					else {
+						if ($("#check-status").hasClass("querying") || check_list.length > 0) {
+							check_list_paused = true;
+						}
+						else {
+							last_query_list_time -= QUERY_LIST_INTERVAL;
+						}
+					}
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<div id="header">
+			<h2 id="check-status"></h2>
+			<span id="ajax-status"></span> <button id="pause"></button>
+		</div>
+		<div id="footer">
+			<span id="files-status"></span>
+		</div>
+		<div id="scroll">
+			<ul id="import-queue"></ul>
+			<div class="clear"></div>
+		</div>
+	</body>
+</html>

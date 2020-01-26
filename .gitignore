@@ -1,0 +1,8 @@
+.svn
+.vs
+footages
+*.sln
+*.suo
+*.log
+data
+*.pyc

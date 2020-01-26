@@ -1,0 +1,86 @@
+<html>
+	<head>
+		<title>Peris Admin</title>
+		<style>
+			.section
+			{
+				border-top: 1px dashed #ccc;
+				padding: 1em 0;
+			}
+
+			#thumb-canvas
+			{
+				border-collapse: collapse;
+				display: inline-block;
+				vertical-align: middle;
+				margin-left: 1em;
+			}
+
+			#thumb-canvas td
+			{
+				width: 8px;
+				height: 8px;
+				padding: 0;
+			}
+		</style>
+		<script src="/static/jquery.min.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			$(function () {
+				$("#thumb-str").bind("textchange", function () {
+					var source = $(this).val();
+
+					if (source.length == 16) {
+						console.log("rendering thumb:", source);
+
+						for (var i in source) {
+							var color = "#" + source[i] + source[i] + source[i];
+							$($("#thumb-canvas td")[i]).css("background-color", color);
+						}
+					}
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<h1>Peris Admin</h1>
+		<div class="section">
+			<form action="update-file-register" method="post" target="_blank">
+				<input type="checkbox" name="updateAll" title="Update All" /> <input type="submit" value="Update FileRegister" />
+			</form>
+		</div>
+		<div class="section">
+			<form action="importer" method="get" target="_blank">
+				<p>Directory: <input type="text" size="40" name="dir" value="*\\*" /></p>
+				<p>Order by: <input type="text" size="10" name="orderby" value="-ctime" /></p>
+				<p><input type="submit" value="Open Importer" /></p>
+			</form>
+		</div>
+		<div class="section">
+			<form action="filter-new-files" method="post" target="_blank">
+				<p>Source Directory: <input type="text" size="40" name="sourceDir" /></p>
+				<p>Target Directory: <input type="text" size="40" name="targetDir" /></p>
+				<p><input type="submit" value="Filter New Files" /></p>
+			</form>
+		</div>
+		<div class="section">
+			<form action="import-album-data" method="post" target="_blank">
+				<p>File: <input type="text" name="File" size="40" /></p>
+				<p>LabelFile: <input type="text" name="LabelFile" size="40" /></p>
+				<p>PathPrefix: <input type="text" name="PathPrefix" size="20" /></p>
+				<p>Label: <input type="text" name="Label" size="10" /></p>
+				<p><input type="submit" value="Import Album Data" /></p>
+			</form>
+		</div>
+		<div class="section">
+			Thumb16: <input id="thumb-str" type="text" size="16" />
+			<table id="thumb-canvas">
+				<tbody>
+					<tr><td></td><td></td><td></td><td></td></tr>
+					<tr><td></td><td></td><td></td><td></td></tr>
+					<tr><td></td><td></td><td></td><td></td></tr>
+					<tr><td></td><td></td><td></td><td></td></tr>
+				</tbody>
+			</table>
+		</div>
+	</body>
+</html>

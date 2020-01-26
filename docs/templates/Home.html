@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Peris</title>
+		<link rel="icon" href="/favicon.ico" type="image/x-icon"/>
+		<link href="/static/viewer.css" rel="stylesheet" type="text/css">
+		<style>
+			html
+			{
+				background: #000;
+				color: #eee;
+				height: 100%;
+				font: 13px/20px "Lucida Grande", sans-serif, Arial;
+			}
+
+			body
+			{
+				margin: 0;
+				height: 100%;
+			}
+
+			#sider
+			{
+				background: #0C1325;
+				width: 10%;
+				height: 100%;
+				float: left;
+			}
+
+			#main
+			{
+				width: 90%;
+				height: 100%;
+				float: left;
+				overflow-y: hidden;
+			}
+
+			#query-bar
+			{
+				background: #0C1325;
+				height: 10%;
+				min-height: 6em;
+				width: 100%;
+				position: relative;
+				border-bottom: 2px solid #030B17;
+				box-sizing: border-box;
+			}
+
+			#viewer-area
+			{
+				position: relative;
+				height: 90%;
+				background: #333;
+			}
+
+			#query
+			{
+				display: inline-block;
+				height: 100%;
+				float: right;
+				width: 8%;
+				background: #222;
+				color: #666;
+				font-size: 5em;
+				line-height: 100%;
+				border-color: #444;
+			}
+
+			#query:active
+			{
+				background: #422;
+			}
+
+			#log
+			{
+				display: inline-block;
+				height: 100%;
+				float: right;
+				width: 50%;
+			}
+
+			#sql
+			{
+				display: inline-block;
+				box-sizing: border-box;
+				height: 100%;
+				position: absolute;
+				width: 39%;
+				background: #000;
+				color: #888;
+				border: none;
+				padding: 0.2em;
+			}
+
+			#sql:focus
+			{
+				color: #ccc;
+				z-index: 100;
+			}
+
+			#log
+			{
+				margin: 0;
+				overflow-y: auto;
+			}
+
+			#log .quote
+			{
+				display: inline-block;
+				float: right;
+				margin-left: 2em;
+				padding-right: 0.4em;
+				color: #888;
+				font-style: italic;
+			}
+
+			#log .error .quote
+			{
+				color: #d77;
+			}
+
+			#log em
+			{
+				font-weight: bold;
+			}
+
+			#log li
+			{
+				color: #aaa;
+			}
+
+			#log li.error
+			{
+				color: #f66;
+			}
+
+			#log li.error:first-child
+			{
+				color: #f00;
+			}
+
+			#log li:first-child
+			{
+				color: #fff;
+			}
+
+			#log li:nth-child(odd)
+			{
+				background: rgba(255, 255, 255, 0.1);
+			}
+
+			#log li:nth-child(even)
+			{
+				background: rgba(0, 0, 0, 0.1);
+			}
+
+			#sider
+			{
+				font-size: 20px;
+				font-weight: bold;
+				color: #aae;
+				overflow: hidden;
+			}
+
+			#sider li
+			{
+				margin: 0.6em 0;
+			}
+
+			#sider li a
+			{
+				color: #aac;
+				text-decoration: none;
+			}
+
+			#sider li.focus
+			{
+				background-color: #333;
+				border-bottom-left-radius: 6px;
+				border-top-left-radius: 6px;
+				padding: 6px;
+			}
+
+			#sider li.focus a, #sider .focus input
+			{
+				color: #fff;
+				text-shadow: 0 0 8px #fff;
+			}
+
+			#bookmarks
+			{
+				font-size: 80%;
+				list-style-type: lower-roman;
+				margin: 0;
+			}
+
+			#new-bookmark
+			{
+				white-space: nowrap;
+				margin: 0.6em 0;
+			}
+
+			#new-bookmark span, #new-bookmark input
+			{
+				font-size: 16px;
+				font-weight: bold;
+			}
+
+			#new-bookmark .icon
+			{
+				display: inline-block;
+				width: 1.6em;
+				color: #fff;
+				text-align: center;
+			}
+
+			#new-bookmark-name
+			{
+				width: 20em;
+				background: transparent;
+				color: #aac;
+				border: none;
+				font-style: italic;
+			}
+
+			#new-bookmark-name:hover, #new-bookmark-name:focus
+			{
+				position: absolute;
+				z-index: 200;
+				color: #fff;
+				border: 1px #aac dotted;
+				font-style: normal;
+				background: rgba(0, 0, 0, 0.4);
+			}
+
+			#loading
+			{
+				display: none;
+				position: absolute;
+				top: 0;
+				width: 100%;
+				height: 100%;
+				background: no-repeat no-repeat url(/static/loading-5d.gif) center;
+				background-color: rgba(92, 92, 92, 0.7);
+				z-index: 80;
+			}
+
+			.loading #loading
+			{
+				display: block;
+			}
+		</style>
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=0" />
+		<script src="/static/jquery.min.js" type="text/javascript"></script>
+		<script src="/static/NoSleep.min.js" type="text/javascript"></script>
+		<script src="/static/utils.js" type="text/javascript"></script>
+		<script src="/static/viewer.js" type="text/javascript"></script>
+		<script src="/static/peer.js" type="text/javascript"></script>
+		<script src="/static/slider.js" type="text/javascript"></script>
+		<script src="/static/load-image.all.min.js" type="text/javascript"></script>
+		<script>
+			var viewer;
+
+			var bookmarks = new Peris.LocalDataEntry("Bookmarks", []);
+			var bookmarksDirty = false;
+
+			var parseQueries = function (source) {
+				var m = source.match(/^.*\?(.*)$|^([^\?]*)$/);
+				var q = m[1] || m[2];
+
+				var queries = q.match(/[^#\&\?]+/g);
+
+				var dict = {};
+				for (var i in queries) {
+					var pair = queries[i].split("=");
+					dict[pair[0]] = pair[1];
+				}
+
+				return dict;
+			};
+
+			var encodeURIParams = function (params) {
+				var result = "";
+				for (var k in params) {
+					if (params[k] !== null && params[k] !== undefined) {
+						if (result)
+							result += "&";
+
+						result += k + "=" + encodeURIComponent(params[k]);
+					}
+				}
+
+				return result;
+			};
+
+			var log = function (msg, cls, quote) {
+				console.log("[query " + cls + "]", $("<span>" + msg + "</span>").text());
+
+				var quoteSummary = quote.length <= 80 ? quote : (quote.substring(0, 80) + "...");
+				var quoteSpan = $("<span><a class='quote'>" + quoteSummary + "</a></span>");
+				quoteSpan.find("a").attr({ "title": quote, "href": "#xsql=" + encodeURIComponent(quote) });
+
+				$("#log").prepend("<li class='" + cls + "'>" + quoteSpan.html() + msg + "</li>");
+			};
+
+			var runSql = function (sqlSource) {
+				var m = sqlSource.match(/((.|[\r\n])*?)(function(.|[\r\n])*)/)
+
+				var sql = m ? m[1] : sqlSource;
+				var filterSource = m ? m[3] : null;
+
+				$("#viewer-area").addClass("loading");
+
+				var filter = null;
+				try {
+					if (filterSource)
+						console.log("parse filter:", filterSource);
+
+					filter = filterSource ? eval("(" + filterSource + ")") : null;
+				}
+				catch (e) {
+					log($("<span/>").text(e).html(), "error", sqlSource);
+
+					viewer.clear();
+					$("#viewer-area").removeClass("loading");
+
+					return;
+				}
+
+				$.post("query", { sql: sql }, function (json, s, ajax) {
+					if (json.result == "success") {
+						var cost = Date.now() - ajax.userData.begin;
+
+						try {
+							var data = filter ? filter(json.data) : json.data;
+
+							log("<em>" + json.data.length + "</em> reocrds get, " + (filter ? ("<em>" + data.length + "</em> remain after filter,") : "") + " <em>" + (cost / 1000) + "</em> seconds cost.", "info", sqlSource);
+
+							viewer.update(data);
+						}
+						catch (e) {
+							log($("<span/>").text(e).html(), "error", sqlSource);
+
+							viewer.clear();
+							$("#viewer-area").removeClass("loading");
+
+							return;
+						}
+					}
+					else if (json.result == "fail") {
+						log($("<span/>").text(json.error).html(), "error", sqlSource);
+
+						viewer.clear();
+					}
+					else
+						console.error("unexpect json result:", json);
+
+					$("#viewer-area").removeClass("loading");
+				}, "json")
+				.fail(function () {
+					console.error("SQL query request failed.");
+
+					$("#viewer-area").removeClass("loading");
+				})
+				.userData = { begin: Date.now() };
+			};
+
+			var setViewerColumn = function (column) {
+				localStorage.ViewerColumn = column;
+
+				viewer.setColumn(column);
+			};
+
+			var renderBookmarks = function () {
+				$("#bookmarks").empty();
+
+				var currentName = "";
+
+				$("#note-list li").each(function (i, li) {
+					var $li = $(li);
+					if ($li.find("a").attr("href") == location.hash)
+						$li.addClass("focus");
+					else
+						$li.removeClass("focus");
+				});
+
+				for (var i in bookmarks.Data) {
+					var li = $("<li><a></a></li>");
+					li.find("a").text(bookmarks.Data[i].name);
+					li.find("a").attr("href", bookmarks.Data[i].link);
+					li.find("a").click(onNoteLinkClick);
+
+					li.appendTo($("#bookmarks"));
+
+					if (bookmarks.Data[i].link == location.hash) {
+						currentName = bookmarks.Data[i].name;
+
+						li.addClass("focus");
+					}
+				}
+
+				$("#new-bookmark-name").val(currentName);
+				if (currentName == "")
+					$("#new-bookmark-name").addClass("focus");
+
+				bookmarksDirty = false;
+			};
+
+			var onNoteLinkClick = function () {
+				if (event.ctrlKey) {
+					var link = $(this).attr("href").replace("#sql=", "#xsql=");
+					location.hash = link;
+
+					event.preventDefault();
+				}
+			};
+
+			$(function () {
+				if (Peris.isTouchDevice)
+					$("<link href='/static/viewer-touch.css' rel='stylesheet' type='text/css'>").appendTo("head");
+
+				viewer = new Peris.Viewer($("#viewer"));
+
+				if (localStorage.ViewerColumn)
+					viewer.setColumn(localStorage.ViewerColumn);
+
+				var updateParams = function () {
+					renderBookmarks();
+
+					var params = parseQueries(location.hash);
+
+					if (Object.keys(params).indexOf("recentPost") >= 0) {
+						var data = [];
+						for (var i in viewer.Peer.RecentPostList.Data)
+							data.push({ path: viewer.Peer.RecentPostList.Data[i] });
+
+						viewer.update(data);
+					}
+					else if (Object.keys(params).indexOf("listDir") >= 0) {
+						var queries = "";
+
+						if (params.dir)
+							queries += "dir=" + params.dir + "&";
+
+						if (params.orderby)
+							queries += "orderby=" + params.orderby;
+
+						$("#viewer-area").addClass("loading");
+						$.getJSON("/list-dir?" + queries, function (json) {
+							if (json.success) {
+								viewer.update(json.files);
+
+								$("#viewer-area").removeClass("loading");
+							}
+							else {
+								console.warn("get list dir failed:", json.error);
+							}
+						});
+					}
+					else {
+						if (params.sql) {
+							runSql(decodeURIComponent(params.sql));
+						}
+
+						if (params.xsql) {
+							$("#sql").val(decodeURIComponent(params.xsql));
+						}
+					}
+
+					if (Object.keys(params).indexOf("expandViewer") >= 0) {
+						viewer.Container.addClass("expand");
+						viewer.onResized();
+					}
+				};
+
+				window.onhashchange = updateParams;
+
+				if (location.hash.length > 1)
+					updateParams();
+
+				$("#query").click(function () {
+					location.hash = encodeURIParams({ sql: $("#sql").val() });
+				});
+
+				$("#note-list a, #bookmarks a").click(onNoteLinkClick);
+
+				bookmarks.load();
+				renderBookmarks();
+
+				$("#new-bookmark-name").focusout(function () {
+					var name = $(this).val();
+					var link = location.hash;
+
+					var item = null;
+					for (var i in bookmarks.Data) {
+						if (bookmarks.Data[i].link == link) {
+							item = bookmarks.Data[i];
+
+							if (name.length > 0) {
+								var oldname = item.name;
+								if (oldname != name) {
+									item.name = name;
+
+									console.log("bookmark renamed:", oldname, "->", name);
+								}
+							}
+							else {
+								var name = item.name;
+								bookmarks.Data.splice(i, 1);
+
+								console.log("bookmark removed:", name);
+
+								renderBookmarks();
+							}
+
+							break;
+						}
+						else if (bookmarks.Data[i].name == name) {
+							item = bookmarks.Data[i];
+
+							bookmarks.Data[i].link = link;
+
+							console.log("bookmark '" + name + "' updated.");
+
+							renderBookmarks();
+
+							break;
+						}
+					}
+
+					if (!item && name.length > 0) {
+						bookmarks.Data.push({ name: name, link: link });
+
+						console.log("bookmark created:", name, link);
+					}
+
+					bookmarks.save();
+					bookmarksDirty = true;
+				});
+
+				if (Peris.isTouchDevice)
+					$("html").addClass("touch-device");
+			});
+		</script>
+	</head>
+	<body>
+		<div id="sider">
+			<ul id="note-list">
+				<li><a href="#recentPost">Recent Post</a></li>
+				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20score%20is%20null%20and%20tags%20is%20null%0Aorder%20by%20date%20desc">Raw</a></li>
+				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Aorder%20by%20score%20desc">Score Descend</a></li>
+				<li><a href="#listDir&orderby=-ctime">List Recent Dir</a></li>
+			</ul>
+			<ol id="bookmarks">
+			</ol>
+			<p id="new-bookmark"><span class="icon">+</span><input id="new-bookmark-name" type="text" /></p>
+		</div>
+		<div id="main">
+			<div id="query-bar">
+				<ul id="log"></ul>
+				<button id="query">&gt;</button>
+				<textarea id="sql"></textarea>
+			</div>
+			<div id="viewer-area">
+				<div id="loading"></div>
+				<div id="viewer"></div>
+			</div>
+		</div>
+	</body>
+</html>

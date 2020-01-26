@@ -1,0 +1,44 @@
+
+# Peris
+<VirtualHost localhost:8101>
+	ServerAdmin			postmaster@localhost
+	ServerName			localhost:8101
+
+	DocumentRoot		"PERIS_DIR/docs"
+
+	Alias				/static			PERIS_DIR/docs/static/
+	Alias				/images			DATA_DIR/
+	Alias				/favicon.ico	PERIS_DIR/docs/favicon.ico
+
+	<Directory /static>
+		AllowOverride	All
+		Order			deny,allow
+		Allow			from all
+	</Directory>
+
+	<Directory /images>
+		AllowOverride	All
+		Order			deny,allow
+		Allow			from all
+	</Directory>
+
+	WSGIScriptAlias		/	PERIS_DIR/docs/main.py/
+
+	AddType				text/html	.py
+	AddType				image/x-icon	.ico
+
+	<Directory /admin/>
+		Options			FollowSymLinks
+		AllowOverride	None
+		Order			deny,allow
+		Deny			from all
+		Allow			from ::1
+	</Directory>
+
+	<Directory />
+		Options			FollowSymLinks
+		AllowOverride	None
+		Order			allow,deny
+		Allow			from all
+	</Directory>
+</VirtualHost>

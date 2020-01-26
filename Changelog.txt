@@ -1,0 +1,400 @@
+
+TODO:
+	last read time database
+
+
+2019.3.17	K.L.	<k.l.lambda@gmail.com>
+
+	+	slider.js: rotate upset figures.
+
+	+	peer.js: rotate according to image exif orientation.
+
+
+2018.12.23	K.L.	<k.l.lambda@gmail.com>
+
+	+	Importer.html: fixed quotation path check issue.
+
+
+2018.12.2	K.L.	<k.l.lambda@gmail.com>
+
+	+	slider: added wake lock.
+
+
+2018.9.9	K.L.	<k.l.lambda@gmail.com>
+
+	>	Importer.html: fixed path quotation issue.
+
+
+2018.3.10	K.L.	<k.l.lambda@gmail.com>
+
+	+	templates/Importer.html: moveDuplicatedFiles added.
+
+	+	templates/Importer.html: refined duplicated figure.
+	>	main.py: check rename path confliction.
+
+
+2017.11.9	K.L.	<k.l.lambda@gmail.com>
+
+	+	templates/Importer.html: added duplicated class on image.
+	+	templates/Importer.html: open file location when ctrl+click.
+
+
+2017.9.23	K.L.	<k.l.lambda@gmail.com>
+
+	>	static/peer.js: show contained tags only when input box is focus.
+
+
+2017.6.29	K.L.	<k.l.lambda@gmail.com>
+
+	+	templates/Importer.html: added extension fix.
+	+	main.py: added extension fix in check file.
+
+
+2017.6.23	K.L.	<k.l.lambda@gmail.com>
+
+	+	main.py/DbQueryHandle: added query options of 'existence'.
+
+
+2017.6.22	K.L.	<k.l.lambda@gmail.com>
+
+	+	templates/Importer.html: added ajax status icon.
+
+	+	templates/Importer.html: retry check file when click.
+
+
+2017.6.21	K.L.	<k.l.lambda@gmail.com>
+
+	>	static/ajax_queue.js: avoid repeated checkIdle.
+
+	+	templates/Importer.html: added docked header.
+
+	+	templates/Importer.html: pause button added.
+
+
+2017.6.20	K.L.	<k.l.lambda@gmail.com>
+
+	>	templates/Importer.html: added marker icons.
+
+	>	templates/Importer.html: check file when list checking idle.
+
+	+	templates/Importer.html: refined styles.
+
+
+2017.6.19	K.L.	<k.l.lambda@gmail.com>
+
+	+	templates/Importer.html: added status of querying.
+
+	+	templates/Importer.html: check file queue added.
+
+	+	templates/Importer.html: page added.
+
+
+2017.3.23	K.L.	<k.l.lambda@gmail.com>
+
+	+	main.py: added 'webp' into image file pattern.
+
+
+2017.3.19	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/viewer.js: Viewer.checkAllShown added.
+
+
+2017.1.30	K.L.	<k.l.lambda@gmail.com>
+
+	>	static/peer.js: fixed middle click issue on Chrome 55.
+
+
+2016.9.21	K.L.	<k.l.lambda@gmail.com>
+
+	>	main.py/getImageDate: refined taken time.
+
+
+2016.7.24	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/viewer.js: added score color for status score text.
+
+
+2016.2.27	K.L.	<k.l.lambda@gmail.com>
+
+	+	templates/Home.html: update bookmark link for repeated name item.
+
+
+2015.11.21	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/viewer.js: continuous column option for slot laying added.
+
+	+	static/viewer.js: mount slot in loading order.
+
+
+2015.11.19	K.L.	<k.l.lambda@gmail.com>
+
+	+	Added width & height fields in table of cbir.
+
+	+	static/utils.js: added filter option for Peris.batchProcessFiles.
+
+	*	 Peris.batchProcessFiles sample:
+			Peris.batchProcessFiles(viewer.Data, "echo {path}", {filter: function(d){return d.selected;}})
+
+
+2015.11.18	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/viewer.js: checker control for selection added.
+
+	+	static/viewer.js: replaced 'PathList' by 'Data'.
+
+
+2015.11.17	K.L.	<k.l.lambda@gmail.com>
+
+	+	templates/Home.html: bookmark remove operation added.
+
+
+2015.11.15	K.L.	<k.l.lambda@gmail.com>
+
+	>	main.py: used photo taken date in file register.
+
+
+2015.11.14	K.L.	<k.l.lambda@gmail.com>
+
+	+	Added new table cbir to repalce file_register.fingerprint.
+
+
+2015.11.12	K.L.	<k.l.lambda@gmail.com>
+
+	+	main.py: FilterNewFiles added.
+
+
+2015.11.10	K.L.	<k.l.lambda@gmail.com>
+
+	+	templates/AdminHome.html: added fingerprint previewer.
+
+
+2015.11.8	K.L.	<k.l.lambda@gmail.com>
+
+	>	main.py/UpdateFileRegisterHandle: qury fingerprint from database.
+
+
+2015.11.7	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/utils.js: Peris.batchProcessFiles added.
+
+	*	batchProcessFiles sample:
+			Peris.batchProcessFiles(viewer.Data, "move \"{path}\" \"{data_root}Photos\\{stem} {date}.{ext}\"")
+
+2015.11.6	K.L.	<k.l.lambda@gmail.com>
+
+	+	templates/Home.html: added query filter.
+
+
+2015.10.6	K.L.	<k.l.lambda@gmail.com>
+
+	>	Serializer.py: use json instead of django.utils.simplejson.
+
+	*!	The error of 'client denied by server' is because of missing of file '.htaccess'
+
+	*!	WSGI module depends on python2 32bits.
+
+
+2015.2.17	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/peer.js: added list tag by ctrl+click.
+
+	>	static/peer.js: fixed score gradient offset bug.
+
+
+2015.2.16	K.L.	<k.l.lambda@gmail.com>
+
+	+	ChromeExtension: disable auto survey on large image.
+	+	ChromeExtension: colored matched images.
+
+	+	static/viewer.js: auto check unregister files.
+
+	+	static/peer.js: added figure close animation.
+
+	+	static/viewer.js: check loading failure figure.
+
+
+2015.2.15	K.L.	<k.l.lambda@gmail.com>
+
+	+	ChromeExtension: host name white list implemented.
+
+	+	ChromeExtension: refined styles.
+
+	+	static/viewer.js: open peer by gesture.
+
+	+	static/peer.js: added figure open animation.
+
+	+	main.py: ListDirHandle added.
+
+
+2015.2.14	K.L.	<k.l.lambda@gmail.com>
+
+	+	ChromeExtension: calculate fingerprint, query similar figures implemented.
+
+	+	Chrome Extension of Peris created.
+
+	+	viewer-touch.css: created.
+
+	+	viewer.css: prevent tap hold event on touch device.
+
+	+	static/viewer.js: checkAll added.
+
+	+	static/viewer.js: show similar figures added.
+
+	+	Fingerprint16.py: fileFingerprint implemented.
+
+
+2015.2.13	K.L.	<k.l.lambda@gmail.com>
+
+	+	Fingerprint16.py: created.
+
+	+	favicon.ico added.
+
+
+2015.2.12	K.L.	<k.l.lambda@gmail.com>
+
+	>	static/viewer.js: refined status bar.
+
+	+	static/peer.js: tag label prompting added.
+
+
+2015.2.11	K.L.	<k.l.lambda@gmail.com>
+
+	>	viewer.css: refined styles for touch device.
+
+	+	main.py: enhanced CheckFileHandle.
+
+
+2015.2.10	K.L.	<k.l.lambda@gmail.com>
+
+	+	utils.js: Peris.moveDuplicatedFigureFiles added.
+
+	+	main.py: CheckFileHandle added.
+
+	+	main.py/UpdateFileRegisterHandle: remove non-existent files.
+
+
+2015.2.9	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/peer.js: refined score touch events.
+
+	+	static/peer.js: show file in explorer implemented.
+
+
+2015.2.8	K.L.	<k.l.lambda@gmail.com>
+
+	>	static/peer.js: refined events for touch device.
+
+	+	templates/Home.html: user bookmark added.
+
+	+	templates/Home.html: recent post list added.
+
+
+2015.2.7	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/peer.js: tag list added.
+
+	+	static/peer.js: tags post added.
+
+	+	static/peer.js: score touch colored added.
+
+
+2015.2.4	K.L.	<k.l.lambda@gmail.com>
+
+	+	main.py: UpdateFigureHandle added.
+
+
+2015.2.3	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/peer.js: score bar and input bar added.
+
+
+2015.2.2	K.L.	<k.l.lambda@gmail.com>
+
+	+	templates/Home.html: expand button added.
+
+	+	static/slider.js: figure zoom animation implemented.
+
+	+	static/slider.js: prev by click added.
+	+	static/slider.js: prev/next by keyboard added.
+
+
+2015.2.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/slider.js: figure switching implemented.
+
+	+	static/slider.js: class of Slider added.
+
+	+	static/peer.js: added shortcut for prev/next.
+
+	+	static/peer.js: prev/next button added.
+
+
+2015.1.31	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/peer.js: figure zoom and pan implemented.
+
+	+	static/peer.js: panel added.
+
+
+2015.1.30	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/peer.js: created.
+	+	static/slider.js: created.
+
+	+	templates/Home.html: refined note link of duplicated.
+
+	*!	Javascipt closure binding variable:
+			for (var i = 0; i < 100; ++i) {
+				(function () {
+					var m = i;
+					setTimeout(function () {
+						console.log(m);
+					}, i);
+				})();
+			}
+
+	*!	Same path query:
+			select GROUP_CONCAT(hash)
+			from (select count(*) as c, path, hash, 1 as cc
+				from file_register
+				group by hash) as same_hash
+			where c > 1
+			group by cc
+
+	+	templates/Home.html: add loading icon on viewer.
+
+	+	static/viewer.js: setColumn added.
+
+	>	Renamed database field figure.labels -> figure.tags.
+
+	+	static/viewer.js: added file size in status bar.
+
+
+2015.1.29	K.L.	<k.l.lambda@gmail.com>
+
+	+	Serializer.py: added support of decimal.Decimal.
+
+	+	main.py: added file info query.
+
+	+	static/viewer.js: status bar added.
+
+	+	static/viewer.js: added slot load/unload.
+
+
+2015.1.28	K.L.	<k.l.lambda@gmail.com>
+
+	+	static/viewer.js: waterfall stream implemented.
+
+	+	static/viewer.js: created.
+
+	+	templates/Home.html: query console created.
+
+
+2015.1.27	K.L.	<k.l.lambda@gmail.com>
+
+	+	main.py: ImportAlbumDataHandle added.
+
+	+	ChangeLog.txt: created.
+
+
+------------------------------------------------------- Peris ChangeLog -------------------------------------------------------

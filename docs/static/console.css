@@ -1,0 +1,30 @@
+
+.error
+{
+	color: red;
+}
+
+.new
+{
+	color: #080;
+}
+
+.update
+{
+	color: #a80;
+}
+
+.remove
+{
+	color: #804;
+}
+
+.duplicated
+{
+	color: #aaa;
+}
+
+.trivial
+{
+	font-size: 70%;
+}

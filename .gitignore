@@ -10,5 +10,6 @@ package-lock.json
 *.sln
 #docs
 docs/**/*.js.map
+docs/inner
 
 public/mlmodels/*

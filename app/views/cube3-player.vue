@@ -57,12 +57,13 @@
 
 				switch (event.key) {
 				case "Home":
-					this.$refs.viewer.cube.reset();
+					if (this.$refs.viewer)
+						this.$refs.viewer.cube.reset();
 
 					break;
 				default:
 					const twist = TWIST_KEYS.indexOf(event.key);
-					if (twist >= 0)
+					if (twist >= 0 && this.$refs.viewer)
 						this.$refs.viewer.cube.twist(twist);
 				}
 			});
@@ -85,7 +86,12 @@
 
 
 			onHashChange () {
-				const hash = location.hash.substr(1);
+				let hash = location.hash.substr(1);
+				if (hash[0] === "/" && !/#/.test(hash))
+					hash += "#";
+
+				hash = hash.replace(/.*#/, "");	// ignore router path
+
 				//console.log("url:", hash, url.parse("abc?a=1", true));
 				const hashurl = url.parse(hash, true);
 
@@ -101,18 +107,26 @@
 						if (twist >= 0) {
 							this.$refs.viewer.cube.twist(twist).then(() => {
 								const rest = stringifyPath(twists.slice(1));
-								location.hash = `${this.code}?path=${rest}`;
+								location.hash = `${this.getRouterPath()}${this.code}?path=${rest}`;
 							});
 						}
 					}
 				}
+			},
+
+
+			getRouterPath () {
+				const [path] = location.hash.match(/^#\/[^#]*/) || [];
+
+				return path ? path + "#" : "";
 			},
 		},
 
 
 		watch: {
 			code (value) {
-				location.hash = value;
+				//console.log("RouterPath:", location.hash, this.getRouterPath());
+				location.hash = this.getRouterPath() + value;
 			},
 		},
 	};

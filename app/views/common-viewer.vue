@@ -1,9 +1,10 @@
 <template>
 	<body>
 		<main>
-			<router-view/>
+			<router-view />
+			<h1 v-if="home">K.L. Studio</h1>
 		</main>
-		<header :class="{faint: routePath.length > 1}">
+		<header :class="{faint: !home}">
 			<datalist id="route-list">
 				<option v-for="route of routes" :key="route" :value="route" />
 			</datalist>
@@ -20,6 +21,7 @@
 		data () {
 			return {
 				routePath: this.$router.currentRoute.path,
+				home: !this.$router.currentRoute.name,
 			};
 		},
 
@@ -47,8 +49,10 @@
 
 			$route (to) {
 				//console.log("route:", to);
-				if (this.routePath !== to.fullPath)
-					this.routePath = to.fullPath;
+				if (this.routePath !== to.path)
+					this.routePath = to.path;
+
+				this.home = !this.$router.currentRoute.name;
 			},
 		},
 	};
@@ -69,6 +73,14 @@
 	body > main
 	{
 		height: 100vh;
+	}
+
+	main h1
+	{
+		color: #eee;
+		font-size: 20vh;
+		user-select: none;
+		text-align: center;
 	}
 
 	header

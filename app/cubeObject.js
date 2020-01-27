@@ -53,7 +53,8 @@ export default class CubeObject {
 	updateGraph () {
 		this.graph.children.forEach((cube, i) => {
 			const q = QUATERNIONS[this.algebra.units[i]];
-			cube.quaternion.set(...q);
+			if (q)
+				cube.quaternion.set(...q);
 		});
 
 		if (this.onChange)

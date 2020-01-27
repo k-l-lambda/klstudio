@@ -12,6 +12,12 @@ module.exports = {
 			template: htmlCommonTemplate,
 			title: "K.L. Studio",
 		},
+		inner: {
+			filename: "inner",
+			entry: "./app/common-viewer.ts",
+			template: htmlCommonTemplate,
+			title: "K.L. Studio X",
+		},
 	},
 	/*devServer: {
 		proxy: `http://localhost:${process.env.PORT}`,

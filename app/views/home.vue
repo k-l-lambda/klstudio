@@ -13,8 +13,8 @@
 		name: "home",
 
 
-		mounted () {
-			//console.log("home:", document);
+		created () {
+			window.$main = this;
 		},
 	};
 </script>

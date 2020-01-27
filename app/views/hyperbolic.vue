@@ -97,8 +97,8 @@
 <script>
 	import resize from "vue-resize-directive";
 
-	import SvgMap from "./svg-map.vue";
-	import SvgCurve from "./svg-curve.vue";
+	import SvgMap from "../components/svg-map.vue";
+	import SvgCurve from "../components/svg-curve.vue";
 
 
 
@@ -118,7 +118,7 @@
 
 
 		data () {
-			const halfPoints = [...Array(100).keys()].map(i => (i / 40) ** 2);
+			//const halfPoints = [...Array(100).keys()].map(i => (i / 40) ** 2);
 
 			return {
 				size: {},
@@ -133,7 +133,7 @@
 				if (!this.cursorPoint)
 					return null;
 
-				if (this.cursorPoint.x == 0)
+				if (this.cursorPoint.x === 0)
 					return this.cursorPoint.y > 0 ? Math.PI / 2 : Math.PI / -2;
 
 				const angle = Math.atan(this.cursorPoint.y / this.cursorPoint.x);
@@ -208,15 +208,15 @@
 
 		methods: {
 			onResize () {
-				this.size = { width: this.$el.clientWidth, height: this.$el.clientHeight };
+				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
 			},
 
 
 			onMouseMoving (event) {
-				const cursorPoint = this.$refs.cartesian.clientToView({ x: event.offsetX, y: event.offsetY });
+				const cursorPoint = this.$refs.cartesian.clientToView({x: event.offsetX, y: event.offsetY});
 				//console.log("cursorPoint:", cursorPoint);
 
-				this.cursorPoint = { x: cursorPoint.x, y: -cursorPoint.y };
+				this.cursorPoint = {x: cursorPoint.x, y: -cursorPoint.y};
 			},
 		},
 	};

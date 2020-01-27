@@ -53,7 +53,7 @@
 			path () {
 				let points = this.arguments.map(a => `${this.xFunction(a).toFixed(6)} ${-this.yFunction(a).toFixed(6)}`).join(" L");
 				if (this.dash)
-					points = points.replace(/L([\d\s\.\e\+\-]+)L([\d\s.\e\+\-]+)/g, "L$1M$2");
+					points = points.replace(/L([\d\s.e+-]+)L([\d\s.e+-]+)/g, "L$1M$2");
 
 				return "M" +
 					points +

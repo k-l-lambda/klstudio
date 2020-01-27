@@ -1,7 +1,7 @@
 
 var clone = function (o) {
 	if (typeof o !== "object") return (o);
-	if (o == null) return (o);
+	if (o === null) return (o);
 	var ret = (typeof o.length === "number") ? [] : {};
 	for (var key in o) ret[key] = clone(o[key]);
 	return ret;
@@ -35,15 +35,15 @@ export default function Replayer (midiFile, timeWarp) {
 
 		for (let i = 0; i < trackStates.length; i++) {
 			if (
-				trackStates[i].ticksToNextEvent != null &&
-				(ticksToNextEvent == null || trackStates[i].ticksToNextEvent < ticksToNextEvent)
+				trackStates[i].ticksToNextEvent &&
+				(!ticksToNextEvent || trackStates[i].ticksToNextEvent < ticksToNextEvent)
 			) {
 				ticksToNextEvent = trackStates[i].ticksToNextEvent;
 				nextEventTrack = i;
 				nextEventIndex = trackStates[i].nextEventIndex;
 			}
 		}
-		if (nextEventTrack != null) {
+		if (nextEventTrack) {
 			/* consume event from that track */
 			var nextEvent = midiFile.tracks[nextEventTrack][nextEventIndex];
 			if (midiFile.tracks[nextEventTrack][nextEventIndex + 1])
@@ -54,7 +54,7 @@ export default function Replayer (midiFile, timeWarp) {
 			trackStates[nextEventTrack].nextEventIndex += 1;
 			/* advance timings on all tracks by ticksToNextEvent */
 			for (let i = 0; i < trackStates.length; i++) {
-				if (trackStates[i].ticksToNextEvent != null)
+				if (trackStates[i].ticksToNextEvent)
 					trackStates[i].ticksToNextEvent -= ticksToNextEvent;
 			}
 			return {

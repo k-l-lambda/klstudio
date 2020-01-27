@@ -22,7 +22,7 @@
 			height: Number,
 			initViewCenter: {
 				type: Object,
-				default: () => ({ x: 0, y: 0 }),
+				default: () => ({x: 0, y: 0}),
 			},
 			initViewWidth: {
 				type: Number,
@@ -80,7 +80,7 @@
 					this.viewCenter.x -= event.movementX * scale;
 					this.viewCenter.y -= event.movementY * scale;
 
-				this.$emit("update:viewCenter", this.viewCenter);
+					this.$emit("update:viewCenter", this.viewCenter);
 
 					break;
 				}

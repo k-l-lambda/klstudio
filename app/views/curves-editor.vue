@@ -65,8 +65,8 @@
 <script>
 	import resize from "vue-resize-directive";
 
-	import SvgMap from "./svg-map.vue";
-	import SvgCurve from "./svg-curve.vue";
+	import SvgMap from "../components/svg-map.vue";
+	import SvgCurve from "../components/svg-curve.vue";
 
 
 
@@ -109,7 +109,7 @@
 
 
 		data () {
-			const halfPoints = [...Array(100).keys()].map(i => (i / 40) ** 2);
+			//const halfPoints = [...Array(100).keys()].map(i => (i / 40) ** 2);
 
 			return {
 				size: {},
@@ -126,7 +126,7 @@
 
 		methods: {
 			onResize () {
-				this.size = { width: this.$el.clientWidth, height: this.$el.clientHeight };
+				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
 			},
 
 

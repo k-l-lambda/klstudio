@@ -16,9 +16,9 @@
 	import url from "url";
 	import resize from "vue-resize-directive";
 
-	import Cube3 from "./cube3.vue";
+	import Cube3 from "../components/cube3.vue";
 
-	import { stringifyPath, parsePath } from "../inc/cube3.ts";
+	import {stringifyPath, parsePath} from "../../inc/cube3.ts";
 
 
 
@@ -74,7 +74,7 @@
 
 		methods: {
 			onResize () {
-				this.size = { width: this.$el.clientWidth, height: this.$el.clientHeight };
+				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
 			},
 
 

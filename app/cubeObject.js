@@ -1,10 +1,10 @@
 
 import * as THREE from "three";
 
-import { NORMAL_ORIENTATIONS } from "../inc/cube-algebra.ts";
-import { Cube3, twistToAxisRotation } from "../inc/cube3.ts";
-import { createCube3Meshes } from "./cubeMesh.js";
-import { animationDelay } from "./delay.js";
+import {NORMAL_ORIENTATIONS} from "../inc/cube-algebra.ts";
+import {Cube3, twistToAxisRotation} from "../inc/cube3.ts";
+import {createCube3Meshes} from "./cubeMesh.js";
+import {animationDelay} from "./delay.js";
 
 
 
@@ -27,7 +27,7 @@ const AXES = [
 
 
 export default class CubeObject {
-	constructor ({ materials, twistDuration = 300, onChange = null }) {
+	constructor ({materials, twistDuration = 300, onChange = null}) {
 		this.algebra = new Cube3();
 
 		this.twistDuration = twistDuration;
@@ -75,7 +75,7 @@ export default class CubeObject {
 	}
 
 
-	twist (twist, { useAnimation = true } = {}) {
+	twist (twist, {useAnimation = true} = {}) {
 		if (!useAnimation) {
 			this.algebra.twist(twist);
 			this.updateGraph();
@@ -88,7 +88,7 @@ export default class CubeObject {
 
 			const endTime = Date.now() + this.twistDuration;
 
-			const { axis, rotation } = twistToAxisRotation(twist);
+			const {axis, rotation} = twistToAxisRotation(twist);
 			const movingIndices = this.algebra.faceIndicesFromAxis(axis);
 			const span = [Math.PI * -0.5, Math.PI * 0.5, Math.PI][Math.floor((rotation - 1) / 3)];
 			const rot = new THREE.Quaternion().setFromAxisAngle(AXES[axis], span);

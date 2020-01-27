@@ -48,7 +48,7 @@ class Item {
 	}
 
 
-	toQuaternion() : Array<number> {
+	toQuaternion () : Array<number> {
 		const axis = [0, 0, 0];
 		axis[this.unit] = 1;
 
@@ -157,7 +157,7 @@ class Orientation {
 	}
 
 
-	toQuaternion() : Array<number> {
+	toQuaternion () : Array<number> {
 		return this.items.reduce((product, item) => quaternionProduct(product, item.toQuaternion()), [0, 0, 0, 1]);
 	}
 

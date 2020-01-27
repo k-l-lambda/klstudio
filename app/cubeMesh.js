@@ -48,7 +48,7 @@ const normals = [
 
 
 
-const geometries = Array(3 ** 3).fill().map(_ => new THREE.Geometry());
+const geometries = Array(3 ** 3).fill().map(() => new THREE.Geometry());
 geometries.forEach((geometry, u) => {
 	const pos = [u % 3 - 1, Math.floor(u / 3) % 3 - 1, Math.floor(u / 9) - 1];
 

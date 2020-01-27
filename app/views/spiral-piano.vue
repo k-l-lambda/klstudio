@@ -151,10 +151,10 @@
 <script>
 	import resize from "vue-resize-directive";
 
-	import MidiPlayer from "./MidiPlayer";
-	import "./utils.js";
+	import MidiPlayer from "../MidiPlayer";
+	import "../utils.js";
 
-	import MidiDevices from "./midi-devices.vue";
+	import MidiDevices from "../components/midi-devices.vue";
 
 
 
@@ -169,11 +169,11 @@
 		RegionRadius: 400,
 		Mode: {
 			Major: {
-				MainPitches: { 0: true, 2: true, 4: true, 5: true, 7: true, 9: true, 11: true },
+				MainPitches: {0: true, 2: true, 4: true, 5: true, 7: true, 9: true, 11: true},
 				SyllableNames: ["do", null, "re", null, "mi", "fa", null, "so", null, "la", null, "ti"],
 			},
 			Minor: {
-				MainPitches: { 0: true, 2: true, 3: true, 5: true, 7: true, 8: true, 11: true },
+				MainPitches: {0: true, 2: true, 3: true, 5: true, 7: true, 8: true, 11: true},
 				SyllableNames: ["do", null, "re", "mi", null, "fa", null, "so", "la", null, null, "ti"],
 			},
 		},
@@ -285,9 +285,9 @@
 				modalOffset: 0,
 				keyWidthRatio: 0.5,
 				mode: Config.Mode.Major,
-				wideRange: { Start: 54, End: 77 },
+				wideRange: {Start: 54, End: 77},
 				synesthesiaScheme: "FifthRainbow",
-				keyStatus: Array(Config.NoteEnd + 1).fill().map(() => ({ active: false })),
+				keyStatus: Array(Config.NoteEnd + 1).fill().map(() => ({active: false})),
 				showDashboard: false,
 				drageHover: false,
 				isPlaying: false,
@@ -410,7 +410,7 @@
 
 		methods: {
 			onResize () {
-				this.size = { width: this.$el.clientWidth, height: this.$el.clientHeight };
+				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
 			},
 
 
@@ -426,7 +426,7 @@
 				case "audio/mid":
 				case "audio/midi":
 					const buffer = await file.readAs("ArrayBuffer");
-					const blob = new Blob([buffer], { type: file.type });
+					const blob = new Blob([buffer], {type: file.type});
 					const url = URL.createObjectURL(blob);
 					await MidiPlayer.Player.loadFile(url);
 

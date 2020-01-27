@@ -122,7 +122,7 @@
 	import SvgMap from "../components/svg-map.vue";
 
 	// LaTeX: f=2^{\frac{x}{12}}
-	import url12Equal from "../images/f=2^x_12.svg";
+	import url12Equal from "../assets/f=2^x_12.svg";
 
 
 

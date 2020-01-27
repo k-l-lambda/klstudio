@@ -6,9 +6,9 @@
 		<main>
 			<router-view/>
 		</main>
-		<sider>
+		<aside>
 			<router-link to="/spiral-piano">Spiral Piano</router-link>
-		</sider>
+		</aside>
 	</body>
 </template>
 
@@ -18,7 +18,8 @@
 
 
 		created () {
-			window.$main = this;
+			if (process.env.NODE_ENV === "development")
+				window.$main = this;
 		},
 	};
 </script>
@@ -48,7 +49,7 @@
 		padding-left: 20vw;
 	}
 
-	sider
+	aside
 	{
 		position: absolute;
 		top: 0;

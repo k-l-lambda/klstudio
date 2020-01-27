@@ -271,7 +271,7 @@
 				this.elements = [];
 
 				await Promise.all(elementsSchema.map(async element => {
-					const {default: tex} = await import(`../images/cube-algebra/${element.label}.png`);
+					const {default: tex} = await import(`../assets/cube-algebra/${element.label}.png`);
 
 					const elemObj = new THREE.Mesh(this.sphere, new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load(tex)}));
 					this.elements.push(elemObj);

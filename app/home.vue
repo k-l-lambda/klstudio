@@ -29,7 +29,7 @@
 			path: "/spiral-piano",
 			cover: "SpiralPiano.png",
 			description: `<p>Play music by tapping screen.
-This is A music visualization program which based on the <a href="https://en.wikipedia.org/wiki/Equal_temperament" target="_blank">Equal Temperament</a>.</p>
+This is a music visualization program which based on the <a href="https://en.wikipedia.org/wiki/Equal_temperament" target="_blank">Equal Temperament</a>.</p>
 <p>Try to drop a MIDI file on the panel.</p>`,
 		},
 	];
@@ -121,6 +121,7 @@ This is A music visualization program which based on the <a href="https://en.wik
 				white-space: nowrap;
 				font-weight: normal;
 				font-style: normal;
+				text-decoration: underline;
 			}
 
 			img
@@ -140,10 +141,12 @@ This is A music visualization program which based on the <a href="https://en.wik
 		.app.focus
 		{
 			background-color: #efe;
+			box-shadow: 0 0 1em #0002;
 
 			h2
 			{
 				font-weight: bold;
+				text-decoration: none;
 			}
 		}
 	}

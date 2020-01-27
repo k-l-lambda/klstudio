@@ -1,14 +1,14 @@
 <template>
 	<body>
-		<header>
+		<main>
+			<router-view/>
+		</main>
+		<header :class="{faint: routePath.length > 1}">
 			<datalist id="route-list">
 				<option v-for="route of routes" :key="route" :value="route" />
 			</datalist>
 			<input type="text" list="route-list" v-model.lazy="routePath" />
 		</header>
-		<main>
-			<router-view/>
-		</main>
 	</body>
 </template>
 
@@ -54,5 +54,37 @@
 	};
 </script>
 
-<style>
+<style scoped>
+	html
+	{
+		overflow: hidden;
+	}
+
+	body
+	{
+		margin: 0;
+		overflow: hidden;
+	}
+
+	body > main
+	{
+		height: 100vh;
+	}
+
+	header
+	{
+		position: absolute;
+		top: 0;
+		left: 0;
+	}
+
+	header.faint
+	{
+		opacity: 0.1;
+	}
+
+	header.faint:hover
+	{
+		opacity: 1;
+	}
 </style>

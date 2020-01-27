@@ -35,15 +35,15 @@ export default function Replayer (midiFile, timeWarp) {
 
 		for (let i = 0; i < trackStates.length; i++) {
 			if (
-				trackStates[i].ticksToNextEvent &&
-				(!ticksToNextEvent || trackStates[i].ticksToNextEvent < ticksToNextEvent)
+				trackStates[i].ticksToNextEvent !== null &&
+				(ticksToNextEvent === null || trackStates[i].ticksToNextEvent < ticksToNextEvent)
 			) {
 				ticksToNextEvent = trackStates[i].ticksToNextEvent;
 				nextEventTrack = i;
 				nextEventIndex = trackStates[i].nextEventIndex;
 			}
 		}
-		if (nextEventTrack) {
+		if (nextEventTrack !== null) {
 			/* consume event from that track */
 			var nextEvent = midiFile.tracks[nextEventTrack][nextEventIndex];
 			if (midiFile.tracks[nextEventTrack][nextEventIndex + 1])
@@ -54,7 +54,7 @@ export default function Replayer (midiFile, timeWarp) {
 			trackStates[nextEventTrack].nextEventIndex += 1;
 			/* advance timings on all tracks by ticksToNextEvent */
 			for (let i = 0; i < trackStates.length; i++) {
-				if (trackStates[i].ticksToNextEvent)
+				if (trackStates[i].ticksToNextEvent !== null)
 					trackStates[i].ticksToNextEvent -= ticksToNextEvent;
 			}
 			return {
@@ -90,6 +90,7 @@ export default function Replayer (midiFile, timeWarp) {
 			while (midiEvent) processNext(true);
 	};
 	processEvents();
+
 	return {
 		getData: function () {
 			return clone(temporal);

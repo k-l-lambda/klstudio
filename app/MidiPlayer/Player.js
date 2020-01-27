@@ -106,7 +106,7 @@ const Player = {};
 
 	root.loadMidiFile = function () { // reads midi into javascript array of events
 		root.file = MidiFile(root.currentData);
-		root.replayer = new Replayer(root.file, root.timeWarp);
+		root.replayer = Replayer(root.file, root.timeWarp);
 		root.data = root.replayer.getData();
 		root.endTime = getLength();
 	};

@@ -8,9 +8,15 @@ module.exports = {
 	outputDir: "docs",
 	pages: {
 		index: {
-			entry: "./app/main.ts",
+			entry: "./app/home.ts",
 			template: htmlCommonTemplate,
 			title: "K.L. Studio",
+		},
+		inner: {
+			filename: "inner",
+			entry: "./app/common-viewer.ts",
+			template: htmlCommonTemplate,
+			title: "K.L. Studio X",
 		},
 	},
 	/*devServer: {

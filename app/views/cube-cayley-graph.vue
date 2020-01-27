@@ -33,8 +33,8 @@
 	import resize from "vue-resize-directive";
 	import * as THREE from "three";
 
-	import { animationDelay } from "./delay";
-	import { MULTIPLICATION_TABLE } from "../inc/cube-algebra";
+	import {animationDelay} from "../delay";
+	import {MULTIPLICATION_TABLE} from "../../inc/cube-algebra";
 
 
 
@@ -88,7 +88,7 @@
 		r * Math.sin(theta) * Math.sin(phi),
 	);
 
-	const elem = (index, label, angles, r = 1) => ({ index, label, position: sphericalToCartesian(r, ...angles) });
+	const elem = (index, label, angles, r = 1) => ({index, label, position: sphericalToCartesian(r, ...angles)});
 
 	const elementsSchema = [
 		// identity
@@ -112,7 +112,7 @@
 
 
 	const pointsCenter = points => points.reduce((sum, v) => sum.add(v), new THREE.Vector3()).multiplyScalar(1 / points.length);
-	const centerElem = (index, label, indices, scalar = 1) => ({ index, label, position: pointsCenter(indices.map(i => elementsSchema[i].position)).multiplyScalar(scalar) });
+	const centerElem = (index, label, indices, scalar = 1) => ({index, label, position: pointsCenter(indices.map(i => elementsSchema[i].position)).multiplyScalar(scalar)});
 
 	// octave elements
 	[
@@ -139,7 +139,7 @@
 
 		data () {
 			return {
-				size: { width: 800, height: 800 },
+				size: {width: 800, height: 800},
 				fps: 0,
 				rotationIndex: 0,
 				rotationT: 0,
@@ -150,7 +150,7 @@
 		computed: {
 			handlePosition () {
 				if (this.rotationIndex === 0)
-					return { x: 0, y: 0 };
+					return {x: 0, y: 0};
 
 				const angle = Math.PI * (this.rotationIndex + 3.5) / 3;
 				const radius = 100;
@@ -187,12 +187,12 @@
 
 		methods: {
 			onResize () {
-				this.size = { width: this.$el.clientWidth, height: this.$el.clientHeight };
+				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
 			},
 
 
 			initializeRenderer () {
-				this.renderer = new THREE.WebGLRenderer({ antialias: true, canvas: this.$refs.canvas, alpha: true });
+				this.renderer = new THREE.WebGLRenderer({antialias: true, canvas: this.$refs.canvas, alpha: true});
 				this.renderer.setClearColor(new THREE.Color("lightblue"), 1);
 				this.renderer.setSize(this.size.width, this.size.height, false);
 
@@ -271,9 +271,9 @@
 				this.elements = [];
 
 				await Promise.all(elementsSchema.map(async element => {
-					const { default: tex } = await import(`./images/cube-algebra/${element.label}.png`);
+					const {default: tex} = await import(`../assets/cube-algebra/${element.label}.png`);
 
-					const elemObj = new THREE.Mesh(this.sphere, new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load(tex) }));
+					const elemObj = new THREE.Mesh(this.sphere, new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load(tex)}));
 					this.elements.push(elemObj);
 
 					elemObj.position.copy(element.position.clone().multiplyScalar(100));
@@ -305,7 +305,7 @@
 						base.scale.x = base.scale.z = 1;
 						base.scale.y = direction.length() * 100;
 
-						const edge = new THREE.Mesh(this.cone, new THREE.MeshBasicMaterial({ color: new THREE.Color(unitColors[unit - 1]) }));
+						const edge = new THREE.Mesh(this.cone, new THREE.MeshBasicMaterial({color: new THREE.Color(unitColors[unit - 1])}));
 						edge.position.y = 0.5;
 
 						base.add(edge);

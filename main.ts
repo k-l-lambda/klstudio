@@ -3,15 +3,15 @@ import * as express from "express";
 import * as http from "http";
 
 import "./env.js";
-import hot from "./hot";
-import entries from "./entries";
+//import hot from "./hot";
+//import entries from "./entries";
 
 
 
 const development = process.env.NODE_ENV === "development";
 
 
-const simpleTemplate = (script, { title = "", preDoc = "" } = {}) => `
+/*const simpleTemplate = (script, { title = "", preDoc = "" } = {}) => `
 <!DOCTYPE html>
 <html>
 	<head>
@@ -31,7 +31,7 @@ const stringHandle = function (content, type) {
 		res.write(content);
 		res.end();
 	};
-};
+};*/
 
 
 const app = express();
@@ -42,17 +42,11 @@ const app = express();
 app.use("/", express.static("./static"));
 
 
-if (development)
+/*if (development)
 	hot(app);
 else {
-	/*const pageRouters = entries.reduce((result, entry) => (result[entry.path] = {
-		get: stringHandle(simpleTemplate(`/bundles/${entry.name}.bundle.js`, {title: entry.title}), "text/html"),
-	}, result), {});
-
-	Object.entries({...pageRouters}).forEach(([path, value]) => Object.entries(value).forEach(([method, handler]) => app[method](path, handler)));*/
-
 	entries.forEach(entry => app.get(entry.path, stringHandle(simpleTemplate(`/bundles/${entry.name}.bundle.js`, { title: entry.title }), "text/html")));
-}
+}*/
 
 
 const httpServer = http.createServer(app);

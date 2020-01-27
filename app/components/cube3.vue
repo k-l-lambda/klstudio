@@ -10,8 +10,8 @@
 <script>
 	import * as THREE from "three";
 
-	import { animationDelay } from "./delay";
-	import CubeObject from "./cubeObject.js";
+	import {animationDelay} from "../delay";
+	import CubeObject from "../cubeObject.js";
 	//window.THREE = THREE;
 
 
@@ -19,7 +19,7 @@
 	const BASIC_MATERIALS = [
 		//"green", "blue", "orange", "red", "white", "yellow", "black",
 		"#f90", "#d00", "#ff2", "white", "blue", "#0e0", "black",
-	].map(color => new THREE.MeshBasicMaterial({ color: new THREE.Color(color) }));
+	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
 
 
 
@@ -30,7 +30,7 @@
 		props: {
 			size: {
 				type: Object,
-				default: () => ({ width: 800, height: 800 }),
+				default: () => ({width: 800, height: 800}),
 			},
 			code: String,
 		},
@@ -43,7 +43,7 @@
 
 			this.initializeRenderer();
 
-			this.cube = new CubeObject({ materials: BASIC_MATERIALS, onChange: algebra => this.onChange(algebra) });
+			this.cube = new CubeObject({materials: BASIC_MATERIALS, onChange: algebra => this.onChange(algebra)});
 			this.scene.add(this.cube.graph);
 			//console.log("this.cube:", this.cube);
 
@@ -53,7 +53,7 @@
 
 		methods: {
 			initializeRenderer () {
-				this.renderer = new THREE.WebGLRenderer({ antialias: true, canvas: this.$refs.canvas, alpha: true });
+				this.renderer = new THREE.WebGLRenderer({antialias: true, canvas: this.$refs.canvas, alpha: true});
 				this.renderer.setClearColor(new THREE.Color("black"), 0);
 				this.renderer.setSize(this.size.width, this.size.height, false);
 
@@ -87,7 +87,7 @@
 					const seconds = Math.floor(now / 1000);
 					if (seconds > lastSeconds) {
 						const fps = frames / (seconds - lastSeconds);
-						this.$emit("fps", { fps, stuck });
+						this.$emit("fps", {fps, stuck});
 						//console.log("fps:", fps);
 
 						frames = 0;

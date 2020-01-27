@@ -48,7 +48,7 @@ const DOMLoader = {};
 	DOMLoader.script.prototype.add = function (config) {
 		var that = this;
 		if (typeof (config) === "string")
-			config = { src: config };
+			config = {src: config};
 
 		var srcs = config.srcs;
 		if (typeof (srcs) === "undefined") {

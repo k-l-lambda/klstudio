@@ -10,11 +10,12 @@ const enumPartitions = (n, m) => {
 	if (n < m)
 		return enumPartitions(n, n);
 
-	if (n === m)
+	if (n === m) {
 		return [
 			...enumPartitions(n, n - 1),
 			[n],
 		];
+	}
 
 	const sub1 = enumPartitions(n, m - 1);
 	const sub2 = enumPartitions(n - m, m);

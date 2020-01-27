@@ -14,6 +14,5 @@ export function mutexDelay (key, ms) {
 	mutexes[key] = token;
 
 	return new Promise(resolve =>
-		setTimeout(() => resolve(mutexes[key] === token), ms)
-	);
+		setTimeout(() => resolve(mutexes[key] === token), ms));
 };

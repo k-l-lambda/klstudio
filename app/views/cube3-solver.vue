@@ -12,10 +12,10 @@
 
 	import Cube3Player from "./cube3-player.vue";
 
-	import * as cube3 from "../inc/cube3.ts";
-	import { cubeLoop } from "../inc/cube3-loop.ts";
-	import { cubePartitionComplexity, cubePartitionCode } from "../inc/cube3-partition.ts";
-	import * as cube3Hash from "../inc/cube3-hash.ts";
+	import * as cube3 from "../../inc/cube3.ts";
+	import {cubeLoop} from "../../inc/cube3-loop.ts";
+	import {cubePartitionComplexity, cubePartitionCode} from "../../inc/cube3-partition.ts";
+	import * as cube3Hash from "../../inc/cube3-hash.ts";
 
 
 
@@ -71,9 +71,9 @@
 					const res = await fetch(`/data/cube3-hash-${depth}.txt`);
 					const content = await res.text();
 
-					await cube3Hash.loadHashes(depth, { * [Symbol.iterator] () {
+					await cube3Hash.loadHashes(depth, {* [Symbol.iterator] () {
 						yield * content.split("\n");
-					} });
+					}});
 				}
 			},
 

@@ -51,7 +51,7 @@
 						f(m, n) = 2<sup>m</sup> &times; 3<sup>n</sup>
 					</p>
 					<p v-show="showBand">
-						Band: 1 &le; f < 2
+						Band: 1 &le; f &lt; 2
 					</p>
 				</div>
 			</div>
@@ -62,7 +62,7 @@
 <script>
 	import resize from "vue-resize-directive";
 
-	import SvgMap from "./svg-map.vue";
+	import SvgMap from "../components/svg-map.vue";
 
 
 
@@ -88,28 +88,28 @@
 			return {
 				size: {},
 				points: [].concat(...Array(60).fill().map((_, i) => Array(60).fill()
-					.map((_, j) => ({ m: i - 30, n: j - 30 }))
-					.map(({ m, n }) => ({ m, n, value: (2 ** m) * (3 ** n) }))
-					.map(({ m, n, value }) => ({
+					.map((_, j) => ({m: i - 30, n: j - 30}))
+					.map(({m, n}) => ({m, n, value: (2 ** m) * (3 ** n)}))
+					.map(({m, n, value}) => ({
 						m, n,
 						label: this.pointLabel(m, n),
 						onBand: value >= 1 && value < 2,
 					})))),
 				CONTOUR_SLOPE,
 				steps: [
-					{ m: 0, n: 0, name: "C" },
-					{ m: -1, n: 1, name: "G" },
-					{ m: -3, n: 2, name: "D" },
-					{ m: -4, n: 3, name: "A" },
-					{ m: -6, n: 4, name: "E" },
-					{ m: -7, n: 5, name: "B" },
-					{ m: -9, n: 6, name: "\u266fF" },
-					{ m: 2, n: -1, name: "F" },
-					{ m: 4, n: -2, name: "\u266dB" },
-					{ m: 5, n: -3, name: "\u266dE" },
-					{ m: 7, n: -4, name: "\u266dA" },
-					{ m: 8, n: -5, name: "\u266dD" },
-					{ m: 10, n: -6, name: "\u266dG" },
+					{m: 0, n: 0, name: "C"},
+					{m: -1, n: 1, name: "G"},
+					{m: -3, n: 2, name: "D"},
+					{m: -4, n: 3, name: "A"},
+					{m: -6, n: 4, name: "E"},
+					{m: -7, n: 5, name: "B"},
+					{m: -9, n: 6, name: "\u266fF"},
+					{m: 2, n: -1, name: "F"},
+					{m: 4, n: -2, name: "\u266dB"},
+					{m: 5, n: -3, name: "\u266dE"},
+					{m: 7, n: -4, name: "\u266dA"},
+					{m: 8, n: -5, name: "\u266dD"},
+					{m: 10, n: -6, name: "\u266dG"},
 				],
 				showPointLabels: false,
 				showBand: false,
@@ -125,7 +125,7 @@
 
 		methods: {
 			onResize () {
-				this.size = { width: this.$el.clientWidth, height: this.$el.clientHeight };
+				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
 			},
 
 

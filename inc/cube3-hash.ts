@@ -1,7 +1,7 @@
 
-import { Cube3, TWIST_PERMUTATION_48, permutate, quarterfyPath, invertPath, stringifyPath } from "../inc/cube3";
-import { cubeLoop } from "../inc/cube3-loop";
-import { cubePartitionCode } from "../inc/cube3-partition";
+import {Cube3, TWIST_PERMUTATION_48, permutate, quarterfyPath, invertPath, stringifyPath} from "../inc/cube3";
+import {cubeLoop} from "../inc/cube3-loop";
+import {cubePartitionCode} from "../inc/cube3-partition";
 
 
 
@@ -14,7 +14,7 @@ const minCode = cube => {
 
 	const permutatedCodes = TWIST_PERMUTATION_48.map(permutation => permutate(permutation, neighborPartitions).map(partition => String.fromCharCode(partition)).join(""));
 
-	return permutatedCodes.reduce((min: {code: string, index: number}, code, index) => (!min || code < min.code) ? {index, code} : min, null)
+	return permutatedCodes.reduce((min: {code: string, index: number}, code, index) => (!min || code < min.code) ? {index, code} : min, null);
 };
 
 
@@ -89,7 +89,7 @@ const solveCubeBinaryFixed = (cube: Cube3) : number[] => {
 		if (!library)
 			continue;
 
-		for (const {state, twist, parentIndex} of library) {
+		for (const {state} of library) {
 			const medium = new Cube3({code: state});
 			const quotient = cube.divide(medium);
 			const resolution = solveCube(quotient);

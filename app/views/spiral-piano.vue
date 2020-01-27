@@ -121,7 +121,7 @@
 						</td>
 					</tr>
 					<tr>
-						<th></th>
+						<th>Pitch Range</th>
 						<td>
 							<input type="range" v-model.number="wideRange.Start" min="21" :max="wideRange.End - 1" />
 							<input type="range" v-model.number="wideRange.End" :min="wideRange.Start + 1" max="108" />
@@ -145,16 +145,19 @@
 				</tbody>
 			</table>
 		</div>
+		<div class="tips" v-show="isPlaying && !showDashboard">
+			F9 show dashboard.
+		</div>
 	</div>
 </template>
 
 <script>
 	import resize from "vue-resize-directive";
 
-	import MidiPlayer from "./MidiPlayer";
-	import "./utils.js";
+	import MidiPlayer from "../MidiPlayer";
+	import "../utils.js";
 
-	import MidiDevices from "./midi-devices.vue";
+	import MidiDevices from "../components/midi-devices.vue";
 
 
 
@@ -169,11 +172,11 @@
 		RegionRadius: 400,
 		Mode: {
 			Major: {
-				MainPitches: { 0: true, 2: true, 4: true, 5: true, 7: true, 9: true, 11: true },
+				MainPitches: {0: true, 2: true, 4: true, 5: true, 7: true, 9: true, 11: true},
 				SyllableNames: ["do", null, "re", null, "mi", "fa", null, "so", null, "la", null, "ti"],
 			},
 			Minor: {
-				MainPitches: { 0: true, 2: true, 3: true, 5: true, 7: true, 8: true, 11: true },
+				MainPitches: {0: true, 2: true, 3: true, 5: true, 7: true, 8: true, 11: true},
 				SyllableNames: ["do", null, "re", "mi", null, "fa", null, "so", "la", null, null, "ti"],
 			},
 		},
@@ -285,9 +288,9 @@
 				modalOffset: 0,
 				keyWidthRatio: 0.5,
 				mode: Config.Mode.Major,
-				wideRange: { Start: 54, End: 77 },
+				wideRange: {Start: 54, End: 77},
 				synesthesiaScheme: "FifthRainbow",
-				keyStatus: Array(Config.NoteEnd + 1).fill().map(() => ({ active: false })),
+				keyStatus: Array(Config.NoteEnd + 1).fill().map(() => ({active: false})),
 				showDashboard: false,
 				drageHover: false,
 				isPlaying: false,
@@ -410,7 +413,7 @@
 
 		methods: {
 			onResize () {
-				this.size = { width: this.$el.clientWidth, height: this.$el.clientHeight };
+				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
 			},
 
 
@@ -426,7 +429,7 @@
 				case "audio/mid":
 				case "audio/midi":
 					const buffer = await file.readAs("ArrayBuffer");
-					const blob = new Blob([buffer], { type: file.type });
+					const blob = new Blob([buffer], {type: file.type});
 					const url = URL.createObjectURL(blob);
 					await MidiPlayer.Player.loadFile(url);
 
@@ -563,6 +566,7 @@
 	{
 		font-size: 9px;
 		text-anchor: middle;
+		user-select: none;
 	}
 
 	.region
@@ -694,5 +698,20 @@
 		padding: 2em;
 		border-radius: 2em;
 		box-shadow: 4px 4px 20px #000a;
+	}
+
+	.dashboard th
+	{
+		text-align: right;
+	}
+
+	.tips
+	{
+		position: fixed;
+		right: .2em;
+		bottom: .2em;
+		font-size: 5vh;
+		color: #0002;
+		pointer-events: none;
 	}
 </style>

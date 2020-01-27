@@ -6,14 +6,14 @@ import * as cubeAlgebra from "./cube-algebra.ts";
 
 
 
-enum axis {
+/*enum axis {
 	nX,
 	pX,
 	nY,
 	pY,
 	nZ,
 	pZ,
-};
+};*/
 
 
 const unitaryMatrices = [
@@ -198,28 +198,29 @@ class Cube3 {
 	}
 
 	
-	isZero() {
-		for (const unit of this.units)
+	isZero () {
+		for (const unit of this.units) {
 			if (unit)
 				return false;
+		}
 
 		return true;
 	}
 
 
-	faceIndicesFromAxis(axis: number) : Array<number> {
+	faceIndicesFromAxis (axis: number) : Array<number> {
 		const movingPoints = axisPointsTable[axis];
 
 		return Array.from(this.positions)
-			.map((position, index) => ({ position, index }))
-			.filter(({ position }) => movingPoints.includes(position))
-			.map(({ index }) => index);
+			.map((position, index) => ({position, index}))
+			.filter(({position}) => movingPoints.includes(position))
+			.map(({index}) => index);
 	}
 
 
 	twist (twist: number) {
 		// select a face according to axis, substitute unit states by rotation.
-		const { axis, rotation } = twistToAxisRotation(twist);
+		const {axis, rotation} = twistToAxisRotation(twist);
 		const movingIndices = this.faceIndicesFromAxis(axis);
 
 		movingIndices.forEach(index => this.units[index] = cubeAlgebra.MULTIPLICATION_TABLE[this.units[index]][rotation]);
@@ -264,7 +265,7 @@ class Cube3 {
 				[rotation][
 					cubeAlgebra.MULTIPLICATION_TABLE
 						[unit][rotation]
-				]
+				],
 			));
 
 		return this;
@@ -311,17 +312,17 @@ const itemToPermutation = ({unit, exponent}) => {
 	const unitP = unitTwistPermutation[unit];
 
 	switch (exponent) {
-		case 1:
-			return unitP;
+	case 1:
+		return unitP;
 
-		case -1:
-			return depermutate(unitP, identityPermutation);
+	case -1:
+		return depermutate(unitP, identityPermutation);
 
-		case 2:
-			return permutate(unitP, unitP);
+	case 2:
+		return permutate(unitP, unitP);
 
-		default:
-			console.assert(false, "invalid exponent:", exponent);
+	default:
+		console.assert(false, "invalid exponent:", exponent);
 	}
 };
 const orientationToPermutation = orientation => orientation.items.reduce(
@@ -343,7 +344,7 @@ export {
 	invertPath,
 	axisRotationToTwist,
 	axisTimesToTwist,
-	axis,
+	//axis,
 	TWIST_NAMES,
 	stringifyPath,
 	parsePath,

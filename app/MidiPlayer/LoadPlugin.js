@@ -14,7 +14,7 @@ import sendRequest from "./Window/DOMLoader.XMLHttp.js";
 
 
 
-const DOMLoader = { script, sendRequest };
+const DOMLoader = {script, sendRequest};
 
 
 // This is required, because soundfont script suppose window.MIDI is the MIDI API root.

@@ -106,7 +106,7 @@ const Player = {};
 
 	root.loadMidiFile = function () { // reads midi into javascript array of events
 		root.file = MidiFile(root.currentData);
-		root.replayer = new Replayer(root.file, root.timeWarp);
+		root.replayer = Replayer(root.file, root.timeWarp);
 		root.data = root.replayer.getData();
 		root.endTime = getLength();
 	};
@@ -190,7 +190,7 @@ const Player = {};
 	var scheduleTrackingMeta = function (currentTime, offset, event) {
 		var interval = window.setTimeout(function () {
 			if (onMidiEvent) {
-				var data = { message: event.type };
+				var data = {message: event.type};
 				for (var k in event)
 					data[k] = event[k];
 				onMidiEvent(data);
@@ -203,7 +203,7 @@ const Player = {};
 		if (MIDI.lang === "WebAudioAPI")
 			return Player.ctx;
 		else if (!root.ctx)
-			root.ctx = { currentTime: 0 };
+			root.ctx = {currentTime: 0};
 
 		return root.ctx;
 	};

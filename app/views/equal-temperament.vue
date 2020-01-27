@@ -119,10 +119,10 @@
 <script>
 	import resize from "vue-resize-directive";
 
-	import SvgMap from "./svg-map.vue";
+	import SvgMap from "../components/svg-map.vue";
 
 	// LaTeX: f=2^{\frac{x}{12}}
-	import url12Equal from "./images/f=2^x_12.svg";
+	import url12Equal from "../assets/f=2^x_12.svg";
 
 
 
@@ -167,7 +167,7 @@
 				})),
 				stepPoints: Array(88).fill().map((_, i) => ({
 					pitch: i + 21,
-					C: (i + 21) % 12 == 0,
+					C: (i + 21) % 12 === 0,
 					x: i - 39,
 					y: CARTESIAN_Y_SCALE * 2 ** ((i - 39) / 12),
 				})),
@@ -177,18 +177,18 @@
 				cursorPoint: null,
 				focusPoints: [],
 				steps: [
-					{ pitch: 0, name: "C" },
-					{ pitch: 1 },
-					{ pitch: 2, name: "D" },
-					{ pitch: 3 },
-					{ pitch: 4, name: "E" },
-					{ pitch: 5, name: "F" },
-					{ pitch: 6 },
-					{ pitch: 7, name: "G" },
-					{ pitch: 8 },
-					{ pitch: 9, name: "A" },
-					{ pitch: 10 },
-					{ pitch: 11, name: "B" },
+					{pitch: 0, name: "C"},
+					{pitch: 1},
+					{pitch: 2, name: "D"},
+					{pitch: 3},
+					{pitch: 4, name: "E"},
+					{pitch: 5, name: "F"},
+					{pitch: 6},
+					{pitch: 7, name: "G"},
+					{pitch: 8},
+					{pitch: 9, name: "A"},
+					{pitch: 10},
+					{pitch: 11, name: "B"},
 				],
 			};
 		},
@@ -208,7 +208,7 @@
 
 		methods: {
 			onResize () {
-				this.size = { width: this.$el.clientWidth, height: this.$el.clientHeight };
+				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
 			},
 
 
@@ -218,24 +218,24 @@
 
 
 			onFPadMoving (event) {
-				const cursorPoint = this.$refs.cartesian.clientToView({ x: event.offsetX, y: event.offsetY });
+				const cursorPoint = this.$refs.cartesian.clientToView({x: event.offsetX, y: event.offsetY});
 				//this.cursorPoint = cursorPoint;
 				//console.log("onFPadMoving:", this.cursorPoint);
 
 				const x = Math.log2(cursorPoint.y / CARTESIAN_Y_SCALE) * 12;
 
-				this.focusPoints = [{ x, y: cursorPoint.y }];
+				this.focusPoints = [{x, y: cursorPoint.y}];
 			},
 
 
 			onXPadMoving (event) {
-				const cursorPoint = this.$refs.cartesian.clientToView({ x: event.offsetX, y: event.offsetY });
+				const cursorPoint = this.$refs.cartesian.clientToView({x: event.offsetX, y: event.offsetY});
 
 				cursorPoint.x = Math.round(cursorPoint.x * 10) / 10;
 
 				const y = CARTESIAN_Y_SCALE * 2 ** (cursorPoint.x / 12);
 
-				this.focusPoints = [{ x: cursorPoint.x, y }];
+				this.focusPoints = [{x: cursorPoint.x, y}];
 			},
 
 
@@ -249,7 +249,7 @@
 				const pitch = (angle < 0 ? angle + 2 : angle) * 6;
 				const x = Math.round(pitch * 10) / 10;
 
-				this.focusPoints = [x, x - 12, x + 12].map(p => ({ x: p, y: CARTESIAN_Y_SCALE * 2 ** (p / 12) }));
+				this.focusPoints = [x, x - 12, x + 12].map(p => ({x: p, y: CARTESIAN_Y_SCALE * 2 ** (p / 12)}));
 			},
 
 

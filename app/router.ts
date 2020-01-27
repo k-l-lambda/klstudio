@@ -46,7 +46,7 @@ const routes = [
 	{
 		path: "/spiral-piano",
 		name: "Spiral Piano",
-		component: () => import(/* webpackChunkName: "spiral-piano" */ "./views/spiral-piano.vue"),
+		component: () => import(/* webpackChunkName: "spiral-piano", webpackPrefetch: true */ "./views/spiral-piano.vue"),
 	},
 	{
 		path: "/cube-cayley-graph",

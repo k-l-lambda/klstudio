@@ -563,6 +563,7 @@
 	{
 		font-size: 9px;
 		text-anchor: middle;
+		user-select: none;
 	}
 
 	.region

@@ -53,6 +53,8 @@
 					this.routePath = to.path;
 
 				this.home = !this.$router.currentRoute.name;
+
+				document.title = to.name || "K.L. Studio X";
 			},
 		},
 	};

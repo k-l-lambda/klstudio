@@ -121,7 +121,7 @@
 						</td>
 					</tr>
 					<tr>
-						<th></th>
+						<th>Pitch Range</th>
 						<td>
 							<input type="range" v-model.number="wideRange.Start" min="21" :max="wideRange.End - 1" />
 							<input type="range" v-model.number="wideRange.End" :min="wideRange.Start + 1" max="108" />
@@ -144,6 +144,9 @@
 					</tr>
 				</tbody>
 			</table>
+		</div>
+		<div class="tips" v-show="isPlaying && !showDashboard">
+			F9 show dashboard.
 		</div>
 	</div>
 </template>
@@ -695,5 +698,20 @@
 		padding: 2em;
 		border-radius: 2em;
 		box-shadow: 4px 4px 20px #000a;
+	}
+
+	.dashboard th
+	{
+		text-align: right;
+	}
+
+	.tips
+	{
+		position: fixed;
+		right: .2em;
+		bottom: .2em;
+		font-size: 5vh;
+		color: #0002;
+		pointer-events: none;
 	}
 </style>

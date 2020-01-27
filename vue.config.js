@@ -19,6 +19,10 @@ module.exports = {
 			title: "K.L. Studio X",
 		},
 	},
+	chainWebpack: config => {
+		// remove prefetch links for home page
+		config.plugins.delete("prefetch-index");
+	},
 	/*devServer: {
 		proxy: `http://localhost:${process.env.PORT}`,
 	},*/

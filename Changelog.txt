@@ -1,7 +1,5 @@
 
 TODO:
-	spiral piano:
-		loading panel
 	cube3-hash
 		test solveCubeBinary
 		invalid solution issue.

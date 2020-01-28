@@ -33,6 +33,10 @@
 				default: () => ({width: 800, height: 800}),
 			},
 			code: String,
+			meshSchema: {
+				type: String,
+				default: "cube",
+			},
 		},
 
 
@@ -43,7 +47,7 @@
 
 			this.initializeRenderer();
 
-			this.cube = new CubeObject({materials: BASIC_MATERIALS, onChange: algebra => this.onChange(algebra)});
+			this.cube = new CubeObject({materials: BASIC_MATERIALS, onChange: algebra => this.onChange(algebra), meshSchema: this.meshSchema});
 			this.scene.add(this.cube.graph);
 			//console.log("this.cube:", this.cube);
 
@@ -63,6 +67,8 @@
 				this.camera.lookAt(0, 0, 0);
 
 				this.scene = new THREE.Scene();
+
+				this.$emit("sceneInitialized", this);
 			},
 
 

@@ -50,7 +50,8 @@ export default class CubeObject {
 		this.graph = new THREE.Object3D();
 
 		MeshFactory[meshSchema].createCube3Meshes(materials).forEach((cube, i) => {
-			cube.position.set(...POSITIONS[i]);
+			if (MeshFactory[meshSchema].needTranslation)
+				cube.position.set(...POSITIONS[i]);
 			cube.scale.set(UNIT_SCALE, UNIT_SCALE, UNIT_SCALE);
 
 			const proxy = new THREE.Object3D();

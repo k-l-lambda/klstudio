@@ -53,6 +53,11 @@ const routes = [
 		name: "Cube Cayley Graph",
 		component: () => import(/* webpackChunkName: "cube-cayley-graph" */ "./views/cube-cayley-graph.vue"),
 	},
+	{
+		path: "/globe-cube3",
+		name: "Cube Globe",
+		component: () => import(/* webpackChunkName: "globe-cube3", webpackPrefetch: true */ "./views/globe-cube3.vue"),
+	},
 ];
 
 

@@ -40,14 +40,12 @@ const eachRange2D = (ul, uh, vl, vh, elem) => {
 };
 
 
-const createGeometries = ({segemnts = 16, sphericity = 0.48} = {}) => {
+const createGeometries = ({segemnts = 16, sphericity = 0.48, chamferRadius = 0.2} = {}) => {
 	const inv_grids = 1 / (segemnts * 1.5 + 1);
 
 	const faceVerticesCount = (segemnts + 1) * (segemnts + 1);
 
-	const getVertexIndex = function (f, u, v) {
-		return faceVerticesCount * f + u * (segemnts + 1) + v;
-	};
+	const getVertexIndex = (f, u, v) => faceVerticesCount * f + u * (segemnts + 1) + v;
 
 	const indices = [];
 	for (let f = 0; f < 6; ++f) {
@@ -68,33 +66,33 @@ const createGeometries = ({segemnts = 16, sphericity = 0.48} = {}) => {
 	const units = [];
 
 	// traverse all units
-	for (let ax = -1; ax <= 1; ++ax) {
+	for (let az = -1; az <= 1; ++az) {
 		for (let ay = -1; ay <= 1; ++ay) {
-			for (let az = -1; az <= 1; ++az) {
+			for (let ax = -1; ax <= 1; ++ax) {
 				const boxpos = [];
 				const vertices = [];
 
-				const xl = ax * (segemnts + 1) - segemnts / 2, xh = ax * (segemnts + 1) + segemnts / 2;
-				const yl = ay * (segemnts + 1) - segemnts / 2, yh = ay * (segemnts + 1) + segemnts / 2;
-				const zl = az * (segemnts + 1) - segemnts / 2, zh = az * (segemnts + 1) + segemnts / 2;
+				const [xl, xh] = [ax * (segemnts + 1) - segemnts / 2, ax * (segemnts + 1) + segemnts / 2];
+				const [yl, yh] = [ay * (segemnts + 1) - segemnts / 2, ay * (segemnts + 1) + segemnts / 2];
+				const [zl, zh] = [az * (segemnts + 1) - segemnts / 2, az * (segemnts + 1) + segemnts / 2];
 
 				eachRange2D(yl, yh, zl, zh, (y, z) => {
-					const pos = new THREE.Vector3(xl, y, z).multiplyScalar(inv_grids); boxpos.push(pos); vertices.push(createVertex(spherize(pos, sphericity))); 
+					const pos = new THREE.Vector3(xl, y, z).multiplyScalar(inv_grids); boxpos.push(pos); vertices.push(createVertex(spherize(pos, sphericity)));
 				});
 				eachRange2D(zl, zh, yl, yh, (z, y) => {
-					const pos = new THREE.Vector3(xh, y, z).multiplyScalar(inv_grids); boxpos.push(pos); vertices.push(createVertex(spherize(pos, sphericity))); 
+					const pos = new THREE.Vector3(xh, y, z).multiplyScalar(inv_grids); boxpos.push(pos); vertices.push(createVertex(spherize(pos, sphericity)));
 				});
 				eachRange2D(zl, zh, xl, xh, (z, x) => {
-					const pos = new THREE.Vector3(x, yl, z).multiplyScalar(inv_grids); boxpos.push(pos); vertices.push(createVertex(spherize(pos, sphericity))); 
+					const pos = new THREE.Vector3(x, yl, z).multiplyScalar(inv_grids); boxpos.push(pos); vertices.push(createVertex(spherize(pos, sphericity)));
 				});
 				eachRange2D(xl, xh, zl, zh, (x, z) => {
-					const pos = new THREE.Vector3(x, yh, z).multiplyScalar(inv_grids); boxpos.push(pos); vertices.push(createVertex(spherize(pos, sphericity))); 
+					const pos = new THREE.Vector3(x, yh, z).multiplyScalar(inv_grids); boxpos.push(pos); vertices.push(createVertex(spherize(pos, sphericity)));
 				});
 				eachRange2D(xl, xh, yl, yh, (x, y) => {
-					const pos = new THREE.Vector3(x, y, zl).multiplyScalar(inv_grids); boxpos.push(pos); vertices.push(createVertex(spherize(pos, sphericity))); 
+					const pos = new THREE.Vector3(x, y, zl).multiplyScalar(inv_grids); boxpos.push(pos); vertices.push(createVertex(spherize(pos, sphericity)));
 				});
 				eachRange2D(yl, yh, xl, xh, (y, x) => {
-					const pos = new THREE.Vector3(x, y, zh).multiplyScalar(inv_grids); boxpos.push(pos); vertices.push(createVertex(spherize(pos, sphericity))); 
+					const pos = new THREE.Vector3(x, y, zh).multiplyScalar(inv_grids); boxpos.push(pos); vertices.push(createVertex(spherize(pos, sphericity)));
 				});
 
 				let mended = 0;
@@ -110,17 +108,16 @@ const createGeometries = ({segemnts = 16, sphericity = 0.48} = {}) => {
 
 						// chamfer position on edge
 						if (u === 0 || u === segemnts || v === 0 || v === segemnts) {
-							const R = 0.2;
 							const pos = boxpos[index].clone();
-							pos.add(backVector.clone().multiplyScalar(R));
+							pos.add(backVector.clone().multiplyScalar(chamferRadius));
 							if (u === 0)
-								pos.add(boxpos[getVertexIndex(f, u + 1, v)].clone().sub(boxpos[index]).multiplyScalar(R));
+								pos.add(boxpos[getVertexIndex(f, u + 1, v)].clone().sub(boxpos[index]).multiplyScalar(chamferRadius));
 							if (u === segemnts)
-								pos.add(boxpos[getVertexIndex(f, u - 1, v)].clone().sub(boxpos[index]).multiplyScalar(R));
+								pos.add(boxpos[getVertexIndex(f, u - 1, v)].clone().sub(boxpos[index]).multiplyScalar(chamferRadius));
 							if (v === 0)
-								pos.add(boxpos[getVertexIndex(f, u, v + 1)].clone().sub(boxpos[index]).multiplyScalar(R));
+								pos.add(boxpos[getVertexIndex(f, u, v + 1)].clone().sub(boxpos[index]).multiplyScalar(chamferRadius));
 							if (v === segemnts)
-								pos.add(boxpos[getVertexIndex(f, u, v - 1)].clone().sub(boxpos[index]).multiplyScalar(R));
+								pos.add(boxpos[getVertexIndex(f, u, v - 1)].clone().sub(boxpos[index]).multiplyScalar(chamferRadius));
 
 							vertex.Pos = spherize(pos, sphericity);
 						}
@@ -177,7 +174,7 @@ const createGeometries = ({segemnts = 16, sphericity = 0.48} = {}) => {
 					});
 				}
 
-				units.push({vertices, indices, mended});
+				units.push({vertices, indices, mended, translation: [ax, ay, az]});
 
 				mendIndicesInitialized = mendIndicesInitialized || mended > 0;
 			}
@@ -223,7 +220,19 @@ const createGeometries = ({segemnts = 16, sphericity = 0.48} = {}) => {
 			unit.indices = mendIndices;
 	});
 
-	return units;
+	return units.map(unit => {
+		const geometry = new THREE.BufferGeometry();
+		geometry.setIndex(unit.indices);
+		geometry.addAttribute( "position", new THREE.Float32BufferAttribute( [].concat(...unit.vertices.map(v => [v.Pos.x, v.Pos.y, v.Pos.z])), 3 ) );
+		geometry.addAttribute( "normal", new THREE.Float32BufferAttribute( [].concat(...unit.vertices.map(v => [v.Normal.x, v.Normal.y, v.Normal.z])), 3 ) );
+
+		geometry.addGroup(0, unit.indices.length, 0);
+
+		geometry.translate(-unit.translation[0], -unit.translation[1], -unit.translation[2]);
+
+		return geometry;
+		//return new THREE.BoxBufferGeometry( 1, 1, 1 );
+	});
 };
 
 

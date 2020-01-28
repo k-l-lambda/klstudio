@@ -84,10 +84,7 @@ This is a music visualization program which based on the <a href="https://en.wik
 	@import url('https://fonts.googleapis.com/css?family=Lilita+One&display=swap');
 
 
-	//$asideWidth: 40vw;	// build issue in calc(): CSS minification error: Lexical error on line 1: Unrecognized text
-	:root {
-		--aside-width: 40vw;
-	}
+	$asideWidth: 40vw;
 
 
 	body
@@ -101,9 +98,9 @@ This is a music visualization program which based on the <a href="https://en.wik
 		position: absolute;
 		top: 0;
 		left: 0;
-		width: calc(100vw - var(--aside-width));
+		width: calc(100vw - #{$asideWidth});
 		height: 100%;
-		padding-left: var(--aside-width);
+		padding-left: $asideWidth;
 	}
 
 	aside
@@ -111,7 +108,7 @@ This is a music visualization program which based on the <a href="https://en.wik
 		position: absolute;
 		top: 0;
 		left: 0;
-		width: var(--aside-width);
+		width: $asideWidth;
 		height: 100%;
 		padding: 160px .4em 0;
 

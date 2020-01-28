@@ -8,6 +8,8 @@ TODO:
 
 2020.1.28	K.L.	<k.l.lambda@gmail.com>
 
+	+	app/sphericalCubeMesh.ts created.
+
 	>	cubeObject.ts: convert from js to ts.
 
 	+	spiral-piano.vue: clear audio when quit view.

@@ -11,8 +11,8 @@
 		"dev": "cross-env NODE_ENV=development nodemon main.ts",
 		"dev:inspect": "cross-env NODE_ENV=development nodemon --inspect main.ts",
 		"node-inspect": "cross-env NODE_ENV=development nodemon --inspect",
-		"ts-dev": "cross-env NODE_OPTIONS='--max-old-space-size=4096' ts-node-dev --",
-		"ts-dev:inspect": "ts-node-dev --inspect --",
+		"ts-dev": "cross-env NODE_OPTIONS='--max-old-space-size=4096' ts-node-dev --project ./tsconfig.node.json --",
+		"ts-dev:inspect": "ts-node-dev --project ./tsconfig.node.json --inspect --",
 		"cube3-gentable6": "cross-env NODE_OPTIONS='--max-old-space-size=4096' ts-node-dev -- ./tools/cube3-gentable.ts --outputFile=./static/data/cube3-table-6.json --depth=6",
 		"cube3-gensolvermap": "cross-env NODE_OPTIONS='--max-old-space-size=4096' ts-node-dev -- ./tools/cube3-gen-solver-map.ts",
 		"cube3-genhash": "cross-env NODE_OPTIONS='--max-old-space-size=4096' ts-node-dev -- ./tools/cube3-gen-hash.ts"

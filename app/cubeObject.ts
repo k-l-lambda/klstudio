@@ -3,7 +3,8 @@ import * as THREE from "three";
 
 import {NORMAL_ORIENTATIONS} from "../inc/cube-algebra";
 import {Cube3, twistToAxisRotation} from "../inc/cube3";
-import {createCube3Meshes} from "./cubeMesh.js";
+import * as cubeMesh from "./cubeMesh.js";
+import * as sphericalCubeMesh from "./sphericalCubeMesh";
 import {animationDelay} from "./delay.js";
 
 
@@ -25,6 +26,12 @@ const AXES = [
 ];
 
 
+const MeshFactory = {
+	cube: cubeMesh,
+	spherical: sphericalCubeMesh,
+};
+
+
 
 export default class CubeObject {
 	algebra: Cube3;
@@ -34,7 +41,7 @@ export default class CubeObject {
 	onChange: (algebra: Cube3) => void;
 
 
-	constructor ({materials, twistDuration = 300, onChange = null}) {
+	constructor ({materials, twistDuration = 300, onChange = null, meshSchema = "cube"}) {
 		this.algebra = new Cube3();
 
 		this.twistDuration = twistDuration;
@@ -42,7 +49,7 @@ export default class CubeObject {
 
 		this.graph = new THREE.Object3D();
 
-		createCube3Meshes(materials).forEach((cube, i) => {
+		MeshFactory[meshSchema].createCube3Meshes(materials).forEach((cube, i) => {
 			cube.position.set(...POSITIONS[i]);
 			cube.scale.set(UNIT_SCALE, UNIT_SCALE, UNIT_SCALE);
 

@@ -4,7 +4,10 @@ const _j = 1;
 const _k = 2;
 
 
-const quaternionProduct = ([b2, c2, d2, a2] : Array<number>, [b1, c1, d1, a1] : Array<number>) : Array<number> => [
+type quaternion = [number, number, number, number];
+
+
+const quaternionProduct = ([b2, c2, d2, a2] : quaternion, [b1, c1, d1, a1] : quaternion) : quaternion => [
 	a1 * b2 + b1 * a2 + c1 * d2 - d1 * c2,
 	a1 * c2 - b1 * d2 + c1 * a2 + d1 * b2,
 	a1 * d2 + b1 * c2 - c1 * b2 + d1 * a2,
@@ -48,7 +51,7 @@ class Item {
 	}
 
 
-	toQuaternion () : Array<number> {
+	toQuaternion () : quaternion {
 		const axis = [0, 0, 0];
 		axis[this.unit] = 1;
 
@@ -157,7 +160,7 @@ class Orientation {
 	}
 
 
-	toQuaternion () : Array<number> {
+	toQuaternion () : quaternion {
 		return this.items.reduce((product, item) => quaternionProduct(product, item.toQuaternion()), [0, 0, 0, 1]);
 	}
 

@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		"target": "esnext",
 		"module": "esnext",
-		"strict": true,
+		"strict": false,
 		"importHelpers": true,
 		"moduleResolution": "node",
 		"experimentalDecorators": true,
@@ -24,7 +24,8 @@
 			"dom.iterable",
 			"scripthost"
 		],
-		"skipLibCheck": true
+		"skipLibCheck": true,
+		"noImplicitAny": false
 	},
 	"include": [
 		"app/**/*.ts",

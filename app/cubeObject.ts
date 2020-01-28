@@ -1,8 +1,8 @@
 
 import * as THREE from "three";
 
-import {NORMAL_ORIENTATIONS} from "../inc/cube-algebra.ts";
-import {Cube3, twistToAxisRotation} from "../inc/cube3.ts";
+import {NORMAL_ORIENTATIONS} from "../inc/cube-algebra";
+import {Cube3, twistToAxisRotation} from "../inc/cube3";
 import {createCube3Meshes} from "./cubeMesh.js";
 import {animationDelay} from "./delay.js";
 
@@ -27,6 +27,13 @@ const AXES = [
 
 
 export default class CubeObject {
+	algebra: Cube3;
+	graph: THREE.Object3D;
+	animation: Promise<void>;
+	twistDuration: number;
+	onChange: (algebra: Cube3) => void;
+
+
 	constructor ({materials, twistDuration = 300, onChange = null}) {
 		this.algebra = new Cube3();
 

@@ -98,7 +98,7 @@ This is a music visualization program which based on the <a href="https://en.wik
 		position: absolute;
 		top: 0;
 		left: 0;
-		width: 100%;
+		width: calc(100vw - $asideWidth);
 		height: 100%;
 		padding-left: $asideWidth;
 	}

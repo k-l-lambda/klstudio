@@ -236,9 +236,9 @@ if (window.AudioContext || window.webkitAudioContext) {
 				// @Miranet: "the values of 0.2 and 0.3 could ofcourse be used as
 				// a 'release' parameter for ADSR like time settings."
 				// add { "metadata": { release: 0.3 } } to soundfont files
-				sources[source].gain.linearRampToValueAtTime(1, delay);
-				sources[source].gain.linearRampToValueAtTime(0, delay + 0.2);
-				sources[source].noteOff(delay + 0.3);
+				sources[source].gainNode.gain.linearRampToValueAtTime(1, delay);
+				sources[source].gainNode.gain.linearRampToValueAtTime(0, delay + 0.2);
+				//sources[source].noteOff(delay + 0.3);
 				delete sources[source];
 			}
 		};

@@ -148,6 +148,7 @@
 		<div class="tips" v-show="isPlaying && !showDashboard">
 			F9 show dashboard.
 		</div>
+		<Loading v-if="loading" />
 	</div>
 </template>
 
@@ -158,6 +159,7 @@
 	import "../utils.js";
 
 	import MidiDevices from "../components/midi-devices.vue";
+	import Loading from "../components/loading.vue";
 
 
 
@@ -275,6 +277,7 @@
 
 		components: {
 			MidiDevices,
+			Loading,
 		},
 
 
@@ -295,6 +298,7 @@
 				drageHover: false,
 				isPlaying: false,
 				midiFileName: null,
+				loading: true,
 			};
 		},
 
@@ -370,11 +374,17 @@
 		},
 
 
-		mounted () {
-			window.$main = this;
-
+		created () {
 			//window.MidiPlayer = MidiPlayer;
-			MidiPlayer.loadPlugin().then(() => console.log("MIDI loaded."));
+			MidiPlayer.loadPlugin().then(() => {
+				this.loading = false;
+				console.log("MIDI loaded.");
+			});
+		},
+
+
+		mounted () {
+			//window.$main = this;
 
 			this.updateKeyRadius();
 

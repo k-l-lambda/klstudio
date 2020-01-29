@@ -1,22 +1,13 @@
 <template>
-	<body :class="{root: atRoot, dock: !atRoot}">
-		<header>
-			<span class="title">K.L. Studio</span>
-		</header>
+	<body :class="{root: atRoot, docking: !atRoot && !devoting, devoting}">
 		<main>
 			<router-view/>
+			<div class="exit" v-show="devoting" @click="devoting = false"></div>
 		</main>
-		<aside>
-			<div class="logo" @click="onClickLogo"
-				:style="{
-					transform: `
-						translate(${atRoot ? '40vw' : 0}, ${atRoot ? (windowSize.height - windowSize.width * .6) / 2 : 0}px)
-						scale(${atRoot ? 1 : 46 / (windowSize.width * .6)})
-					`
-				}"
-			>
-				<component is="globe-cube3" :rendererActive="atRoot" />
-			</div>
+		<aside v-show="!devoting">
+			<header>
+				<span class="title">K.L. Studio</span>
+			</header>
 			<section v-for="app of apps" :key="app.name" :to="app.path" class="app"
 				:class="{focus: app.focus}"
 				@click="onClickApp(app)"
@@ -31,7 +22,21 @@
 					<article v-html="app.description"></article>
 				</div>
 			</section>
+			<footer>
+				&#xfe3e; MORE COMMING SOON &#xfe3e;
+			</footer>
+			<div class="fold" v-show="!atRoot" @click="devoting = true"></div>
 		</aside>
+		<div class="logo" @click="onClickLogo"
+			:style="{
+				transform: `
+						translate(${atRoot ? '40vw' : 0}, ${atRoot ? (windowSize.height - windowSize.width * .6) / 2 : 0}px)
+						scale(${atRoot ? 1 : 46 / (windowSize.width * .6)})
+					`
+			}"
+		>
+			<component is="globe-cube3" :rendererActive="atRoot" />
+		</div>
 	</body>
 </template>
 
@@ -88,6 +93,7 @@ This is a music visualization program which based on the <a href="https://en.wik
 				apps: apps.map(fields => new App(this.$router, fields)),
 				currentApp: null,
 				windowSize: {width: window.innerWidth, height: window.innerHeight},
+				devoting: false,
 			};
 		},
 
@@ -114,6 +120,13 @@ This is a music visualization program which based on the <a href="https://en.wik
 		},
 
 
+		mounted () {
+			//console.log("currentApp:", location.hash);
+			if (location.hash.length > 2)
+				this.devoting = true;
+		},
+
+
 		methods: {
 			onResize () {
 				this.windowSize = {width: window.innerWidth, height: window.innerHeight};
@@ -121,6 +134,11 @@ This is a music visualization program which based on the <a href="https://en.wik
 
 
 			onClickLogo () {
+				if (this.devoting) {
+					this.devoting = false;
+					return;
+				}
+
 				if (!this.atRoot)
 					this.$router.push("/");
 			},
@@ -136,8 +154,11 @@ This is a music visualization program which based on the <a href="https://en.wik
 
 
 		watch: {
-			$route (to) {
+			$route (to, from) {
+				console.log("$route:", from);
 				this.currentApp = to.name;
+				if (!this.currentApp)
+					this.devoting = false;
 			},
 		},
 	};
@@ -168,7 +189,8 @@ This is a music visualization program which based on the <a href="https://en.wik
 
 
 	$asideWidth: 40vw;
-	$activeColor: #efe;
+	$activeColor: #dfd;
+	$logoSize: 46px;
 
 
 	body
@@ -185,6 +207,18 @@ This is a music visualization program which based on the <a href="https://en.wik
 		width: calc(100vw - #{$asideWidth});
 		height: 100%;
 		padding-left: $asideWidth;
+
+		.exit
+		{
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: $logoSize;
+			height: $logoSize;
+			border-bottom-right-radius: 80%;
+			background-color: black;
+			cursor: pointer;
+		}
 	}
 
 	aside
@@ -195,6 +229,23 @@ This is a music visualization program which based on the <a href="https://en.wik
 		width: calc(#{$asideWidth} - .4em);
 		height: 100%;
 		padding: 160px 0 0 .4em;
+		overflow-x: hidden;
+		overflow-y: auto;
+
+		header
+		{
+			position: absolute;
+			top: 0;
+			left: 0;
+			user-select: none;
+
+			.title
+			{
+				font-family: 'Lilita One', cursive;
+				font-size: 40px;
+				padding-left: $logoSize;
+			}
+		}
 
 		.app
 		{
@@ -240,14 +291,47 @@ This is a music visualization program which based on the <a href="https://en.wik
 		{
 			box-shadow: 0 0 1em #0002;
 		}
+
+		footer
+		{
+			color: #eee;
+			font-size: 2vw;
+			margin: 2em 0;
+			text-align: center;
+			user-select: none;
+		}
+
+		.fold
+		{
+			position: absolute;
+			top: 0;
+			right: 0;
+			width: 4vw;
+			height: 4vw;
+			border-bottom-left-radius: 100%;
+			background-color: white;
+			box-shadow: 0 0 1em $activeColor;
+			cursor: pointer;
+			transition: box-shadow .3s;
+		}
+
+		.fold:hover
+		{
+			background-color: $activeColor;
+			box-shadow: 0 0 4vw #0006;
+		}
 	}
 
-	.dock
+	.root
 	{
-		/*aside
+		main
 		{
-			border-right: 4px $activeColor solid;
-		}*/
+			user-select: none;
+		}
+	}
+
+	.docking
+	{
 		main > div
 		{
 			box-shadow: -2px 0 1em $activeColor;
@@ -260,11 +344,18 @@ This is a music visualization program which based on the <a href="https://en.wik
 		}
 	}
 
-	.title
+	.devoting
 	{
-		font-family: 'Lilita One', cursive;
-		font-size: 40px;
-		padding-left: 1em;
+		main
+		{
+			padding-left: 0;
+			width: 100vw;
+		}
+
+		.logo
+		{
+			cursor: pointer;
+		}
 	}
 
 	.logo

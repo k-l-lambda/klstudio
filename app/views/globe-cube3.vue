@@ -87,10 +87,10 @@
 
 				this.textureLoader = new THREE.TextureLoader();
 
-				this.cubeMaterial.normalMap = await this.loadTexture("earth/earth_normal.jpg");
+				this.cubeMaterial.specularMap = await this.loadTexture("earth/earth_specular.jpg");
 				this.cubeMaterial.needsUpdate = true;
 
-				this.cubeMaterial.specularMap = await this.loadTexture("earth/earth_specular.jpg");
+				this.cubeMaterial.normalMap = await this.loadTexture("earth/earth_normal.jpg");
 				this.cubeMaterial.needsUpdate = true;
 			},
 

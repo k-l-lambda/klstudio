@@ -1,5 +1,5 @@
 <template>
-	<body :class="{root: atRoot}">
+	<body :class="{root: atRoot, dock: !atRoot}">
 		<header>
 			<span class="title">K.L. Studio</span>
 		</header>
@@ -17,8 +17,11 @@
 			>
 				<component is="globe-cube3" :rendererActive="atRoot" />
 			</div>
-			<section v-for="app of apps" :key="app.name" :to="app.path" class="app" :class="{focus: $router.currentRoute.path === app.path}">
-				<router-link :to="app.path">
+			<section v-for="app of apps" :key="app.name" :to="app.path" class="app"
+				:class="{focus: app.focus}"
+				@click="onClickApp(app)"
+			>
+				<router-link :to="app.focus ? '/' : app.path" @click.native.stop="">
 					<img :src="app.coverURL" />
 				</router-link>
 				<div class="description">
@@ -35,6 +38,31 @@
 <script>
 	import Vue from "vue";
 
+	import {animationDelay} from "./delay";
+
+
+
+	class App {
+		constructor (router, fields) {
+			this.router = router;
+
+			Object.assign(this, fields);
+
+			this.coverURL = null;
+			this.load();
+		}
+
+
+		async load () {
+			const {default: url} = await import(`./assets/app-covers/${this.cover}`);
+			this.coverURL = url;
+		}
+
+
+		get focus () {
+			return this.router.currentRoute.path === this.path;
+		}
+	};
 
 
 	const apps = [
@@ -57,7 +85,7 @@ This is a music visualization program which based on the <a href="https://en.wik
 
 		data () {
 			return {
-				apps,
+				apps: apps.map(fields => new App(this.$router, fields)),
 				currentApp: null,
 				windowSize: {width: window.innerWidth, height: window.innerHeight},
 			};
@@ -96,6 +124,14 @@ This is a music visualization program which based on the <a href="https://en.wik
 				if (!this.atRoot)
 					this.$router.push("/");
 			},
+
+
+			async onClickApp (app) {
+				await animationDelay();
+
+				if (this.atRoot)
+					this.$router.push(app.path);
+			},
 		},
 
 
@@ -132,6 +168,7 @@ This is a music visualization program which based on the <a href="https://en.wik
 
 
 	$asideWidth: 40vw;
+	$activeColor: #efe;
 
 
 	body
@@ -155,14 +192,15 @@ This is a music visualization program which based on the <a href="https://en.wik
 		position: absolute;
 		top: 0;
 		left: 0;
-		width: $asideWidth;
+		width: calc(#{$asideWidth} - .4em);
 		height: 100%;
-		padding: 160px .4em 0;
+		padding: 160px 0 0 .4em;
 
 		.app
 		{
 			padding: 1em;
-			border-radius: 1em;
+			border-top-left-radius: 1em;
+			border-bottom-left-radius: 1em;
 
 			h2
 			{
@@ -188,14 +226,37 @@ This is a music visualization program which based on the <a href="https://en.wik
 
 		.app.focus
 		{
-			background-color: #efe;
-			box-shadow: 0 0 1em #0002;
+			background-color: $activeColor;
+			box-shadow: -1em 0 1em #0002;
 
 			h2
 			{
 				font-weight: bold;
 				text-decoration: none;
 			}
+		}
+
+		.app:hover
+		{
+			box-shadow: 0 0 1em #0002;
+		}
+	}
+
+	.dock
+	{
+		/*aside
+		{
+			border-right: 4px $activeColor solid;
+		}*/
+		main > div
+		{
+			box-shadow: -2px 0 1em $activeColor;
+			//outline: 2px $activeColor solid;
+		}
+
+		.logo
+		{
+			cursor: pointer;
 		}
 	}
 
@@ -214,31 +275,6 @@ This is a music visualization program which based on the <a href="https://en.wik
 		width: 60vw;
 		height: 60vw;
 		transform-origin: left top;
-		transition: transform .6s;
-		//animation: logo-popup backwards .6s;
-	}
-
-	.root .logo
-	{
-		//width: 60vw;
-		//height: 60vw;
-		//animation: logo-popup forwards .6s;
-	}
-
-	@keyframes logo-popup
-	{
-		0%
-		{
-			//width: 40px;
-			//height: 40px;
-			transform: translate(0, 0) scale(1 / 13);
-		}
-
-		100%
-		{
-			//width: 60vw;
-			//height: 60vw;
-			transform: translate(40vw, 0);
-		}
+		transition: transform .4s cubic-bezier(0, 0, 0.25, 1.0);
 	}
 </style>

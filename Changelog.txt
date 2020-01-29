@@ -1,5 +1,7 @@
 
 TODO:
+	home:
+		fullscreen mode
 	globe-cube3:
 		twist control
 	cube3-hash
@@ -9,6 +11,8 @@ TODO:
 
 
 2020.1.29	K.L.	<k.l.lambda@gmail.com>
+
+	+	home.vue: added styles for dock mode.
 
 	+	home.vue: added globe-cube3 as logo.
 

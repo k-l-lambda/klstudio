@@ -50,7 +50,7 @@
 				code: null,
 				cubeMaterial: new THREE.MeshPhongMaterial({
 					ambient: "#000",
-					color: "#00173d",
+					color: "#000d3d",
 					specular: "#fff1a6",
 					shininess: 200,
 					shading: THREE.SmoothShading,
@@ -80,7 +80,7 @@
 				cube3.camera.near = 0.1;
 				cube3.camera.position.set(0, 0, 3);
 
-				const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+				const mainLight = new THREE.DirectionalLight(0xffffff, 0.7);
 				mainLight.position.set(0, 0, 10);
 				mainLight.target = cube3.cube.graph;
 				cube3.scene.add(mainLight);

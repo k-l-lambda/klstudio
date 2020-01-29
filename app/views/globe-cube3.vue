@@ -4,6 +4,7 @@
 			class="viewer"
 			:size="size"
 			:code.sync="code"
+			:material="cubeMaterial"
 			meshSchema="spherical"
 			@fps="onFps"
 			@sceneInitialized="onSceneInitialized"
@@ -13,7 +14,7 @@
 
 <script>
 	import resize from "vue-resize-directive";
-	//import * as THREE from "three";
+	import * as THREE from "three";
 
 	import Cube3 from "../components/cube3.vue";
 
@@ -42,31 +43,19 @@
 				size: undefined,
 				fps: null,
 				code: null,
+				cubeMaterial: new THREE.MeshPhongMaterial({
+					ambient: "#000",
+					color: "#00173d",
+					specular: "#fff1a6",
+					shininess: 200,
+					shading: THREE.SmoothShading,
+				}),
 			};
 		},
 
 
 		mounted () {
-			//window.$cube = this.$refs.viewer.cube;
-
-			/*document.addEventListener("keydown", event => {
-				//console.log("keydown:", event);
-
-				switch (event.key) {
-				case "Home":
-					if (this.$refs.viewer)
-						this.$refs.viewer.cube.reset();
-
-					break;
-				default:
-					const twist = TWIST_KEYS.indexOf(event.key);
-					if (twist >= 0 && this.$refs.viewer)
-						this.$refs.viewer.cube.twist(twist);
-				}
-			});*/
-
-			//window.onhashchange = () => this.onHashChange();
-			//this.onHashChange();
+			window.$cube = this.$refs.cube3.cube;
 		},
 
 
@@ -82,9 +71,28 @@
 			},
 
 
-			onSceneInitialized (cube3) {
+			async onSceneInitialized (cube3) {
 				cube3.camera.near = 0.1;
-				cube3.camera.position.set(0, 0, 4);
+				cube3.camera.position.set(0, 0, 3);
+
+				const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+				mainLight.position.set(0, 0, 10);
+				mainLight.target = cube3.cube.graph;
+				cube3.scene.add(mainLight);
+
+				this.textureLoader = new THREE.TextureLoader();
+
+				this.cubeMaterial.normalMap = await this.loadTexture("earth/earth_normal.jpg");
+				this.cubeMaterial.needsUpdate = true;
+
+				this.cubeMaterial.specularMap = await this.loadTexture("earth/earth_specular.jpg");
+				this.cubeMaterial.needsUpdate = true;
+			},
+
+
+			async loadTexture (assetPath) {
+				const {default: path} = await import(`../assets/${assetPath}`);
+				return new Promise(resolve => this.textureLoader.load(path, texture => resolve(texture)));
 			},
 		},
 	};

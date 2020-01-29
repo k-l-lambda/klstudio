@@ -37,6 +37,10 @@
 				type: String,
 				default: "cube",
 			},
+			material: {
+				type: [Object, Array],
+				default: () => BASIC_MATERIALS,
+			},
 		},
 
 
@@ -47,9 +51,11 @@
 
 			this.initializeRenderer();
 
-			this.cube = new CubeObject({materials: BASIC_MATERIALS, onChange: algebra => this.onChange(algebra), meshSchema: this.meshSchema});
+			this.cube = new CubeObject({materials: this.material, onChange: algebra => this.onChange(algebra), meshSchema: this.meshSchema});
 			this.scene.add(this.cube.graph);
 			//console.log("this.cube:", this.cube);
+
+			this.$emit("sceneInitialized", this);
 
 			this.render();
 		},
@@ -67,8 +73,6 @@
 				this.camera.lookAt(0, 0, 0);
 
 				this.scene = new THREE.Scene();
-
-				this.$emit("sceneInitialized", this);
 			},
 
 

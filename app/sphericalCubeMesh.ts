@@ -23,8 +23,8 @@ const xyzToWuv = v3 => {
 	const w = v3.length();
 	const r = Math.sqrt(v3.x * v3.x + v3.z * v3.z);
 
-	const v = Math.acos(v3.y / w) / Math.PI;
-	let u = r === 0 ? 0 : Math.acos(v3.x / r) / (Math.PI * 2);
+	const v = Math.acos(-v3.y / w) / Math.PI;
+	let u = r === 0 ? 0 : Math.acos(-v3.x / r) / (Math.PI * 2);
 	if (v3.z < 0)
 		u = 1 - u;
 
@@ -40,7 +40,7 @@ const eachRange2D = (ul, uh, vl, vh, elem) => {
 };
 
 
-const createGeometries = ({segemnts = 16, sphericity = 0.48, chamferRadius = 0.2} = {}) => {
+const createGeometries = ({segemnts = 18, sphericity = 0.48, chamferRadius = 0.2} = {}) => {
 	const inv_grids = 1 / (segemnts * 1.5 + 1);
 
 	const faceVerticesCount = (segemnts + 1) * (segemnts + 1);

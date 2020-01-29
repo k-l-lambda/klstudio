@@ -20,7 +20,7 @@
 
 
 
-	const TWIST_KEYS = "LrDuBflRdUbF";
+	const cubeTextureNames = ["px", "nx", "py", "ny", "pz", "nz"];
 
 
 
@@ -50,9 +50,9 @@
 				code: null,
 				cubeMaterial: new THREE.MeshPhongMaterial({
 					ambient: "#000",
-					color: "#000d3d",
+					color: "#1340a7",
 					specular: "#fff1a6",
-					shininess: 200,
+					shininess: 24,
 					shading: THREE.SmoothShading,
 				}),
 			};
@@ -91,6 +91,11 @@
 				this.cubeMaterial.needsUpdate = true;
 
 				this.cubeMaterial.normalMap = await this.loadTexture("earth/earth_normal.jpg");
+				this.cubeMaterial.needsUpdate = true;
+
+				const skyTexturePaths = (await Promise.all(cubeTextureNames.map(name => import(`../assets/skybox-space/${name}.jpg`)))).map(({default: path}) => path);
+				const skyTexture = new THREE.CubeTextureLoader().load(skyTexturePaths);
+				this.cubeMaterial.envMap = skyTexture;
 				this.cubeMaterial.needsUpdate = true;
 			},
 

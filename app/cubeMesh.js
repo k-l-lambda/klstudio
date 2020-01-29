@@ -69,3 +69,6 @@ export function createCube3Meshes (materials) {
 
 	return geometries.map(geometry => new THREE.Mesh(geometry, materials));
 };
+
+
+export const needTranslation = true;

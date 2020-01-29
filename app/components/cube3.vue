@@ -11,7 +11,7 @@
 	import * as THREE from "three";
 
 	import {animationDelay} from "../delay";
-	import CubeObject from "../cubeObject.js";
+	import CubeObject from "../cubeObject";
 	//window.THREE = THREE;
 
 
@@ -33,6 +33,14 @@
 				default: () => ({width: 800, height: 800}),
 			},
 			code: String,
+			meshSchema: {
+				type: String,
+				default: "cube",
+			},
+			material: {
+				type: [Object, Array],
+				default: () => BASIC_MATERIALS,
+			},
 		},
 
 
@@ -43,11 +51,18 @@
 
 			this.initializeRenderer();
 
-			this.cube = new CubeObject({materials: BASIC_MATERIALS, onChange: algebra => this.onChange(algebra)});
+			this.cube = new CubeObject({materials: this.material, onChange: algebra => this.onChange(algebra), meshSchema: this.meshSchema});
 			this.scene.add(this.cube.graph);
 			//console.log("this.cube:", this.cube);
 
+			this.$emit("sceneInitialized", this);
+
 			this.render();
+		},
+
+		
+		beforeDestroy () {
+			this.rendererActive = false;
 		},
 
 

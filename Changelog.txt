@@ -1,12 +1,35 @@
 
 TODO:
+	globe-cube3:
+		twist control
 	cube3-hash
 		test solveCubeBinary
 		invalid solution issue.
 
 
 
+2020.1.29	K.L.	<k.l.lambda@gmail.com>
+
+	+	globe-cube3.vue: env map added.
+
+	+	home: added deveting mode.
+
+	+	home.vue: added styles for dock mode.
+
+	+	home.vue: added globe-cube3 as logo.
+
+	+	globe-cube3.vue: added phong material.
+
+
 2020.1.28	K.L.	<k.l.lambda@gmail.com>
+
+	+	View of globa-cube3 created.
+
+	+	sphericalCubeMesh.ts: mesh building implemented.
+
+	+	app/sphericalCubeMesh.ts created.
+
+	>	cubeObject.ts: convert from js to ts.
 
 	+	spiral-piano.vue: clear audio when quit view.
 

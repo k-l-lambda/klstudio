@@ -146,7 +146,7 @@
 			</table>
 		</div>
 		<div class="tips" v-show="isPlaying && !showDashboard">
-			F9 show dashboard.
+			F9 show controls.
 		</div>
 		<Loading v-if="loading" />
 	</div>
@@ -376,10 +376,14 @@
 
 		created () {
 			//window.MidiPlayer = MidiPlayer;
-			MidiPlayer.loadPlugin().then(() => {
+			if (!document.querySelector("audio#audio")) {
+				MidiPlayer.loadPlugin().then(() => {
+					this.loading = false;
+					console.log("MIDI loaded.");
+				});
+			}
+			else
 				this.loading = false;
-				console.log("MIDI loaded.");
-			});
 		},
 
 
@@ -418,6 +422,12 @@
 					break;
 				}
 			});
+		},
+
+
+		beforeDestroy () {
+			MidiPlayer.stopAllNotes();
+			MidiPlayer.Player.pause();
 		},
 
 

@@ -1,6 +1,7 @@
 
 TODO:
-	globe-cube3: lighting
+	globe-cube3:
+		twist control
 	cube3-hash
 		test solveCubeBinary
 		invalid solution issue.
@@ -8,6 +9,8 @@ TODO:
 
 
 2020.1.29	K.L.	<k.l.lambda@gmail.com>
+
+	+	home.vue: added globe-cube3 as logo.
 
 	+	globe-cube3.vue: added phong material.
 

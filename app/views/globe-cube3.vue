@@ -33,6 +33,11 @@
 		},
 
 
+		props: {
+			rendererActive: true,
+		},
+
+
 		components: {
 			Cube3,
 		},
@@ -93,6 +98,15 @@
 			async loadTexture (assetPath) {
 				const {default: path} = await import(`../assets/${assetPath}`);
 				return new Promise(resolve => this.textureLoader.load(path, texture => resolve(texture)));
+			},
+		},
+
+
+		watch: {
+			rendererActive (value) {
+				this.$refs.cube3.rendererActive = value;
+				if (value)
+					this.$refs.cube3.render();
 			},
 		},
 	};

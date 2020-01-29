@@ -60,6 +60,11 @@
 			this.render();
 		},
 
+		
+		beforeDestroy () {
+			this.rendererActive = false;
+		},
+
 
 		methods: {
 			initializeRenderer () {

@@ -1,12 +1,22 @@
 <template>
-	<body>
+	<body :class="{root: atRoot}">
 		<header>
-			<span class="logo">K.L. Studio</span>
+			<span class="title">K.L. Studio</span>
 		</header>
 		<main>
 			<router-view/>
 		</main>
 		<aside>
+			<div class="logo" @click="onClickLogo"
+				:style="{
+					transform: `
+						translate(${atRoot ? '40vw' : 0}, ${atRoot ? (windowSize.height - windowSize.width * .6) / 2 : 0}px)
+						scale(${atRoot ? 1 : 46 / (windowSize.width * .6)})
+					`
+				}"
+			>
+				<component is="globe-cube3" :rendererActive="atRoot" />
+			</div>
 			<section v-for="app of apps" :key="app.name" :to="app.path" class="app" :class="{focus: $router.currentRoute.path === app.path}">
 				<router-link :to="app.path">
 					<img :src="app.coverURL" />
@@ -23,6 +33,10 @@
 </template>
 
 <script>
+	import Vue from "vue";
+
+
+
 	const apps = [
 		{
 			name: "Spiral Piano",
@@ -44,7 +58,16 @@ This is a music visualization program which based on the <a href="https://en.wik
 		data () {
 			return {
 				apps,
+				currentApp: null,
+				windowSize: {width: window.innerWidth, height: window.innerHeight},
 			};
+		},
+
+
+		computed: {
+			atRoot () {
+				return !this.currentApp;
+			},
 		},
 
 
@@ -56,6 +79,30 @@ This is a music visualization program which based on the <a href="https://en.wik
 				const {default: url} = await import(`./assets/app-covers/${app.cover}`);
 				app.coverURL = url;
 			});
+
+			window.addEventListener("resize", () => this.onResize());
+
+			Vue.component("globe-cube3", () => import("./views/globe-cube3.vue"));
+		},
+
+
+		methods: {
+			onResize () {
+				this.windowSize = {width: window.innerWidth, height: window.innerHeight};
+			},
+
+
+			onClickLogo () {
+				if (!this.atRoot)
+					this.$router.push("/");
+			},
+		},
+
+
+		watch: {
+			$route (to) {
+				this.currentApp = to.name;
+			},
 		},
 	};
 </script>
@@ -152,9 +199,46 @@ This is a music visualization program which based on the <a href="https://en.wik
 		}
 	}
 
-	.logo
+	.title
 	{
 		font-family: 'Lilita One', cursive;
 		font-size: 40px;
+		padding-left: 1em;
+	}
+
+	.logo
+	{
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 60vw;
+		height: 60vw;
+		transform-origin: left top;
+		transition: transform .6s;
+		//animation: logo-popup backwards .6s;
+	}
+
+	.root .logo
+	{
+		//width: 60vw;
+		//height: 60vw;
+		//animation: logo-popup forwards .6s;
+	}
+
+	@keyframes logo-popup
+	{
+		0%
+		{
+			//width: 40px;
+			//height: 40px;
+			transform: translate(0, 0) scale(1 / 13);
+		}
+
+		100%
+		{
+			//width: 60vw;
+			//height: 60vw;
+			transform: translate(40vw, 0);
+		}
 	}
 </style>

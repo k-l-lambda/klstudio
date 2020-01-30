@@ -21,6 +21,22 @@
 		"#f90", "#d00", "#ff2", "white", "blue", "#0e0", "black",
 	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
 
+	const BASIC_HIGHLIGHT_MATERIALS = [
+		"#fc6", "#d66", "#ff8", "#ccc", "#44f", "#6e6", "#222",
+	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
+
+
+	const vectorToAxis = vector => {
+		const absPoint = [Math.abs(vector.x), Math.abs(vector.y), Math.abs(vector.z)];
+		const maxBranch = Math.max(...absPoint);
+		if (absPoint[0] === maxBranch)
+			return vector.x > 0 ? 1 : 0;
+		else if (absPoint[1] === maxBranch)
+			return vector.y > 0 ? 3 : 2;
+		else
+			return vector.z > 0 ? 5 : 4;
+	};
+
 
 
 	export default {
@@ -41,6 +57,10 @@
 				type: [Object, Array],
 				default: () => BASIC_MATERIALS,
 			},
+			highlightMaterial: {
+				type: [Object, Array],
+				default: () => BASIC_HIGHLIGHT_MATERIALS,
+			},
 		},
 
 
@@ -54,6 +74,8 @@
 			this.cube = new CubeObject({materials: this.material, onChange: algebra => this.onChange(algebra), meshSchema: this.meshSchema});
 			this.scene.add(this.cube.graph);
 			//console.log("this.cube:", this.cube);
+
+			this.raycaster = new THREE.Raycaster();
 
 			this.$emit("sceneInitialized", this);
 
@@ -123,6 +145,25 @@
 				if (this.cube && event.buttons === 1) {
 					this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 1e-2);
 					this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), event.movementY * 1e-2);
+				}
+
+				if (this.raycaster) {
+					const mouse = {
+						x: (event.offsetX / this.$refs.canvas.clientWidth) * 2 - 1,
+						y: 1 - (event.offsetY / this.$refs.canvas.clientHeight) * 2,
+					};
+					this.raycaster.setFromCamera(mouse, this.camera);
+					const intersects = this.raycaster.intersectObject(this.cube.graph, true);
+					//console.log("intersects:", intersects);
+					this.cube.cubeMeshes.forEach(mesh => mesh.material = this.material);
+					if (intersects[0]) {
+						//console.log("intersects:", intersects[0]);
+						const point = this.cube.graph.worldToLocal(intersects[0].point);
+						const axis = vectorToAxis(point);
+						const faceIndices = this.cube.algebra.faceIndicesFromAxis(axis);
+						const meshes = faceIndices.map(index => this.cube.cubeMeshes[index]);
+						meshes.forEach(mesh => mesh.material = this.highlightMaterial);
+					}
 				}
 			},
 

@@ -9,7 +9,10 @@ import {animationDelay} from "./delay.js";
 
 
 
-const POSITIONS = Array(3 ** 3).fill(null).map((_, i) => [i % 3 - 1, Math.floor(i / 3) % 3 - 1, Math.floor(i / 9) - 1]);
+type vector3 = [number, number, number];
+
+
+const POSITIONS : vector3[] = Array(3 ** 3).fill(null).map((_, i) => [i % 3 - 1, Math.floor(i / 3) % 3 - 1, Math.floor(i / 9) - 1]);
 
 const UNIT_SCALE = 0.92;
 
@@ -36,6 +39,7 @@ const MeshFactory = {
 export default class CubeObject {
 	algebra: Cube3;
 	graph: THREE.Object3D;
+	cubeMeshes: THREE.Mesh[];
 	animation: Promise<void>;
 	twistDuration: number;
 	onChange: (algebra: Cube3) => void;
@@ -49,7 +53,9 @@ export default class CubeObject {
 
 		this.graph = new THREE.Object3D();
 
-		MeshFactory[meshSchema].createCube3Meshes(materials).forEach((cube, i) => {
+		this.cubeMeshes = MeshFactory[meshSchema].createCube3Meshes(materials);
+
+		this.cubeMeshes.forEach((cube, i) => {
 			if (MeshFactory[meshSchema].needTranslation)
 				cube.position.set(...POSITIONS[i]);
 			cube.scale.set(UNIT_SCALE, UNIT_SCALE, UNIT_SCALE);

@@ -5,6 +5,7 @@
 			:size="size"
 			:code.sync="code"
 			:material="cubeMaterial"
+			:highlightMaterial="cubeHighlightMaterial"
 			meshSchema="spherical"
 			@fps="onFps"
 			@sceneInitialized="onSceneInitialized"
@@ -22,6 +23,14 @@
 
 
 	const cubeTextureNames = ["px", "nx", "py", "ny", "pz", "nz"];
+
+	const materialConfig = {
+		ambient: "#000",
+		color: "#1340a7",
+		specular: "#fff1a6",
+		shininess: 8,
+		shading: THREE.SmoothShading,
+	};
 
 
 
@@ -45,17 +54,14 @@
 
 
 		data () {
+			const cubeMaterial = new THREE.MeshPhongMaterial(materialConfig);
+
 			return {
 				size: undefined,
 				fps: null,
 				code: null,
-				cubeMaterial: new THREE.MeshPhongMaterial({
-					ambient: "#000",
-					color: "#1340a7",
-					specular: "#fff1a6",
-					shininess: 8,
-					shading: THREE.SmoothShading,
-				}),
+				cubeMaterial,
+				cubeHighlightMaterial: cubeMaterial,
 			};
 		},
 
@@ -100,6 +106,10 @@
 				const skyTexture = new THREE.CubeTextureLoader().load(skyTexturePaths);
 				this.cubeMaterial.envMap = skyTexture;
 				this.cubeMaterial.needsUpdate = true;
+
+				this.cubeHighlightMaterial = this.cubeMaterial.clone();
+				this.cubeHighlightMaterial.emissive = new THREE.Color("#35ac7e");
+				this.cubeHighlightMaterial.shininess = 16;
 			},
 
 

@@ -153,7 +153,6 @@
 					this.raycaster.setFromCamera(mouse, this.camera);
 					const intersects = this.raycaster.intersectObject(this.cube.graph, true);
 					//console.log("intersects:", intersects);
-					this.cube.cubeMeshes.forEach(mesh => mesh.material = this.material);
 					if (intersects[0]) {
 						//console.log("intersects:", intersects[0]);
 						const point = this.cube.graph.worldToLocal(intersects[0].point);
@@ -167,21 +166,28 @@
 
 			onMouseMove (event) {
 				//console.log("onMouseMove:", event.button, event.buttons);
-				if (Number.isInteger(this.holdingAxis)) {
-					const deltaPosition = {x: event.offsetX - this.holdPosition.x, y: event.offsetY - this.holdPosition.y};
-					this.cube.twistGraph(this.holdingAxis, deltaPosition.y * 0.01);
-				}
-				else {
-					if (this.cube && event.buttons === 1) {
-						this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 1e-2);
-						this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), event.movementY * 1e-2);
+				if (this.cube) {
+					if (Number.isInteger(this.holdingAxis)) {
+						const deltaPosition = {x: event.offsetX - this.holdPosition.x, y: event.offsetY - this.holdPosition.y};
+						this.cube.twistGraph(this.holdingAxis, deltaPosition.y * 0.01);
 					}
+					else {
+						switch (event.buttons) {
+						case 1:
+							this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 1e-2);
+							this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), event.movementY * 1e-2);
 
-					this.cube.cubeMeshes.forEach(mesh => mesh.material = this.material);
-					const axis = this.raycastAxis(event);
-					if (Number.isInteger(axis)) {
-						const faceIndices = this.cube.algebra.faceIndicesFromAxis(axis);
-						faceIndices.forEach(index => this.cube.cubeMeshes[index].material = this.highlightMaterial);
+							break;
+						case 0:
+							this.cube.cubeMeshes.forEach(mesh => mesh.material = this.material);
+							const axis = this.raycastAxis(event);
+							if (Number.isInteger(axis)) {
+								const faceIndices = this.cube.algebra.faceIndicesFromAxis(axis);
+								faceIndices.forEach(index => this.cube.cubeMeshes[index].material = this.highlightMaterial);
+							}
+
+							break;
+						}
 					}
 				}
 			},

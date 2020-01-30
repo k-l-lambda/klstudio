@@ -1,11 +1,28 @@
 
 TODO:
 	globe-cube3:
-		twist control
+		auto twists
 	cube3-hash
 		test solveCubeBinary
 		invalid solution issue.
 
+
+
+2020.1.30	K.L.	<k.l.lambda@gmail.com>
+
+	+	cube3.vue: added controls by touching.
+
+	+	globe-cube3.vue: added controls by acceleration sensor.
+
+	+	cube3.vue: refined mouse drag twist.
+
+	+	globe-cube3.vue: added hightlight material.
+
+	+	cube3.vue: twist by mouse implemented.
+
+	+	cube3.vue: highlight hover cube face implemented.
+
+	+	globe-cube3.vue: rotate env map.
 
 
 2020.1.29	K.L.	<k.l.lambda@gmail.com>

@@ -2,16 +2,24 @@
 import * as THREE from "three";
 
 import {NORMAL_ORIENTATIONS} from "../inc/cube-algebra";
-import {Cube3, twistToAxisRotation} from "../inc/cube3";
+import {Cube3, twistToAxisRotation, axisTimesToTwist} from "../inc/cube3";
 import * as cubeMesh from "./cubeMesh.js";
 import * as sphericalCubeMesh from "./sphericalCubeMesh";
 import {animationDelay} from "./delay.js";
 
 
 
-const POSITIONS = Array(3 ** 3).fill(null).map((_, i) => [i % 3 - 1, Math.floor(i / 3) % 3 - 1, Math.floor(i / 9) - 1]);
+type vector3 = [number, number, number];
+
+
+const CUBE3 = 3 ** 3;
+
+const POSITIONS : vector3[] = Array(CUBE3).fill(null).map((_, i) => [i % 3 - 1, Math.floor(i / 3) % 3 - 1, Math.floor(i / 9) - 1]);
 
 const UNIT_SCALE = 0.92;
+
+const RIGHT_ANGLE = Math.PI / 2;
+const GRAPH_RELEASE_SPEED = Math.PI / 60;
 
 
 const QUATERNIONS = NORMAL_ORIENTATIONS.map(o => o.toQuaternion());
@@ -36,9 +44,12 @@ const MeshFactory = {
 export default class CubeObject {
 	algebra: Cube3;
 	graph: THREE.Object3D;
+	cubeMeshes: THREE.Mesh[];
 	animation: Promise<void>;
 	twistDuration: number;
 	onChange: (algebra: Cube3) => void;
+	startQuaternions?: THREE.Quaternion[];
+	graphTwist: {axis: number, angle: number};
 
 
 	constructor ({materials, twistDuration = 300, onChange = null, meshSchema = "cube"}) {
@@ -49,10 +60,13 @@ export default class CubeObject {
 
 		this.graph = new THREE.Object3D();
 
-		MeshFactory[meshSchema].createCube3Meshes(materials).forEach((cube, i) => {
-			if (MeshFactory[meshSchema].needTranslation)
+		this.cubeMeshes = MeshFactory[meshSchema].createCube3Meshes(materials);
+
+		this.cubeMeshes.forEach((cube, i) => {
+			if (MeshFactory[meshSchema].needTranslation) {
 				cube.position.set(...POSITIONS[i]);
-			cube.scale.set(UNIT_SCALE, UNIT_SCALE, UNIT_SCALE);
+				cube.scale.set(UNIT_SCALE, UNIT_SCALE, UNIT_SCALE);
+			}
 
 			const proxy = new THREE.Object3D();
 			proxy.add(cube);
@@ -132,5 +146,44 @@ export default class CubeObject {
 		});
 
 		return this.animation;
+	}
+
+
+	twistGraph (axis: number, angle: number, {record = true} = {}) {
+		const rot = new THREE.Quaternion().setFromAxisAngle(AXES[axis], angle * (axis % 2 ? 1 : -1));
+
+		const movingIndices = this.algebra.faceIndicesFromAxis(axis);
+		movingIndices.forEach(index => {
+			const origin = new THREE.Quaternion(...QUATERNIONS[this.algebra.units[index]]);
+			this.graph.children[index].quaternion.fromArray(origin.premultiply(rot).toArray());
+		});
+
+		if (record)
+			this.graphTwist = {axis, angle};
+	}
+
+
+	releaseGraph () {
+		if (this.graphTwist) {
+			const times = Math.round(this.graphTwist.angle / RIGHT_ANGLE);
+			const twist = axisTimesToTwist(this.graphTwist.axis, times * (this.graphTwist.axis % 2 ? 1 : -1));
+			const endAngle = times * RIGHT_ANGLE;
+			const direction = endAngle > this.graphTwist.angle ? 1 : -1;
+
+			this.animation = this.animation.then(async () => {
+				if (twist >= 0)
+					this.algebra.twist(twist);
+
+				let angle = this.graphTwist.angle;
+				while ((endAngle - angle) * direction > 0) {
+					angle += Math.min(GRAPH_RELEASE_SPEED, Math.abs(endAngle - angle)) * direction;
+					this.twistGraph(this.graphTwist.axis, angle - times * RIGHT_ANGLE, {record: false});
+
+					await animationDelay();
+				}
+
+				this.updateGraph();
+			});
+		}
 	}
 };

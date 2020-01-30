@@ -23,7 +23,8 @@ module.exports = {
 		// remove prefetch links for home page
 		config.plugins.delete("prefetch-index");
 	},
-	/*devServer: {
-		proxy: `http://localhost:${process.env.PORT}`,
-	},*/
+	devServer: {
+		//proxy: `http://localhost:${process.env.PORT}`,
+		https: true,
+	},
 };

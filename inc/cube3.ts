@@ -129,7 +129,7 @@ const twistToAxisRotation = twist => ({
 const axisRotationToTwist = (axis, rotation) => axis % 2 + (rotation - 1) * 2;
 
 
-const timesToIndex = times => [1, 3, 2].indexOf((times + 40) % 4);
+const timesToIndex = times => [1, 3, 2].indexOf((times % 4 + 4) % 4);
 const axisTimesToTwist = (axis, times) => axis + timesToIndex(times) * 6;
 
 

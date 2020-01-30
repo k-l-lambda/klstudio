@@ -5,9 +5,11 @@
 			:size="size"
 			:code.sync="code"
 			:material="cubeMaterial"
+			:highlightMaterial="cubeHighlightMaterial"
 			meshSchema="spherical"
 			@fps="onFps"
 			@sceneInitialized="onSceneInitialized"
+			@beforeRender="onBeforeRender"
 		/>
 	</div>
 </template>
@@ -21,6 +23,17 @@
 
 
 	const cubeTextureNames = ["px", "nx", "py", "ny", "pz", "nz"];
+
+	const materialConfig = {
+		color: "#1340a7",
+		specular: "#fff1a6",
+		shininess: 8,
+		shading: THREE.SmoothShading,
+	};
+
+
+	const SENSOR_DAMPING = 0.01;
+	const SENSOR_SENSITIVITY = 1e-3;
 
 
 
@@ -44,23 +57,53 @@
 
 
 		data () {
+			const cubeMaterial = new THREE.MeshPhongMaterial(materialConfig);
+
 			return {
 				size: undefined,
 				fps: null,
 				code: null,
-				cubeMaterial: new THREE.MeshPhongMaterial({
-					ambient: "#000",
-					color: "#1340a7",
-					specular: "#fff1a6",
-					shininess: 24,
-					shading: THREE.SmoothShading,
-				}),
+				cubeMaterial,
+				cubeHighlightMaterial: cubeMaterial,
 			};
 		},
 
 
 		mounted () {
-			window.$cube = this.$refs.cube3.cube;
+			//window.$cube = this.$refs.cube3.cube;
+
+			this.quitCleaner = new Promise(resolve => this.quitClear = resolve);
+
+			this.sensorAcceleration = [0, 0, 0];
+			this.sensorVelocity = [0, 0, 0];
+			if (typeof LinearAccelerationSensor !== "undefined") {
+				navigator.permissions.query({name: "accelerometer"}).then(result => {
+					//console.log("accelerometer:", result);
+					if (result.state === "granted") {
+						const laSensor = new LinearAccelerationSensor({frequency: 60});
+
+						const sensorHandler = () => {
+							//if (laSensor.x * laSensor.x + laSensor.y * laSensor.y + laSensor.z * laSensor.z > 0.1)
+							//	console.log("la reading:", laSensor.x.toFixed(2), laSensor.y.toFixed(2), laSensor.z.toFixed(2));
+							this.sensorAcceleration = [laSensor.x, laSensor.y, laSensor.z];
+
+							this.sensorVelocity.forEach((_, i) => {
+								this.sensorVelocity[i] += this.sensorAcceleration[i];
+								this.sensorVelocity[i] *= (1 - SENSOR_DAMPING);
+							});
+						};
+						laSensor.addEventListener("reading", sensorHandler);
+						this.quitCleaner = this.quitCleaner.then(() => laSensor.removeEventListener("reading", sensorHandler));
+
+						laSensor.start();
+					}
+				});
+			}
+		},
+
+
+		beforeDestroy () {
+			this.quitClear();
 		},
 
 
@@ -78,12 +121,14 @@
 
 			async onSceneInitialized (cube3) {
 				cube3.camera.near = 0.1;
-				cube3.camera.position.set(0, 0, 3);
+				cube3.camera.position.set(0, 0, 4.5);
 
-				const mainLight = new THREE.DirectionalLight(0xffffff, 0.7);
+				const mainLight = new THREE.DirectionalLight(0xffffff, 1.6);
 				mainLight.position.set(0, 0, 10);
 				mainLight.target = cube3.cube.graph;
 				cube3.scene.add(mainLight);
+
+				cube3.scene.add(cube3.camera);
 
 				this.textureLoader = new THREE.TextureLoader();
 
@@ -97,6 +142,21 @@
 				const skyTexture = new THREE.CubeTextureLoader().load(skyTexturePaths);
 				this.cubeMaterial.envMap = skyTexture;
 				this.cubeMaterial.needsUpdate = true;
+
+				this.cubeHighlightMaterial = this.cubeMaterial.clone();
+				this.cubeHighlightMaterial.emissive = new THREE.Color("#35ac7e");
+				this.cubeHighlightMaterial.shininess = 16;
+			},
+
+
+			onBeforeRender (cube3) {
+				cube3.scene.rotation.set(0, Date.now() * 40e-6, 0);
+
+				if (this.sensorVelocity) {
+					cube3.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), this.sensorVelocity[0] * SENSOR_SENSITIVITY * 0.1);
+					cube3.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.sensorVelocity[2] * SENSOR_SENSITIVITY);
+					cube3.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), this.sensorVelocity[1] * SENSOR_SENSITIVITY * 0.2);
+				}
 			},
 
 
@@ -123,9 +183,4 @@
 		width: 100%;
 		height: 100%;
 	}
-
-	/*.viewer
-	{
-		background-color: #444;
-	}*/
 </style>

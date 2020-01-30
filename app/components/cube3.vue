@@ -4,6 +4,11 @@
 		:width="size.width"
 		:height="size.height"
 		@mousemove="onMouseMove"
+		@mousedown="onMouseDown"
+		@mouseup="onMouseUp"
+		@touchstart="onTouchStart"
+		@touchmove="onTouchMove"
+		@touchend="onTouchEnd"
 	/>
 </template>
 
@@ -20,6 +25,33 @@
 		//"green", "blue", "orange", "red", "white", "yellow", "black",
 		"#f90", "#d00", "#ff2", "white", "blue", "#0e0", "black",
 	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
+
+	const BASIC_HIGHLIGHT_MATERIALS = [
+		"#fc6", "#d66", "#ff8", "#ccc", "#44f", "#6e6", "#222",
+	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
+
+
+	const vectorToAxis = vector => {
+		const absPoint = [Math.abs(vector.x), Math.abs(vector.y), Math.abs(vector.z)];
+		const maxBranch = Math.max(...absPoint);
+		if (absPoint[0] === maxBranch)
+			return vector.x > 0 ? 1 : 0;
+		else if (absPoint[1] === maxBranch)
+			return vector.y > 0 ? 3 : 2;
+		else
+			return vector.z > 0 ? 5 : 4;
+	};
+
+
+	const CUBE_RADIUS = 1.5;
+	const AXIS_POINTS = [
+		new THREE.Vector3(-CUBE_RADIUS, 0, 0),
+		new THREE.Vector3(+CUBE_RADIUS, 0, 0),
+		new THREE.Vector3(0, -CUBE_RADIUS, 0),
+		new THREE.Vector3(0, +CUBE_RADIUS, 0),
+		new THREE.Vector3(0, 0, -CUBE_RADIUS),
+		new THREE.Vector3(0, 0, +CUBE_RADIUS),
+	];
 
 
 
@@ -41,6 +73,10 @@
 				type: [Object, Array],
 				default: () => BASIC_MATERIALS,
 			},
+			highlightMaterial: {
+				type: [Object, Array],
+				default: () => BASIC_HIGHLIGHT_MATERIALS,
+			},
 		},
 
 
@@ -54,6 +90,10 @@
 			this.cube = new CubeObject({materials: this.material, onChange: algebra => this.onChange(algebra), meshSchema: this.meshSchema});
 			this.scene.add(this.cube.graph);
 			//console.log("this.cube:", this.cube);
+
+			this.raycaster = new THREE.Raycaster();
+
+			this.holdingAxis = null;
 
 			this.$emit("sceneInitialized", this);
 
@@ -88,11 +128,11 @@
 				let stuck = 0;
 
 				while (this.rendererActive) {
-					//this.$emit("beforeRender");
+					this.$emit("beforeRender", this);
 
 					this.renderer.render(this.scene, this.camera);
 
-					//this.$emit("afterRender");
+					this.$emit("afterRender", this);
 
 					++frames;
 
@@ -118,13 +158,159 @@
 			},
 
 
+			normalizeScreenPoint (event) {
+				return new THREE.Vector3(
+					(event.offsetX / this.$refs.canvas.clientWidth) * 2 - 1,
+					1 - (event.offsetY / this.$refs.canvas.clientHeight) * 2,
+					0);
+			},
+
+
+			raycastAxis (event) {
+				if (this.raycaster) {
+					const mouse = this.normalizeScreenPoint(event);
+					this.raycaster.setFromCamera(mouse, this.camera);
+					const intersects = this.raycaster.intersectObject(this.cube.graph, true);
+					//console.log("intersects:", intersects);
+					if (intersects[0]) {
+						//console.log("intersects:", intersects[0]);
+						const point = this.cube.graph.worldToLocal(intersects[0].point);
+						return vectorToAxis(point);
+					}
+				}
+
+				return null;
+			},
+
+
 			onMouseMove (event) {
 				//console.log("onMouseMove:", event.button, event.buttons);
-				if (this.cube && event.buttons === 1) {
-					this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 1e-2);
-					this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), event.movementY * 1e-2);
+				if (this.cube) {
+					if (Number.isInteger(this.holdingAxis)) {
+						const end = this.normalizeScreenPoint(event);
+						const hand = end.clone().sub(this.holdPosition.start);
+						const arm = this.holdPosition.start.clone().sub(this.holdPosition.pivot).normalize();
+						const angle = -arm.clone().cross(hand).z * 3;
+						this.cube.twistGraph(this.holdingAxis, angle);
+					}
+					else {
+						switch (event.buttons) {
+						case 1:
+							this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 1e-2);
+							this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), event.movementY * 1e-2);
+
+							break;
+						case 0:
+							this.cube.cubeMeshes.forEach(mesh => mesh.material = this.material);
+							const axis = this.raycastAxis(event);
+							if (Number.isInteger(axis)) {
+								const faceIndices = this.cube.algebra.faceIndicesFromAxis(axis);
+								faceIndices.forEach(index => this.cube.cubeMeshes[index].material = this.highlightMaterial);
+							}
+
+							break;
+						}
+					}
 				}
 			},
+
+
+			onMouseDown (event) {
+				const axis = this.raycastAxis(event);
+				if (Number.isInteger(axis)) {
+					const pivot = this.cube.graph.localToWorld(AXIS_POINTS[axis].clone());
+					pivot.project(this.camera);
+					pivot.z = 0;
+					//console.log("pivot1:", axis, pivot.toArray());
+
+					this.holdingAxis = axis;
+					this.holdPosition = {
+						pivot,
+						start: this.normalizeScreenPoint(event),
+					};
+				}
+			},
+
+
+			onMouseUp () {
+				if (Number.isInteger(this.holdingAxis)) {
+					this.cube.releaseGraph();
+					this.holdingAxis = null;
+				}
+			},
+
+
+			touchToOffsetPoint (touch, options = {buttons: 0}) {
+				const rect = this.$el.getBoundingClientRect();
+
+				return {
+					offsetX: touch.pageX - rect.x,
+					offsetY: touch.pageY - rect.y,
+					...options,
+				};
+			},
+
+
+			onTouchStart (event) {
+				//console.log("onTouchStart:", event);
+				if (event.touches.length === 1) {
+					this.onMouseDown(this.touchToOffsetPoint(event.touches[0]));
+					event.preventDefault();
+				}
+			},
+
+
+			onTouchMove (event) {
+				//console.log("onTouchMove:", event.touches.length);
+				switch (event.touches.length) {
+				case 1:
+					const te = this.touchToOffsetPoint(event.touches[0]);
+					this.onMouseMove(te);
+
+					this.lastTouchPoint = {
+						offsetX: te.offsetX,
+						offsetY: te.offsetY,
+					};
+
+					event.preventDefault();
+
+					break;
+				case 2: {
+						const te = this.touchToOffsetPoint(event.touches[0], {buttons: 1});
+						if (this.lastTouchPoint) {
+							te.movementX = te.offsetX - this.lastTouchPoint.offsetX;
+							te.movementY = te.offsetY - this.lastTouchPoint.offsetY;
+							//console.log("te:", te);
+
+							this.holdingAxis = null;
+
+							this.onMouseMove(te);
+						}
+
+						this.lastTouchPoint = {
+							offsetX: te.offsetX,
+							offsetY: te.offsetY,
+						};
+					}
+
+					event.preventDefault();
+
+					break;
+				}
+			},
+
+
+			onTouchEnd () {
+				//console.log("onTouchEnd:", event);
+				this.onMouseUp();
+
+				this.lastTouchPoint = null;
+			},
+
+
+			/*onGestureChange (event) {
+				console.log("cube3.onGestureChange:", event);
+			},*/
 
 
 			onChange (algebra) {

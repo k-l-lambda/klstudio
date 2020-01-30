@@ -6,6 +6,9 @@
 		@mousemove="onMouseMove"
 		@mousedown="onMouseDown"
 		@mouseup="onMouseUp"
+		@touchstart="onTouchStart"
+		@touchmove="onTouchMove"
+		@touchend="onTouchEnd"
 	/>
 </template>
 
@@ -235,6 +238,79 @@
 					this.holdingAxis = null;
 				}
 			},
+
+
+			touchToOffsetPoint (touch, options = {buttons: 0}) {
+				const rect = this.$el.getBoundingClientRect();
+
+				return {
+					offsetX: touch.pageX - rect.x,
+					offsetY: touch.pageY - rect.y,
+					...options,
+				};
+			},
+
+
+			onTouchStart (event) {
+				//console.log("onTouchStart:", event);
+				if (event.touches.length === 1) {
+					this.onMouseDown(this.touchToOffsetPoint(event.touches[0]));
+					event.preventDefault();
+				}
+			},
+
+
+			onTouchMove (event) {
+				//console.log("onTouchMove:", event.touches.length);
+				switch (event.touches.length) {
+				case 1:
+					const te = this.touchToOffsetPoint(event.touches[0]);
+					this.onMouseMove(te);
+
+					this.lastTouchPoint = {
+						offsetX: te.offsetX,
+						offsetY: te.offsetY,
+					};
+
+					event.preventDefault();
+
+					break;
+				case 2: {
+						const te = this.touchToOffsetPoint(event.touches[0], {buttons: 1});
+						if (this.lastTouchPoint) {
+							te.movementX = te.offsetX - this.lastTouchPoint.offsetX;
+							te.movementY = te.offsetY - this.lastTouchPoint.offsetY;
+							//console.log("te:", te);
+
+							this.holdingAxis = null;
+
+							this.onMouseMove(te);
+						}
+
+						this.lastTouchPoint = {
+							offsetX: te.offsetX,
+							offsetY: te.offsetY,
+						};
+					}
+
+					event.preventDefault();
+
+					break;
+				}
+			},
+
+
+			onTouchEnd () {
+				//console.log("onTouchEnd:", event);
+				this.onMouseUp();
+
+				this.lastTouchPoint = null;
+			},
+
+
+			/*onGestureChange (event) {
+				console.log("cube3.onGestureChange:", event);
+			},*/
 
 
 			onChange (algebra) {

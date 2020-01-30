@@ -78,7 +78,7 @@
 			this.sensorVelocity = [0, 0, 0];
 			if (typeof LinearAccelerationSensor !== "undefined") {
 				navigator.permissions.query({name: "accelerometer"}).then(result => {
-					console.log("accelerometer:", result);
+					//console.log("accelerometer:", result);
 					if (result.state === "granted") {
 						const laSensor = new LinearAccelerationSensor({frequency: 60});
 
@@ -152,9 +152,11 @@
 			onBeforeRender (cube3) {
 				cube3.scene.rotation.set(0, Date.now() * 40e-6, 0);
 
-				//console.log("accelerationSensor:", this.accelerationSensor);
-				cube3.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.sensorVelocity[1] * SENSOR_SENSITIVITY);
-				cube3.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), this.sensorVelocity[2] * SENSOR_SENSITIVITY);
+				if (this.sensorVelocity) {
+					cube3.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), this.sensorVelocity[0] * SENSOR_SENSITIVITY * 0.1);
+					cube3.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.sensorVelocity[2] * SENSOR_SENSITIVITY);
+					cube3.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), this.sensorVelocity[1] * SENSOR_SENSITIVITY * 0.2);
+				}
 			},
 
 

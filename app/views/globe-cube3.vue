@@ -85,7 +85,7 @@
 
 			async onSceneInitialized (cube3) {
 				cube3.camera.near = 0.1;
-				cube3.camera.position.set(0, 0, 3);
+				cube3.camera.position.set(0, 0, 4.5);
 
 				const mainLight = new THREE.DirectionalLight(0xffffff, 1.6);
 				mainLight.position.set(0, 0, 10);

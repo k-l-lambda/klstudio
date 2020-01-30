@@ -18,6 +18,7 @@ const POSITIONS : vector3[] = Array(CUBE3).fill(null).map((_, i) => [i % 3 - 1, 
 
 const UNIT_SCALE = 0.92;
 
+const RIGHT_ANGLE = Math.PI / 2;
 const GRAPH_RELEASE_SPEED = Math.PI / 60;
 
 
@@ -149,7 +150,7 @@ export default class CubeObject {
 
 
 	twistGraph (axis: number, angle: number, {record = true} = {}) {
-		const rot = new THREE.Quaternion().setFromAxisAngle(AXES[axis], angle);
+		const rot = new THREE.Quaternion().setFromAxisAngle(AXES[axis], angle * (axis % 2 ? 1 : -1));
 
 		const movingIndices = this.algebra.faceIndicesFromAxis(axis);
 		movingIndices.forEach(index => {
@@ -164,9 +165,9 @@ export default class CubeObject {
 
 	releaseGraph () {
 		if (this.graphTwist) {
-			const times = Math.round(this.graphTwist.angle / (Math.PI / 2));
-			const twist = axisTimesToTwist(this.graphTwist.axis, times);
-			const endAngle = times * (Math.PI / 2);
+			const times = Math.round(this.graphTwist.angle / RIGHT_ANGLE);
+			const twist = axisTimesToTwist(this.graphTwist.axis, times * (this.graphTwist.axis % 2 ? 1 : -1));
+			const endAngle = times * RIGHT_ANGLE;
 			const direction = endAngle > this.graphTwist.angle ? 1 : -1;
 
 			this.animation = this.animation.then(async () => {
@@ -176,7 +177,7 @@ export default class CubeObject {
 				let angle = this.graphTwist.angle;
 				while ((endAngle - angle) * direction > 0) {
 					angle += Math.min(GRAPH_RELEASE_SPEED, Math.abs(endAngle - angle)) * direction;
-					this.twistGraph(this.graphTwist.axis, angle, {record: false});
+					this.twistGraph(this.graphTwist.axis, angle - times * RIGHT_ANGLE, {record: false});
 
 					await animationDelay();
 				}

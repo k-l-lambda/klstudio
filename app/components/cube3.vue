@@ -40,6 +40,17 @@
 	};
 
 
+	const CUBE_RADIUS = 1.5;
+	const AXIS_POINTS = [
+		new THREE.Vector3(-CUBE_RADIUS, 0, 0),
+		new THREE.Vector3(+CUBE_RADIUS, 0, 0),
+		new THREE.Vector3(0, -CUBE_RADIUS, 0),
+		new THREE.Vector3(0, +CUBE_RADIUS, 0),
+		new THREE.Vector3(0, 0, -CUBE_RADIUS),
+		new THREE.Vector3(0, 0, +CUBE_RADIUS),
+	];
+
+
 
 	export default {
 		name: "cube3",
@@ -144,12 +155,17 @@
 			},
 
 
+			normalizeScreenPoint (event) {
+				return new THREE.Vector3(
+					(event.offsetX / this.$refs.canvas.clientWidth) * 2 - 1,
+					1 - (event.offsetY / this.$refs.canvas.clientHeight) * 2,
+					0);
+			},
+
+
 			raycastAxis (event) {
 				if (this.raycaster) {
-					const mouse = {
-						x: (event.offsetX / this.$refs.canvas.clientWidth) * 2 - 1,
-						y: 1 - (event.offsetY / this.$refs.canvas.clientHeight) * 2,
-					};
+					const mouse = this.normalizeScreenPoint(event);
 					this.raycaster.setFromCamera(mouse, this.camera);
 					const intersects = this.raycaster.intersectObject(this.cube.graph, true);
 					//console.log("intersects:", intersects);
@@ -168,8 +184,11 @@
 				//console.log("onMouseMove:", event.button, event.buttons);
 				if (this.cube) {
 					if (Number.isInteger(this.holdingAxis)) {
-						const deltaPosition = {x: event.offsetX - this.holdPosition.x, y: event.offsetY - this.holdPosition.y};
-						this.cube.twistGraph(this.holdingAxis, deltaPosition.y * 0.01);
+						const end = this.normalizeScreenPoint(event);
+						const hand = end.clone().sub(this.holdPosition.start);
+						const arm = this.holdPosition.start.clone().sub(this.holdPosition.pivot).normalize();
+						const angle = -arm.clone().cross(hand).z * 3;
+						this.cube.twistGraph(this.holdingAxis, angle);
 					}
 					else {
 						switch (event.buttons) {
@@ -196,8 +215,16 @@
 			onMouseDown (event) {
 				const axis = this.raycastAxis(event);
 				if (Number.isInteger(axis)) {
+					const pivot = this.cube.graph.localToWorld(AXIS_POINTS[axis].clone());
+					pivot.project(this.camera);
+					pivot.z = 0;
+					//console.log("pivot1:", axis, pivot.toArray());
+
 					this.holdingAxis = axis;
-					this.holdPosition = {x: event.offsetX, y: event.offsetY};
+					this.holdPosition = {
+						pivot,
+						start: this.normalizeScreenPoint(event),
+					};
 				}
 			},
 

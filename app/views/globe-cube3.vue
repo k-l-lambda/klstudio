@@ -25,12 +25,15 @@
 	const cubeTextureNames = ["px", "nx", "py", "ny", "pz", "nz"];
 
 	const materialConfig = {
-		ambient: "#000",
 		color: "#1340a7",
 		specular: "#fff1a6",
 		shininess: 8,
 		shading: THREE.SmoothShading,
 	};
+
+
+	const SENSOR_DAMPING = 0.01;
+	const SENSOR_SENSITIVITY = 1e-3;
 
 
 
@@ -67,7 +70,40 @@
 
 
 		mounted () {
-			window.$cube = this.$refs.cube3.cube;
+			//window.$cube = this.$refs.cube3.cube;
+
+			this.quitCleaner = new Promise(resolve => this.quitClear = resolve);
+
+			this.sensorAcceleration = [0, 0, 0];
+			this.sensorVelocity = [0, 0, 0];
+			if (typeof LinearAccelerationSensor !== "undefined") {
+				navigator.permissions.query({name: "accelerometer"}).then(result => {
+					console.log("accelerometer:", result);
+					if (result.state === "granted") {
+						const laSensor = new LinearAccelerationSensor({frequency: 60});
+
+						const sensorHandler = () => {
+							//if (laSensor.x * laSensor.x + laSensor.y * laSensor.y + laSensor.z * laSensor.z > 0.1)
+							//	console.log("la reading:", laSensor.x.toFixed(2), laSensor.y.toFixed(2), laSensor.z.toFixed(2));
+							this.sensorAcceleration = [laSensor.x, laSensor.y, laSensor.z];
+
+							this.sensorVelocity.forEach((_, i) => {
+								this.sensorVelocity[i] += this.sensorAcceleration[i];
+								this.sensorVelocity[i] *= (1 - SENSOR_DAMPING);
+							});
+						};
+						laSensor.addEventListener("reading", sensorHandler);
+						this.quitCleaner = this.quitCleaner.then(() => laSensor.removeEventListener("reading", sensorHandler));
+
+						laSensor.start();
+					}
+				});
+			}
+		},
+
+
+		beforeDestroy () {
+			this.quitClear();
 		},
 
 
@@ -115,6 +151,10 @@
 
 			onBeforeRender (cube3) {
 				cube3.scene.rotation.set(0, Date.now() * 40e-6, 0);
+
+				//console.log("accelerationSensor:", this.accelerationSensor);
+				cube3.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.sensorVelocity[1] * SENSOR_SENSITIVITY);
+				cube3.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), this.sensorVelocity[2] * SENSOR_SENSITIVITY);
 			},
 
 

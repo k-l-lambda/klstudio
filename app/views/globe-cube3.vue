@@ -8,6 +8,7 @@
 			meshSchema="spherical"
 			@fps="onFps"
 			@sceneInitialized="onSceneInitialized"
+			@beforeRender="onBeforeRender"
 		/>
 	</div>
 </template>
@@ -52,7 +53,7 @@
 					ambient: "#000",
 					color: "#1340a7",
 					specular: "#fff1a6",
-					shininess: 24,
+					shininess: 8,
 					shading: THREE.SmoothShading,
 				}),
 			};
@@ -80,10 +81,12 @@
 				cube3.camera.near = 0.1;
 				cube3.camera.position.set(0, 0, 3);
 
-				const mainLight = new THREE.DirectionalLight(0xffffff, 0.7);
+				const mainLight = new THREE.DirectionalLight(0xffffff, 1.6);
 				mainLight.position.set(0, 0, 10);
 				mainLight.target = cube3.cube.graph;
 				cube3.scene.add(mainLight);
+
+				cube3.scene.add(cube3.camera);
 
 				this.textureLoader = new THREE.TextureLoader();
 
@@ -97,6 +100,11 @@
 				const skyTexture = new THREE.CubeTextureLoader().load(skyTexturePaths);
 				this.cubeMaterial.envMap = skyTexture;
 				this.cubeMaterial.needsUpdate = true;
+			},
+
+
+			onBeforeRender (cube3) {
+				cube3.scene.rotation.set(0, Date.now() * 40e-6, 0);
 			},
 
 
@@ -123,9 +131,4 @@
 		width: 100%;
 		height: 100%;
 	}
-
-	/*.viewer
-	{
-		background-color: #444;
-	}*/
 </style>

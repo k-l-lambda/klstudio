@@ -8,6 +8,11 @@ TODO:
 
 
 
+2020.1.30	K.L.	<k.l.lambda@gmail.com>
+
+	+	globe-cube3.vue: rotate env map.
+
+
 2020.1.29	K.L.	<k.l.lambda@gmail.com>
 
 	+	globe-cube3.vue: env map added.

@@ -88,11 +88,11 @@
 				let stuck = 0;
 
 				while (this.rendererActive) {
-					//this.$emit("beforeRender");
+					this.$emit("beforeRender", this);
 
 					this.renderer.render(this.scene, this.camera);
 
-					//this.$emit("afterRender");
+					this.$emit("afterRender", this);
 
 					++frames;
 

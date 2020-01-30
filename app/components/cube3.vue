@@ -4,6 +4,8 @@
 		:width="size.width"
 		:height="size.height"
 		@mousemove="onMouseMove"
+		@mousedown="onMouseDown"
+		@mouseup="onMouseUp"
 	/>
 </template>
 
@@ -77,6 +79,8 @@
 
 			this.raycaster = new THREE.Raycaster();
 
+			this.holdingAxis = null;
+
 			this.$emit("sceneInitialized", this);
 
 			this.render();
@@ -140,13 +144,7 @@
 			},
 
 
-			onMouseMove (event) {
-				//console.log("onMouseMove:", event.button, event.buttons);
-				if (this.cube && event.buttons === 1) {
-					this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 1e-2);
-					this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), event.movementY * 1e-2);
-				}
-
+			raycastAxis (event) {
 				if (this.raycaster) {
 					const mouse = {
 						x: (event.offsetX / this.$refs.canvas.clientWidth) * 2 - 1,
@@ -159,11 +157,49 @@
 					if (intersects[0]) {
 						//console.log("intersects:", intersects[0]);
 						const point = this.cube.graph.worldToLocal(intersects[0].point);
-						const axis = vectorToAxis(point);
-						const faceIndices = this.cube.algebra.faceIndicesFromAxis(axis);
-						const meshes = faceIndices.map(index => this.cube.cubeMeshes[index]);
-						meshes.forEach(mesh => mesh.material = this.highlightMaterial);
+						return vectorToAxis(point);
 					}
+				}
+
+				return null;
+			},
+
+
+			onMouseMove (event) {
+				//console.log("onMouseMove:", event.button, event.buttons);
+				if (Number.isInteger(this.holdingAxis)) {
+					const deltaPosition = {x: event.offsetX - this.holdPosition.x, y: event.offsetY - this.holdPosition.y};
+					this.cube.twistGraph(this.holdingAxis, deltaPosition.y * 0.01);
+				}
+				else {
+					if (this.cube && event.buttons === 1) {
+						this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 1e-2);
+						this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), event.movementY * 1e-2);
+					}
+
+					this.cube.cubeMeshes.forEach(mesh => mesh.material = this.material);
+					const axis = this.raycastAxis(event);
+					if (Number.isInteger(axis)) {
+						const faceIndices = this.cube.algebra.faceIndicesFromAxis(axis);
+						faceIndices.forEach(index => this.cube.cubeMeshes[index].material = this.highlightMaterial);
+					}
+				}
+			},
+
+
+			onMouseDown (event) {
+				const axis = this.raycastAxis(event);
+				if (Number.isInteger(axis)) {
+					this.holdingAxis = axis;
+					this.holdPosition = {x: event.offsetX, y: event.offsetY};
+				}
+			},
+
+
+			onMouseUp () {
+				if (Number.isInteger(this.holdingAxis)) {
+					this.cube.releaseGraph();
+					this.holdingAxis = null;
 				}
 			},
 

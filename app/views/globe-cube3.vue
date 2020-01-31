@@ -104,6 +104,9 @@
 					}
 				});
 			}
+
+			if (!this.rendererActive)
+				this.$refs.cube3.rendererActive = this.rendererActive;
 		},
 
 

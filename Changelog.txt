@@ -10,6 +10,8 @@ TODO:
 
 2020.1.31	K.L.	<k.l.lambda@gmail.com>
 
+	+	spiral-piano.vue: pick file by touch implemented.
+
 	+	spiral-piano.vue: file picker added.
 
 	+	spiral-piano.vue: touch events added.

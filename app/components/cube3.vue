@@ -254,7 +254,7 @@
 
 			onTouchStart (event) {
 				//console.log("onTouchStart:", event);
-				if (event.touches.length === 1) {
+				if (this.rendererActive && event.touches.length === 1) {
 					this.onMouseDown(this.touchToOffsetPoint(event.touches[0]));
 					event.preventDefault();
 				}

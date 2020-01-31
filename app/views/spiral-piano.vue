@@ -1,9 +1,11 @@
 <template>
 	<div v-resize="onResize" class="spiral-piano"
-		:class="{'drag-hover': drageHover}"
+		:class="{'drag-hover': drageHover, 'touch-hover': touchHolding}"
 		@dragover.prevent="drageHover = true"
 		@dragleave="drageHover = false"
 		@drop.prevent="onDropFiles"
+		@touchstart="onTouchStart"
+		@touchend="onTouchEnd"
 	>
 		<svg class="canvas" viewBox="-500 -500 1000 1000" :class="{'full-width': fullWidth, 'full-height': !fullWidth}">
 			<defs>
@@ -106,7 +108,7 @@
 							:d="key.path"
 							@mousedown.stop="onKeyDown(key.pitch)"
 							@mouseup="onKeyUp(key.pitch)"
-							@touchstart.prevent="onKeyDown(key.pitch)"
+							@touchstart.stop.prevent="onKeyDown(key.pitch)"
 							@touchend.prevent="onKeyUp(key.pitch)"
 						/>
 					</g>
@@ -309,6 +311,7 @@
 				isPlaying: false,
 				midiFileName: null,
 				loading: true,
+				touchHolding: false,
 			};
 		},
 
@@ -455,6 +458,8 @@
 					MidiPlayer.Player.stop();
 					this.isPlaying = false;
 
+					this.loading = true;
+
 					const buffer = await file.readAs("ArrayBuffer");
 					const blob = new Blob([buffer], {type: file.type});
 					const url = URL.createObjectURL(blob);
@@ -465,6 +470,8 @@
 					this.midiFileName = file.name;
 
 					this.onPlayFile();
+
+					this.loading = false;
 
 					break;
 				}
@@ -494,6 +501,37 @@
 					MidiPlayer.Player.resume();
 
 					this.isPlaying = true;
+				}
+			},
+
+
+			async onTouchStart () {
+				this.touchHolding = true;
+
+				try {
+					// wait a long tapping
+					await new Promise((resolve, reject) => {
+						this.interruptTouch = reject;
+						setTimeout(resolve, 1600);
+					});
+
+					this.$refs.filePicker.click();
+
+					this.touchHolding = false;
+					this.showDashboard = true;
+				}
+				catch (_) {
+					// interrupted
+				}
+			},
+
+
+			onTouchEnd () {
+				this.touchHolding = false;
+
+				if (this.interruptTouch) {
+					this.interruptTouch();
+					this.interruptTouch = null;
 				}
 			},
 
@@ -584,12 +622,18 @@
 	{
 		width: 100%;
 		height: 100%;
+		transition: background-color 1s;
 	}
 
 	.drag-hover
 	{
 		outline: 4px #4f4 solid;
 		background-color: #cfc;
+	}
+
+	.touch-hover
+	{
+		background-color: #fc6;
 	}
 
 	.full-width

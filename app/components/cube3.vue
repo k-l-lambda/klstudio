@@ -186,7 +186,7 @@
 			onMouseMove (event) {
 				//console.log("onMouseMove:", event.button, event.buttons);
 				if (this.cube) {
-					if (Number.isInteger(this.holdingAxis)) {
+					if (Number.isInteger(this.holdingAxis) && event.buttons !== 4) {
 						const end = this.normalizeScreenPoint(event);
 						const hand = end.clone().sub(this.holdPosition.start);
 						const arm = this.holdPosition.start.clone().sub(this.holdPosition.pivot).normalize();
@@ -196,6 +196,7 @@
 					else {
 						switch (event.buttons) {
 						case 1:
+						case 4:
 							this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 1e-2);
 							this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), event.movementY * 1e-2);
 

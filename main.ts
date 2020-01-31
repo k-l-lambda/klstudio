@@ -39,7 +39,7 @@ const app = express();
 
 //express.static.mime.define({"application/wasm": ["wasm"]});
 
-app.use("/", express.static("./static"));
+app.use("/", express.static("./docs"));
 
 
 /*if (development)

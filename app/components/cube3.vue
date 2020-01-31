@@ -4,7 +4,7 @@
 		:width="size.width"
 		:height="size.height"
 		@mousemove="onMouseMove"
-		@mousedown="onMouseDown"
+		@mousedown.prevent="onMouseDown"
 		@mouseup="onMouseUp"
 		@touchstart="onTouchStart"
 		@touchmove="onTouchMove"

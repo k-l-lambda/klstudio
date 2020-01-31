@@ -6,8 +6,11 @@ export default {
 
 
 	methods: {
-		appendCleaner (cleaner) {
-			this.quitCleaner = this.quitCleaner.then(cleaner);
+		async appendCleaner (cleaner) {
+			if (await Promise.race([this.quitCleaner, "pending"]) !== "pending")
+				cleaner();
+			else
+				this.quitCleaner = this.quitCleaner.then(cleaner);
 		},
 	},
 

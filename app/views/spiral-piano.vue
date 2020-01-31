@@ -161,6 +161,8 @@
 	import MidiDevices from "../components/midi-devices.vue";
 	import Loading from "../components/loading.vue";
 
+	import QuitClearner from "../mixins/quit-cleaner";
+
 
 
 	const Config = {
@@ -275,6 +277,11 @@
 		},
 
 
+		mixins: [
+			QuitClearner,
+		],
+
+
 		components: {
 			MidiDevices,
 			Loading,
@@ -380,6 +387,11 @@
 				MidiPlayer.loadPlugin().then(() => {
 					this.loading = false;
 					console.log("MIDI loaded.");
+
+					this.appendCleaner(() => {
+						MidiPlayer.stopAllNotes();
+						MidiPlayer.Player.pause();
+					});
 				});
 			}
 			else
@@ -422,12 +434,6 @@
 					break;
 				}
 			});
-		},
-
-
-		beforeDestroy () {
-			MidiPlayer.stopAllNotes();
-			MidiPlayer.Player.pause();
 		},
 
 

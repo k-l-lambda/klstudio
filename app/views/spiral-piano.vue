@@ -106,6 +106,8 @@
 							:d="key.path"
 							@mousedown="onKeyDown(key.pitch)"
 							@mouseup="onKeyUp(key.pitch)"
+							@touchstart.prevent="onKeyDown(key.pitch)"
+							@touchend.prevent="onKeyUp(key.pitch)"
 						/>
 					</g>
 				</g>

@@ -20,6 +20,8 @@
 
 	import Cube3 from "../components/cube3.vue";
 
+	import QuitClearner from "../mixins/quit-cleaner";
+
 
 
 	const cubeTextureNames = ["px", "nx", "py", "ny", "pz", "nz"];
@@ -41,14 +43,19 @@
 		name: "globe-cube3",
 
 
+		props: {
+			rendererActive: true,
+		},
+
+
 		directives: {
 			resize,
 		},
 
 
-		props: {
-			rendererActive: true,
-		},
+		mixins: [
+			QuitClearner,
+		],
 
 
 		components: {
@@ -72,8 +79,6 @@
 		mounted () {
 			//window.$cube = this.$refs.cube3.cube;
 
-			this.quitCleaner = new Promise(resolve => this.quitClear = resolve);
-
 			this.sensorAcceleration = [0, 0, 0];
 			this.sensorVelocity = [0, 0, 0];
 			if (typeof LinearAccelerationSensor !== "undefined") {
@@ -93,17 +98,15 @@
 							});
 						};
 						laSensor.addEventListener("reading", sensorHandler);
-						this.quitCleaner = this.quitCleaner.then(() => laSensor.removeEventListener("reading", sensorHandler));
+						this.appendCleaner(() => laSensor.removeEventListener("reading", sensorHandler));
 
 						laSensor.start();
 					}
 				});
 			}
-		},
 
-
-		beforeDestroy () {
-			this.quitClear();
+			if (!this.rendererActive)
+				this.$refs.cube3.rendererActive = this.rendererActive;
 		},
 
 

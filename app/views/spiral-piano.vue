@@ -1,9 +1,11 @@
 <template>
 	<div v-resize="onResize" class="spiral-piano"
-		:class="{'drag-hover': drageHover}"
+		:class="{'drag-hover': drageHover, 'touch-hover': touchHolding}"
 		@dragover.prevent="drageHover = true"
 		@dragleave="drageHover = false"
 		@drop.prevent="onDropFiles"
+		@touchstart="onTouchStart"
+		@touchend="onTouchEnd"
 	>
 		<svg class="canvas" viewBox="-500 -500 1000 1000" :class="{'full-width': fullWidth, 'full-height': !fullWidth}">
 			<defs>
@@ -104,8 +106,10 @@
 							:data-pitch="key.pitch"
 							:data-step="key.step"
 							:d="key.path"
-							@mousedown="onKeyDown(key.pitch)"
+							@mousedown.stop="onKeyDown(key.pitch)"
 							@mouseup="onKeyUp(key.pitch)"
+							@touchstart.stop.prevent="onKeyDown(key.pitch)"
+							@touchend.prevent="onKeyUp(key.pitch)"
 						/>
 					</g>
 				</g>
@@ -144,6 +148,7 @@
 					</tr>
 				</tbody>
 			</table>
+			<input type="file" ref="filePicker" v-show="false" accept="audio/midi" @change="onFileOpen" />
 		</div>
 		<div class="tips" v-show="isPlaying && !showDashboard">
 			F9 show controls.
@@ -160,6 +165,8 @@
 
 	import MidiDevices from "../components/midi-devices.vue";
 	import Loading from "../components/loading.vue";
+
+	import QuitClearner from "../mixins/quit-cleaner";
 
 
 
@@ -275,6 +282,11 @@
 		},
 
 
+		mixins: [
+			QuitClearner,
+		],
+
+
 		components: {
 			MidiDevices,
 			Loading,
@@ -299,6 +311,7 @@
 				isPlaying: false,
 				midiFileName: null,
 				loading: true,
+				touchHolding: false,
 			};
 		},
 
@@ -380,6 +393,11 @@
 				MidiPlayer.loadPlugin().then(() => {
 					this.loading = false;
 					console.log("MIDI loaded.");
+
+					this.appendCleaner(() => {
+						MidiPlayer.stopAllNotes();
+						MidiPlayer.Player.pause();
+					});
 				});
 			}
 			else
@@ -422,12 +440,8 @@
 					break;
 				}
 			});
-		},
 
-
-		beforeDestroy () {
-			MidiPlayer.stopAllNotes();
-			MidiPlayer.Player.pause();
+			//console.log("file:", this.$refs.filePicker);
 		},
 
 
@@ -437,17 +451,15 @@
 			},
 
 
-			async onDropFiles (event) {
-				this.drageHover = false;
-
-				MidiPlayer.Player.stop();
-				this.isPlaying = false;
-
-				const file = event.dataTransfer.files[0];
-				//console.log("file:", file);
+			async loadFile (file) {
 				switch (file.type) {
 				case "audio/mid":
 				case "audio/midi":
+					MidiPlayer.Player.stop();
+					this.isPlaying = false;
+
+					this.loading = true;
+
 					const buffer = await file.readAs("ArrayBuffer");
 					const blob = new Blob([buffer], {type: file.type});
 					const url = URL.createObjectURL(blob);
@@ -459,8 +471,23 @@
 
 					this.onPlayFile();
 
+					this.loading = false;
+
 					break;
 				}
+			},
+
+
+			onDropFiles (event) {
+				this.drageHover = false;
+
+				this.loadFile(event.dataTransfer.files[0]);
+			},
+
+
+			onFileOpen (event) {
+				//console.log("onFileOpen:", event);
+				this.loadFile(event.target.files[0]);
 			},
 
 
@@ -474,6 +501,37 @@
 					MidiPlayer.Player.resume();
 
 					this.isPlaying = true;
+				}
+			},
+
+
+			async onTouchStart () {
+				this.touchHolding = true;
+
+				try {
+					// wait a long tapping
+					await new Promise((resolve, reject) => {
+						this.interruptTouch = reject;
+						setTimeout(resolve, 1600);
+					});
+
+					this.$refs.filePicker.click();
+
+					this.touchHolding = false;
+					this.showDashboard = true;
+				}
+				catch (_) {
+					// interrupted
+				}
+			},
+
+
+			onTouchEnd () {
+				this.touchHolding = false;
+
+				if (this.interruptTouch) {
+					this.interruptTouch();
+					this.interruptTouch = null;
 				}
 			},
 
@@ -527,7 +585,7 @@
 
 
 			onMidiInputMessage (message) {
-				console.log("message:", message);
+				//console.log("message:", message);
 				const cmd = message.data[0] >> 4;
 				const channel = message.data[0] & 0xf;
 				const pitch = message.data[1];
@@ -564,12 +622,18 @@
 	{
 		width: 100%;
 		height: 100%;
+		transition: background-color 1s;
 	}
 
 	.drag-hover
 	{
 		outline: 4px #4f4 solid;
 		background-color: #cfc;
+	}
+
+	.touch-hover
+	{
+		background-color: #fc6;
 	}
 
 	.full-width

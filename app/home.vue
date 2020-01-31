@@ -154,8 +154,8 @@ This is a music visualization program which based on the <a href="https://en.wik
 
 
 		watch: {
-			$route (to, from) {
-				console.log("$route:", from);
+			$route (to) {
+				//console.log("$route:", from);
 				this.currentApp = to.name;
 				if (!this.currentApp)
 					this.devoting = false;

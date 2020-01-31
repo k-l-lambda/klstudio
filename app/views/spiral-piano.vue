@@ -104,7 +104,7 @@
 							:data-pitch="key.pitch"
 							:data-step="key.step"
 							:d="key.path"
-							@mousedown="onKeyDown(key.pitch)"
+							@mousedown.stop="onKeyDown(key.pitch)"
 							@mouseup="onKeyUp(key.pitch)"
 							@touchstart.prevent="onKeyDown(key.pitch)"
 							@touchend.prevent="onKeyUp(key.pitch)"
@@ -146,6 +146,7 @@
 					</tr>
 				</tbody>
 			</table>
+			<input type="file" ref="filePicker" v-show="false" accept="audio/midi" @change="onFileOpen" />
 		</div>
 		<div class="tips" v-show="isPlaying && !showDashboard">
 			F9 show controls.
@@ -436,6 +437,8 @@
 					break;
 				}
 			});
+
+			//console.log("file:", this.$refs.filePicker);
 		},
 
 
@@ -445,17 +448,13 @@
 			},
 
 
-			async onDropFiles (event) {
-				this.drageHover = false;
-
-				MidiPlayer.Player.stop();
-				this.isPlaying = false;
-
-				const file = event.dataTransfer.files[0];
-				//console.log("file:", file);
+			async loadFile (file) {
 				switch (file.type) {
 				case "audio/mid":
 				case "audio/midi":
+					MidiPlayer.Player.stop();
+					this.isPlaying = false;
+
 					const buffer = await file.readAs("ArrayBuffer");
 					const blob = new Blob([buffer], {type: file.type});
 					const url = URL.createObjectURL(blob);
@@ -469,6 +468,19 @@
 
 					break;
 				}
+			},
+
+
+			onDropFiles (event) {
+				this.drageHover = false;
+
+				this.loadFile(event.dataTransfer.files[0]);
+			},
+
+
+			onFileOpen (event) {
+				//console.log("onFileOpen:", event);
+				this.loadFile(event.target.files[0]);
 			},
 
 
@@ -535,7 +547,7 @@
 
 
 			onMidiInputMessage (message) {
-				console.log("message:", message);
+				//console.log("message:", message);
 				const cmd = message.data[0] >> 4;
 				const channel = message.data[0] & 0xf;
 				const pitch = message.data[1];

@@ -76,11 +76,11 @@
 				this.renderer.setClearColor(new THREE.Color("lightblue"), 1);
 				this.renderer.setSize(this.size.width, this.size.height, false);
 
-				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 10, 1000);
+				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 0.1, 100);
 
 				this.viewTheta = Math.PI * 0.3;
 				this.viewPhi = 0;
-				this.viewRadius = 360;
+				this.viewRadius = 6;
 
 				this.scene = new THREE.Scene();
 
@@ -127,7 +127,10 @@
 
 
 			async createScene () {
-				// TODO:
+				const {default: knight} = await import("../assets/chess-knight.json");
+				//console.log("knight:", knight);
+				const obj = await new Promise(resolve => new THREE.ObjectLoader().parse(knight, resolve));
+				this.scene.add(obj);
 			},
 
 

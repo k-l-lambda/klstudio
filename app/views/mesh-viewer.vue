@@ -47,7 +47,8 @@
 
 
 		created () {
-			//window.$main = this;
+			if (process.env.NODE_ENV === "development")
+				window.$view = this;
 		},
 
 
@@ -79,15 +80,24 @@
 				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 0.1, 100);
 
 				this.viewTheta = Math.PI * 0.3;
-				this.viewPhi = 0;
+				this.viewPhi = Math.PI * 0.5;
 				this.viewRadius = 6;
 
 				this.scene = new THREE.Scene();
 
-				this.rendererActive = true;
+				const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+				mainLight.position.set(-30, 100, 60);
+				mainLight.target = this.scene;
+				this.scene.add(mainLight);
 
-				this.sphere = new THREE.SphereGeometry(8, 32, 16);
-				this.cone = new THREE.ConeGeometry(1, 1, 16);
+				const skyLight = new THREE.DirectionalLight("lightblue", 0.4);
+				skyLight.position.set(0, 1000, 0);
+				skyLight.target = this.scene;
+				this.scene.add(skyLight);
+
+				this.scene.add(new THREE.AmbientLight("#323f43"));
+
+				this.rendererActive = true;
 			},
 
 

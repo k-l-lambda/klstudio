@@ -31,7 +31,13 @@ const routes = [
 	{
 		path: "/documents/mesh-viewer",
 		name: "Mesh Viewer",
-		component: () => import(/* webpackChunkName: "hyperbolic" */ "./views/mesh-viewer.vue"),
+		component: () => import(/* webpackChunkName: "mesh-viewer" */ "./views/mesh-viewer.vue"),
+		props: route => route.query.param ? JSON.parse(route.query.param) : {},
+	},
+	{
+		path: "/documents/mesh-viewer-demo",
+		name: "Mesh Viewer Demo",
+		component: () => import("./views/mesh-viewer-demo.vue"),
 	},
 	{
 		path: "/curves-editor",

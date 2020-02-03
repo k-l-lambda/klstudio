@@ -5,7 +5,12 @@
 			@mousewheel="onMouseWheel"
 		>
 			<canvas ref="canvas" :width="size.width" :height="size.height"/>
-			<span class="status">
+			<div>
+				<span class="label" v-for="(label, i) of labels" :key="i" v-html="label.content"
+					:style="{left: `${label.position.x * 100}%`, top: `${label.position.y * 100}%`}"
+				></span>
+			</div>
+			<span class="status" v-show="showStatus">
 				<span v-if="fps" class="fps">fps <em>{{fps}}</em></span>
 			</span>
 		</article>
@@ -28,6 +33,37 @@
 	);
 
 
+	class Label {
+		constructor (parent, camera, {content, offset = [0, 1.2, 0]} = {}) {
+			this.camera = camera;
+			this.content = content;
+
+			this.graphNode = new THREE.Object3D();
+			this.graphNode.position.set(...offset);
+			parent.add(this.graphNode);
+
+			this._pos = null;
+		}
+
+
+		get position () {
+			if (!this._pos)
+				this.updatePosition();
+
+			return this._pos;
+		}
+
+
+		updatePosition () {
+			const p = this.graphNode.getWorldPosition(new THREE.Vector3()).project(this.camera);
+
+			this._pos = this._pos || {};
+			this._pos.x = (p.x + 1) / 2;
+			this._pos.y = (-p.y + 1) / 2;
+		}
+	};
+
+
 
 	export default {
 		name: "mesh-viewer",
@@ -38,10 +74,20 @@
 		},
 
 
+		props: {
+			light: {
+				default: "white",
+			},
+			entities: Array,
+			showStatus: false,
+		},
+
+
 		data () {
 			return {
 				size: {width: 800, height: 800},
 				fps: 0,
+				labels: [],
 			};
 		},
 
@@ -85,7 +131,7 @@
 
 				this.scene = new THREE.Scene();
 
-				const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+				const mainLight = new THREE.DirectionalLight(this.light, 1);
 				mainLight.position.set(-30, 100, 60);
 				mainLight.target = this.scene;
 				this.scene.add(mainLight);
@@ -112,6 +158,8 @@
 					this.camera.lookAt(0, 0, 0);
 
 					this.renderer.render(this.scene, this.camera);
+
+					this.updateLabels();
 
 					++frames;
 
@@ -141,6 +189,37 @@
 				//console.log("knight:", knight);
 				const obj = await new Promise(resolve => new THREE.ObjectLoader().parse(knight, resolve));
 				this.scene.add(obj);
+
+				if (this.entities) {
+					for (const entity of this.entities) {
+						const {default: prototype} = await import(`../assets/${entity.prototype}.json`);
+						const obj = await new Promise(resolve => new THREE.ObjectLoader().parse(prototype, resolve));
+						this.scene.add(obj);
+
+						if (entity.position) 
+							obj.position.set(...entity.position);
+
+						if (entity.quaternion) 
+							obj.quaternion.set(...entity.quaternion);
+
+						//console.log("obj:", obj);
+
+						if (entity.label) {
+							const label = new Label(obj, this.camera, typeof entity.label === "object" ? entity.label : {content: entity.label});
+
+							this.labels.push(label);
+						}
+					}
+				}
+			},
+
+
+			updateLabels () {
+				for (const label of this.labels) 
+					label.updatePosition();
+
+				if (this.labels.length)
+					this.$forceUpdate();
 			},
 
 
@@ -194,6 +273,14 @@
 		height: 100%;
 	}
 
+	.label
+	{
+		position: absolute;
+		transform: translate(-50%, -50%);
+		font-weight: bold;
+		font-family: Arial, Helvetica, sans-serif;
+	}
+
 	.status
 	{
 		position: absolute;
@@ -212,13 +299,6 @@
 	.fps em
 	{
 		font-weight: bold;
-	}
-
-	header
-	{
-		position: absolute;
-		right: 0;
-		top: 0;
 	}
 
 	.control .handle circle

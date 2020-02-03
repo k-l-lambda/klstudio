@@ -25,6 +25,6 @@ module.exports = {
 	},
 	devServer: {
 		//proxy: `http://localhost:${process.env.PORT}`,
-		https: true,
+		https: !!process.env.HTTPS,
 	},
 };

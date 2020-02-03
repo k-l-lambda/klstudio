@@ -44,7 +44,10 @@
 
 
 		props: {
-			rendererActive: true,
+			rendererActive: {
+				type: Boolean,
+				default: true,
+			},
 		},
 
 

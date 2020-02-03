@@ -19,7 +19,7 @@ module.exports = {
 			title: "K.L. Studio X",
 		},
 		embed: {
-			filename: "embed",
+			filename: "embed.html",
 			entry: "./app/embed.ts",
 			template: htmlCommonTemplate,
 			title: "K.L. Studio",

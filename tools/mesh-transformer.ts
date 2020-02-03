@@ -11,7 +11,7 @@ const normalizer = ({xmin, xmax, ymin, ymax, zmin, zmax}) => ([x, y, z]) => [
 ];
 
 
-const main = async inputFile => {
+const transform = async (inputFile, posFilter) => {
 	const content = fs.readFileSync(inputFile);
 	const json = JSON.parse(content);
 	//console.log(json.geometries[0].data.attributes.position.array);
@@ -39,7 +39,7 @@ const main = async inputFile => {
 	};
 	//console.log("traits:", traits);
 
-	const norm = normalizer(traits);
+	const norm = posFilter(traits);
 
 	for (const geometry of json.geometries) {
 		const {array} = geometry.data.attributes.position;
@@ -52,10 +52,22 @@ const main = async inputFile => {
 	}
 
 	const outputText = JSON.stringify(json);
-	fs.writeFileSync(inputFile.replace(/.\w+$/, "_normalized.json"), outputText);
+	fs.writeFileSync(inputFile.replace(/.\w+$/, "_transformed.json"), outputText);
 
 	console.log("Done.");
 };
 
 //console.log("argv:", argv);
-main(argv._[0]);
+//main(argv._[0]);
+
+
+declare let global:any;
+Object.assign(global, {
+	transform,
+	normalizer,
+});
+
+console.log("Ready.");
+
+
+setTimeout(x => x, 0x7fffffff);

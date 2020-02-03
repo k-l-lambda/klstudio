@@ -1,5 +1,6 @@
 
 TODO:
+	new favicon
 	globe-cube3:
 		auto twists
 	4D regular polytopes viewer
@@ -10,6 +11,8 @@ TODO:
 
 
 2020.2.3	K.L.	<k.l.lambda@gmail.com>
+
+	+	mesh-viewer-demo.vue: added property of config.
 
 	>	cube3.vue: fixed middle button event handler.
 

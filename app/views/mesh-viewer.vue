@@ -79,7 +79,17 @@
 				default: "white",
 			},
 			entities: Array,
-			showStatus: false,
+			showStatus: {
+				default: false,
+			},
+			cameraInit: {
+				type: Object,
+				default: () => ({
+					radius: 6,
+					theta: 0,
+					phi: 0,
+				}),
+			},
 		},
 
 
@@ -125,9 +135,9 @@
 
 				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 0.1, 100);
 
-				this.viewTheta = Math.PI * 0.3;
-				this.viewPhi = Math.PI * 0.5;
-				this.viewRadius = 6;
+				this.viewTheta = this.cameraInit.theta + Math.PI * 0.5;
+				this.viewPhi = this.cameraInit.phi + Math.PI * 0.5;
+				this.viewRadius = this.cameraInit.radius;
 
 				this.scene = new THREE.Scene();
 

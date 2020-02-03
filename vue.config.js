@@ -18,6 +18,12 @@ module.exports = {
 			template: htmlCommonTemplate,
 			title: "K.L. Studio X",
 		},
+		embed: {
+			filename: "embed",
+			entry: "./app/embed.ts",
+			template: htmlCommonTemplate,
+			title: "K.L. Studio",
+		},
 	},
 	chainWebpack: config => {
 		// remove prefetch links for home page

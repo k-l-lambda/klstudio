@@ -11,6 +11,8 @@ TODO:
 
 2020.2.3	K.L.	<k.l.lambda@gmail.com>
 
+	+	mesh-viewer-demo.vue: 24 orientation array added.
+
 	+	mesh-viewer.vue: label sprite added.
 
 	+	mesh-viewer.vue: mesh of knight added.

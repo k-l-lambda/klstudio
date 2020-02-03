@@ -185,27 +185,32 @@
 
 
 			async createScene () {
-				const {default: knight} = await import("../assets/chess-knight.json");
+				/*const {default: knight} = await import("../assets/chess-knight.json");
 				//console.log("knight:", knight);
 				const obj = await new Promise(resolve => new THREE.ObjectLoader().parse(knight, resolve));
-				this.scene.add(obj);
+				this.scene.add(obj);*/
 
 				if (this.entities) {
 					for (const entity of this.entities) {
+						const node1 = new THREE.Object3D();
+						this.scene.add(node1);
+
 						const {default: prototype} = await import(`../assets/${entity.prototype}.json`);
 						const obj = await new Promise(resolve => new THREE.ObjectLoader().parse(prototype, resolve));
-						this.scene.add(obj);
+						node1.add(obj);
 
 						if (entity.position) 
-							obj.position.set(...entity.position);
+							node1.position.set(...entity.position);
 
 						if (entity.quaternion) 
 							obj.quaternion.set(...entity.quaternion);
+						else if (entity.euler)
+							obj.quaternion.setFromEuler(new THREE.Euler(...entity.euler, "XZY"));
 
 						//console.log("obj:", obj);
 
 						if (entity.label) {
-							const label = new Label(obj, this.camera, typeof entity.label === "object" ? entity.label : {content: entity.label});
+							const label = new Label(node1, this.camera, typeof entity.label === "object" ? entity.label : {content: entity.label});
 
 							this.labels.push(label);
 						}
@@ -279,6 +284,8 @@
 		transform: translate(-50%, -50%);
 		font-weight: bold;
 		font-family: Arial, Helvetica, sans-serif;
+		text-shadow: 0 0 2px white;
+		user-select: none;
 	}
 
 	.status

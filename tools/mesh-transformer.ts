@@ -11,7 +11,7 @@ const normalizer = ({xmin, xmax, ymin, ymax, zmin, zmax}) => ([x, y, z]) => [
 ];
 
 
-const transform = async (inputFile, posFilter) => {
+const transform = async (inputFile, posFilter, normalFilter) => {
 	const content = fs.readFileSync(inputFile);
 	const json = JSON.parse(content);
 	//console.log(json.geometries[0].data.attributes.position.array);
@@ -39,15 +39,31 @@ const transform = async (inputFile, posFilter) => {
 	};
 	//console.log("traits:", traits);
 
-	const norm = posFilter(traits);
+	if (posFilter) {
+		const posFilterFunc = posFilter(traits);
 
-	for (const geometry of json.geometries) {
-		const {array} = geometry.data.attributes.position;
-		for (let i = 0; i < array.length / 3; ++i) {
-			const pos = norm(array.slice(i * 3, (i + 1) * 3));
-			array[i * 3] = pos[0];
-			array[i * 3 + 1] = pos[1];
-			array[i * 3 + 2] = pos[2];
+		for (const geometry of json.geometries) {
+			const {array} = geometry.data.attributes.position;
+			for (let i = 0; i < array.length / 3; ++i) {
+				const pos = posFilterFunc(array.slice(i * 3, (i + 1) * 3));
+				array[i * 3] = pos[0];
+				array[i * 3 + 1] = pos[1];
+				array[i * 3 + 2] = pos[2];
+			}
+		}
+	}
+
+	if (normalFilter) {
+		const normalFilterFunc = normalFilter(traits);
+
+		for (const geometry of json.geometries) {
+			const {array} = geometry.data.attributes.normal;
+			for (let i = 0; i < array.length / 3; ++i) {
+				const pos = normalFilterFunc(array.slice(i * 3, (i + 1) * 3));
+				array[i * 3] = pos[0];
+				array[i * 3 + 1] = pos[1];
+				array[i * 3 + 2] = pos[2];
+			}
 		}
 	}
 

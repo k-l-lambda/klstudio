@@ -34,7 +34,7 @@
 
 
 	class Label {
-		constructor (parent, camera, {content, offset = [0, 1.2, 0]} = {}) {
+		constructor (parent, camera, {content, offset = [0, 1.3, 0]} = {}) {
 			this.camera = camera;
 			this.content = content;
 
@@ -195,11 +195,6 @@
 
 
 			async createScene () {
-				/*const {default: knight} = await import("../assets/chess-knight.json");
-				//console.log("knight:", knight);
-				const obj = await new Promise(resolve => new THREE.ObjectLoader().parse(knight, resolve));
-				this.scene.add(obj);*/
-
 				if (this.entities) {
 					for (const entity of this.entities) {
 						const node1 = new THREE.Object3D();
@@ -296,6 +291,7 @@
 		font-family: Arial, Helvetica, sans-serif;
 		text-shadow: 0 0 2px white;
 		user-select: none;
+		white-space: nowrap;
 	}
 
 	.status

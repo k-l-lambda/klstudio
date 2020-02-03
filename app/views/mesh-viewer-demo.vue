@@ -30,8 +30,136 @@
 	};
 
 
+
+	const SQRT_HALF = Math.sqrt(0.5);
+
+	const categoriesList = [
+		[
+			{
+				label: "1",
+				quaternion: [0, 0, 0, 1],
+			},
+		],
+		[
+			{
+				label: "i<sup>1/2</sup>",
+				quaternion: [SQRT_HALF, 0, 0, SQRT_HALF],
+			},
+			{
+				label: "i<sup>-1/2</sup>",
+				quaternion: [-SQRT_HALF, 0, 0, SQRT_HALF],
+			},
+			{
+				label: "j<sup>1/2</sup>",
+				quaternion: [0, SQRT_HALF, 0, SQRT_HALF],
+			},
+			{
+				label: "j<sup>-1/2</sup>",
+				quaternion: [0, -SQRT_HALF, 0, SQRT_HALF],
+			},
+			{
+				label: "k<sup>1/2</sup>",
+				quaternion: [0, 0, SQRT_HALF, SQRT_HALF],
+			},
+			{
+				label: "k<sup>-1/2</sup>",
+				quaternion: [0, 0, -SQRT_HALF, SQRT_HALF],
+			},
+		],
+		[
+			{
+				label: "i",
+				quaternion: [1, 0, 0, 0],
+			},
+			{
+				label: "j",
+				quaternion: [0, 1, 0, 0],
+			},
+			{
+				label: "k",
+				quaternion: [0, 0, 1, 0],
+			},
+		],
+		[
+			{
+				label: "i<sup>1/2</sup>j<sup>1/2</sup>",
+				quaternion: [0.5, 0.5, 0.5, 0.5],
+			},
+			{
+				label: "i<sup>1/2</sup>j<sup>-1/2</sup>",
+				quaternion: [0.5, -0.5, -0.5, 0.5],
+			},
+			{
+				label: "i<sup>-1/2</sup>j<sup>1/2</sup>",
+				quaternion: [-0.5, 0.5, -0.5, 0.5],
+			},
+			{
+				label: "i<sup>-1/2</sup>j<sup>-1/2</sup>",
+				quaternion: [-0.5, -0.5, 0.5, 0.5],
+			},
+			{
+				label: "i<sup>1/2</sup>k<sup>1/2</sup>",
+				quaternion: [0.5, -0.5, 0.5, 0.5],
+			},
+			{
+				label: "i<sup>1/2</sup>k<sup>-1/2</sup>",
+				quaternion: [0.5, 0.5, -0.5, 0.5],
+			},
+			{
+				label: "i<sup>-1/2</sup>k<sup>1/2</sup>",
+				quaternion: [-0.5, 0.5, 0.5, 0.5],
+			},
+			{
+				label: "i<sup>-1/2</sup>k<sup>-1/2</sup>",
+				quaternion: [-0.5, -0.5, -0.5, 0.5],
+			},
+		],
+		[
+			{
+				label: "i<sup>1/2</sup>j",
+				quaternion: [0, SQRT_HALF, SQRT_HALF, 0],
+			},
+			{
+				label: "i<sup>-1/2</sup>j",
+				quaternion: [0, SQRT_HALF, -SQRT_HALF, 0],
+			},
+			{
+				label: "ij<sup>1/2</sup>",
+				quaternion: [SQRT_HALF, 0, SQRT_HALF, 0],
+			},
+			{
+				label: "ij<sup>-1/2</sup>",
+				quaternion: [SQRT_HALF, 0, -SQRT_HALF, 0],
+			},
+			{
+				label: "ik<sup>1/2</sup>",
+				quaternion: [SQRT_HALF, SQRT_HALF, 0, 0],
+			},
+			{
+				label: "ik<sup>-1/2</sup>",
+				quaternion: [SQRT_HALF, -SQRT_HALF, 0, 0],
+			},
+		],
+	];
+
+	const configCategories = {
+		entities: [].concat(...categoriesList.map((line, row) => line.map(({label, quaternion}, index) => ({
+			label,
+			prototype: "chess-knight",
+			position: [(index - (line.length - 1) / 2) * 4, (2 - row) * 4, 0],
+			quaternion,
+		})))),
+		cameraInit: {
+			radius: 20,
+			theta: 0,
+			phi: 0,
+		},
+	};
+
+
 	const configs = {
-		"4x6": config4x6,
+		"quarter-array-4x6": config4x6,
+		"quarter-categories": configCategories,
 	};
 
 

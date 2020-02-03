@@ -12,6 +12,8 @@ TODO:
 
 2020.2.3	K.L.	<k.l.lambda@gmail.com>
 
+	+	mesh-viewer-demo.vue: added config of quarter-categories.
+
 	+	mesh-viewer-demo.vue: added property of config.
 
 	>	cube3.vue: fixed middle button event handler.

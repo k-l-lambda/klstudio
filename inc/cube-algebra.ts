@@ -240,14 +240,14 @@ const K2 = new Item(_k, 2);
 
 const NORMAL_ORIENTATIONS = [
 	[],
+	[I2], [J2], [K2],
 	[I], [J], [K],
 	[I_], [J_], [K_],
-	[I2], [J2], [K2],
-	[I, J], [I_, J], [I2, J],
-	[I, J_], [I_, J_], [I2, J_],
-	[I, K], [I_, K], [I2, K],
-	[I, K_], [I_, K_], [I2, K_],
-	[I, J2], [I_, J2],
+	[I, J], [I, J_],
+	[I_, J], [I_, J_],
+	[I, K], [I, K_],
+	[I_, K], [I_, K_],
+	[I, J2], [I_, J2], [I2, J], [I2, J_], [I2, K], [I2, K_],
 ].map(items => new Orientation(items));
 
 const NORMAL_ORIENTATION_NAMES = NORMAL_ORIENTATIONS.map(o => o.toString());

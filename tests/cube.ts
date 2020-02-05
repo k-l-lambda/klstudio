@@ -26,6 +26,7 @@ Object.assign(global, {
 });
 
 
+console.log("MULTIPLICATION_TABLE:", MULTIPLICATION_TABLE);
 const exp1 = new Orientation([I, J_, K2]);
 console.assert(exp1.toString() === "ij'k2", "exp1 string format error:", exp1.toString());
 

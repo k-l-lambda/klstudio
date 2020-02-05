@@ -2,7 +2,7 @@
 	<div class="mesh-viewer" v-resize="onResize">
 		<article
 			@mousemove="onMouseMove"
-			@mousewheel="onMouseWheel"
+			@mousewheel.prevent="onMouseWheel"
 		>
 			<canvas ref="canvas" :width="size.width" :height="size.height"/>
 			<div>

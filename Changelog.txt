@@ -1,5 +1,7 @@
 
 TODO:
+	mesh viewer:
+		accelerometer sensor
 	new favicon
 	globe-cube3:
 		auto twists

@@ -2,7 +2,7 @@
 	<div class="cube-cayley-graph" v-resize="onResize">
 		<article
 			@mousemove="onMouseMove"
-			@mousewheel="onMouseWheel"
+			@mousewheel.prevent="onMouseWheel"
 		>
 			<canvas ref="canvas" :width="size.width" :height="size.height"/>
 			<span class="status">
@@ -378,12 +378,12 @@
 		bottom: 0;
 		padding: 4px;
 		color: #0006;
-		pointer-events: none;
+		user-select: none;
 	}
 
 	.fps
 	{
-		font-size: 9px;
+		font-size: 6px;
 	}
 
 	.fps em
@@ -396,6 +396,12 @@
 		position: absolute;
 		right: 0;
 		top: 0;
+	}
+
+	.control
+	{
+		max-width: 36vh;
+		max-height: 36vh;
 	}
 
 	.control .handle circle

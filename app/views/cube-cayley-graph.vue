@@ -166,7 +166,8 @@
 
 
 		created () {
-			window.$main = this;
+			if (process.env.NODE_ENV === "development")
+				window.$view = this;
 		},
 
 
@@ -199,8 +200,8 @@
 				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 10, 1000);
 
 				this.viewTheta = Math.PI * 0.3;
-				this.viewPhi = 0;
-				this.viewRadius = 360;
+				this.viewPhi = Math.PI * 0.6;
+				this.viewRadius = 300;
 
 				this.scene = new THREE.Scene();
 

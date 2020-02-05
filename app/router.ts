@@ -35,9 +35,10 @@ export const routes = [
 		props: route => route.query.param ? JSON.parse(route.query.param) : {},
 	},
 	{
-		path: "/documents/mesh-viewer-demo",
+		path: "/documents/mesh-viewer-demo::config",
 		name: "Mesh Viewer Demo",
 		component: () => import("./views/mesh-viewer-demo.vue"),
+		props: true,
 	},
 	{
 		path: "/curves-editor",

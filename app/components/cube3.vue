@@ -217,18 +217,23 @@
 
 
 			onMouseDown (event) {
-				const axis = this.raycastAxis(event);
-				if (Number.isInteger(axis)) {
-					const pivot = this.cube.graph.localToWorld(AXIS_POINTS[axis].clone());
-					pivot.project(this.camera);
-					pivot.z = 0;
-					//console.log("pivot1:", axis, pivot.toArray());
+				switch (event.buttons) {
+				case 1:
+					const axis = this.raycastAxis(event);
+					if (Number.isInteger(axis)) {
+						const pivot = this.cube.graph.localToWorld(AXIS_POINTS[axis].clone());
+						pivot.project(this.camera);
+						pivot.z = 0;
+						//console.log("pivot1:", axis, pivot.toArray());
 
-					this.holdingAxis = axis;
-					this.holdPosition = {
-						pivot,
-						start: this.normalizeScreenPoint(event),
-					};
+						this.holdingAxis = axis;
+						this.holdPosition = {
+							pivot,
+							start: this.normalizeScreenPoint(event),
+						};
+					}
+
+					break;
 				}
 			},
 
@@ -255,7 +260,7 @@
 			onTouchStart (event) {
 				//console.log("onTouchStart:", event);
 				if (this.rendererActive && event.touches.length === 1) {
-					this.onMouseDown(this.touchToOffsetPoint(event.touches[0]));
+					this.onMouseDown(this.touchToOffsetPoint(event.touches[0], {buttons: 1}));
 					event.preventDefault();
 				}
 			},

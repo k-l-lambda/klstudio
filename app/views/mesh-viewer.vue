@@ -2,7 +2,7 @@
 	<div class="mesh-viewer" v-resize="onResize">
 		<article
 			@mousemove="onMouseMove"
-			@mousewheel="onMouseWheel"
+			@mousewheel.prevent="onMouseWheel"
 		>
 			<canvas ref="canvas" :width="size.width" :height="size.height"/>
 			<div>
@@ -34,7 +34,7 @@
 
 
 	class Label {
-		constructor (parent, camera, {content, offset = [0, 1.2, 0]} = {}) {
+		constructor (parent, camera, {content, offset = [0, 1.3, 0]} = {}) {
 			this.camera = camera;
 			this.content = content;
 
@@ -79,7 +79,17 @@
 				default: "white",
 			},
 			entities: Array,
-			showStatus: false,
+			showStatus: {
+				default: false,
+			},
+			cameraInit: {
+				type: Object,
+				default: () => ({
+					radius: 6,
+					theta: 0,
+					phi: 0,
+				}),
+			},
 		},
 
 
@@ -125,9 +135,9 @@
 
 				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 0.1, 100);
 
-				this.viewTheta = Math.PI * 0.3;
-				this.viewPhi = Math.PI * 0.5;
-				this.viewRadius = 6;
+				this.viewTheta = this.cameraInit.theta + Math.PI * 0.5;
+				this.viewPhi = this.cameraInit.phi + Math.PI * 0.5;
+				this.viewRadius = this.cameraInit.radius;
 
 				this.scene = new THREE.Scene();
 
@@ -185,11 +195,6 @@
 
 
 			async createScene () {
-				/*const {default: knight} = await import("../assets/chess-knight.json");
-				//console.log("knight:", knight);
-				const obj = await new Promise(resolve => new THREE.ObjectLoader().parse(knight, resolve));
-				this.scene.add(obj);*/
-
 				if (this.entities) {
 					for (const entity of this.entities) {
 						const node1 = new THREE.Object3D();
@@ -286,6 +291,7 @@
 		font-family: Arial, Helvetica, sans-serif;
 		text-shadow: 0 0 2px white;
 		user-select: none;
+		white-space: nowrap;
 	}
 
 	.status

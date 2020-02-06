@@ -39,6 +39,9 @@
 	import {animationDelay} from "../delay";
 	import {MULTIPLICATION_TABLE} from "../../inc/cube-algebra";
 
+	import QuitClearner from "../mixins/quit-cleaner";
+	import Accelerometer from "../mixins/accelerometer.js";
+
 
 
 	/*const OCTAVE = 1 / Math.sqrt(3);
@@ -130,6 +133,9 @@
 	].forEach(item => elementsSchema.push(centerElem(...item)));
 
 
+	const SENSOR_SENSITIVITY = 1e-3;
+
+
 
 	export default {
 		name: "cube-cayley-graph",
@@ -138,6 +144,12 @@
 		directives: {
 			resize,
 		},
+
+
+		mixins: [
+			QuitClearner,
+			Accelerometer,
+		],
 
 
 		data () {
@@ -223,6 +235,13 @@
 
 				while (this.rendererActive) {
 					//this.$emit("beforeRender");
+
+					if (this.sensorVelocity) {
+						this.viewTheta += this.sensorVelocity[1] * SENSOR_SENSITIVITY;
+						this.viewPhi += this.sensorVelocity[0] * SENSOR_SENSITIVITY;
+
+						this.viewTheta = Math.max(Math.min(this.viewTheta, Math.PI - 0.01), 0.01);
+					}
 
 					this.camera.position.copy(sphericalToCartesian(this.viewRadius, this.viewTheta, this.viewPhi));
 					this.camera.lookAt(0, 0, 0);

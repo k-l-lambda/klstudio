@@ -21,7 +21,7 @@
 	import Cube3 from "../components/cube3.vue";
 
 	import QuitClearner from "../mixins/quit-cleaner";
-	import Accelerometer from "../mixins/accelerometer";
+	import Accelerometer from "../mixins/accelerometer.js";
 
 
 

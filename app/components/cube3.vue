@@ -17,7 +17,6 @@
 
 	import {animationDelay} from "../delay";
 	import CubeObject from "../cubeObject";
-	//window.THREE = THREE;
 
 
 
@@ -100,7 +99,7 @@
 			this.render();
 		},
 
-		
+
 		beforeDestroy () {
 			this.rendererActive = false;
 		},

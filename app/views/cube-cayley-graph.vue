@@ -20,6 +20,7 @@
 							:cx="100 * Math.cos((i + 3.5) * Math.PI / 3)"
 							:cy="100 * Math.sin((i + 3.5) * Math.PI / 3)"
 							@click="rotate(i)"
+							@touchstart.prevent="rotate(i)"
 						/>
 					</g>
 				</g>

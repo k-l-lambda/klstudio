@@ -14,6 +14,8 @@ TODO:
 
 2020.2.6	K.L.	<k.l.lambda@gmail.com>
 
+	+	mixins/accelerometer.ts created.
+
 	+	mesh-viewer.vue: camera control by touch added.
 
 

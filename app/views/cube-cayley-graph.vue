@@ -3,6 +3,8 @@
 		<article
 			@mousemove="onMouseMove"
 			@mousewheel.prevent="onMouseWheel"
+			@touchmove.prevent="onTouchMove"
+			@touchend="onTouchEnd"
 		>
 			<canvas ref="canvas" :width="size.width" :height="size.height"/>
 			<span class="status">
@@ -18,6 +20,7 @@
 							:cx="100 * Math.cos((i + 3.5) * Math.PI / 3)"
 							:cy="100 * Math.sin((i + 3.5) * Math.PI / 3)"
 							@click="rotate(i)"
+							@touchstart.prevent="rotate(i)"
 						/>
 					</g>
 				</g>
@@ -35,6 +38,9 @@
 
 	import {animationDelay} from "../delay";
 	import {MULTIPLICATION_TABLE} from "../../inc/cube-algebra";
+
+	import QuitClearner from "../mixins/quit-cleaner";
+	import Accelerometer from "../mixins/accelerometer.js";
 
 
 
@@ -127,6 +133,9 @@
 	].forEach(item => elementsSchema.push(centerElem(...item)));
 
 
+	const SENSOR_SENSITIVITY = .4e-3;
+
+
 
 	export default {
 		name: "cube-cayley-graph",
@@ -135,6 +144,12 @@
 		directives: {
 			resize,
 		},
+
+
+		mixins: [
+			QuitClearner,
+			Accelerometer,
+		],
 
 
 		data () {
@@ -220,6 +235,13 @@
 
 				while (this.rendererActive) {
 					//this.$emit("beforeRender");
+
+					if (this.sensorVelocity) {
+						this.viewTheta += this.sensorVelocity[1] * SENSOR_SENSITIVITY;
+						this.viewPhi += this.sensorVelocity[0] * SENSOR_SENSITIVITY;
+
+						this.viewTheta = Math.max(Math.min(this.viewTheta, Math.PI - 0.01), 0.01);
+					}
 
 					this.camera.position.copy(sphericalToCartesian(this.viewRadius, this.viewTheta, this.viewPhi));
 					this.camera.lookAt(0, 0, 0);
@@ -330,6 +352,31 @@
 			onMouseWheel (event) {
 				//console.log("onMouseWheel:", events);
 				this.viewRadius *= Math.exp(event.deltaY * 0.001);
+			},
+
+
+			onTouchMove (event) {
+				const touch = event.touches[0];
+
+				if (this.lastTouchPoint) {
+					const movementX = touch.pageX - this.lastTouchPoint.pageX;
+					const movementY = touch.pageY - this.lastTouchPoint.pageY;
+
+					this.viewPhi += movementX * 0.01;
+					this.viewTheta -= movementY * 0.01;
+
+					this.viewTheta = Math.max(Math.min(this.viewTheta, Math.PI - 0.01), 0.01);
+				}
+
+				this.lastTouchPoint = {
+					pageX: touch.pageX,
+					pageY: touch.pageY,
+				};
+			},
+
+
+			onTouchEnd () {
+				this.lastTouchPoint = null;
 			},
 
 

@@ -3,6 +3,8 @@
 		<article
 			@mousemove="onMouseMove"
 			@mousewheel.prevent="onMouseWheel"
+			@touchmove.prevent="onTouchMove"
+			@touchend="onTouchEnd"
 		>
 			<canvas ref="canvas" :width="size.width" :height="size.height"/>
 			<div>
@@ -23,6 +25,9 @@
 
 	import {animationDelay} from "../delay";
 	import {MULTIPLICATION_TABLE} from "../../inc/cube-algebra";
+
+	import QuitClearner from "../mixins/quit-cleaner";
+	import Accelerometer from "../mixins/accelerometer.js";
 
 
 
@@ -64,6 +69,9 @@
 	};
 
 
+	const SENSOR_SENSITIVITY = .4e-3;
+
+
 
 	export default {
 		name: "mesh-viewer",
@@ -72,6 +80,12 @@
 		directives: {
 			resize,
 		},
+
+
+		mixins: [
+			QuitClearner,
+			Accelerometer,
+		],
 
 
 		props: {
@@ -164,6 +178,13 @@
 				let stuck = 0;
 
 				while (this.rendererActive) {
+					if (this.sensorVelocity) {
+						this.viewTheta += this.sensorVelocity[1] * SENSOR_SENSITIVITY;
+						this.viewPhi += this.sensorVelocity[0] * SENSOR_SENSITIVITY;
+
+						this.viewTheta = Math.max(Math.min(this.viewTheta, Math.PI - 0.01), 0.01);
+					}
+
 					this.camera.position.copy(sphericalToCartesian(this.viewRadius, this.viewTheta, this.viewPhi));
 					this.camera.lookAt(0, 0, 0);
 
@@ -241,6 +262,31 @@
 
 					this.viewTheta = Math.max(Math.min(this.viewTheta, Math.PI - 0.01), 0.01);
 				}
+			},
+
+
+			onTouchMove (event) {
+				const touch = event.touches[0];
+
+				if (this.lastTouchPoint) {
+					const movementX = touch.pageX - this.lastTouchPoint.pageX;
+					const movementY = touch.pageY - this.lastTouchPoint.pageY;
+
+					this.viewPhi += movementX * 0.01;
+					this.viewTheta -= movementY * 0.01;
+
+					this.viewTheta = Math.max(Math.min(this.viewTheta, Math.PI - 0.01), 0.01);
+				}
+
+				this.lastTouchPoint = {
+					pageX: touch.pageX,
+					pageY: touch.pageY,
+				};
+			},
+
+
+			onTouchEnd () {
+				this.lastTouchPoint = null;
 			},
 
 

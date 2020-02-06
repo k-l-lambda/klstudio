@@ -21,6 +21,7 @@
 	import Cube3 from "../components/cube3.vue";
 
 	import QuitClearner from "../mixins/quit-cleaner";
+	import Accelerometer from "../mixins/accelerometer.js";
 
 
 
@@ -34,7 +35,7 @@
 	};
 
 
-	const SENSOR_DAMPING = 0.01;
+	//const SENSOR_DAMPING = 0.01;
 	const SENSOR_SENSITIVITY = 1e-3;
 
 
@@ -58,6 +59,7 @@
 
 		mixins: [
 			QuitClearner,
+			Accelerometer,
 		],
 
 
@@ -81,32 +83,6 @@
 
 		mounted () {
 			//window.$cube = this.$refs.cube3.cube;
-
-			this.sensorAcceleration = [0, 0, 0];
-			this.sensorVelocity = [0, 0, 0];
-			if (typeof LinearAccelerationSensor !== "undefined") {
-				navigator.permissions.query({name: "accelerometer"}).then(result => {
-					//console.log("accelerometer:", result);
-					if (result.state === "granted") {
-						const laSensor = new LinearAccelerationSensor({frequency: 60});
-
-						const sensorHandler = () => {
-							//if (laSensor.x * laSensor.x + laSensor.y * laSensor.y + laSensor.z * laSensor.z > 0.1)
-							//	console.log("la reading:", laSensor.x.toFixed(2), laSensor.y.toFixed(2), laSensor.z.toFixed(2));
-							this.sensorAcceleration = [laSensor.x, laSensor.y, laSensor.z];
-
-							this.sensorVelocity.forEach((_, i) => {
-								this.sensorVelocity[i] += this.sensorAcceleration[i];
-								this.sensorVelocity[i] *= (1 - SENSOR_DAMPING);
-							});
-						};
-						laSensor.addEventListener("reading", sensorHandler);
-						this.appendCleaner(() => laSensor.removeEventListener("reading", sensorHandler));
-
-						laSensor.start();
-					}
-				});
-			}
 
 			if (!this.rendererActive)
 				this.$refs.cube3.rendererActive = this.rendererActive;

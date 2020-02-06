@@ -3,6 +3,8 @@
 		<article
 			@mousemove="onMouseMove"
 			@mousewheel.prevent="onMouseWheel"
+			@touchmove.prevent="onTouchMove"
+			@touchend="onTouchEnd"
 		>
 			<canvas ref="canvas" :width="size.width" :height="size.height"/>
 			<span class="status">
@@ -330,6 +332,31 @@
 			onMouseWheel (event) {
 				//console.log("onMouseWheel:", events);
 				this.viewRadius *= Math.exp(event.deltaY * 0.001);
+			},
+
+
+			onTouchMove (event) {
+				const touch = event.touches[0];
+
+				if (this.lastTouchPoint) {
+					const movementX = touch.pageX - this.lastTouchPoint.pageX;
+					const movementY = touch.pageY - this.lastTouchPoint.pageY;
+
+					this.viewPhi += movementX * 0.01;
+					this.viewTheta -= movementY * 0.01;
+
+					this.viewTheta = Math.max(Math.min(this.viewTheta, Math.PI - 0.01), 0.01);
+				}
+
+				this.lastTouchPoint = {
+					pageX: touch.pageX,
+					pageY: touch.pageY,
+				};
+			},
+
+
+			onTouchEnd () {
+				this.lastTouchPoint = null;
 			},
 
 

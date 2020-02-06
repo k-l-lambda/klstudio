@@ -133,7 +133,7 @@
 	].forEach(item => elementsSchema.push(centerElem(...item)));
 
 
-	const SENSOR_SENSITIVITY = 1e-3;
+	const SENSOR_SENSITIVITY = .4e-3;
 
 
 

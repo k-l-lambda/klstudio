@@ -12,6 +12,11 @@ TODO:
 
 
 
+2020.2.6	K.L.	<k.l.lambda@gmail.com>
+
+	+	mesh-viewer.vue: camera control by touch added.
+
+
 2020.2.3	K.L.	<k.l.lambda@gmail.com>
 
 	+	mesh-viewer-demo.vue: added config of quarter-categories.

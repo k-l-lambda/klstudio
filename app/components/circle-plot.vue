@@ -1,10 +1,14 @@
 <template>
 	<div v-resize="onResize" class="circle-plot">
+		<div ref="plot"></div>
+		<div class="mask" v-show="loading" :style="{'background-image': `url(${imgLoading5d})`}"></div>
 	</div>
 </template>
 
 <script>
 	import resize from "vue-resize-directive";
+
+	import imgLoading5d from "../assets/loading-5d.gif";
 
 
 
@@ -42,6 +46,8 @@
 				size: {width: 800, height: 800},
 				center: null,
 				circle: null,
+				loading: false,
+				imgLoading5d,
 			};
 		},
 
@@ -78,7 +84,7 @@
 
 		methods: {
 			onResize () {
-				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
+				this.size = {width: this.$refs.plot.clientWidth, height: this.$refs.plot.clientHeight};
 			},
 
 
@@ -87,6 +93,8 @@
 				this.circle = null;
 
 				if (this.dataPath) {
+					this.loading = true;
+
 					const {default: dataUrl} = await import(`../assets/stylegan-mapping/${this.dataPath}/mappingSource.dat`);
 					const buffer = await (await fetch(dataUrl)).arrayBuffer();
 					const array = new Float32Array(buffer);
@@ -108,7 +116,7 @@
 
 			updatePlot () {
 				if (!this.normalPoints) {
-					this.$el.innerHTML = "";
+					this.$refs.plot.innerHTML = "";
 					return;
 				}
 
@@ -139,18 +147,22 @@
 					marker,
 				}));
 
-				this.Plotly.newPlot(this.$el, data, {
+				this.Plotly.newPlot(this.$refs.plot, data, {
 					margin: {l: 0, r: 0, t: 20, b: 0},
 					width: this.size.width,
 					height: this.size.height,
 				});
 
-				this.$el.on("plotly_hover", event => this.onPlotHover(event));
-				this.$el.on("plotly_unhover", () => this.onPlotUnhover());
+				this.$refs.plot.on("plotly_hover", event => this.onPlotHover(event));
+				this.$refs.plot.on("plotly_unhover", () => this.onPlotUnhover());
+
+				this.loading = false;
 			},
 
 
 			delayUpdatePlot () {
+				this.loading = true;
+
 				this.sliceUpdateTime = Date.now();
 				setTimeout(() => {
 					if (Date.now() - this.sliceUpdateTime > 490)
@@ -192,7 +204,7 @@
 				if (this.normalPoints) {
 					const indices = [...Array(this.normalPoints.length + 1).keys()];
 
-					this.Plotly.restyle(this.$el, {
+					this.Plotly.restyle(this.$refs.plot, {
 						marker: {
 							size: on ?
 								indices.map(i => i === value ? 16 : 7)
@@ -208,3 +220,18 @@
 		},
 	};
 </script>
+
+<style scoped>
+	.mask
+	{
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: #ddd3;
+		background-repeat: no-repeat;
+		background-position: center center;
+		pointer-events: none;
+	}
+</style>

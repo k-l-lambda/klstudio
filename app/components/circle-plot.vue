@@ -33,6 +33,7 @@
 				default: 0,
 			},
 			sliceCount: Number,
+			focusPointIndex: Number,
 		},
 
 
@@ -117,24 +118,14 @@
 					size: 3.5,
 					color,
 					colorscale: "Greens",
-					cmin: -20,
-					cmax: 50,
+					cmin: 0,
+					cmax: 100,
 				};
 
-				const data = this.mode === "2d" ? Array(this.sliceCount).fill().map((_, i) => ({
+				const data = Array(this.sliceCount).fill().map((_, i) => ({
 					type: "scatter3d",
 					mode: "lines+markers",
-					x: points.map(v => v[(this.sliceStart + i) * 2]),
-					y: points.map(v => v[(this.sliceStart + i) * 2 + 1]),
-					z: points.map(() => 0),
-					line: {
-						width: 6,
-						color,
-					},
-					marker,
-				})) : Array(this.sliceCount).fill().map((_, i) => ({
-					type: "scatter3d",
-					mode: "lines+markers",
+					sliceIndex: i,
 					x: points.map(v => v[(this.sliceStart + i) * 3]),
 					y: points.map(v => v[(this.sliceStart + i) * 3 + 1]),
 					z: points.map(v => v[(this.sliceStart + i) * 3 + 2]),
@@ -150,6 +141,9 @@
 					width: this.size.width,
 					height: this.size.height,
 				});
+
+				this.$el.on("plotly_hover", event => this.onPlotHover(event));
+				this.$el.on("plotly_unhover", () => this.onPlotUnhover());
 			},
 
 
@@ -159,6 +153,17 @@
 					if (Date.now() - this.sliceUpdateTime > 490)
 						this.updatePlot();
 				}, 500);
+			},
+
+
+			onPlotHover (event) {
+				if (event.points[0])
+					this.$emit("update:focusPointIndex", event.points[0].pointNumber);
+			},
+
+
+			onPlotUnhover () {
+				this.$emit("update:focusPointIndex", null);
 			},
 		},
 
@@ -172,6 +177,25 @@
 
 
 			dataPath: "loadData",
+
+
+			focusPointIndex (value) {
+				if (this.normalPoints) {
+					const indices = [...Array(this.normalPoints.length + 1).keys()];
+
+					this.Plotly.restyle(this.$el, {
+						marker: {
+							size: Number.isInteger(value) ?
+								indices.map(i => i === value ? 16 : 7)
+								: 3.5,
+							color: Number.isInteger(value) ? indices.map(i => i === value ? "green" : i) : indices,
+							colorscale: "Greens",
+							cmin: 0,
+							cmax: 100,
+						},
+					}, [...Array(this.sliceCount).keys()]);
+				}
+			},
 		},
 	};
 </script>

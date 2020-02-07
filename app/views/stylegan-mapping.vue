@@ -8,7 +8,7 @@
 			</fieldset>
 		</header>
 		<div class="plot-frame">
-			<CirclePlot dataPath="random-1" :sliceStart="sliceStart" :sliceCount="sliceCount" />
+			<CirclePlot dataPath="random-1" :sliceStart="sliceStart" :sliceCount="sliceCount" :focusPointIndex.sync="focusPointIndex" />
 		</div>
 	</div>
 </template>
@@ -34,6 +34,7 @@
 			return {
 				sliceCount: 4,
 				sliceStart: 0,
+				focusPointIndex: null,
 			};
 		},
 
@@ -58,6 +59,11 @@
 
 			sliceStart () {
 				this.sliceCount = Math.min(this.sliceCount, this.sliceCountMax);
+			},
+
+
+			focusPointIndex (value) {
+				console.log("focusPointIndex:", value);
 			},
 		},
 	};

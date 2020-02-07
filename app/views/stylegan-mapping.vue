@@ -2,6 +2,12 @@
 	<div>
 		<header>
 			<fieldset>
+				Source:
+				<select v-model="chosenSource">
+					<option v-for="source of SOURCE_LIST" :key="source" :value="source">{{source}}</option>
+				</select>
+			</fieldset>
+			<fieldset>
 				Shown dimensions: <span class="slice-range-text"><em>{{sliceStart * 3}}</em> - <em>{{(sliceStart + sliceCount) * 3}}</em></span>
 				<input type="range" v-model.number="sliceStart" :min="0" :max="sliceTotal - 1" :step="3" title="start dimension index" />
 				<input type="range" v-model.number="sliceCountLog2" :min="0" :max="sliceCountMax" :step="1" title="shown dimension count" />
@@ -22,7 +28,7 @@
 			</svg>
 			<div class="w-graph">
 				<div class="plot-frame">
-					<CirclePlot dataPath="random-1"
+					<CirclePlot :dataPath="chosenSource"
 						:sliceStart="sliceStart"
 						:sliceCount="sliceCount"
 						:focusPointIndex.sync="focusPointIndex"
@@ -42,6 +48,12 @@
 	const DIMENSIONS = 512;
 
 
+	const SOURCE_LIST = [
+		"random-1",
+	];
+
+
+
 	export default {
 		name: "stylegan-mapping",
 
@@ -57,6 +69,9 @@
 				sliceStart: 0,
 				focusPointIndex: null,
 				pointCount: 0,
+				images: [],
+				SOURCE_LIST,
+				chosenSource: "random-1",
 			};
 		},
 
@@ -89,6 +104,13 @@
 				this.pointCount = pointCount;
 				//console.log("onDataLoaded:", pointCount);
 			},
+
+
+			loadImages () {
+				this.images = [];
+
+				// TODO:
+			},
 		},
 
 
@@ -98,9 +120,7 @@
 			},
 
 
-			/*focusPointIndex (value) {
-				console.log("focusPointIndex:", value);
-			},*/
+			pointCount: "loadImages",
 		},
 	};
 </script>

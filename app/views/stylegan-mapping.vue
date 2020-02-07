@@ -8,12 +8,14 @@
 			</fieldset>
 		</header>
 		<main>
-			<svg class="z-graph" viewBox="-120 -120 240 240">
+			<svg class="z-graph" viewBox="-200 -200 400 400">
 				<g class="cycle">
 					<g v-for="i of pointCount" :key="i"
 						:transform="`translate(${Math.cos((i / pointCount) * 2 * Math.PI) * 100}, ${Math.sin((i / pointCount) * 2 * Math.PI) * 100})`"
 						:class="{focus: i === focusPointIndex}"
+						@mouseenter="focusPointIndex = i"
 					>
+						<circle class="pad" />
 						<circle class="dot" />
 					</g>
 				</g>
@@ -110,6 +112,12 @@
 	{
 		width: 400px;
 		display: inline-block;
+
+		.pad
+		{
+			r: 6;
+			fill: transparent;
+		}
 
 		.dot
 		{

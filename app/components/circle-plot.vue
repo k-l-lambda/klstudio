@@ -166,7 +166,8 @@
 
 
 			onPlotUnhover () {
-				this.$emit("update:focusPointIndex", null);
+				if (!this.focusOnTime || Date.now() - this.focusOnTime > 90)
+					this.$emit("update:focusPointIndex", null);
 			},
 		},
 
@@ -183,15 +184,20 @@
 
 
 			focusPointIndex (value) {
+				//console.log("focusPointIndex:", value);
+				const on = Number.isInteger(value);
+				if (on)
+					this.focusOnTime = Date.now();
+
 				if (this.normalPoints) {
 					const indices = [...Array(this.normalPoints.length + 1).keys()];
 
 					this.Plotly.restyle(this.$el, {
 						marker: {
-							size: Number.isInteger(value) ?
+							size: on ?
 								indices.map(i => i === value ? 16 : 7)
 								: 3.5,
-							color: Number.isInteger(value) ? indices.map(i => i === value ? "green" : i) : indices,
+							color: on ? indices.map(i => i === value ? "green" : i) : indices,
 							colorscale: "Greens",
 							cmin: 0,
 							cmax: 100,

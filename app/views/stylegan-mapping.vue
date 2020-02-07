@@ -7,9 +7,28 @@
 				<input type="range" v-model.number="sliceCount" :min="1" :max="sliceCountMax" :step="1" title="shown dimension count" />
 			</fieldset>
 		</header>
-		<div class="plot-frame">
-			<CirclePlot dataPath="random-1" :sliceStart="sliceStart" :sliceCount="sliceCount" :focusPointIndex.sync="focusPointIndex" />
-		</div>
+		<main>
+			<svg class="z-graph" viewBox="-120 -120 240 240">
+				<g class="cycle">
+					<g v-for="i of pointCount" :key="i"
+						:transform="`translate(${Math.cos((i / pointCount) * 2 * Math.PI) * 100}, ${Math.sin((i / pointCount) * 2 * Math.PI) * 100})`"
+						:class="{focus: i === focusPointIndex}"
+					>
+						<circle class="dot" />
+					</g>
+				</g>
+			</svg>
+			<div class="w-graph">
+				<div class="plot-frame">
+					<CirclePlot dataPath="random-1"
+						:sliceStart="sliceStart"
+						:sliceCount="sliceCount"
+						:focusPointIndex.sync="focusPointIndex"
+						@dataLoaded="onDataLoaded"
+					/>
+				</div>
+			</div>
+		</main>
 	</div>
 </template>
 
@@ -35,6 +54,7 @@
 				sliceCount: 4,
 				sliceStart: 0,
 				focusPointIndex: null,
+				pointCount: 0,
 			};
 		},
 
@@ -51,20 +71,23 @@
 		},
 
 
+		methods: {
+			onDataLoaded ({pointCount}) {
+				this.pointCount = pointCount;
+				//console.log("onDataLoaded:", pointCount);
+			},
+		},
+
+
 		watch: {
-			/*sliceCount () {
-				this.sliceStart = Math.floor(this.sliceStart / this.sliceCount) * this.sliceCount;
-			},*/
-
-
 			sliceStart () {
 				this.sliceCount = Math.min(this.sliceCount, this.sliceCountMax);
 			},
 
 
-			focusPointIndex (value) {
+			/*focusPointIndex (value) {
 				console.log("focusPointIndex:", value);
-			},
+			},*/
 		},
 	};
 </script>
@@ -83,11 +106,34 @@
 		padding: 0;
 	}
 
+	.z-graph
+	{
+		width: 400px;
+		display: inline-block;
+
+		.dot
+		{
+			r: 1;
+			fill: green;
+		}
+
+		.focus .dot
+		{
+			r: 3;
+		}
+	}
+
+	.w-graph
+	{
+		display: inline-block;
+		position: relative;
+		width: 600px;
+	}
+
 	.plot-frame
 	{
-		position: relative;
-		width: 80%;
-		padding-top: 64%;
+		width: 100%;
+		padding-top: 80%;
 
 		> *
 		{

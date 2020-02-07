@@ -95,9 +95,12 @@
 					console.assert(vectorCount === Math.floor(vectorCount), "data size is not matched:", vectorCount, array.length);
 
 					[this.center, ...this.circle] = Array(vectorCount).fill().map((_, i) => array.slice(i * this.dimensions, (i + 1) * this.dimensions));
+
+					this.$emit("dataLoaded", {pointCount: vectorCount - 1});
 				}
 
-				await new Promise(resolve => this.onPlotlyLoaded = resolve);
+				if (!this.Plotly)
+					await new Promise(resolve => this.onPlotlyLoaded = resolve);
 
 				this.updatePlot();
 			},
@@ -137,7 +140,7 @@
 				}));
 
 				this.Plotly.newPlot(this.$el, data, {
-					margin: {l: 0, r: 0, t: 0, b: 0},
+					margin: {l: 0, r: 0, t: 20, b: 0},
 					width: this.size.width,
 					height: this.size.height,
 				});

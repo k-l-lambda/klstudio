@@ -4,7 +4,7 @@
 			<fieldset>
 				Shown dimensions: <span class="slice-range-text"><em>{{sliceStart * 3}}</em> - <em>{{(sliceStart + sliceCount) * 3}}</em></span>
 				<input type="range" v-model.number="sliceStart" :min="0" :max="sliceTotal - 1" :step="3" title="start dimension index" />
-				<input type="range" v-model.number="sliceCount" :min="1" :max="sliceCountMax" :step="1" title="shown dimension count" />
+				<input type="range" v-model.number="sliceCountLog2" :min="0" :max="sliceCountMax" :step="1" title="shown dimension count" />
 			</fieldset>
 		</header>
 		<main>
@@ -68,7 +68,18 @@
 
 
 			sliceCountMax () {
-				return this.sliceTotal - this.sliceStart;
+				return Math.floor(Math.log2(this.sliceTotal - this.sliceStart));
+			},
+
+			
+			sliceCountLog2: {
+				get () {
+					return Math.floor(Math.log2(this.sliceCount));
+				},
+
+				set (value) {
+					this.sliceCount = 2 ** value;
+				},
 			},
 		},
 
@@ -83,7 +94,7 @@
 
 		watch: {
 			sliceStart () {
-				this.sliceCount = Math.min(this.sliceCount, this.sliceCountMax);
+				this.sliceCount = Math.min(this.sliceCount, 2 ** this.sliceCountMax);
 			},
 
 

@@ -88,7 +88,7 @@
 			path: "/spiral-piano",
 			cover: "SpiralPiano.png",
 			description: `<p>Play music by tapping screen.
-This is a music visualization program which based on the <a href="https://en.wikipedia.org/wiki/Equal_temperament" target="_blank">Equal Temperament</a>.</p>
+This is a music visualization program based on the <a href="https://en.wikipedia.org/wiki/Equal_temperament" target="_blank">Equal Temperament</a>.</p>
 <p>Try to drop a MIDI file on the panel.</p>`,
 		},
 	];

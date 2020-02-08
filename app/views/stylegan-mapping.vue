@@ -264,6 +264,8 @@
 
 	main
 	{
+		padding-bottom: 2em;
+
 		> *
 		{
 			vertical-align: middle;

@@ -14,26 +14,30 @@
 			</fieldset>
 		</header>
 		<main>
-			<svg class="z-graph" viewBox="-200 -200 400 400">
-				<g class="cycle">
-					<g v-for="(_, i) of pointCount" :key="i"
-						:transform="`translate(${Math.cos((i / pointCount) * 2 * Math.PI) * 120}, ${Math.sin((i / pointCount) * 2 * Math.PI) * 120})`"
-						:class="{focus: i === focusPointIndex}"
-						@mouseenter="focusPointIndex = i"
-					>
-						<circle class="pad" />
-						<circle class="dot" />
-						<image v-if="i % imagesIndexInterval === 0"
-							:xlink:href="images[i / imagesIndexInterval]"
-							:transform="`translate(${Math.cos((i / pointCount) * 2 * Math.PI) * 50}, ${Math.sin((i / pointCount) * 2 * Math.PI) * 50})`"
-						/>
+			<figure class="z-graph">
+				<svg viewBox="-200 -200 400 400">
+					<g class="circle">
+						<g v-for="(_, i) of pointCount" :key="i"
+							:transform="`translate(${Math.cos((i / pointCount) * 2 * Math.PI) * 120}, ${Math.sin((i / pointCount) * 2 * Math.PI) * 120})`"
+							:class="{focus: i === focusPointIndex}"
+							@mouseenter="focusPointIndex = i"
+						>
+							<circle class="pad" />
+							<circle class="dot" />
+							<image v-if="i % imagesIndexInterval === 0"
+								:xlink:href="images[i / imagesIndexInterval]"
+								:transform="`translate(${Math.cos((i / pointCount) * 2 * Math.PI) * 50}, ${Math.sin((i / pointCount) * 2 * Math.PI) * 50})`"
+							/>
+						</g>
 					</g>
-				</g>
-				<image class="center" v-if="focusImageIndex !== null"
-					:xlink:href="images[focusImageIndex]"
-				/>
-			</svg>
-			<div class="w-graph">
+					<image class="center" v-if="focusImageIndex !== null"
+						:xlink:href="images[focusImageIndex]"
+					/>
+				</svg>
+				<figcaption>a circle in Z space & generated images</figcaption>
+			</figure>
+			<span>&#x2192;</span>
+			<figure class="w-graph">
 				<div class="plot-frame">
 					<CirclePlot :dataPath="chosenSource"
 						:sliceStart="sliceStart"
@@ -42,7 +46,8 @@
 						@dataLoaded="onDataLoaded"
 					/>
 				</div>
-			</div>
+				<figcaption>W space slices</figcaption>
+			</figure>
 		</main>
 	</div>
 </template>
@@ -175,7 +180,11 @@
 	.z-graph
 	{
 		width: 400px;
-		display: inline-block;
+
+		> svg
+		{
+			width: 100%;
+		}
 
 		.pad
 		{
@@ -194,7 +203,7 @@
 			r: 3;
 		}
 
-		.cycle
+		.circle
 		{
 			image
 			{
@@ -221,7 +230,6 @@
 
 	.w-graph
 	{
-		display: inline-block;
 		position: relative;
 		width: 600px;
 	}
@@ -254,4 +262,28 @@
 		}
 	}
 
+	main
+	{
+		> *
+		{
+			vertical-align: middle;
+		}
+
+		figure
+		{
+			position: relative;
+			margin: 0;
+			display: inline-block;
+
+			figcaption
+			{
+				position: absolute;
+				bottom: -1.2em;
+				left: 0;
+				width: 100%;
+				text-align: center;
+				color: #555;
+			}
+		}
+	}
 </style>

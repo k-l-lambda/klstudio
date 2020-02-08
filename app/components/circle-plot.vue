@@ -1,6 +1,6 @@
 <template>
 	<div v-resize="onResize" class="circle-plot">
-		<div ref="plot"></div>
+		<div class="plot" ref="plot"></div>
 		<div class="mask" v-show="loading" :style="{'background-image': `url(${imgLoading5d})`}"></div>
 	</div>
 </template>
@@ -222,6 +222,12 @@
 </script>
 
 <style scoped>
+	.plot
+	{
+		width: 100%;
+		height: 100%;
+	}
+
 	.mask
 	{
 		position: absolute;

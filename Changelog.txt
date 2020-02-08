@@ -14,6 +14,8 @@ TODO:
 
 2020.2.8	K.L.	<k.l.lambda@gmail.com>
 
+	+	stylegan-mapping.vue: added figure captions.
+
 	+	stylegan-mapping.vue: images on circle added.
 
 

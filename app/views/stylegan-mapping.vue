@@ -280,7 +280,7 @@
 			figcaption
 			{
 				position: absolute;
-				bottom: -1.2em;
+				bottom: -1.6em;
 				left: 0;
 				width: 100%;
 				text-align: center;

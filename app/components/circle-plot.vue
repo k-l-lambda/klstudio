@@ -85,6 +85,9 @@
 		methods: {
 			onResize () {
 				this.size = {width: this.$refs.plot.clientWidth, height: this.$refs.plot.clientHeight};
+
+				if (this.normalPoints)
+					this.delayUpdatePlot();
 			},
 
 

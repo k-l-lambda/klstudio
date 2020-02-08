@@ -41,6 +41,11 @@ export const routes = [
 		props: true,
 	},
 	{
+		path: "/documents/stylegan-mapping",
+		name: "StyleGAN Mapping Visualization",
+		component: () => import(/* webpackChunkName: "stylegan-mapping" */ "./views/stylegan-mapping.vue"),
+	},
+	{
 		path: "/curves-editor",
 		name: "Curves Editor",
 		component: () => import(/* webpackChunkName: "curves-editor" */ "./views/curves-editor.vue"),

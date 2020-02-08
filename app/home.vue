@@ -12,12 +12,12 @@
 				:class="{focus: app.focus}"
 				@click="onClickApp(app)"
 			>
-				<router-link :to="app.focus ? '/' : app.path" @click.native.stop="">
+				<router-link class="cover" :to="app.focus ? '/' : app.path" @click.native.stop="">
 					<img :src="app.coverURL" />
 				</router-link>
 				<div class="description">
 					<router-link :to="app.path">
-						<h2>{{app.name}}</h2>
+						<h2 v-html="app.title"></h2>
 					</router-link>
 					<article v-html="app.description"></article>
 				</div>
@@ -67,15 +67,26 @@
 		get focus () {
 			return this.router.currentRoute.path === this.path;
 		}
+
+
+		get title () {
+			return this._title || this.name;
+		}
 	};
 
 
 	const apps = [
 		{
+			name: "StyleGAN Mapping Visualization",
+			_title: "StyleGAN Mapping<wbr /> Visualization",
+			path: "/documents/stylegan-mapping",
+			cover: "stylegan-mapping.png",
+			description: "A generation deep learning model's mapping network geometry visualization.",
+		},
+		{
 			name: "Spiral Piano",
 			path: "/spiral-piano",
 			cover: "SpiralPiano.png",
-			coverURL: null,
 			description: `<p>Play music by tapping screen.
 This is a music visualization program which based on the <a href="https://en.wikipedia.org/wiki/Equal_temperament" target="_blank">Equal Temperament</a>.</p>
 <p>Try to drop a MIDI file on the panel.</p>`,
@@ -228,7 +239,7 @@ This is a music visualization program which based on the <a href="https://en.wik
 		left: 0;
 		width: calc(#{$asideWidth} - .4em);
 		height: 100%;
-		padding: 160px 0 0 .4em;
+		padding: 80px 0 0 .4em;
 		overflow-x: hidden;
 		overflow-y: auto;
 
@@ -250,20 +261,22 @@ This is a music visualization program which based on the <a href="https://en.wik
 		.app
 		{
 			padding: 1em;
+			margin: 2em 0;
 			border-top-left-radius: 1em;
 			border-bottom-left-radius: 1em;
 
 			h2
 			{
-				white-space: nowrap;
+				//white-space: nowrap;
 				font-weight: normal;
 				font-style: normal;
 				text-decoration: underline;
 			}
 
-			img
+			.cover img
 			{
 				width: 40%;
+				border-radius: 20px;
 			}
 
 			.description

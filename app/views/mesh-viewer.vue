@@ -180,7 +180,7 @@
 				while (this.rendererActive) {
 					if (this.sensorVelocity) {
 						this.viewTheta += this.sensorVelocity[1] * SENSOR_SENSITIVITY;
-						this.viewPhi += this.sensorVelocity[0] * SENSOR_SENSITIVITY;
+						this.viewPhi += this.sensorVelocity[0] * SENSOR_SENSITIVITY * 0.1;
 
 						this.viewTheta = Math.max(Math.min(this.viewTheta, Math.PI - 0.01), 0.01);
 					}

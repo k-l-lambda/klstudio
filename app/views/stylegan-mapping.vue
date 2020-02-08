@@ -16,15 +16,22 @@
 		<main>
 			<svg class="z-graph" viewBox="-200 -200 400 400">
 				<g class="cycle">
-					<g v-for="i of pointCount" :key="i"
-						:transform="`translate(${Math.cos((i / pointCount) * 2 * Math.PI) * 100}, ${Math.sin((i / pointCount) * 2 * Math.PI) * 100})`"
+					<g v-for="(_, i) of pointCount" :key="i"
+						:transform="`translate(${Math.cos((i / pointCount) * 2 * Math.PI) * 120}, ${Math.sin((i / pointCount) * 2 * Math.PI) * 120})`"
 						:class="{focus: i === focusPointIndex}"
 						@mouseenter="focusPointIndex = i"
 					>
 						<circle class="pad" />
 						<circle class="dot" />
+						<image v-if="i % imagesIndexInterval === 0"
+							:xlink:href="images[i / imagesIndexInterval]"
+							:transform="`translate(${Math.cos((i / pointCount) * 2 * Math.PI) * 50}, ${Math.sin((i / pointCount) * 2 * Math.PI) * 50})`"
+						/>
 					</g>
 				</g>
+				<image class="center" v-if="focusImageIndex !== null"
+					:xlink:href="images[focusImageIndex]"
+				/>
 			</svg>
 			<div class="w-graph">
 				<div class="plot-frame">
@@ -46,10 +53,16 @@
 
 
 	const DIMENSIONS = 512;
+	const IMAGES_INTERVAL = 4;
 
 
 	const SOURCE_LIST = [
+		"plane0,1",
 		"random-1",
+		"random-2",
+		"random-3",
+		"random-4",
+		"random-5",
 	];
 
 
@@ -70,8 +83,9 @@
 				focusPointIndex: null,
 				pointCount: 0,
 				images: [],
+				imagesIndexInterval: IMAGES_INTERVAL,
 				SOURCE_LIST,
-				chosenSource: "random-1",
+				chosenSource: "random-2",
 			};
 		},
 
@@ -96,6 +110,14 @@
 					this.sliceCount = 2 ** value;
 				},
 			},
+
+
+			focusImageIndex () {
+				if (Number.isInteger(this.focusPointIndex))
+					return Math.min(Math.round(this.focusPointIndex / this.imagesIndexInterval), this.images.length - 1);
+
+				return null;
+			},
 		},
 
 
@@ -106,10 +128,16 @@
 			},
 
 
-			loadImages () {
+			async loadImages () {
 				this.images = [];
 
-				// TODO:
+				if (this.pointCount > 0) {
+					const indices = Array(this.pointCount).fill().map((_, i) => i).filter(i => i % this.imagesIndexInterval === 0);
+					this.images = await Promise.all(indices.map(async i => {
+						const {default: url} = await import(`../assets/stylegan-mapping/${this.chosenSource}/${i}.webp`);
+						return url;
+					}));
+				}
 			},
 		},
 
@@ -117,6 +145,11 @@
 		watch: {
 			sliceStart () {
 				this.sliceCount = Math.min(this.sliceCount, 2 ** this.sliceCountMax);
+			},
+
+
+			chosenSource () {
+				this.pointCount = null;
 			},
 
 
@@ -159,6 +192,30 @@
 		.focus .dot
 		{
 			r: 3;
+		}
+
+		.cycle
+		{
+			image
+			{
+				x: -20;
+				y: -20;
+				width: 40px;
+			}
+
+			.focus image
+			{
+				x: -30;
+				y: -30;
+				width: 60px;
+			}
+		}
+
+		image.center
+		{
+			x: -80;
+			y: -80;
+			width: 160px;
 		}
 	}
 

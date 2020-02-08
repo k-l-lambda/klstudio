@@ -35,6 +35,13 @@ module.exports = {
 			.test(/\.(dat)$/)
 			.use("url-loader")
 			.loader("url-loader");
+
+		// ignore third-party packed js
+		config.module
+			.rule("js")
+			.exclude
+			.add(/.*\.min\.js$/)
+			.end();
 	},
 	devServer: {
 		//proxy: `http://localhost:${process.env.PORT}`,

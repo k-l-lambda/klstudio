@@ -239,7 +239,7 @@ This is a music visualization program which based on the <a href="https://en.wik
 		left: 0;
 		width: calc(#{$asideWidth} - .4em);
 		height: 100%;
-		padding: 160px 0 0 .4em;
+		padding: 80px 0 0 .4em;
 		overflow-x: hidden;
 		overflow-y: auto;
 
@@ -261,6 +261,7 @@ This is a music visualization program which based on the <a href="https://en.wik
 		.app
 		{
 			padding: 1em;
+			margin: 2em 0;
 			border-top-left-radius: 1em;
 			border-bottom-left-radius: 1em;
 

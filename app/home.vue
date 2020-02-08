@@ -81,6 +81,7 @@
 			_title: "StyleGAN Mapping<wbr /> Visualization",
 			path: "/documents/stylegan-mapping",
 			cover: "stylegan-mapping.png",
+			description: "A generation deep learning model's mapping network geometry visualization.",
 		},
 		{
 			name: "Spiral Piano",

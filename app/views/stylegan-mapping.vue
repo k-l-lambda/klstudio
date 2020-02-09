@@ -2,7 +2,7 @@
 	<div v-resize="onResize">
 		<header>
 			<fieldset>
-				Source:
+				Sample:
 				<select v-model="chosenSource">
 					<option v-for="source of SOURCE_LIST" :key="source" :value="source">{{source}}</option>
 				</select>

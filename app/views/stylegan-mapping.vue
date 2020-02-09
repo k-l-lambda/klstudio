@@ -34,7 +34,7 @@
 						:xlink:href="images[focusImageIndex]"
 					/>
 				</svg>
-				<figcaption>a circle in Z space & generated images</figcaption>
+				<figcaption>a circle in Z space & generated images (&psi; = 1)</figcaption>
 			</figure>
 			<span>&#x2192;</span>
 			<figure class="w-graph">

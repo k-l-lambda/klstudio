@@ -46,7 +46,7 @@
 						@dataLoaded="onDataLoaded"
 					/>
 				</div>
-				<figcaption>W space slices</figcaption>
+				<figcaption>W space projected slices</figcaption>
 			</figure>
 		</main>
 	</div>
@@ -184,19 +184,6 @@
 </script>
 
 <style lang="scss" scoped>
-	header
-	{
-		margin: 1em 0;
-	}
-
-	fieldset
-	{
-		display: inline-block;
-		margin: 0 .6em;
-		border: 0;
-		padding: 0;
-	}
-
 	.z-graph
 	{
 		width: 400px;
@@ -271,9 +258,20 @@
 
 	header
 	{
+		margin: 1em 0;
+
 		span
 		{
 			display: inline-block;
+		}
+
+		fieldset
+		{
+			display: inline-block;
+			margin: 0 .6em;
+			border: 0;
+			padding: 0;
+			white-space: nowrap;
 		}
 
 		.slice-range-text

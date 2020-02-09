@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div v-resize="onResize">
 		<header>
 			<fieldset>
 				Source:
@@ -13,7 +13,7 @@
 				<input type="range" v-model.number="sliceCountLog2" :min="0" :max="sliceCountMax" :step="1" title="shown dimension count" />
 			</fieldset>
 		</header>
-		<main>
+		<main :style="{zoom: `${viewZoom * 100}%`}">
 			<figure class="z-graph">
 				<svg viewBox="-200 -200 400 400">
 					<g class="circle">
@@ -53,12 +53,16 @@
 </template>
 
 <script>
+	import resize from "vue-resize-directive";
+
 	import CirclePlot from "../components/circle-plot.vue";
 
 
 
 	const DIMENSIONS = 512;
 	const IMAGES_INTERVAL = 4;
+
+	const PAGE_STANDARD_WIDTH = 1025;
 
 
 	const SOURCE_LIST = [
@@ -76,6 +80,11 @@
 		name: "stylegan-mapping",
 
 
+		directives: {
+			resize,
+		},
+
+
 		components: {
 			CirclePlot,
 		},
@@ -83,6 +92,7 @@
 
 		data () {
 			return {
+				size: {width: PAGE_STANDARD_WIDTH, height: 800},
 				sliceCount: 4,
 				sliceStart: 0,
 				focusPointIndex: null,
@@ -123,10 +133,20 @@
 
 				return null;
 			},
+
+
+			viewZoom () {
+				return Math.min(this.size.width, PAGE_STANDARD_WIDTH) / PAGE_STANDARD_WIDTH;
+			},
 		},
 
 
 		methods: {
+			onResize () {
+				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
+			},
+
+
 			onDataLoaded ({pointCount}) {
 				this.pointCount = pointCount;
 				//console.log("onDataLoaded:", pointCount);
@@ -265,6 +285,7 @@
 	main
 	{
 		padding-bottom: 2em;
+		white-space: nowrap;
 
 		> *
 		{

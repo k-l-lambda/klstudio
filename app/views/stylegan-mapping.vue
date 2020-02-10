@@ -1,8 +1,8 @@
 <template>
-	<div>
+	<div v-resize="onResize">
 		<header>
 			<fieldset>
-				Source:
+				Sample:
 				<select v-model="chosenSource">
 					<option v-for="source of SOURCE_LIST" :key="source" :value="source">{{source}}</option>
 				</select>
@@ -13,7 +13,7 @@
 				<input type="range" v-model.number="sliceCountLog2" :min="0" :max="sliceCountMax" :step="1" title="shown dimension count" />
 			</fieldset>
 		</header>
-		<main>
+		<main :style="{zoom: `${viewZoom * 100}%`}">
 			<figure class="z-graph">
 				<svg viewBox="-200 -200 400 400">
 					<g class="circle">
@@ -34,7 +34,7 @@
 						:xlink:href="images[focusImageIndex]"
 					/>
 				</svg>
-				<figcaption>a circle in Z space & generated images</figcaption>
+				<figcaption>a circle in Z space & generated images (&psi; = 1)</figcaption>
 			</figure>
 			<span>&#x2192;</span>
 			<figure class="w-graph">
@@ -46,19 +46,23 @@
 						@dataLoaded="onDataLoaded"
 					/>
 				</div>
-				<figcaption>W space slices</figcaption>
+				<figcaption>W space projected slices</figcaption>
 			</figure>
 		</main>
 	</div>
 </template>
 
 <script>
+	import resize from "vue-resize-directive";
+
 	import CirclePlot from "../components/circle-plot.vue";
 
 
 
 	const DIMENSIONS = 512;
 	const IMAGES_INTERVAL = 4;
+
+	const PAGE_STANDARD_WIDTH = 1025;
 
 
 	const SOURCE_LIST = [
@@ -76,6 +80,11 @@
 		name: "stylegan-mapping",
 
 
+		directives: {
+			resize,
+		},
+
+
 		components: {
 			CirclePlot,
 		},
@@ -83,6 +92,7 @@
 
 		data () {
 			return {
+				size: {width: PAGE_STANDARD_WIDTH, height: 800},
 				sliceCount: 4,
 				sliceStart: 0,
 				focusPointIndex: null,
@@ -123,10 +133,20 @@
 
 				return null;
 			},
+
+
+			viewZoom () {
+				return Math.min(this.size.width, PAGE_STANDARD_WIDTH) / PAGE_STANDARD_WIDTH;
+			},
 		},
 
 
 		methods: {
+			onResize () {
+				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
+			},
+
+
 			onDataLoaded ({pointCount}) {
 				this.pointCount = pointCount;
 				//console.log("onDataLoaded:", pointCount);
@@ -164,19 +184,6 @@
 </script>
 
 <style lang="scss" scoped>
-	header
-	{
-		margin: 1em 0;
-	}
-
-	fieldset
-	{
-		display: inline-block;
-		margin: 0 .6em;
-		border: 0;
-		padding: 0;
-	}
-
 	.z-graph
 	{
 		width: 400px;
@@ -251,9 +258,20 @@
 
 	header
 	{
+		margin: 1em 0;
+
 		span
 		{
 			display: inline-block;
+		}
+
+		fieldset
+		{
+			display: inline-block;
+			margin: 0 .6em;
+			border: 0;
+			padding: 0;
+			white-space: nowrap;
 		}
 
 		.slice-range-text
@@ -265,6 +283,7 @@
 	main
 	{
 		padding-bottom: 2em;
+		white-space: nowrap;
 
 		> *
 		{
@@ -286,6 +305,11 @@
 				text-align: center;
 				color: #555;
 			}
+		}
+
+		> *
+		{
+			user-select: none;
 		}
 	}
 </style>

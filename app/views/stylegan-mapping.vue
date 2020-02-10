@@ -306,5 +306,10 @@
 				color: #555;
 			}
 		}
+
+		> *
+		{
+			user-select: none;
+		}
 	}
 </style>

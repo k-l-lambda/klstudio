@@ -81,14 +81,15 @@
 			_title: "StyleGAN Mapping<wbr /> Visualization",
 			path: "/documents/stylegan-mapping",
 			cover: "stylegan-mapping.png",
-			description: "A generation deep learning model's mapping network geometry visualization.",
+			description: `A generation deep learning model's mapping network geometry visualization.
+<a href="/2020/02/10/stylegan-mapping/" target="_blank">Read details</a>.`,
 		},
 		{
 			name: "Spiral Piano",
 			path: "/spiral-piano",
 			cover: "SpiralPiano.png",
 			description: `<p>Play music by tapping screen.
-This is a music visualization program based on the <a href="https://en.wikipedia.org/wiki/Equal_temperament" target="_blank">Equal Temperament</a>.</p>
+This is a music visualization program based on the <em><a href="https://en.wikipedia.org/wiki/Equal_temperament" target="_blank">Equal Temperament</a></em>.</p>
 <p>Try to drop a MIDI file on the panel.</p>`,
 		},
 	];
@@ -182,14 +183,14 @@ This is a music visualization program based on the <a href="https://en.wikipedia
 		font-family: Verdana, Arial, Helvetica, sans-serif;
 	}
 
-	aside .description a
+	aside .description em a
 	{
 		color: inherit;
 		text-decoration: none;
 		font-style: italic;
 	}
 
-	aside .description a:hover
+	aside .description em a:hover
 	{
 		text-decoration: underline;
 	}
@@ -270,7 +271,6 @@ This is a music visualization program based on the <a href="https://en.wikipedia
 				//white-space: nowrap;
 				font-weight: normal;
 				font-style: normal;
-				text-decoration: underline;
 			}
 
 			.cover img

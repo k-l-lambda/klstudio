@@ -28,9 +28,9 @@
 	const cubeTextureNames = ["px", "nx", "py", "ny", "pz", "nz"];
 
 	const materialConfig = {
-		color: "#1340a7",
-		specular: "#fff1a6",
-		shininess: 8,
+		color: "#010101",
+		specular: "#141a1f",
+		shininess: 9,
 		shading: THREE.SmoothShading,
 	};
 
@@ -114,7 +114,7 @@
 
 				this.textureLoader = new THREE.TextureLoader();
 
-				this.cubeMaterial.specularMap = await this.loadTexture("earth/earth_specular.jpg");
+				/*this.cubeMaterial.specularMap = await this.loadTexture("earth/earth_specular.jpg");
 				this.cubeMaterial.needsUpdate = true;
 
 				this.cubeMaterial.normalMap = await this.loadTexture("earth/earth_normal.jpg");
@@ -127,7 +127,7 @@
 
 				this.cubeHighlightMaterial = this.cubeMaterial.clone();
 				this.cubeHighlightMaterial.emissive = new THREE.Color("#35ac7e");
-				this.cubeHighlightMaterial.shininess = 16;
+				this.cubeHighlightMaterial.shininess = 16;*/
 			},
 
 

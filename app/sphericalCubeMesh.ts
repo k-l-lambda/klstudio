@@ -40,7 +40,7 @@ const eachRange2D = (ul, uh, vl, vh, elem) => {
 };
 
 
-const createGeometries = ({segemnts = 18, sphericity = 0.48, chamferRadius = 0.2} = {}) => {
+const createGeometries = ({segemnts = 12, sphericity = 0.4, chamferRadius = 0.1} = {}) => {
 	const inv_grids = 1 / (segemnts + 2 / 3);
 
 	const faceVerticesCount = (segemnts + 1) * (segemnts + 1);

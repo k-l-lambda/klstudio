@@ -43,14 +43,14 @@ module.exports = {
 			.add(/.*\.min\.js$/)
 			.end();
 	},
-	css: {
+	/*css: {
 		loaderOptions: {
 			css: {
 				// disabled css url module parsing
 				url: false,
 			},
 		},
-	},
+	},*/
 	devServer: {
 		//proxy: `http://localhost:${process.env.PORT}`,
 		https: !!process.env.HTTPS,

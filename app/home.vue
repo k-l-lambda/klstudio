@@ -228,7 +228,7 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 		top: 0;
 		width: $logoSize;
 		height: $logoSize;
-		background: url(favicon32.png) center center no-repeat;
+		background: url(../public/favicon32.png) center center no-repeat;
 		transition: .3s opacity;
 	}
 
@@ -272,12 +272,13 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 		position: absolute;
 		top: 0;
 		left: 0;
-		width: calc(#{$asideWidth} - .4em);
+		width: $asideWidth;
 		height: 100%;
 		overflow: hidden;
 
 		.list
 		{
+			box-sizing: border-box;
 			width: 100%;
 			height: 100%;
 			padding: 80px 0 0 .4em;

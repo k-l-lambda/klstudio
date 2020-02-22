@@ -1,42 +1,44 @@
 <template>
 	<body :class="{root: atRoot, docking: !atRoot && !devoting, devoting}">
+		<header>
+			<span class="title">K.L. Studio</span>
+		</header>
 		<main>
 			<router-view/>
-			<div class="exit" v-show="devoting" @click="devoting = false"></div>
 		</main>
-		<aside v-show="!devoting">
-			<header>
-				<span class="title">K.L. Studio</span>
-			</header>
-			<section v-for="app of apps" :key="app.name" :to="app.path" class="app"
-				:class="{focus: app.focus}"
-				@click="onClickApp(app)"
-			>
-				<router-link class="cover" :to="app.focus ? '/' : app.path" @click.native.stop="">
-					<img :src="app.coverURL" />
-				</router-link>
-				<div class="description">
-					<router-link :to="app.path">
-						<h2 v-html="app.title"></h2>
-					</router-link>
-					<article v-html="app.description"></article>
-				</div>
-			</section>
-			<footer>
-				&#xfe3e; MORE COMMING SOON &#xfe3e;
-			</footer>
-			<div class="fold" v-show="!atRoot" @click="devoting = true"></div>
-		</aside>
-		<div class="logo" @click="onClickLogo"
+		<div class="totem" @click="onClickLogo"
 			:style="{
 				transform: `
-						translate(${atRoot ? '40vw' : 0}, ${atRoot ? (windowSize.height - windowSize.width * .6) / 2 : 0}px)
-						scale(${atRoot ? 1 : 46 / (windowSize.width * .6)})
-					`
+					translate(${atRoot && !narrowScreen ? '40vw' : 0}, ${atRoot && !narrowScreen ? (windowSize.height - windowSize.width * .6) / 2 : 0}px)
+					scale(${atRoot ? 1 : 46 / (windowSize.width * .6)})
+				`
 			}"
 		>
 			<component is="globe-cube3" :rendererActive="atRoot" />
 		</div>
+		<aside v-show="!devoting">
+			<div class="list">
+				<section v-for="app of apps" :key="app.name" :to="app.path" class="app"
+					:class="{focus: app.focus}"
+					@click="onClickApp(app)"
+				>
+					<router-link class="cover" :to="app.focus ? '/' : app.path" @click.native.stop="">
+						<img :src="app.coverURL" />
+					</router-link>
+					<div class="description">
+						<router-link :to="app.path">
+							<h2 v-html="app.title"></h2>
+						</router-link>
+						<article v-html="app.description"></article>
+					</div>
+				</section>
+				<footer>
+					&#xfe3e; MORE COMMING SOON &#xfe3e;
+				</footer>
+			</div>
+			<div class="fold" v-show="!atRoot" @click="devoting = true"></div>
+		</aside>
+		<router-link id="logo" to="/"></router-link>
 	</body>
 </template>
 
@@ -114,6 +116,11 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 			atRoot () {
 				return !this.currentApp;
 			},
+
+
+			narrowScreen () {
+				return this.windowSize.width < 800;
+			},
 		},
 
 
@@ -171,6 +178,8 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 				this.currentApp = to.name;
 				if (!this.currentApp)
 					this.devoting = false;
+				else if (this.narrowScreen)
+					this.devoting = true;
 			},
 		},
 	};
@@ -203,12 +212,24 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 	$asideWidth: 40vw;
 	$activeColor: #dfd;
 	$logoSize: 46px;
+	$narrowTotemHeight: 80vw;
 
 
 	body
 	{
 		margin: 0;
 		overflow: hidden;
+	}
+
+	#logo
+	{
+		position: fixed;
+		left: 0;
+		top: 0;
+		width: $logoSize;
+		height: $logoSize;
+		background: url(favicon32.png) center center no-repeat;
+		transition: .3s opacity;
 	}
 
 	main
@@ -233,6 +254,19 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 		}
 	}
 
+	header
+	{
+		user-select: none;
+		white-space: nowrap;
+
+		.title
+		{
+			font-family: 'Lilita One', cursive;
+			font-size: 40px;
+			padding-left: $logoSize;
+		}
+	}
+
 	aside
 	{
 		position: absolute;
@@ -240,31 +274,28 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 		left: 0;
 		width: calc(#{$asideWidth} - .4em);
 		height: 100%;
-		padding: 80px 0 0 .4em;
-		overflow-x: hidden;
-		overflow-y: auto;
+		overflow: hidden;
 
-		header
+		.list
 		{
-			position: absolute;
-			top: 0;
-			left: 0;
-			user-select: none;
+			width: 100%;
+			height: 100%;
+			padding: 80px 0 0 .4em;
+			overflow-y: auto;
+		}
 
-			.title
-			{
-				font-family: 'Lilita One', cursive;
-				font-size: 40px;
-				padding-left: $logoSize;
-			}
+		.list::-webkit-scrollbar
+		{
+			display: none;
 		}
 
 		.app
 		{
 			padding: 1em;
-			margin: 2em 0;
+			margin: 0 0 2em;
 			border-top-left-radius: 1em;
 			border-bottom-left-radius: 1em;
+			background-color: #fffe;
 
 			h2
 			{
@@ -308,7 +339,7 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 		footer
 		{
 			color: #eee;
-			font-size: 2vw;
+			font-size: 1.5em;
 			margin: 2em 0;
 			text-align: center;
 			user-select: none;
@@ -351,27 +382,40 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 			//outline: 2px $activeColor solid;
 		}
 
-		.logo
+		.totem
 		{
 			cursor: pointer;
+		}
+
+		#logo
+		{
+			opacity: 0;
 		}
 	}
 
 	.devoting
 	{
+		header
+		{
+			position: absolute;
+			top: 0;
+			left: 0;
+			opacity: 0.04;
+		}
+
 		main
 		{
 			padding-left: 0;
 			width: 100vw;
 		}
 
-		.logo
+		.totem
 		{
-			cursor: pointer;
+			display: none;
 		}
 	}
 
-	.logo
+	.totem
 	{
 		position: absolute;
 		top: 0;
@@ -380,5 +424,54 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 		height: 60vw;
 		transform-origin: left top;
 		transition: transform .4s cubic-bezier(0, 0, 0.25, 1.0);
+	}
+
+	// narrow screen
+	@media screen and (max-width: 800px)
+	{
+		.root::-webkit-scrollbar
+		{
+			display: none;
+		}
+
+		.root
+		{
+			height: 100vh;
+			overflow-y: auto;
+			position: relative;
+
+			header
+			{
+				position: static;
+			}
+
+			aside
+			{
+				margin-top: $narrowTotemHeight;
+				width: 100vw;
+				height: unset;
+				position: relative;
+
+				.list
+				{
+					padding-top: 0;
+				}
+			}
+
+			main
+			{
+				padding-left: 0;
+				top: $logoSize;
+				height: $narrowTotemHeight;
+				width: 100vw;
+			}
+
+			.totem
+			{
+				top: $logoSize;
+				height: $narrowTotemHeight;
+				width: 100vw;
+			}
+		}
 	}
 </style>

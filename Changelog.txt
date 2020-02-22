@@ -12,6 +12,11 @@ TODO:
 
 
 
+2020.2.22	K.L.	<k.l.lambda@gmail.com>
+
+	+	home.vue: added logo.
+
+
 2020.2.9	K.L.	<k.l.lambda@gmail.com>
 
 	+	stylegan-mapping.vue: zoom view when page size is too narrow.

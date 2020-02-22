@@ -2,7 +2,6 @@
 	<body :class="{root: atRoot, docking: !atRoot && !devoting, devoting}">
 		<main>
 			<router-view/>
-			<div class="exit" v-show="devoting" @click="devoting = false"></div>
 		</main>
 		<aside v-show="!devoting">
 			<header>
@@ -27,7 +26,8 @@
 			</footer>
 			<div class="fold" v-show="!atRoot" @click="devoting = true"></div>
 		</aside>
-		<div class="logo" @click="onClickLogo"
+		<router-link id="logo" to="/"></router-link>
+		<div class="totem" @click="onClickLogo"
 			:style="{
 				transform: `
 						translate(${atRoot ? '40vw' : 0}, ${atRoot ? (windowSize.height - windowSize.width * .6) / 2 : 0}px)
@@ -211,6 +211,17 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 		overflow: hidden;
 	}
 
+	#logo
+	{
+		position: fixed;
+		left: 0;
+		top: 0;
+		width: $logoSize;
+		height: $logoSize;
+		background: url(favicon32.png) center center no-repeat;
+		transition: .3s opacity;
+	}
+
 	main
 	{
 		position: absolute;
@@ -351,9 +362,14 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 			//outline: 2px $activeColor solid;
 		}
 
-		.logo
+		.totem
 		{
 			cursor: pointer;
+		}
+
+		#logo
+		{
+			opacity: 0;
 		}
 	}
 
@@ -365,13 +381,13 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 			width: 100vw;
 		}
 
-		.logo
+		.totem
 		{
-			cursor: pointer;
+			display: none;
 		}
 	}
 
-	.logo
+	.totem
 	{
 		position: absolute;
 		top: 0;

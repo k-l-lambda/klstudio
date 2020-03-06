@@ -160,7 +160,7 @@
 <script>
 	import resize from "vue-resize-directive";
 
-	import MidiPlayer from "../MidiPlayer";
+	import {MidiAudio, MidiPlayer, MIDI} from "@k-l-lambda/web-widgets";
 	import "../utils.js";
 
 	import MidiDevices from "../components/midi-devices.vue";
@@ -308,10 +308,10 @@
 				keyStatus: Array(Config.NoteEnd + 1).fill().map(() => ({active: false})),
 				showDashboard: false,
 				drageHover: false,
-				isPlaying: false,
 				midiFileName: null,
 				loading: true,
 				touchHolding: false,
+				player: null,
 			};
 		},
 
@@ -384,19 +384,25 @@
 			wideRangeHash () {
 				return `${this.wideRange.Start}|${this.wideRange.End}`;
 			},
+
+
+			isPlaying () {
+				return this.player && this.player.isPlaying;
+			},
 		},
 
 
 		created () {
-			//window.MidiPlayer = MidiPlayer;
-			if (!document.querySelector("audio#audio")) {
-				MidiPlayer.loadPlugin().then(() => {
+			if (MidiAudio.WebAudio.empty()) {
+				MidiAudio.loadPlugin({soundfontUrl: "/soundfont/", api: "webaudio"}).then(() => {
 					this.loading = false;
-					console.log("MIDI loaded.");
+					console.log("Soundfont loaded.");
 
 					this.appendCleaner(() => {
-						MidiPlayer.stopAllNotes();
-						MidiPlayer.Player.pause();
+						MidiAudio.stopAllNotes();
+
+						if (this.player)
+							this.player.dispose();
 					});
 				});
 			}
@@ -420,27 +426,6 @@
 				}
 			});
 
-			MidiPlayer.Player.addListener(data => {
-				switch (data.message) {
-				case 144:
-					this.activateKey(data.note, true);
-
-					break;
-				case 128:
-					this.activateKey(data.note, false);
-
-					break;
-				case "meta":
-					switch (data.subtype) {
-					case "keySignature":
-						this.modalOffset = keyToOffset(data.key);
-
-						break;
-					}
-					break;
-				}
-			});
-
 			//console.log("file:", this.$refs.filePicker);
 		},
 
@@ -455,15 +440,16 @@
 				switch (file.type) {
 				case "audio/mid":
 				case "audio/midi":
-					MidiPlayer.Player.stop();
-					this.isPlaying = false;
+					if (this.player)
+						this.player.dispose();
 
 					this.loading = true;
 
 					const buffer = await file.readAs("ArrayBuffer");
-					const blob = new Blob([buffer], {type: file.type});
-					const url = URL.createObjectURL(blob);
-					await MidiPlayer.Player.loadFile(url);
+					const midi = MIDI.parseMidiData(buffer);
+					this.player = new MidiPlayer(midi, {
+						onMidi: (data, timestamp) => this.onMidi(data, timestamp),
+					});
 
 					console.log("MIDI file loaded.");
 
@@ -474,6 +460,28 @@
 					this.loading = false;
 
 					break;
+				}
+			},
+
+
+			onMidi (data, timestamp) {
+				if (!MidiAudio.WebAudio.empty()) {
+					switch (data.subtype) {
+					case "noteOn":
+						this.activateKey(data.noteNumber, true);
+						MidiAudio.noteOn(data.channel, data.noteNumber, data.velocity, timestamp);
+
+						break;
+					case "noteOff":
+						this.activateKey(data.noteNumber, false);
+						MidiAudio.noteOff(data.channel, data.noteNumber, timestamp);
+
+						break;
+					case "keySignature":
+						this.modalOffset = keyToOffset(data.key);
+
+						break;
+					}
 				}
 			},
 
@@ -492,16 +500,10 @@
 
 
 			onPlayFile () {
-				if (this.isPlaying) {
-					MidiPlayer.Player.pause();
-
-					this.isPlaying = false;
-				}
-				else {
-					MidiPlayer.Player.resume();
-
-					this.isPlaying = true;
-				}
+				if (this.isPlaying) 
+					this.player.pause();
+				else 
+					this.player.play();
 			},
 
 
@@ -573,14 +575,14 @@
 			onKeyDown (pitch) {
 				this.activateKey(pitch, true);
 
-				MidiPlayer.noteOn(0, pitch, 100, 0);
+				MidiAudio.noteOn(0, pitch, 100, 0);
 			},
 
 
 			onKeyUp (pitch) {
 				this.activateKey(pitch, false);
 
-				MidiPlayer.noteOff(0, pitch, 0);
+				MidiAudio.noteOff(0, pitch, 0);
 			},
 
 
@@ -595,7 +597,7 @@
 				case 9: // note on
 					if (velocity > 0) {
 						this.activateKey(pitch, true);
-						MidiPlayer.noteOn(channel, pitch, velocity, 0);
+						MidiAudio.noteOn(channel, pitch, velocity, 0);
 
 						break;
 					}
@@ -603,7 +605,7 @@
 
 				case 8: // note off
 					this.activateKey(pitch, false);
-					MidiPlayer.noteOff(channel, pitch, 0);
+					MidiAudio.noteOff(channel, pitch, 0);
 
 					break;
 				}

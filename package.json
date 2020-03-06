@@ -35,7 +35,7 @@
 		"url": "https://github.com/k-l-lambda/klstudio/issues"
 	},
 	"devDependencies": {
-		"@k-l-lambda/web-widgets": "^0.2.8",
+		"@k-l-lambda/web-widgets": "^0.2.9",
 		"@tensorflow/tfjs": "^1.2.6",
 		"@vue/cli-plugin-babel": "^4.1.0",
 		"@vue/cli-plugin-eslint": "^4.1.0",

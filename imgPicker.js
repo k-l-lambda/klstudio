@@ -26,6 +26,39 @@ const urlToFilename = url => {
 const listenPage = page => {
 	console.log("listenPage:", page._client._sessionId);
 
+	const responseDict = new Map();
+
+	const pickImage = async url => {
+		console.log("pickImage:", url);
+
+		const fileName = urlToFilename(url);
+		if (!fileName) {
+			console.warn("empty filename:", url);
+			return;
+		}
+
+		const response = responseDict.get(url);
+		if (!response) {
+			console.warn("response not cached for", url, responseDict);
+			return;
+		}
+
+		console.log("pick image:", fileName);
+
+		const buffer = await response.buffer();
+		const filePath = path.resolve("./cache/", fileName);
+		try {
+			const writeStream = fs.createWriteStream(filePath);
+			writeStream.write(buffer);
+		}
+		catch (error) {
+			console.warn("error writing file:", error);
+			return;
+		}
+
+		return fileName;
+	};
+
 	page.on("response", async response => {
 		if (!response.ok)
 			return;
@@ -35,22 +68,8 @@ const listenPage = page => {
 		//const type = response.request().resourceType();
 		//console.log("response:", type);
 		if (imageMIMETypes.includes(type)) {
-			const fileName = urlToFilename(url);
-			if (!fileName) {
-				console.log("empty filename:", url);
-				return;
-			}
-			console.log("fileName:", fileName);
-
-			const file = await response.buffer();
-			const filePath = path.resolve("./cache/", fileName);
-			try {
-				const writeStream = fs.createWriteStream(filePath);
-				writeStream.write(file);
-			}
-			catch (error) {
-				console.warn("error writing file:", error);
-			}
+			responseDict.set(url, response);
+			console.log("image cached:", url);
 		}
 	});
 
@@ -61,7 +80,7 @@ const listenPage = page => {
 			if (new RegExp(pattern).test(page.url())) {
 				const script = contentScripts[pattern];
 				//page.evaluate(script);
-				script(page);
+				script(page, {pickImage});
 			}
 		}
 	});

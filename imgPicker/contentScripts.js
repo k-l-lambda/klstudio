@@ -1,7 +1,37 @@
 
 export default {
-	"xsnvshen\\.com\\/album\\/new\\/": page => {
+	"xsnvshen\\.com\\/album\\/new\\/": (page, callbacks) => {
 		console.log("xsnvshen.new content script loaded.");
+
+		page.evaluate(() => {
+			const log = document.createElement("div");
+			log.innerHTML = `<div id="xbrowser-logs"></div>`;
+
+			document.body.appendChild(log);
+
+			const styleSheet = document.createElement("style")
+			styleSheet.type = "text/css"
+			styleSheet.innerText = `
+				#xbrowser-logs
+				{
+					position: fixed;
+					bottom: 6em;
+					left: 0;
+					font-weight: bold;
+					font-size: 360%;
+					background-color: white;
+					padding: .2em;
+					transition: background-color .6s ease-out;
+				}
+
+				#xbrowser-logs.activated
+				{
+					background-color: #0f6;
+					transition: background-color .01s;
+				}
+			`;
+			document.head.appendChild(styleSheet);
+		});
 
 		const listenDownloads = async () => {
 			while (true) {
@@ -21,20 +51,19 @@ export default {
 					};
 				}));
 
-				console.log("url:", url);
+				callbacks.pickImage(url).then(result => {
+					if (result)
+						page.evaluate(result => {
+							//console.log("result:", result);
+							const logs = document.querySelector("#xbrowser-logs");
+							logs.innerHTML = result;
+							logs.classList.add("activated");
+							setTimeout(() => logs.classList.remove("activated"), 100);
+						}, result);
+				});
 			}
 		};
 
 		listenDownloads();
-		/*console.log("XBrowser content script loaded.", imageMIMETypes);
-
-		document.onwheel = event => {
-			//console.log("onwheel:", event);
-			const delta = event.deltaY > 0 ? 1 : -1;
-
-			SetImgIndex(album_img_current_index + delta);
-
-			event.preventDefault();
-		};*/
 	},
 };

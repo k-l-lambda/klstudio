@@ -12,18 +12,28 @@ const imageMIMETypes = [
 ];
 
 
+const urlToFilename = url => {
+	const segments = decodeURIComponent(url).split(",").pop().split("/");
+	const fileName = segments.slice(Math.max(1, segments.length - 2), segments.length)
+		.join("_").replace(/[?=<>&";()|*:\\]/g, "").split("").reverse().slice(0, 120).reverse().join("");
+
+	return fileName;
+};
+
+
 const listenPage = page => {
 	console.log("listenPage:", page._client._sessionId);
 
 	page.on("response", async response => {
+		if (!response.ok)
+			return;
+
 		const url = response.url();
 		const type = response.headers()["content-type"];
 		//const type = response.request().resourceType();
 		//console.log("response:", type);
 		if (imageMIMETypes.includes(type)) {
-			const segments = decodeURIComponent(url).split(",").pop().split("/");
-			const fileName = segments.slice(Math.max(1, segments.length - 2), segments.length)
-				.join("_").replace(/[?=<>&";()|*:\\]/g, "").split("").reverse().slice(0, 120).reverse().join("");
+			const fileName = urlToFilename(url);
 			if (!fileName) {
 				console.log("empty filename:", url);
 				return;
@@ -61,6 +71,8 @@ const main = async () => {
 
 	const pages = await browser.pages();
 	pages.forEach(listenPage);
+
+	pages[0].goto("chrome-search://local-ntp/local-ntp.html");
 };
 
 

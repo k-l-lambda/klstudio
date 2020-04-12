@@ -1,22 +1,19 @@
 
-const path = require("path");
-const fs = require("fs");
-const puppeteer = require("puppeteer");
+import path from "path";
+import fs from "fs";
+import puppeteer from "puppeteer";
 
 
 
-const main = async () => {
-	const browser = await puppeteer.launch({headless: false, args: [
-		"--disable-web-security",
-	]});
-	const page = await browser.newPage();
+const listenPage = page => {
+	console.log("listenPage:", page);
 
 	page.on("response", async response => {
 		const url = response.url();
 		const type = response.request().resourceType();
 		//console.log("response:", type);
 		if (type === "image") {
-			let fileName = decodeURI(url.split("/").pop()).replace(/[?=<>&]/g, "");
+			let fileName = decodeURIComponent(url.split("/").pop()).replace(/[?=<>&"]/g, "");
 			if (fileName.length > 12)
 				fileName = fileName.substr(fileName.length - 12, 12);
 			if (!fileName)
@@ -34,8 +31,25 @@ const main = async () => {
 			}
 		}
 	});
+};
 
-	await page.goto("https://www.douban.com/", {waitUntil: "networkidle2"});
+
+const main = async () => {
+	const browser = await puppeteer.launch({
+		headless: false,
+		defaultViewport: null,
+		args: [
+			"--disable-web-security",
+		],
+	});
+	browser.on("targetcreated", async target => {
+		const page = await target.page();
+		if (page)
+			listenPage(page);
+	});
+
+	const pages = await browser.pages();
+	pages.forEach(listenPage);
 };
 
 

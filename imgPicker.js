@@ -21,6 +21,22 @@ const urlToFilename = url => {
 };
 
 
+const contentScripts = {
+	"xsnvshen\\.com\\/album\\/\\d+": page => {
+		/*console.log("XBrowser content script loaded.", imageMIMETypes);
+
+		document.onwheel = event => {
+			//console.log("onwheel:", event);
+			const delta = event.deltaY > 0 ? 1 : -1;
+
+			SetImgIndex(album_img_current_index + delta);
+
+			event.preventDefault();
+		};*/
+	},
+};
+
+
 const listenPage = page => {
 	console.log("listenPage:", page._client._sessionId);
 
@@ -51,6 +67,14 @@ const listenPage = page => {
 			}
 		}
 	});
+
+	for (const pattern in contentScripts) {
+		if (new RegExp(pattern).test(page.url())) {
+			const script = contentScripts[pattern];
+			//page.evaluate(script);
+			script(page);
+		}
+	}
 };
 
 

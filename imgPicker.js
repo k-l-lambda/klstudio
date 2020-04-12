@@ -79,12 +79,20 @@ const listenPage = page => {
 
 
 const main = async () => {
+	const pathToExtension = [
+		"HoverZoom",
+		"Proxy-SwitchySharp",
+		"Stylus",
+	].map(dir => path.join(process.cwd(), "extensions/", dir)).join(",");
+
 	const browser = await puppeteer.launch({
 		headless: false,
 		defaultViewport: null,
 		userDataDir: "userData",
 		args: [
 			"--disable-web-security",
+			`--disable-extensions-except=${pathToExtension}`,
+			`--load-extension=${pathToExtension}`
 		],
 	});
 	browser.on("targetcreated", async target => {

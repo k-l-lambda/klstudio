@@ -3,6 +3,8 @@ import path from "path";
 import fs from "fs";
 import puppeteer from "puppeteer";
 
+import contentScripts from "./imgPicker/contentScripts.js";
+
 
 
 const imageMIMETypes = [
@@ -18,22 +20,6 @@ const urlToFilename = url => {
 		.join("_").replace(/[?=<>&";()|*:\\]/g, "").split("").reverse().slice(0, 120).reverse().join("");
 
 	return fileName;
-};
-
-
-const contentScripts = {
-	"xsnvshen\\.com\\/album\\/\\d+": page => {
-		/*console.log("XBrowser content script loaded.", imageMIMETypes);
-
-		document.onwheel = event => {
-			//console.log("onwheel:", event);
-			const delta = event.deltaY > 0 ? 1 : -1;
-
-			SetImgIndex(album_img_current_index + delta);
-
-			event.preventDefault();
-		};*/
-	},
 };
 
 
@@ -68,13 +54,17 @@ const listenPage = page => {
 		}
 	});
 
-	for (const pattern in contentScripts) {
-		if (new RegExp(pattern).test(page.url())) {
-			const script = contentScripts[pattern];
-			//page.evaluate(script);
-			script(page);
+	page.on("load", () => {
+		//console.log("page load:", page.url());
+
+		for (const pattern in contentScripts) {
+			if (new RegExp(pattern).test(page.url())) {
+				const script = contentScripts[pattern];
+				//page.evaluate(script);
+				script(page);
+			}
 		}
-	}
+	});
 };
 
 

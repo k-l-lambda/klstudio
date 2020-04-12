@@ -3,6 +3,8 @@
 
 *	2020.4.12
 
+	+	imgPicker/contentScripts.js created.
+
 	+	imgPicker.js: extension loading added.
 
 	+	imgPicker.js: image types added.

@@ -5,19 +5,29 @@ import puppeteer from "puppeteer";
 
 
 
+const imageMIMETypes = [
+	"image/jpeg",
+	"image/jpg",
+	"image/webp",
+];
+
+
 const listenPage = page => {
-	console.log("listenPage:", page);
+	console.log("listenPage:", page._client._sessionId);
 
 	page.on("response", async response => {
 		const url = response.url();
-		const type = response.request().resourceType();
+		const type = response.headers()["content-type"];
+		//const type = response.request().resourceType();
 		//console.log("response:", type);
-		if (type === "image") {
-			let fileName = decodeURIComponent(url.split("/").pop()).replace(/[?=<>&"]/g, "");
-			if (fileName.length > 12)
-				fileName = fileName.substr(fileName.length - 12, 12);
-			if (!fileName)
+		if (imageMIMETypes.includes(type)) {
+			const segments = decodeURIComponent(url).split(",").pop().split("/");
+			const fileName = segments.slice(Math.max(1, segments.length - 2), segments.length)
+				.join("_").replace(/[?=<>&";()|*:\\]/g, "").split("").reverse().slice(0, 120).reverse().join("");
+			if (!fileName) {
+				console.log("empty filename:", url);
 				return;
+			}
 			console.log("fileName:", fileName);
 
 			const file = await response.buffer();
@@ -38,6 +48,7 @@ const main = async () => {
 	const browser = await puppeteer.launch({
 		headless: false,
 		defaultViewport: null,
+		userDataDir: "userData",
 		args: [
 			"--disable-web-security",
 		],

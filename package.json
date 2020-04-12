@@ -13,5 +13,8 @@
     "cross-env": "^7.0.2",
     "nodemon": "^2.0.3",
     "puppeteer": "^2.1.1"
+  },
+  "nodemonConfig": {
+    "ignore": ["node_modules/**", "userData/**", "cache/**", "*.md"]
   }
 }

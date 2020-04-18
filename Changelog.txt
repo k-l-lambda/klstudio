@@ -3,6 +3,12 @@ TODO:
 	last read time database
 
 
+2020.4.18	K.L.	<k.l.lambda@gmail.com>
+
+	*	Peris.batchProcessFiles sample:
+			Peris.batchProcessFiles(viewer.Data, "move \"{path}\" \"{data_root}{stem}-{date}.{ext}\"", {filter: d => d.selected})
+
+
 2019.3.17	K.L.	<k.l.lambda@gmail.com>
 
 	+	slider.js: rotate upset figures.

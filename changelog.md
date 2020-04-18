@@ -1,6 +1,11 @@
 
 
 
+*	2020.4.17
+
+	+	imgPicker: added error status.
+
+
 *	2020.4.12
 
 	+	imgPicker: picking image implemented.

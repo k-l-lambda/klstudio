@@ -1,4 +1,4 @@
 
 ## Usage
 
-node ./`script-name`.js
+yarn start ./`script-name`.js

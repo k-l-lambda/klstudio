@@ -4,6 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
+	"start": "node --experimental-modules",
 	"dev": "cross-env NODE_ENV=development nodemon --experimental-modules",
 	"dev:inspect": "cross-env NODE_ENV=development nodemon --inspect --experimental-modules"
   },

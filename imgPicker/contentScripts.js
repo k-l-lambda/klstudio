@@ -29,6 +29,12 @@ export default {
 					background-color: #0f6;
 					transition: background-color .01s;
 				}
+
+				#xbrowser-logs.error
+				{
+					background-color: red;
+					transition: background-color .01s;
+				}
 			`;
 			document.head.appendChild(styleSheet);
 		});
@@ -52,14 +58,20 @@ export default {
 				}));
 
 				callbacks.pickImage(url).then(result => {
-					if (result)
-						page.evaluate(result => {
-							//console.log("result:", result);
-							const logs = document.querySelector("#xbrowser-logs");
+					page.evaluate(result => {
+						//console.log("result:", result);
+						const logs = document.querySelector("#xbrowser-logs");
+						if (result) {
 							logs.innerHTML = result;
+							logs.classList.remove("error");
 							logs.classList.add("activated");
 							setTimeout(() => logs.classList.remove("activated"), 100);
-						}, result);
+						}
+						else {
+							logs.innerHTML = "ERROR";
+							logs.classList.add("error");
+						}
+					}, result);
 				});
 			}
 		};

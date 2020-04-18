@@ -1,7 +1,14 @@
 TODO:
+	modify ImageNet models to regression output.
+		https://github.com/keras-team/keras-applications/blob/master/keras_applications/xception.py
 	train score evaluator
 		evalution
 
+
+
+2020.4.18	K.L.	<k.l.lambda@gmail.com>
+
+	+	Folder of local_keras_applications added.
 
 
 2020.1.7	K.L.	<k.l.lambda@gmail.com>

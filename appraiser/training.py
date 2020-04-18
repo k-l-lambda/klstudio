@@ -68,7 +68,7 @@ model.compile(optimizer = 'adam', loss = 'mean_squared_error', metrics = ['mse']
 #model.summary()
 
 
-checkpoint_path = "./appraiser/training/cp-{epoch:04d}.ckpt"
+checkpoint_path = "./appraiser/training/cp-{epoch:04d}.h5"
 #checkpoint_dir = os.path.dirname(checkpoint_path)
 
 cp_callback = tf.keras.callbacks.ModelCheckpoint(

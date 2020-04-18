@@ -35,4 +35,5 @@ def plotImages(images_arr):
 	plt.show()
 
 
+print('sample_labels:', sample_labels[:5])
 plotImages(sample_images[:5])

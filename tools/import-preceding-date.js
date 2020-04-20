@@ -30,6 +30,8 @@ const importDate = async oldDbPath => {
 			}
 		}
 	}
+
+	console.log("importDate done.");
 };
 
 global.fs = fs;

@@ -36,8 +36,39 @@ const dump = async oldDbPath => {
 	console.log("Done.");
 };
 
+
+const mkdirp = filepath => {
+	const dirname = path.dirname(filepath);
+
+	if (fs.existsSync(dirname))
+		return true;
+
+	mkdirp(dirname);
+	fs.mkdirSync(dirname);
+}
+
+
+const copyFiles = (dataRoot, targetFolder) => {
+	const missingContent = fs.readFileSync("./missing-paths.txt");
+	const paths = missingContent.toString().split("\n");
+
+	//console.log("paths:", paths);
+	for (const item of paths) {
+		const sourcePath = path.resolve(dataRoot, item);
+		const targetPath = path.resolve(targetFolder, item);
+		mkdirp(targetPath);
+
+		console.log("copy:", sourcePath, targetPath);
+		fs.copyFileSync(sourcePath, targetPath);
+	}
+
+	console.log("Done.");
+};
+
+
 global.fs = fs;
 global.dump = dump;
+global.copyFiles = copyFiles;
 
 
 

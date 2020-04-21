@@ -8,6 +8,8 @@ TODO:
 
 2020.4.21	K.L.	<k.l.lambda@gmail.com>
 
+	+	dump-missing.js: copyFiles added.
+
 	+	tools/dump-missing.js created.
 
 

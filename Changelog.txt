@@ -6,6 +6,11 @@ TODO:
 
 
 
+2020.4.21	K.L.	<k.l.lambda@gmail.com>
+
+	+	tools/dump-missing.js created.
+
+
 2020.4.20	K.L.	<k.l.lambda@gmail.com>
 
 	+	tools/import-preceding-date.js created.

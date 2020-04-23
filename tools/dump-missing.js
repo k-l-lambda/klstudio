@@ -55,11 +55,15 @@ const copyFiles = (dataRoot, targetFolder) => {
 	//console.log("paths:", paths);
 	for (const item of paths) {
 		const sourcePath = path.resolve(dataRoot, item);
-		const targetPath = path.resolve(targetFolder, item);
-		mkdirp(targetPath);
-
-		console.log("copy:", sourcePath, targetPath);
-		fs.copyFileSync(sourcePath, targetPath);
+		if (!fs.existsSync(sourcePath))
+			console.warn("file not exist:", sourcePath);
+		else {
+			const targetPath = path.resolve(targetFolder, item);
+			mkdirp(targetPath);
+	
+			console.log("copy:", sourcePath, targetPath);
+			fs.copyFileSync(sourcePath, targetPath);
+		}
 	}
 
 	console.log("Done.");

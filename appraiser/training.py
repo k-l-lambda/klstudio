@@ -1,5 +1,5 @@
 
-#import os
+import os
 from dotenv import load_dotenv
 import tensorflow as tf
 
@@ -84,4 +84,6 @@ model.summary()
 
 
 #train(model, y_col = 'score')
-train(model, y_col = ['SE', 'SM', 'NF', 'ANI', 'LOLI', 'DOLL'], dataFilter = lambda df: df)
+
+y_col = os.environ.get('TRAINER_CLASS_COLS').split(',')
+train(model, y_col = y_col, dataFilter = lambda df: df)

@@ -6,6 +6,11 @@ TODO:
 
 
 
+2020.4.25	K.L.	<k.l.lambda@gmail.com>
+
+	+	appraiser/training.py: added function of train.
+
+
 2020.4.21	K.L.	<k.l.lambda@gmail.com>
 
 	+	dump-missing.js: copyFiles added.

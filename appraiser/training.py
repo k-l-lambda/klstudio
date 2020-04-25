@@ -23,7 +23,7 @@ def plotImages(images_arr):
 	plt.show()
 
 
-def plotHistory(history):
+def plotHistory(history, epochs):
 	#print('history.history:', history.history)
 	acc = history.history['mean_squared_error']
 	val_acc = history.history['val_mean_squared_error']
@@ -48,42 +48,42 @@ def plotHistory(history):
 	plt.show()
 
 
-batch_size = 16
-epochs = 15
+def train(batch_size = 16, epochs = 15, splitter = lambda name: name[0] == 'f', dataFilter = lambda df: df[df['score'] > 0]):
+	trainingData, validationData = dataset.getDataFrames(splitter = splitter, dataFilter = dataFilter)
+
+	trainGen = dataset.makeDataGenerator(trainingData, batch_size = batch_size, shuffle = True)
+	validationGen = dataset.makeDataGenerator(validationData, batch_size = batch_size)
 
 
-trainingData, validationData = dataset.getDataFrames(lambda name: name[0] == 'f')
-
-trainGen = dataset.makeDataGenerator(trainingData, batch_size = batch_size, shuffle = True)
-validationGen = dataset.makeDataGenerator(validationData, batch_size = batch_size)
-
-
-#sample_images, sample_labels = next(validationGen)
-#print('labels:', sample_labels)
-#plotImages(sample_images)
+	#sample_images, sample_labels = next(validationGen)
+	#print('labels:', sample_labels)
+	#plotImages(sample_images)
 
 
-model.compile(optimizer = 'adam', loss = 'mean_squared_error', metrics = ['mse'])
+	model.compile(optimizer = 'adam', loss = 'mean_squared_error', metrics = ['mse'])
 
-#model.summary()
-
-
-checkpoint_path = "./appraiser/training/cp-{epoch:04d}.h5"
-#checkpoint_dir = os.path.dirname(checkpoint_path)
-
-cp_callback = tf.keras.callbacks.ModelCheckpoint(
-	filepath = checkpoint_path, 
-	verbose = 1,
-	save_weights_only = False,
-	period = 1)
+	#model.summary()
 
 
-history = model.fit_generator(
-	trainGen,
-	steps_per_epoch = len(trainingData.index) // batch_size,
-	epochs = epochs,
-	validation_data = validationGen,
-	validation_steps = len(validationData.index) // batch_size,
-	callbacks = [cp_callback],
-)
-plotHistory(history)
+	checkpoint_path = "./appraiser/training/cp-{epoch:04d}.h5"
+	#checkpoint_dir = os.path.dirname(checkpoint_path)
+
+	cp_callback = tf.keras.callbacks.ModelCheckpoint(
+		filepath = checkpoint_path, 
+		verbose = 1,
+		save_weights_only = False,
+		period = 1)
+
+
+	history = model.fit_generator(
+		trainGen,
+		steps_per_epoch = len(trainingData.index) // batch_size,
+		epochs = epochs,
+		validation_data = validationGen,
+		validation_steps = len(validationData.index) // batch_size,
+		callbacks = [cp_callback],
+	)
+	plotHistory(history, epochs)
+
+
+train()

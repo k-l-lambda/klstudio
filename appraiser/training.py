@@ -38,11 +38,11 @@ def plotHistory(history, epochs):
 	plt.show()
 
 
-def train(model, batch_size = 16, epochs = 15, splitter = lambda name: name[0] == 'f', dataFilter = lambda df: df[df['score'] > 0]):
+def train(model, y_col, batch_size = 16, epochs = 15, splitter = lambda name: name[0] == 'f', dataFilter = lambda df: df[df['score'] > 0]):
 	trainingData, validationData = dataset.getDataFrames(splitter = splitter, dataFilter = dataFilter)
 
-	trainGen = dataset.makeDataGenerator(trainingData, batch_size = batch_size, shuffle = True)
-	validationGen = dataset.makeDataGenerator(validationData, batch_size = batch_size)
+	trainGen = dataset.makeDataGenerator(trainingData, batch_size = batch_size, y_col = y_col, shuffle = True)
+	validationGen = dataset.makeDataGenerator(validationData, batch_size = batch_size, y_col = y_col)
 
 
 	#sample_images, sample_labels = next(validationGen)
@@ -83,4 +83,5 @@ model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = [
 model.summary()
 
 
-#train(model)
+#train(model, y_col = 'score')
+train(model, y_col = ['SE', 'SM', 'NF', 'ANI', 'LOLI', 'DOLL'], dataFilter = lambda df: df)

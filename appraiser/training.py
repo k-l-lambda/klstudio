@@ -1,7 +1,6 @@
 
 #import os
 from dotenv import load_dotenv
-import matplotlib.pyplot as plt
 import tensorflow as tf
 
 
@@ -10,17 +9,8 @@ load_dotenv()
 
 from models import model
 import dataset
+from plotUtils import plotImages
 
-
-
-def plotImages(images_arr):
-	_, axes = plt.subplots(1, 5, figsize = (20, 20))
-	axes = axes.flatten()
-	for img, ax in zip(images_arr, axes):
-		ax.imshow(img)
-		ax.axis('off')
-	plt.tight_layout()
-	plt.show()
 
 
 def plotHistory(history, epochs):

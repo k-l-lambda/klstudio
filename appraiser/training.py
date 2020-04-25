@@ -7,7 +7,7 @@ import tensorflow as tf
 load_dotenv(dotenv_path = './.env.local')
 load_dotenv()
 
-from models import model
+import models
 import dataset
 from plotUtils import plotImages
 
@@ -38,7 +38,7 @@ def plotHistory(history, epochs):
 	plt.show()
 
 
-def train(batch_size = 16, epochs = 15, splitter = lambda name: name[0] == 'f', dataFilter = lambda df: df[df['score'] > 0]):
+def train(model, batch_size = 16, epochs = 15, splitter = lambda name: name[0] == 'f', dataFilter = lambda df: df[df['score'] > 0]):
 	trainingData, validationData = dataset.getDataFrames(splitter = splitter, dataFilter = dataFilter)
 
 	trainGen = dataset.makeDataGenerator(trainingData, batch_size = batch_size, shuffle = True)
@@ -48,11 +48,6 @@ def train(batch_size = 16, epochs = 15, splitter = lambda name: name[0] == 'f', 
 	#sample_images, sample_labels = next(validationGen)
 	#print('labels:', sample_labels)
 	#plotImages(sample_images)
-
-
-	model.compile(optimizer = 'adam', loss = 'mean_squared_error', metrics = ['mse'])
-
-	#model.summary()
 
 
 	checkpoint_path = "./appraiser/training/cp-{epoch:04d}.h5"
@@ -76,4 +71,16 @@ def train(batch_size = 16, epochs = 15, splitter = lambda name: name[0] == 'f', 
 	plotHistory(history, epochs)
 
 
-train()
+
+# score regression
+#model = models.simpleRegression
+#model.compile(optimizer = 'adam', loss = 'mean_squared_error', metrics = ['mse'])
+
+# classification6
+model = models.xceptionClassification6
+model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
+
+model.summary()
+
+
+#train(model)

@@ -2,6 +2,7 @@
 import os
 from dotenv import load_dotenv
 import tensorflow as tf
+import matplotlib.pyplot as plt
 
 
 load_dotenv(dotenv_path = './.env.local')
@@ -13,10 +14,11 @@ from plotUtils import plotImages
 
 
 
-def plotHistory(history, epochs):
+# TODO: move this to plotUtils
+def plotHistory(history, epochs, metric):
 	#print('history.history:', history.history)
-	acc = history.history['mean_squared_error']
-	val_acc = history.history['val_mean_squared_error']
+	acc = history.history[metric]
+	val_acc = history.history['val_' + metric]
 
 	loss = history.history['loss']
 	val_loss = history.history['val_loss']
@@ -68,7 +70,9 @@ def train(model, y_col, batch_size = 16, epochs = 15, splitter = lambda name: na
 		validation_steps = len(validationData.index) // batch_size,
 		callbacks = [cp_callback],
 	)
-	plotHistory(history, epochs)
+	#plotHistory(history, epochs)
+
+	return history
 
 
 
@@ -83,7 +87,11 @@ model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = [
 model.summary()
 
 
-#train(model, y_col = 'score')
+#epochs = 16
+#history = train(model, y_col = 'score')
+#plotHistory(history, epochs, 'mean_squared_error')
 
+epochs = 4
 y_col = os.environ.get('TRAINER_CLASS_COLS').split(',')
-train(model, y_col = y_col, dataFilter = lambda df: df)
+history = train(model, y_col = y_col, batch_size = 2, epochs = epochs, dataFilter = lambda df: df)
+plotHistory(history, epochs, 'acc')

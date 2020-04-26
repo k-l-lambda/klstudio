@@ -15,6 +15,7 @@ def getDataFrames(splitter, dataFilter = lambda df: df):
 	filenamesTraining = filter(lambda name: not splitter(name), filenames)
 	filenamesValidation = filter(splitter, filenames)
 
+	# TODO: put this path in env
 	dataframe = pd.read_csv('./footages/labels.csv')
 	dataframe = dataFilter(dataframe)
 	dataframe['filename'] = [hash + ".jpg" for hash in dataframe.hash]

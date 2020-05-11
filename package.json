@@ -4,18 +4,26 @@
   "description": "",
   "type": "module",
   "scripts": {
-	"start": "node --experimental-modules",
-	"dev": "cross-env NODE_ENV=development nodemon --experimental-modules",
-	"dev:inspect": "cross-env NODE_ENV=development nodemon --inspect --experimental-modules"
+    "start": "node --experimental-modules",
+    "dev": "cross-env NODE_ENV=development nodemon --experimental-modules",
+    "dev:inspect": "cross-env NODE_ENV=development nodemon --inspect --experimental-modules"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "cross-env": "^7.0.2",
+    "dotenv": "^8.2.0",
+    "dotenv-expand": "^5.1.0",
     "nodemon": "^2.0.3",
     "puppeteer": "^2.1.1"
   },
   "nodemonConfig": {
-    "ignore": ["node_modules/**", "userData/**", "cache/**", "extensions/**", "*.md"]
+    "ignore": [
+      "node_modules/**",
+      "userData/**",
+      "cache/**",
+      "extensions/**",
+      "*.md"
+    ]
   }
 }

@@ -1,6 +1,11 @@
 
 
 
+*	2020.5.11
+
+	+	imgPicker.js: added env variable of CACHE_DIR.
+
+
 *	2020.4.17
 
 	+	imgPicker: added error status.

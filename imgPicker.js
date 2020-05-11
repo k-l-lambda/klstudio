@@ -3,6 +3,8 @@ import path from "path";
 import fs from "fs";
 import puppeteer from "puppeteer";
 
+import "./env.js";
+
 import contentScripts from "./imgPicker/contentScripts.js";
 
 
@@ -46,7 +48,7 @@ const listenPage = page => {
 		console.log("pick image:", fileName);
 
 		const buffer = await response.buffer();
-		const filePath = path.resolve("./cache/", fileName);
+		const filePath = path.resolve(process.env.CACHE_DIR, fileName);
 		try {
 			const writeStream = fs.createWriteStream(filePath);
 			writeStream.write(buffer);

@@ -3,6 +3,8 @@
 
 *	2020.7.25
 
+	+	contentScripts.js: added script for girlimg.epio.
+
 	+	contentScripts.js: extracted log functions.
 
 

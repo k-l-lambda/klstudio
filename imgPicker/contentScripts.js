@@ -11,13 +11,14 @@ const mountLog = () => {
 		#xbrowser-logs
 		{
 			position: fixed;
-			bottom: 6em;
+			bottom: 2em;
 			left: 0;
 			font-weight: bold;
-			font-size: 360%;
+			font-size: 60px;
 			background-color: white;
 			padding: .2em;
 			transition: background-color .6s ease-out;
+			opacity: 0.7;
 		}
 
 		#xbrowser-logs.activated
@@ -79,6 +80,52 @@ export default {
 
 				callbacks.pickImage(url).then(result => {
 					page.evaluate(showLog, result);
+				});
+			}
+		};
+
+		listenDownloads();
+	},
+
+
+	"girlimg\\.epio\\.app": (page, callbacks) => {
+		console.log("girlimg.epio content script loaded.");
+
+		page.evaluate(mountLog);
+
+		const urlToFilename = url => {
+			const segments = decodeURIComponent(url).split(",").pop().split("/");
+			const longName = segments[segments.length - 1].replace(/[?=<>&";()|*:\\]/g, "");
+			const fileName = longName.substr(0, 4) + longName.substr(longName.length - 42) + ".jpg";
+
+			return fileName;
+		};
+
+		const listenDownloads = async () => {
+			while (true) {
+				const url = await page.evaluate(() => new Promise(resolve => {
+					console.log("XBrowser.listenDownload.");
+					document.onkeydown = event => {
+						if (!["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
+							switch (event.code) {
+							case "KeyV":
+								const img = document.querySelector("img:hover");
+								if (img)
+									resolve(img.src);
+
+								break;
+							}
+						}
+					};
+				}));
+
+				const filename = urlToFilename(url);
+				callbacks.pickImage(url, filename).then(result => {
+					let html = result;
+					if (html.length > 16)
+						html = `<span title="${result}">${result.substr(4, 8)}...${result.substr(result.length - 3)}</span>`;
+
+					page.evaluate(showLog, html);
 				});
 			}
 		};

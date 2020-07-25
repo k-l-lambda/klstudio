@@ -30,10 +30,10 @@ const listenPage = page => {
 
 	const responseDict = new Map();
 
-	const pickImage = async url => {
+	const pickImage = async (url, fileName = null) => {
 		console.log("pickImage:", url);
 
-		const fileName = urlToFilename(url);
+		fileName = fileName || urlToFilename(url);
 		if (!fileName) {
 			console.warn("empty filename:", url);
 			return;

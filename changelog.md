@@ -1,6 +1,11 @@
 
 
 
+*	2020.7.25
+
+	+	contentScripts.js: extracted log functions.
+
+
 *	2020.5.11
 
 	+	imgPicker.js: added env variable of CACHE_DIR.

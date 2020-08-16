@@ -88,7 +88,7 @@ export default {
 	},
 
 
-	"girlimg\\.epio\\.app": (page, callbacks) => {
+	"girlimg\\.epio\\.app": async (page, callbacks) => {
 		console.log("girlimg.epio content script loaded.");
 
 		page.evaluate(mountLog);
@@ -103,6 +103,8 @@ export default {
 
 		const listenDownloads = async () => {
 			while (true) {
+				await page.waitForNavigation();
+
 				const url = await page.evaluate(() => new Promise(resolve => {
 					console.log("XBrowser.listenDownload.");
 					document.onkeydown = event => {
@@ -131,5 +133,36 @@ export default {
 		};
 
 		listenDownloads();
+
+		//const pageHash = page.url().split("#").slice(1).join("");
+		const pageHash = await page.evaluate(() => location.hash);
+		const offsetCaptures = pageHash.match(/offset=(\d+)/);
+		const offset = offsetCaptures && Number(offsetCaptures[1]);
+		console.log("pageHash:", page.url(), pageHash, offset);
+
+		await page.setRequestInterception(true);
+		page.on("request", request => {
+			//console.log("interceptedRequest:", request);
+			const url = request.url();
+			if (offset && /api\/article/.test(url)) {
+				//console.log("article request:", request);
+				const filterCapture = url.match(/(?<=filter=).*/);
+				if (!filterCapture) {
+					console.warn("unexpected article API request:", url);
+					request.continue();
+					return;
+				}
+				const filter = JSON.parse(decodeURIComponent(filterCapture[0]));
+
+				filter.skip += offset;
+
+				const newURL = url.replace(/(?<=filter=).*/, encodeURIComponent(JSON.stringify(filter)));
+				request.continue({url: newURL});
+
+				console.debug("article request offset:", offset, filter);
+			}
+			else
+				request.continue();
+		});
 	},
 };

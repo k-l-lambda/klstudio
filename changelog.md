@@ -1,6 +1,11 @@
 
 
 
+*	2020.8.16
+
+	+	contentScripts.js/girlimg.epio: request interception added.
+
+
 *	2020.7.25
 
 	+	contentScripts.js: added script for girlimg.epio.

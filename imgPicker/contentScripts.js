@@ -103,7 +103,7 @@ export default {
 
 		const listenDownloads = async () => {
 			while (true) {
-				await page.waitForNavigation();
+				//await page.waitForNavigation();
 
 				const url = await page.evaluate(() => new Promise(resolve => {
 					console.log("XBrowser.listenDownload.");

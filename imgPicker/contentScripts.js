@@ -119,7 +119,7 @@ const mountGallery = selector => {
 		else
 			image.classList.remove("owned");
 
-		gallery.querySelector(".number .index").innerHTML = index.toString();
+		gallery.querySelector(".number .index").innerHTML = (index + 1).toString();
 	};
 
 	gallery.addEventListener("mousewheel", event => {

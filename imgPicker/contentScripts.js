@@ -87,13 +87,26 @@ const mountGallery = selector => {
 			max-width: 100vw;
 			max-height: 100vh;
 		}
+
+		#xbrowser-gallery img.owned
+		{
+			outline-color: green !important;
+		}
 	`;
 	document.head.appendChild(styleSheet);
 
 	const image = gallery.querySelector("img");
 
 	let index = 0;
-	const updateImage = () => image.src = urls[index];
+	const updateImage = () => {
+		image.src = urls[index];
+
+		const owned = window.xbrowser_downloadedURLs && window.xbrowser_downloadedURLs.has(image.src);
+		if (owned)
+			image.classList.add("owned");
+		else
+			image.classList.remove("owned");
+	};
 
 	gallery.addEventListener("mousewheel", event => {
 		//console.log("mousewheel:", event);
@@ -161,6 +174,7 @@ export default {
 		const listenDownloads = async () => {
 			while (true) {
 				//await page.waitForNavigation();
+				page.evaluate(() => window.xbrowser_downloadedURLs = new Set());
 
 				const url = await page.evaluate(() => new Promise(resolve => {
 					console.log("XBrowser.listenDownload.");
@@ -185,6 +199,9 @@ export default {
 						html = `<span title="${result}">${result.substr(4, 8)}...${result.substr(result.length - 3)}</span>`;
 
 					page.evaluate(showLog, html);
+
+					if (result)
+						page.evaluate(url => window.xbrowser_downloadedURLs.add(url), url);
 				});
 			}
 		};
@@ -194,7 +211,7 @@ export default {
 		const pageURL = page.url();
 		//console.log("pageURL:", pageURL);
 		if (/article\/detail/.test(pageURL))
-			page.evaluate(mountGallery, "article img");
+			setTimeout(() => page.evaluate(mountGallery, "article img"), 600);
 		else {
 			//const pageHash = page.url().split("#").slice(1).join("");
 			const pageHash = await page.evaluate(() => location.hash);

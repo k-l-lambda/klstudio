@@ -1,6 +1,11 @@
 
 
 
+*	2020.8.23
+
+	+	imgPicker/contentScripts.js: mountGallery added.
+
+
 *	2020.8.16
 
 	+	contentScripts.js/girlimg.epio: request interception added.

@@ -19,6 +19,7 @@ const mountLog = () => {
 			padding: .2em;
 			transition: background-color .6s ease-out;
 			opacity: 0.7;
+			z-index: 1010;
 		}
 
 		#xbrowser-logs.activated
@@ -50,6 +51,62 @@ const showLog = result => {
 		logs.innerHTML = "ERROR";
 		logs.classList.add("error");
 	}
+};
+
+
+const mountGallery = selector => {
+	const imgs = document.querySelectorAll(selector);
+	const urls = [...imgs].map(img => img.src);
+	console.log("mountGallery:", urls);
+
+	const gallery = document.createElement("div");
+	gallery.innerHTML = `<div id="xbrowser-gallery"><img /></div>`;
+
+	document.body.appendChild(gallery);
+
+	const styleSheet = document.createElement("style")
+	styleSheet.type = "text/css"
+	styleSheet.innerText = `
+		#xbrowser-gallery
+		{
+			position: fixed;
+			left: 0;
+			top: 0;
+			width: 100vw;
+			height: 100vh;
+			background: #000a;
+			z-index: 1000;
+		}
+
+		#xbrowser-gallery img
+		{
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+			max-width: 100vw;
+			max-height: 100vh;
+		}
+	`;
+	document.head.appendChild(styleSheet);
+
+	const image = gallery.querySelector("img");
+
+	let index = 0;
+	const updateImage = () => image.src = urls[index];
+
+	gallery.addEventListener("mousewheel", event => {
+		//console.log("mousewheel:", event);
+		index += event.deltaY > 0 ? 1 : -1;
+		if (index < 0)
+			index += urls.length;
+		if (index >= urls.length)
+			index -= urls.length;
+
+		updateImage();
+	});
+
+	updateImage();
 };
 
 
@@ -134,35 +191,41 @@ export default {
 
 		listenDownloads();
 
-		//const pageHash = page.url().split("#").slice(1).join("");
-		const pageHash = await page.evaluate(() => location.hash);
-		const offsetCaptures = pageHash.match(/offset=(\d+)/);
-		const offset = offsetCaptures && Number(offsetCaptures[1]);
-		console.log("pageHash:", page.url(), pageHash, offset);
+		const pageURL = page.url();
+		//console.log("pageURL:", pageURL);
+		if (/article\/detail/.test(pageURL))
+			page.evaluate(mountGallery, "article img");
+		else {
+			//const pageHash = page.url().split("#").slice(1).join("");
+			const pageHash = await page.evaluate(() => location.hash);
+			const offsetCaptures = pageHash.match(/offset=(\d+)/);
+			const offset = offsetCaptures && Number(offsetCaptures[1]);
+			console.debug("pageHash:", page.url(), pageHash, offset);
 
-		await page.setRequestInterception(true);
-		page.on("request", request => {
-			//console.log("interceptedRequest:", request);
-			const url = request.url();
-			if (offset && /api\/article/.test(url)) {
-				//console.log("article request:", request);
-				const filterCapture = url.match(/(?<=filter=).*/);
-				if (!filterCapture) {
-					console.warn("unexpected article API request:", url);
-					request.continue();
-					return;
+			await page.setRequestInterception(true);
+			page.on("request", request => {
+				//console.log("interceptedRequest:", request);
+				const url = request.url();
+				if (offset && /api\/article/.test(url)) {
+					//console.log("article request:", request);
+					const filterCapture = url.match(/(?<=filter=).*/);
+					if (!filterCapture) {
+						console.warn("unexpected article API request:", url);
+						request.continue();
+						return;
+					}
+					const filter = JSON.parse(decodeURIComponent(filterCapture[0]));
+
+					filter.skip += offset;
+
+					const newURL = url.replace(/(?<=filter=).*/, encodeURIComponent(JSON.stringify(filter)));
+					request.continue({url: newURL});
+
+					console.debug("article request offset:", offset, filter);
 				}
-				const filter = JSON.parse(decodeURIComponent(filterCapture[0]));
-
-				filter.skip += offset;
-
-				const newURL = url.replace(/(?<=filter=).*/, encodeURIComponent(JSON.stringify(filter)));
-				request.continue({url: newURL});
-
-				console.debug("article request offset:", offset, filter);
-			}
-			else
-				request.continue();
-		});
+				else
+					request.continue();
+			});
+		}
 	},
 };

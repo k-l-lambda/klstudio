@@ -186,10 +186,10 @@ export default {
 		};
 
 		const listenDownloads = async () => {
+			page.evaluate(() => window.xbrowser_downloadedURLs = new Set());
+
 			while (true) {
 				//await page.waitForNavigation();
-				page.evaluate(() => window.xbrowser_downloadedURLs = new Set());
-
 				const url = await page.evaluate(() => new Promise(resolve => {
 					console.log("XBrowser.listenDownload.");
 					document.onkeydown = event => {

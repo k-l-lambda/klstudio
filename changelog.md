@@ -3,6 +3,8 @@
 
 *	2020.8.23
 
+	+	imgPicker/contentScripts.js: added image number on gallery.
+
 	+	imgPicker/contentScripts.js: added owned class on gallery.
 
 	+	imgPicker/contentScripts.js: mountGallery added.

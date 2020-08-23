@@ -60,7 +60,10 @@ const mountGallery = selector => {
 	console.log("mountGallery:", urls);
 
 	const gallery = document.createElement("div");
-	gallery.innerHTML = `<div id="xbrowser-gallery"><img /></div>`;
+	gallery.innerHTML = `<div id="xbrowser-gallery">
+		<img />
+		<div class="number"><span class="index"></span> / <span class="total">${urls.length}</span></div>
+	</div>`;
 
 	document.body.appendChild(gallery);
 
@@ -88,6 +91,15 @@ const mountGallery = selector => {
 			max-height: 100vh;
 		}
 
+		#xbrowser-gallery .number
+		{
+			position: absolute;
+			right: 2em;
+			top: .4em;
+			font-size: 14px;
+			color: white;
+		}
+
 		#xbrowser-gallery img.owned
 		{
 			outline-color: green !important;
@@ -106,6 +118,8 @@ const mountGallery = selector => {
 			image.classList.add("owned");
 		else
 			image.classList.remove("owned");
+
+		gallery.querySelector(".number .index").innerHTML = index.toString();
 	};
 
 	gallery.addEventListener("mousewheel", event => {

@@ -267,6 +267,7 @@ export default {
 		await page.setExtraHTTPHeaders({Referer: 'https://yande.re/'});
 		console.debug("Referer overwrited.");
 
+		page.evaluate(mountLog);
 		listenHzDownloads(page, callbacks);
 	},
 };

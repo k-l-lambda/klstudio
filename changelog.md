@@ -1,6 +1,11 @@
 
 
 
+*	2020.8.24
+
+	+	imgPicker/contentScripts.js: script for feedly added.
+
+
 *	2020.8.23
 
 	+	imgPicker/contentScripts.js: added image number on gallery.

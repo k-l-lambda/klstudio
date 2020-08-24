@@ -137,6 +137,32 @@ const mountGallery = selector => {
 };
 
 
+const listenHzDownloads = async (page, callbacks) => {
+	while (true) {
+		const url = await page.evaluate(() => new Promise(resolve => {
+			console.log("XBrowser.listenHzDownloads.");
+			document.onkeydown = event => {
+				console.log("onkeydown:", event);
+				if (!["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
+					switch (event.code) {
+					case "KeyV":
+						const hzImg = document.querySelector("#hzImg img");
+						if (hzImg)
+							resolve(hzImg.src);
+
+						break;
+					}
+				}
+			};
+		}));
+
+		callbacks.pickImage(url).then(result => {
+			page.evaluate(showLog, result);
+		});
+	}
+};
+
+
 
 export default {
 	"xsnvshen\\.com\\/album\\/new\\/": (page, callbacks) => {
@@ -144,31 +170,7 @@ export default {
 
 		page.evaluate(mountLog);
 
-		const listenDownloads = async () => {
-			while (true) {
-				const url = await page.evaluate(() => new Promise(resolve => {
-					console.log("XBrowser.listenDownload.");
-					document.onkeydown = event => {
-						if (!["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
-							switch (event.code) {
-							case "KeyV":
-								const hzImg = document.querySelector("#hzImg img");
-								if (hzImg)
-									resolve(hzImg.src);
-
-								break;
-							}
-						}
-					};
-				}));
-
-				callbacks.pickImage(url).then(result => {
-					page.evaluate(showLog, result);
-				});
-			}
-		};
-
-		listenDownloads();
+		listenHzDownloads(page, callbacks);
 	},
 
 
@@ -258,5 +260,13 @@ export default {
 					request.continue();
 			});
 		}
+	},
+
+
+	"feedly\\.com": async (page, callbacks) => {
+		await page.setExtraHTTPHeaders({Referer: 'https://yande.re/'});
+		console.debug("Referer overwrited.");
+
+		listenHzDownloads(page, callbacks);
 	},
 };

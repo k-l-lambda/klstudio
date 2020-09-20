@@ -147,8 +147,11 @@ const listenHzDownloads = async (page, callbacks) => {
 					switch (event.code) {
 					case "KeyV":
 						const hzImg = document.querySelector("#hzImg img");
-						if (hzImg)
+						if (hzImg) {
 							resolve(hzImg.src);
+
+							event.preventDefault();
+						}
 
 						break;
 					}
@@ -267,6 +270,12 @@ export default {
 		await page.setExtraHTTPHeaders({Referer: 'https://yande.re/'});
 		console.debug("Referer overwrited.");
 
+		page.evaluate(mountLog);
+		listenHzDownloads(page, callbacks);
+	},
+
+
+	"yande\\.re": async (page, callbacks) => {
 		page.evaluate(mountLog);
 		listenHzDownloads(page, callbacks);
 	},

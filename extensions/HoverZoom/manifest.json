@@ -446,6 +446,9 @@
       "js": [ "plugins/feedly.js" ],
       "matches": [ "*://*.feedly.com/*" ]
    }, {
+      "js": [ "plugins/yande.js" ],
+      "matches": [ "*://yande.re/*" ]
+   }, {
       "js": [ "plugins/tuyimm.js" ],
       "matches": [ "*://*.tuyimm.com/*" ]
    }, {

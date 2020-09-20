@@ -1,6 +1,11 @@
 
 
 
+*	2020.9.20
+
+	+	imgPicker/contentScripts.js: added script for yande.
+
+
 *	2020.8.24
 
 	+	imgPicker/contentScripts.js: script for feedly added.

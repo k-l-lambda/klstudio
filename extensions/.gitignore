@@ -1,0 +1,9 @@
+*
+!.gitignore
+!HoverZoom
+HoverZoom/*
+!HoverZoom/manifest.json
+!HoverZoom/plugins/
+HoverZoom/plugins/*
+!HoverZoom/plugins/feedly.js
+!HoverZoom/plugins/yande.js

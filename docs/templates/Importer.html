@@ -299,7 +299,7 @@
 			var addCheckFile = function (path) {
 				path = path.replace(/'/g, "%27");
 
-				var url = "/images/" + path;
+				var url = "/images/" + escape(path);
 				var name = path;
 				if (name.length > 17)
 					name = name.substr(0, 5) + ".." + name.substr(name.length - 10, 10);
@@ -338,7 +338,7 @@
 				figure.removeClass("ready");
 				figure.addClass("checking");
 
-				ajax.post("/check-file", { path: unescape(path), fix_extension: true }, function (json) {
+				ajax.post("/check-file", { path, fix_extension: true }, function (json) {
 					figure.removeClass("checking");
 
 					if (json.success) {

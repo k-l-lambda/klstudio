@@ -3,6 +3,11 @@ TODO:
 	last read time database
 
 
+2020.9.26	K.L.	<k.l.lambda@gmail.com>
+
+	+	Importer.html: fixed path escape issue.
+
+
 2020.4.18	K.L.	<k.l.lambda@gmail.com>
 
 	*	Peris.batchProcessFiles sample:

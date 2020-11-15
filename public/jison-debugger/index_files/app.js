@@ -362,11 +362,39 @@ var assign = require('object-assign');
 var AppDispatcher = require('../dispatcher');
 var ActionTypes = require('../actions/ActionTypes');
 var constants = require('../util/constants');
+var GrammarActionCreator = require('../actions/GrammarActionCreator');
 
 var CHANGE_EVENT = 'change';
 
 var activeGrammar = localStorage.grammar || constants.INITIAL_GRAMMAR;
 var activeTextToParse = localStorage.textToParse || constants.INITIAL_TEXT_TO_PARSE;
+
+
+/// *** MANUALLY APPENDED CODE AFTER BUNDLE ***
+if (location.hash) {
+	const argv = location.hash.match(/grammar=(.*)\|(.*)/);
+	if (argv) {
+		let [_, grammarURL, sampleText] = argv;
+		grammarURL = decodeURIComponent(grammarURL);
+		sampleText = decodeURIComponent(sampleText);
+
+		console.debug("Loading grammar:", grammarURL, sampleText);
+		//activeGrammar = "";
+		//activeTextToParse = sampleText;
+
+		fetch(grammarURL).then(res => res.text()).then(grammar => {
+			activeGrammar = grammar;
+			activeTextToParse = sampleText;
+
+			GrammarActionCreator.compileGrammar(grammar);
+
+			GrammarInputStore.emitChange();
+		});
+	}
+}
+
+///
+
 
 var GrammarInputStore = assign({}, EventEmitter.prototype, {
   emitChange:function() {
@@ -407,7 +435,16 @@ module.exports = GrammarInputStore;
 
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/app/scripts/stores/GrammarInputStore.js","/app/scripts/stores")
-},{"../actions/ActionTypes":"/Users/nolan/workspace/jison-debugger/app/scripts/actions/ActionTypes.js","../dispatcher":"/Users/nolan/workspace/jison-debugger/app/scripts/dispatcher.js","../util/constants":"/Users/nolan/workspace/jison-debugger/app/scripts/util/constants.js","_process":"/Users/nolan/workspace/jison-debugger/node_modules/browserify/node_modules/process/browser.js","buffer":"/Users/nolan/workspace/jison-debugger/node_modules/browserify/node_modules/buffer/index.js","events":"/Users/nolan/workspace/jison-debugger/node_modules/browserify/node_modules/events/events.js","object-assign":"/Users/nolan/workspace/jison-debugger/node_modules/object-assign/index.js"}],"/Users/nolan/workspace/jison-debugger/app/scripts/stores/GrammarOutputStore.js":[function(require,module,exports){
+},{
+	"../actions/ActionTypes":"/Users/nolan/workspace/jison-debugger/app/scripts/actions/ActionTypes.js",
+	"../actions/GrammarActionCreator":"/Users/nolan/workspace/jison-debugger/app/scripts/actions/GrammarActionCreator.js",
+	"../dispatcher":"/Users/nolan/workspace/jison-debugger/app/scripts/dispatcher.js",
+	"../util/constants":"/Users/nolan/workspace/jison-debugger/app/scripts/util/constants.js",
+	"_process":"/Users/nolan/workspace/jison-debugger/node_modules/browserify/node_modules/process/browser.js",
+	"buffer":"/Users/nolan/workspace/jison-debugger/node_modules/browserify/node_modules/buffer/index.js",
+	"events":"/Users/nolan/workspace/jison-debugger/node_modules/browserify/node_modules/events/events.js",
+	"object-assign":"/Users/nolan/workspace/jison-debugger/node_modules/object-assign/index.js"
+}],"/Users/nolan/workspace/jison-debugger/app/scripts/stores/GrammarOutputStore.js":[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 'use strict';
 

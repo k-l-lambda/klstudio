@@ -12,6 +12,11 @@ TODO:
 
 
 
+2020.11.15	K.L.	<k.l.lambda@gmail.com>
+
+	+	Public folder of jison-debugger added.
+
+
 2020.3.6	K.L.	<k.l.lambda@gmail.com>
 
 	+	spiral-piano.vue: use MIDI api from web-widgets.

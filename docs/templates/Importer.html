@@ -297,14 +297,12 @@
 			};
 
 			var addCheckFile = function (path) {
-				path = path.replace(/'/g, "%27");
-
 				var url = "/images/" + escape(path);
 				var name = path;
 				if (name.length > 17)
 					name = name.substr(0, 5) + ".." + name.substr(name.length - 10, 10);
 
-				var figure = $("<li class='pending' data-path='" + path + "'><p><span class='marker'></span><a target='_blank' href='" + url + "'><img src='" + url + "' /></a></p><p class='label' title='" + path + "'>" + name + "</p></li>");
+				var figure = $("<li class='pending' data-path='" + path + "'><p><span class='marker'></span><a target='_blank' href='" + url + "'><img src='" + url + "' /></a></p><p class='label' title='" + path.replace("'", "&apos;") + "'>" + name + "</p></li>");
 				figure.appendTo("#import-queue");
 
 				figure.click(function () {

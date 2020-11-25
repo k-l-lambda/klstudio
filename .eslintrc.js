@@ -11,7 +11,7 @@ module.exports = {
 		"plugin:vue/base",
 	],
 	parserOptions: {
-		parser: "babel-eslint",
+		parser: "@typescript-eslint/parser",
 		ecmaVersion: 2017,
 	},
 	rules: {

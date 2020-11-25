@@ -8,9 +8,8 @@
 		"build": "vue-cli-service build",
 		"lint": "vue-cli-service lint",
 		"start": "node main.ts",
-		"dev": "cross-env NODE_ENV=development nodemon main.ts",
-		"dev:inspect": "cross-env NODE_ENV=development nodemon --inspect main.ts",
-		"node-inspect": "cross-env NODE_ENV=development nodemon --inspect",
+		"dev": "cross-env NODE_ENV=development ts-node-dev --project ./tsconfig.node.json main.ts",
+		"dev:inspect": "cross-env NODE_ENV=development ts-node-dev --project ./tsconfig.node.json --inspect main.ts",
 		"ts-dev": "cross-env NODE_OPTIONS='--max-old-space-size=4096' ts-node-dev --project ./tsconfig.node.json --",
 		"ts-dev:inspect": "ts-node-dev --project ./tsconfig.node.json --inspect --",
 		"cube3-gentable6": "cross-env NODE_OPTIONS='--max-old-space-size=4096' ts-node-dev -- ./tools/cube3-gentable.ts --outputFile=./static/data/cube3-table-6.json --depth=6",
@@ -37,6 +36,8 @@
 	"devDependencies": {
 		"@k-l-lambda/web-widgets": "^0.2.9",
 		"@tensorflow/tfjs": "^1.2.6",
+		"@typescript-eslint/eslint-plugin": "^2.24.0",
+		"@typescript-eslint/parser": "^2.24.0",
 		"@vue/cli-plugin-babel": "^4.1.0",
 		"@vue/cli-plugin-eslint": "^4.1.0",
 		"@vue/cli-plugin-router": "^4.1.0",
@@ -57,6 +58,8 @@
 		"nodemon": "^1.18.7",
 		"sass-loader": "^8.0.0",
 		"three": "^0.105.2",
+		"ts-node": "^8.4.1",
+		"ts-node-dev": "^1.0.0-pre.44",
 		"vue": "^2.6.10",
 		"vue-class-component": "^7.0.2",
 		"vue-debounce": "^1.0.0",
@@ -68,8 +71,6 @@
 	"dependencies": {
 		"@types/express": "^4.17.0",
 		"express": "^4.16.4",
-		"ts-node": "^8.3.0",
-		"ts-node-dev": "^1.0.0-pre.40",
 		"typescript": "~3.5.3",
 		"yargs": "^13.2.4"
 	}

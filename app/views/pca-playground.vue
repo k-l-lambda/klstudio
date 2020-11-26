@@ -6,6 +6,12 @@
 			:height="size.height"
 			@click="onClickCanvas"
 		>
+			<defs>
+				<g id="arrow">
+					<line class="trunk" x1="0" y1="0" x2="0.7" y2="0" />
+					<polygon class="tip" points="1 0 0.7 -0.3 0.7 0.3" />
+				</g>
+			</defs>
 			<g class="points">
 				<circle v-for="(point, i) of points" :key="i"
 					:cx="point[0]"
@@ -16,6 +22,12 @@
 				<line x1="-12" x2="12" y1="0" y2="0" />
 				<line y1="-12" y2="12" x1="0" x2="0" />
 			</g>
+			<g v-if="eigens" class="eigen">
+				<use v-for="(eigen, i) of eigens" :key="i"
+					href="#arrow"
+					:transform="`translate(${center[0]}, ${-center[1]}) rotate(${(180 - eigen.angle * 180 / Math.PI)}) scale(${eigen.eigenvalue * 0.01 / points.length} 20)`"
+				/>
+			</g>
 		</svg>
 		<header class="controls">
 			<button @click="reset">Reset</button>
@@ -25,6 +37,9 @@
 
 <script>
 	import resize from "vue-resize-directive";
+	import PCA from "pca-js";
+
+
 
 	export default {
 		name: "pca-playground",
@@ -54,6 +69,25 @@
 				const sum = this.points.reduce(([cx, cy], [x, y]) => [cx + x, cy + y], [0, 0]);
 
 				return [sum[0] / this.points.length, sum[1] / this.points.length];
+			},
+
+
+			eigens () {
+				if (!this.points.length)
+					return null;
+
+				const eigens = PCA.getEigenVectors(this.points);
+
+				eigens.forEach(eigen => {
+					eigen.angle = eigen.vector[1] > 0 ? Math.PI / 2 : -Math.PI / 2;
+
+					if (eigen.vector[0]) {
+						const atan = Math.atan(eigen.vector[1] / eigen.vector[0]);
+						eigen.angle = eigen.vector[0] > 0 ? atan : atan + Math.PI;
+					}
+				});
+
+				return eigens;
 			},
 		},
 
@@ -118,6 +152,20 @@
 			right: 0;
 			top: 0;
 			padding: 1em;
+		}
+	}
+
+	#arrow
+	{
+		.trunk
+		{
+			stroke: red;
+			stroke-width: 0.2;
+		}
+
+		.tip
+		{
+			fill: red;
 		}
 	}
 </style>

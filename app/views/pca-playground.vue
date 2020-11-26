@@ -21,7 +21,7 @@
 			<g v-if="eigens" class="eigen">
 				<use v-for="(eigen, i) of eigens" :key="i"
 					href="#arrow"
-					:transform="`translate(${center[0]}, ${-center[1]}) rotate(${(180 - eigen.angle * 180 / Math.PI)}) scale(${eigen.eigenvalue * 0.01 / points.length} 20)`"
+					:transform="`translate(${center[0]}, ${-center[1]}) rotate(${(180 - eigen.angle * 180 / Math.PI)}) scale(${(eigen.eigenvalue / points.length) ** 0.5} 20)`"
 				/>
 			</g>
 			<g v-if="center" class="center" :transform="`translate(${center[0]}, ${-center[1]})`">
@@ -95,6 +95,16 @@
 		created () {
 			if (process.env.NODE_ENV === "development")
 				window.$view = this;
+
+			document.addEventListener("keydown", event => {
+				//console.log("keydown:", event);
+				switch (event.key) {
+				case "Home":
+					this.reset();
+
+					break;
+				}
+			});
 		},
 
 

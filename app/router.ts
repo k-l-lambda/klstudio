@@ -75,6 +75,11 @@ export const routes = [
 		name: "Cube Globe",
 		component: () => import(/* webpackChunkName: "globe-cube3", webpackPrefetch: true */ "./views/globe-cube3.vue"),
 	},
+	{
+		path: "/pca-playground",
+		name: "PCA Playgound",
+		component: () => import(/* webpackChunkName: "pca-playground", webpackPrefetch: true */ "./views/pca-playground.vue"),
+	},
 ];
 
 

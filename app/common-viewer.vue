@@ -79,7 +79,7 @@
 
 	main h1
 	{
-		color: #eee;
+		color: #eee5;
 		font-size: 20vh;
 		user-select: none;
 		text-align: center;

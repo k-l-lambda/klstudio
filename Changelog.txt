@@ -12,6 +12,11 @@ TODO:
 
 
 
+2020.11.26	K.L.	<k.l.lambda@gmail.com>
+
+	+	App entry of pca-playground added.
+
+
 2020.11.15	K.L.	<k.l.lambda@gmail.com>
 
 	+	Public folder of jison-debugger added.

@@ -12,6 +12,10 @@
 					:cy="-point[1]"
 				/>
 			</g>
+			<g v-if="center" class="center" :transform="`translate(${center[0]}, ${-center[1]})`">
+				<line x1="-12" x2="12" y1="0" y2="0" />
+				<line y1="-12" y2="12" x1="0" x2="0" />
+			</g>
 		</svg>
 		<header class="controls">
 			<button @click="reset">Reset</button>
@@ -39,6 +43,18 @@
 				},
 				points: [],
 			};
+		},
+
+
+		computed: {
+			center () {
+				if (!this.points.length)
+					return null;
+
+				const sum = this.points.reduce(([cx, cy], [x, y]) => [cx + x, cy + y], [0, 0]);
+
+				return [sum[0] / this.points.length, sum[1] / this.points.length];
+			},
 		},
 
 
@@ -83,6 +99,15 @@
 				{
 					fill: steelblue;
 					r: 8;
+				}
+			}
+
+			.center
+			{
+				line
+				{
+					stroke: black;
+					stroke-width: 2;
 				}
 			}
 		}

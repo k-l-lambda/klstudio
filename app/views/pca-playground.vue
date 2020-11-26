@@ -18,15 +18,15 @@
 					:cy="-point[1]"
 				/>
 			</g>
-			<g v-if="center" class="center" :transform="`translate(${center[0]}, ${-center[1]})`">
-				<line x1="-12" x2="12" y1="0" y2="0" />
-				<line y1="-12" y2="12" x1="0" x2="0" />
-			</g>
 			<g v-if="eigens" class="eigen">
 				<use v-for="(eigen, i) of eigens" :key="i"
 					href="#arrow"
 					:transform="`translate(${center[0]}, ${-center[1]}) rotate(${(180 - eigen.angle * 180 / Math.PI)}) scale(${eigen.eigenvalue * 0.01 / points.length} 20)`"
 				/>
+			</g>
+			<g v-if="center" class="center" :transform="`translate(${center[0]}, ${-center[1]})`">
+				<line x1="-12" x2="12" y1="0" y2="0" />
+				<line y1="-12" y2="12" x1="0" x2="0" />
 			</g>
 		</svg>
 		<header class="controls">

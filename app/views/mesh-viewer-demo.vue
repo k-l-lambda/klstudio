@@ -30,6 +30,30 @@
 	};
 
 
+	const GREEK_LETTERS = [
+		"&alpha;", "&beta;", "&gamma;", "&delta;",
+		"&epsilon;", "&zeta;", "&eta;", "&theta;",
+		"&iota;", "&kappa;", "&lambda;", "&mu;",
+		"&nu;", "&xi;", "&omicron;", "&pi;",
+		"&rho;", "&sigma;", "&tau;", "&upsilon;",
+		"&phi;", "&chi;", "&psi;", "&omega;",
+	];
+
+	const config4x6_greek = {
+		entities: EULERS_4x6.map((euler, i) => ({
+			label: GREEK_LETTERS[i],
+			prototype: "chess-knight",
+			position: [(i % 4 - 1.5) * 5, (2.5 - Math.floor(i / 4)) * 3, 0],
+			euler,
+		})),
+		cameraInit: {
+			radius: 18,
+			theta: 0,
+			phi: 0,
+		},
+	};
+
+
 
 	const SQRT_HALF = Math.sqrt(0.5);
 
@@ -159,6 +183,7 @@
 
 	const configs = {
 		"quarter-array-4x6": config4x6,
+		"quarter-array-4x6-greek": config4x6_greek,
 		"quarter-categories": configCategories,
 	};
 

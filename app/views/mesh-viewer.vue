@@ -22,6 +22,7 @@
 <script>
 	import resize from "vue-resize-directive";
 	import * as THREE from "three";
+	import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 
 	import {animationDelay} from "../delay";
 
@@ -69,6 +70,9 @@
 
 
 	const SENSOR_SENSITIVITY = .4e-3;
+
+
+	const gltfLoader = new GLTFLoader();
 
 
 
@@ -214,14 +218,34 @@
 			},
 
 
+			async loadByObjectLoader ({default: prototype}) {
+				return await new Promise(resolve => new THREE.ObjectLoader().parse(prototype, resolve));
+			},
+
+
+			async loadByGltfLoader ({default: prototype}) {
+				return new Promise((resolve, reject) => {
+					gltfLoader.load( prototype, function ( gltf ) {
+						//console.log("gltf:", gltf);
+						resolve(gltf.scene);
+					}, undefined, err => reject(err));
+				});
+			},
+
+
 			async createScene () {
 				if (this.entities) {
 					for (const entity of this.entities) {
 						const node1 = new THREE.Object3D();
 						this.scene.add(node1);
 
-						const {default: prototype} = await import(`../assets/${entity.prototype}.json`);
-						const obj = await new Promise(resolve => new THREE.ObjectLoader().parse(prototype, resolve));
+						//const {default: prototype} = await import(`../assets/${entity.prototype}.json`);
+						//const obj = await new Promise(resolve => new THREE.ObjectLoader().parse(prototype, resolve));
+						let obj = null;
+						if (/\.(glb|gltf)$/.test(entity.prototype))
+							obj = await this.loadByGltfLoader(await import(`../assets/${entity.prototype}`));
+						else
+							obj = await this.loadByObjectLoader(await import(`../assets/${entity.prototype}.json`));
 						node1.add(obj);
 
 						if (entity.position) 

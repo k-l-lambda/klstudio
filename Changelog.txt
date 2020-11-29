@@ -14,6 +14,8 @@ TODO:
 
 2020.11.29	K.L.	<k.l.lambda@gmail.com>
 
+	+	mesh-viewer.vue: GLTF model loading added.
+
 	+	App entry of flipping-cube added.
 
 	+	mesh-viewer-demo.vue: added config of config4x6_greek.

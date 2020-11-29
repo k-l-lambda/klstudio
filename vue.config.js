@@ -32,7 +32,7 @@ module.exports = {
 		// binary file loader
 		config.module
 			.rule("raw-binary")
-			.test(/\.(dat)$/)
+			.test(/\.(dat|gltf)$/)
 			.use("url-loader")
 			.loader("url-loader");
 

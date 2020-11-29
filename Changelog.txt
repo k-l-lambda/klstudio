@@ -14,6 +14,8 @@ TODO:
 
 2020.11.29	K.L.	<k.l.lambda@gmail.com>
 
+	+	App entry of flipping-cube added.
+
 	+	mesh-viewer-demo.vue: added config of config4x6_greek.
 
 	+	cube3.ts: refined type declarations.

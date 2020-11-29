@@ -24,7 +24,6 @@
 	import * as THREE from "three";
 
 	import {animationDelay} from "../delay";
-	import {MULTIPLICATION_TABLE} from "../../inc/cube-algebra";
 
 	import QuitClearner from "../mixins/quit-cleaner";
 	import Accelerometer from "../mixins/accelerometer.js";
@@ -236,7 +235,7 @@
 						//console.log("obj:", obj);
 
 						if (entity.label) {
-							const label = new Label(node1, this.camera, typeof entity.label === "object" ? entity.label : {content: entity.label});
+							const label = new Label(node1, this.camera, typeof entity.label === "object" ? entity.label : {content: entity.label, offset: entity.labelOffset});
 
 							this.labels.push(label);
 						}
@@ -293,19 +292,6 @@
 			onMouseWheel (event) {
 				//console.log("onMouseWheel:", events);
 				this.viewRadius *= Math.exp(event.deltaY * 0.001);
-			},
-
-
-			permute (index) {
-				//const positions = this.elements.reduce((ps, e, i) => ((ps[elementsSchema[i].index] = this.elementPositions[i]), ps), []);
-				this.elements.forEach((e, i) => {
-					const target = MULTIPLICATION_TABLE[elementsSchema[i].index][index];
-					e.position.copy(this.elementPositions[target]);
-				});
-				this.elementPositions = this.elements.reduce((ps, e, i) => ((ps[elementsSchema[i].index] = e.position.clone()), ps), []);
-
-				this.rotationIndex = 0;
-				this.rotationT = 0;
 			},
 		},
 

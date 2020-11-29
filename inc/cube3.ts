@@ -1,8 +1,7 @@
 
 import * as math from "mathjs";
 
-// @ts-ignore
-import * as cubeAlgebra from "./cube-algebra.ts";
+import * as cubeAlgebra from "./cube-algebra";
 
 
 
@@ -150,7 +149,7 @@ const axisTimesToTwist = (axis: number, times: number): number => axis + timesTo
 
 const invertTwist = (twist: number): number => twist >= 12 ? twist : (twist >= 6 ? twist - 6 : twist + 6);
 
-const invertPath = (path: Array<number>) => [...path].reverse().map(invertTwist);
+const invertPath = (path: Array<number>): number[] => [...path].reverse().map(invertTwist);
 
 
 const TWIST_NAMES = [
@@ -159,10 +158,10 @@ const TWIST_NAMES = [
 	"L2", "R2", "D2", "U2", "B2", "F2",
 ];
 
-const stringifyPath = (path: number[]) => path.map(twist => TWIST_NAMES[twist]).join("");
-const parsePath = (source: string) => source.match(/\w['2]?/g).map(word => TWIST_NAMES.indexOf(word));
+const stringifyPath = (path: number[]): string => path.map(twist => TWIST_NAMES[twist]).join("");
+const parsePath = (source: string): number[] => source.match(/\w['2]?/g).map(word => TWIST_NAMES.indexOf(word));
 
-const quarterfyPath = (path: number[]) => [].concat(...path.map(t => t >= 12 ? [t % 6, t % 6] : [t]));
+const quarterfyPath = (path: number[]): number[] => [].concat(...path.map(t => t >= 12 ? [t % 6, t % 6] : [t]));
 
 
 const ENCODE_UNIT_ORDER = [
@@ -172,8 +171,8 @@ const ENCODE_UNIT_ORDER = [
 ];
 
 
-const permutate = (indices: Array<number>, values: ArrayLike<any>) => indices.map(index => values[index]);
-const depermutate = (keys: ArrayLike<number>, values: ArrayLike<any>) => Array.from(keys).map((k, i) => ({k, i})).sort((x1, x2) => x1.k - x2.k).map(({i}) => values[i]);
+const permutate = <T>(indices: Array<number>, values: ArrayLike<T>): Array<T> => indices.map(index => values[index]);
+const depermutate = <T>(keys: ArrayLike<number>, values: ArrayLike<T>): Array<T> => Array.from(keys).map((k, i) => ({k, i})).sort((x1, x2) => x1.k - x2.k).map(({i}) => values[i]);
 
 
 

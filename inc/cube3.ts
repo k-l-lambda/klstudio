@@ -16,7 +16,16 @@ import * as cubeAlgebra from "./cube-algebra.ts";
 };*/
 
 
-const unitaryMatrices = [
+type Vector3 = [number, number, number];
+type Matrix33 = [Vector3, Vector3, Vector3]
+
+declare namespace math {
+	interface Matrix {}
+	//let matrix: (data: Matrix33) => Matrix;
+}
+
+
+const unitaryMatrices: math.Matrix[/*10*/] = [
 	// 1
 	[
 		[1, 0, 0],
@@ -92,48 +101,54 @@ const unitaryItems = [
 	cubeAlgebra.I_, cubeAlgebra.J_, cubeAlgebra.K_,
 	cubeAlgebra.I2, cubeAlgebra.J2, cubeAlgebra.K2,
 ];
-const dualRotations = cubeAlgebra.NORMAL_ORIENTATIONS.slice(10).map(o => o.items).map(
+const dualRotations: math.Matrix[/*14*/] = cubeAlgebra.NORMAL_ORIENTATIONS.slice(10).map(o => o.items).map(
 	([i1, i2]) => math.multiply(
 		unitaryMatrices[unitaryItems.indexOf(i1)],
 		unitaryMatrices[unitaryItems.indexOf(i2)]));
 
 
-const normalRotationMatrices = unitaryMatrices.concat(dualRotations);
-const mirrorRotationMatrices = normalRotationMatrices.map(mat => math.multiply(mirrorMatrix, mat));
+const normalRotationMatrices: math.Matrix[/*24*/] = unitaryMatrices.concat(dualRotations);
+const mirrorRotationMatrices: math.Matrix[/*24*/] = normalRotationMatrices.map(mat => math.multiply(mirrorMatrix, mat));
 
-const rotationMatrices = normalRotationMatrices.concat(mirrorRotationMatrices);
-
-
-const hashPoint = point => point.map(v => "-0+"[v + 1]).join("");
-const points = Array(3 ** 3).fill(null).map((_, i) => [i % 3 - 1, Math.floor(i / 3) % 3 - 1, Math.floor(i / 9) - 1]);
-const pointHashes = points.map(hashPoint);
+const rotationMatrices: math.Matrix[/*48*/] = normalRotationMatrices.concat(mirrorRotationMatrices);
 
 
-const pointRotationTable = points.map(point => rotationMatrices.map(matrix => pointHashes.indexOf(hashPoint(math.multiply(point, matrix)._data))));
+const hashPoint = (point: Vector3): string => point.map(v => "-0+"[v + 1]).join("");
+const points: Vector3[/*27*/] = Array(3 ** 3).fill(null).map((_, i) => [i % 3 - 1, Math.floor(i / 3) % 3 - 1, Math.floor(i / 9) - 1]);
+const pointHashes: string[/*27*/] = points.map(hashPoint);
 
 
-const pointIndices = [...Array(3 ** 3).keys()];
-const axisPointsTable = Array(6).fill(null).map((_, axis) => pointIndices.filter(index => {
+const pointRotationTable: number[/*48*/][/*27*/] = points.map(point => rotationMatrices.map(matrix => pointHashes.indexOf(hashPoint(math.multiply(point, matrix)._data))));
+
+
+const pointIndices: number[/*27*/] = [...Array(3 ** 3).keys()];
+const axisPointsTable: number[/*9*/][/*6*/] = Array(6).fill(null).map((_, axis) => pointIndices.filter(index => {
 	const positive = axis % 2 > 0;
 
 	return points[index][Math.floor(axis / 2)] === (positive ? 1 : -1);
 }));
 
 
-const twistToAxisRotation = twist => ({
+interface AxisRotation
+{
+	axis: number;
+	rotation: number;
+};
+
+const twistToAxisRotation = (twist: number): AxisRotation => ({
 	axis: twist % 6,
 	rotation: Math.floor(twist / 2) + 1,
 });
 
 
-const axisRotationToTwist = (axis, rotation) => axis % 2 + (rotation - 1) * 2;
+const axisRotationToTwist = (axis: number, rotation: number): number => axis % 2 + (rotation - 1) * 2;
 
 
-const timesToIndex = times => [1, 3, 2].indexOf((times % 4 + 4) % 4);
-const axisTimesToTwist = (axis, times) => axis + timesToIndex(times) * 6;
+const timesToIndex = (times: number): number => [1, 3, 2].indexOf((times % 4 + 4) % 4);
+const axisTimesToTwist = (axis: number, times: number): number => axis + timesToIndex(times) * 6;
 
 
-const invertTwist = twist => twist >= 12 ? twist : (twist >= 6 ? twist - 6 : twist + 6);
+const invertTwist = (twist: number): number => twist >= 12 ? twist : (twist >= 6 ? twist - 6 : twist + 6);
 
 const invertPath = (path: Array<number>) => [...path].reverse().map(invertTwist);
 
@@ -166,7 +181,7 @@ const A = "A".charCodeAt(0);
 
 
 class Cube3 {
-	units: Uint8Array;
+	units: Uint8Array;	// [27]
 
 
 	constructor ({code, path} : {code?: string, path?: number[]} = {}) {
@@ -180,7 +195,7 @@ class Cube3 {
 	}
 
 
-	get positions () : Uint8Array {
+	get positions (): Uint8Array {
 		return this.units.map((unit, index) => pointRotationTable[index][unit]);
 	}
 
@@ -190,7 +205,7 @@ class Cube3 {
 	}
 
 
-	clone () {
+	clone (): Cube3 {
 		const cube = new Cube3();
 		cube.units = new Uint8Array(this.units);
 
@@ -198,7 +213,7 @@ class Cube3 {
 	}
 
 	
-	isZero () {
+	isZero (): boolean {
 		for (const unit of this.units) {
 			if (unit)
 				return false;
@@ -208,7 +223,7 @@ class Cube3 {
 	}
 
 
-	faceIndicesFromAxis (axis: number) : Array<number> {
+	faceIndicesFromAxis (axis: number): Array<number> {
 		const movingPoints = axisPointsTable[axis];
 
 		return Array.from(this.positions)
@@ -218,7 +233,7 @@ class Cube3 {
 	}
 
 
-	twist (twist: number) {
+	twist (twist: number): this {
 		// select a face according to axis, substitute unit states by rotation.
 		const {axis, rotation} = twistToAxisRotation(twist);
 		const movingIndices = this.faceIndicesFromAxis(axis);
@@ -229,14 +244,14 @@ class Cube3 {
 	}
 
 
-	twists (path: number[]) {
+	twists (path: number[]): this {
 		path.forEach(twist => this.twist(twist));
 
 		return this;
 	}
 
 
-	multiply (cube: Cube3) : Cube3 {
+	multiply (cube: Cube3): Cube3 {
 		const positions = this.positions;
 
 		const result = new Cube3();
@@ -246,7 +261,7 @@ class Cube3 {
 	}
 
 
-	divide (cube: Cube3) : Cube3 {
+	divide (cube: Cube3): Cube3 {
 		const result = new Cube3();
 		const units = cube.units.map((state, index) => cubeAlgebra.DIVISION_TABLE[state][this.units[index]]);
 		result.units = Uint8Array.from(depermutate(cube.positions, units));
@@ -255,7 +270,7 @@ class Cube3 {
 	}
 
 
-	transform (transformation: number) {
+	transform (transformation: number): this {
 		const permutation = this.units.map((unit, index) => pointRotationTable[index][transformation]);
 
 		const rotation = transformation % 24;
@@ -284,7 +299,7 @@ class Cube3 {
 	}
 
 
-	validate () : boolean {
+	validate (): boolean {
 		const positions = this.positions;
 
 		for (let i = 0; i < this.units.length; ++i) {

@@ -1,5 +1,5 @@
 <template>
-	<MeshViewer v-bind="param" />
+	<MeshViewer class="flipping-cube" v-bind="param" />
 </template>
 
 <script>
@@ -26,15 +26,21 @@
 		computed: {
 			param () {
 				return {
-					entities: [{
-						label: this.label,
-						labelOffset: [0, 0, 0],
-						prototype: "cube.gltf",
-					}],
+					entities: [
+						{
+							label: this.label,
+							labelOffset: [0, 0, 0],
+							prototype: "cube.gltf",
+						},
+						{
+							prototype: "coordinate-frame.gltf",
+							position: [-3.6, -2, -1],
+						},
+					],
 					cameraInit: {
-						radius: 16,
-						theta: Math.PI * -0.2,
-						phi: Math.PI * -0.12,
+						radius: 8,
+						theta: Math.PI * -0.08,
+						phi: Math.PI * -0.06,
 					},
 				};
 			},
@@ -43,14 +49,14 @@
 </script>
 
 <style lang="scss">
-	.mesh-viewer
+	.flipping-cube
 	{
 		.label
 		{
-			font-size: 48px;
+			font-size: 60px;
 			font-weight: bold;
 			color: white;
-			text-shadow: 0 0 6px black;
+			text-shadow: 0 0 8px black;
 		}
 	}
 </style>

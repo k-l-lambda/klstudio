@@ -10,7 +10,7 @@
 
 	import {GREEK_LETTERS} from "../../inc/greek-letters";
 	import {MULTIPLICATION_TABLE, NORMAL_ORIENTATIONS} from "../../inc/cube-algebra";
-	import {animationDelay} from "../delay.js";
+	import {animationDelay, msDelay} from "../delay.js";
 
 	import MeshViewer from "./mesh-viewer";
 
@@ -30,15 +30,6 @@
 
 	const QUATERNIONS = NORMAL_ORIENTATIONS.map(o => o.toQuaternion());
 
-	/*const AXES = [
-		new THREE.Vector3(-1, 0, 0),
-		new THREE.Vector3(-1, 0, 0),
-		new THREE.Vector3(0, -1, 0),
-		new THREE.Vector3(0, -1, 0),
-		new THREE.Vector3(0, 0, -1),
-		new THREE.Vector3(0, 0, -1),
-	];*/
-
 
 
 	export default {
@@ -53,7 +44,7 @@
 		data () {
 			return {
 				orientation: 0,
-				flipping: false,
+				randomFlipping: false,
 			};
 		},
 
@@ -83,8 +74,8 @@
 					],
 					cameraInit: {
 						radius: 8,
-						theta: Math.PI * -0.08,
-						phi: Math.PI * -0.06,
+						theta: Math.PI * -0.12,
+						phi: Math.PI * -0.08,
 					},
 				};
 			},
@@ -110,6 +101,17 @@
 				}
 
 				this.orientation = target;
+			},
+
+
+			async randomFlip () {
+				this.randomFlipping = true;
+
+				while (this.randomFlipping) {
+					await this.flip(Math.floor(Math.random() * 6) + 1);
+
+					await msDelay(2e+3);
+				}
 			},
 
 

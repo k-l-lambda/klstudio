@@ -30,11 +30,13 @@
 						{
 							label: this.label,
 							labelOffset: [0, 0, 0],
+							euler: [0, -Math.PI / 2, 0],
 							prototype: "cube.gltf",
 						},
 						{
 							prototype: "coordinate-frame.gltf",
 							position: [-3.6, -2, -1],
+							scale: [0.4, 0.4, 0.4],
 						},
 					],
 					cameraInit: {

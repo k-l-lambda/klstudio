@@ -168,7 +168,7 @@
 				skyLight.target = this.scene;
 				this.scene.add(skyLight);
 
-				this.scene.add(new THREE.AmbientLight("#323f43"));
+				this.scene.add(new THREE.AmbientLight("#525f63"));
 
 				this.rendererActive = true;
 			},
@@ -248,13 +248,16 @@
 							obj = await this.loadByObjectLoader(await import(`../assets/${entity.prototype}.json`));
 						node1.add(obj);
 
-						if (entity.position) 
+						if (entity.position)
 							node1.position.set(...entity.position);
 
-						if (entity.quaternion) 
+						if (entity.quaternion)
 							obj.quaternion.set(...entity.quaternion);
 						else if (entity.euler)
 							obj.quaternion.setFromEuler(new THREE.Euler(...entity.euler, "XZY"));
+
+						if (entity.scale)
+							obj.scale.set(...entity.scale);
 
 						//console.log("obj:", obj);
 

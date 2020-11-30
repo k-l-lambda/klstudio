@@ -3,6 +3,8 @@
 </template>
 
 <script>
+	import {GREEK_LETTERS} from "../../inc/greek-letters";
+
 	import MeshViewer from "./mesh-viewer.vue";
 
 
@@ -30,14 +32,6 @@
 	};
 
 
-	const GREEK_LETTERS = [
-		"&alpha;", "&beta;", "&gamma;", "&delta;",
-		"&epsilon;", "&zeta;", "&eta;", "&theta;",
-		"&iota;", "&kappa;", "&lambda;", "&mu;",
-		"&nu;", "&xi;", "&omicron;", "&pi;",
-		"&rho;", "&sigma;", "&tau;", "&upsilon;",
-		"&phi;", "&chi;", "&psi;", "&omega;",
-	];
 	const EULER4X6_INDICES = [
 		0, 5, 2, 8,
 		4, 15, 19, 14,

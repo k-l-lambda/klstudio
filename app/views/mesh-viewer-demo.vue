@@ -1,5 +1,5 @@
 <template>
-	<MeshViewer v-bind="param" />
+	<MeshViewer class="mesh-viewer-demo" v-bind="param" />
 </template>
 
 <script>
@@ -38,10 +38,18 @@
 		"&rho;", "&sigma;", "&tau;", "&upsilon;",
 		"&phi;", "&chi;", "&psi;", "&omega;",
 	];
+	const EULER4X6_INDICES = [
+		0, 5, 2, 8,
+		4, 15, 19, 14,
+		7, 16, 18, 17,
+		6, 10, 23, 13,
+		9, 12, 22, 11,
+		1, 21, 3, 20,
+	];
 
 	const config4x6_greek = {
 		entities: EULERS_4x6.map((euler, i) => ({
-			label: GREEK_LETTERS[i],
+			label: GREEK_LETTERS[EULER4X6_INDICES[i]],
 			prototype: "chess-knight",
 			position: [(i % 4 - 1.5) * 5, (2.5 - Math.floor(i / 4)) * 3, 0],
 			euler,
@@ -210,3 +218,13 @@
 		},
 	};
 </script>
+
+<style lang="scss">
+	.mesh-viewer-demo
+	{
+		.label
+		{
+			font-size: 18px;
+		}
+	}
+</style>

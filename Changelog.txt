@@ -12,6 +12,11 @@ TODO:
 
 
 
+2020.11.30	K.L.	<k.l.lambda@gmail.com>
+
+	+	flipping-cube.vue: flip animation added.
+
+
 2020.11.29	K.L.	<k.l.lambda@gmail.com>
 
 	+	mesh-viewer.vue: GLTF model loading added.

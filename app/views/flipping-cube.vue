@@ -1,10 +1,16 @@
 <template>
-	<MeshViewer class="flipping-cube" ref="viewer" v-bind="param" />
+	<MeshViewer class="flipping-cube" ref="viewer"
+		v-bind="param"
+		@sceneReady="onSceneReady"
+	/>
 </template>
 
 <script>
+	import * as THREE from "three";
+
 	import {GREEK_LETTERS} from "../../inc/greek-letters";
-	import {MULTIPLICATION_TABLE} from "../../inc/cube-algebra";
+	import {MULTIPLICATION_TABLE, NORMAL_ORIENTATIONS} from "../../inc/cube-algebra";
+	import {animationDelay} from "../delay.js";
 
 	import MeshViewer from "./mesh-viewer";
 
@@ -21,6 +27,17 @@
 		13, 17, 23,
 		18, 19,
 	];
+
+	const QUATERNIONS = NORMAL_ORIENTATIONS.map(o => o.toQuaternion());
+
+	/*const AXES = [
+		new THREE.Vector3(-1, 0, 0),
+		new THREE.Vector3(-1, 0, 0),
+		new THREE.Vector3(0, -1, 0),
+		new THREE.Vector3(0, -1, 0),
+		new THREE.Vector3(0, 0, -1),
+		new THREE.Vector3(0, 0, -1),
+	];*/
 
 
 
@@ -52,6 +69,7 @@
 				return {
 					entities: [
 						{
+							name: "cube",
 							label: GREEK_LETTERS[GREEK_LETTER_ORDER[this.orientation]],
 							labelOffset: [0, 0, 0],
 							euler: [0, -Math.PI / 2, 0],
@@ -74,8 +92,31 @@
 
 
 		methods: {
-			flip (rotation) {
-				this.orientation = MULTIPLICATION_TABLE[rotation][this.orientation];
+			async flip (rotation) {
+				const STEPS = 30;
+				const target = MULTIPLICATION_TABLE[rotation][this.orientation];
+
+				const end = new THREE.Quaternion(...QUATERNIONS[target]);
+				//const start = end.clone();
+				const start = new THREE.Quaternion(...QUATERNIONS[this.orientation]);
+
+				for (let i = 0; i < STEPS; ++i) {
+					const progress = i / STEPS;
+					const smooth = 3 * progress ** 2 - 2 * progress ** 3;
+
+					THREE.Quaternion.slerp(start, end, this.cube.quaternion, smooth);
+
+					await animationDelay();
+				}
+
+				this.orientation = target;
+			},
+
+
+			onSceneReady () {
+				//console.log("scene:", this.$refs.viewer.scene);
+				this.cube = this.$refs.viewer.scene.children.find(node => node.name === "cube");
+				console.assert(this.cube, "cube not found");
 			},
 		},
 

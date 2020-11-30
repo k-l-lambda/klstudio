@@ -242,6 +242,9 @@
 							obj = await this.loadByObjectLoader(await import(`../assets/${entity.prototype}.json`));
 						node1.add(obj);
 
+						if (entity.name)
+							node1.name = entity.name;
+
 						if (entity.position)
 							node1.position.set(...entity.position);
 
@@ -262,6 +265,8 @@
 						}
 					}
 				}
+
+				this.$emit("sceneReady");
 			},
 
 

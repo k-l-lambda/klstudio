@@ -93,9 +93,6 @@
 
 
 		created () {
-			if (process.env.NODE_ENV === "development")
-				window.$view = this;
-
 			document.addEventListener("keydown", event => {
 				//console.log("keydown:", event);
 				switch (event.key) {

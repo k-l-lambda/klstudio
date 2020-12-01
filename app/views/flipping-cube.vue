@@ -44,6 +44,7 @@
 		data () {
 			return {
 				orientation: 0,
+				target: 0,
 				randomFlipping: false,
 			};
 		},
@@ -67,7 +68,7 @@
 						},
 					],
 					cameraInit: {
-						radius: 8,
+						radius: 6,
 						theta: Math.PI * -0.12,
 						phi: Math.PI * -0.08,
 					},
@@ -87,6 +88,7 @@
 
 				const end = new THREE.Quaternion(...QUATERNIONS[target]);
 				const start = new THREE.Quaternion(...QUATERNIONS[this.orientation]);
+				this.target = target;
 
 				for (let i = 0; i < STEPS; ++i) {
 					const progress = i / STEPS;
@@ -133,7 +135,7 @@
 	{
 		.label
 		{
-			font-size: 90px;
+			font-size: 30vh;
 			font-weight: bold;
 			color: white;
 			text-shadow: 0 0 8px black;

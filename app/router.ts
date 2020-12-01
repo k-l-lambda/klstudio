@@ -47,6 +47,12 @@ export const routes = [
 		props: true,
 	},
 	{
+		path: "/documents/cube-multiplication",
+		name: "Cube Multiplication",
+		component: () => import("./views/cube-multiplication.vue"),
+		props: true,
+	},
+	{
 		path: "/documents/stylegan-mapping",
 		name: "StyleGAN Mapping Visualization",
 		component: () => import(/* webpackChunkName: "stylegan-mapping" */ "./views/stylegan-mapping.vue"),

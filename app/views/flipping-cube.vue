@@ -49,12 +49,6 @@
 		},
 
 
-		created () {
-			if (process.env.NODE_ENV === "development")
-				window.$view = this;
-		},
-
-
 		computed: {
 			param () {
 				return {
@@ -83,12 +77,15 @@
 
 
 		methods: {
-			async flip (rotation) {
+			flip (rotation) {
+				return this.flipTo(MULTIPLICATION_TABLE[rotation][this.orientation]);
+			},
+
+
+			async flipTo (target) {
 				const STEPS = 30;
-				const target = MULTIPLICATION_TABLE[rotation][this.orientation];
 
 				const end = new THREE.Quaternion(...QUATERNIONS[target]);
-				//const start = end.clone();
 				const start = new THREE.Quaternion(...QUATERNIONS[this.orientation]);
 
 				for (let i = 0; i < STEPS; ++i) {
@@ -136,7 +133,7 @@
 	{
 		.label
 		{
-			font-size: 80px;
+			font-size: 90px;
 			font-weight: bold;
 			color: white;
 			text-shadow: 0 0 8px black;

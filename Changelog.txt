@@ -2,7 +2,6 @@
 TODO:
 	stylegan-mapping.vue
 		show images on z-graph
-	new favicon
 	globe-cube3:
 		auto twists
 	4D regular polytopes viewer
@@ -10,6 +9,11 @@ TODO:
 		test solveCubeBinary
 		invalid solution issue.
 
+
+
+2020.12.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	App entry of cube-multiplication added.
 
 
 2020.11.30	K.L.	<k.l.lambda@gmail.com>

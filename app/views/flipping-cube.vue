@@ -138,7 +138,7 @@
 			font-size: 30vh;
 			font-weight: bold;
 			color: white;
-			text-shadow: 0 0 8px black;
+			text-shadow: 0 0 16px black;
 		}
 	}
 </style>

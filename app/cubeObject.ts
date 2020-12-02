@@ -4,6 +4,7 @@ import * as THREE from "three";
 import {NORMAL_ORIENTATIONS} from "../inc/cube-algebra";
 import {Cube3, twistToAxisRotation, axisTimesToTwist} from "../inc/cube3";
 import * as cubeMesh from "./cubeMesh.js";
+import * as cubeMesh26 from "./cubeMesh26.js";
 import * as sphericalCubeMesh from "./sphericalCubeMesh";
 import {animationDelay} from "./delay.js";
 
@@ -36,6 +37,7 @@ const AXES = [
 
 const MeshFactory = {
 	cube: cubeMesh,
+	cube26: cubeMesh26,
 	spherical: sphericalCubeMesh,
 };
 

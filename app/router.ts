@@ -37,20 +37,25 @@ export const routes = [
 	{
 		path: "/documents/mesh-viewer-demo::config",
 		name: "Mesh Viewer Demo",
-		component: () => import("./views/mesh-viewer-demo.vue"),
+		component: () => import(/* webpackChunkName: "mesh-viewer-demo" */ "./views/mesh-viewer-demo.vue"),
 		props: true,
 	},
 	{
 		path: "/documents/flipping-cube",
 		name: "Flipping Cube",
-		component: () => import("./views/flipping-cube.vue"),
+		component: () => import(/* webpackChunkName: "flipping-cube" */ "./views/flipping-cube.vue"),
 		props: true,
 	},
 	{
 		path: "/documents/cube-multiplication",
 		name: "Cube Multiplication",
-		component: () => import("./views/cube-multiplication.vue"),
+		component: () => import(/* webpackChunkName: "cube-multiplication" */ "./views/cube-multiplication.vue"),
 		props: true,
+	},
+	{
+		path: "/documents/labeled-cube3",
+		name: "Labeled Cube3",
+		component: () => import(/* webpackChunkName: "labeled-cube3" */ "./views/labeled-cube3.vue"),
 	},
 	{
 		path: "/documents/stylegan-mapping",
@@ -90,7 +95,7 @@ export const routes = [
 	{
 		path: "/pca-playground",
 		name: "PCA Playgound",
-		component: () => import(/* webpackChunkName: "pca-playground", webpackPrefetch: true */ "./views/pca-playground.vue"),
+		component: () => import(/* webpackChunkName: "pca-playground", */ "./views/pca-playground.vue"),
 	},
 ];
 

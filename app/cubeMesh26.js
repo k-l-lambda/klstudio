@@ -37,12 +37,12 @@ const positions = [
 
 
 const uvs = ([
-	[0, 0], [1, 0], [0, 1], [1, 1],
-	[0, 0], [1, 0], [0, 1], [1, 1],
-	[0, 0], [1, 0], [0, 1], [1, 1],
-	[0, 0], [1, 0], [0, 1], [1, 1],
-	[0, 0], [1, 0], [0, 1], [1, 1],
-	[0, 0], [1, 0], [0, 1], [1, 1],
+	[0, 0], [1, 0], [1, 1], [0, 1],
+	[1, 1], [0, 1], [0, 0], [1, 0],
+	[0, 0], [1, 0], [1, 1], [0, 1],
+	[0, 0], [1, 0], [1, 1], [0, 1],
+	[0, 0], [1, 0], [1, 1], [0, 1],
+	[1, 0], [1, 1], [0, 1], [0, 0],
 ]).map(v => new THREE.Vector2(...v));
 
 
@@ -60,7 +60,6 @@ const normals = [
 const geometries = Array(3 ** 3).fill().map(() => new THREE.Geometry());
 geometries.forEach((geometry) => {
 	geometry.vertices = positions;
-	geometry.faceVertexUvs = uvs;
 	geometry.faces = [].concat(...Array(6).fill().map((_, i) => ({
 		i4: i * 4,
 		normal: normals[i],
@@ -69,6 +68,10 @@ geometries.forEach((geometry) => {
 		new THREE.Face3(data.i4, data.i4 + 1, data.i4 + 2, data.normal, undefined, data.materialIndex),
 		new THREE.Face3(data.i4, data.i4 + 2, data.i4 + 3, data.normal, undefined, data.materialIndex),
 	]));
+
+	geometry.faceVertexUvs = [
+		geometry.faces.map(({a, b, c}) => [uvs[a], uvs[b], uvs[c]]),
+	];
 });
 
 

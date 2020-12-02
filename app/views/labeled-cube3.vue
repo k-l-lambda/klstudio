@@ -1,15 +1,18 @@
 <template>
-	<canvas
-		ref="canvas"
-		:width="size.width"
-		:height="size.height"
-		@mousemove="onMouseMove"
-		@mousedown.prevent="onMouseDown"
-		@mouseup="onMouseUp"
-		@touchstart="onTouchStart"
-		@touchmove="onTouchMove"
-		@touchend="onTouchEnd"
-	/>
+	<div>
+		<canvas
+			ref="canvas"
+			:width="size.width"
+			:height="size.height"
+			@mousemove="onMouseMove"
+			@mousedown.prevent="onMouseDown"
+			@mouseup="onMouseUp"
+			@touchstart="onTouchStart"
+			@touchmove="onTouchMove"
+			@touchend="onTouchEnd"
+		/>
+		<canvas v-show="false" ref="textureCanvas" class="texture-canvas" :width="256" :height="256" />
+	</div>
 </template>
 
 <script>
@@ -18,9 +21,6 @@
 	import {animationDelay} from "../delay";
 	import CubeObject from "../cubeObject";
 
-
-
-	const MATERIALS = Array(26).fill("purple").map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
 
 
 	const vectorToAxis = vector => {
@@ -60,14 +60,16 @@
 		},
 
 
-		mounted () {
+		async mounted () {
 			//window.cube3 = cube3;
 
 			this.rendererActive = true;
 
 			this.initializeRenderer();
 
-			this.cube = new CubeObject({materials: MATERIALS, onChange: algebra => this.onChange(algebra), meshSchema: "cube26"});
+			const materials = await this.createLabelMaterials();
+
+			this.cube = new CubeObject({materials, onChange: algebra => this.onChange(algebra), meshSchema: "cube26"});
 			this.scene.add(this.cube.graph);
 			//console.log("this.cube:", this.cube);
 
@@ -92,12 +94,38 @@
 				this.renderer.setClearColor(new THREE.Color("black"), 0);
 				this.renderer.setSize(this.size.width, this.size.height, false);
 
-				//this.camera = new THREE.OrthographicCamera(-0.5, 0.5, this.ratio / 2, this.ratio / -2, 0, 100);
 				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 3, 12);
 				this.camera.position.set(0, 0, 6.4);
 				this.camera.lookAt(0, 0, 0);
 
 				this.scene = new THREE.Scene();
+			},
+
+
+			async createLabelMaterials () {
+				const ctx = this.$refs.textureCanvas.getContext("2d");
+				ctx.font = "240px monospace";
+
+				const A = "A".charCodeAt(0);
+
+				const textures = [];
+
+				for (let char = A; char < A + 26; ++char) {
+					ctx.clearRect(0, 0, 256, 256);
+					ctx.fillText(String.fromCharCode(char), 60, 200);
+
+					const blob = await new Promise(resolve => this.$refs.textureCanvas.toBlob(resolve, "image/png"));
+					const image = new Image();
+					image.src = URL.createObjectURL(blob);
+					await new Promise(resolve => image.onload = resolve);
+
+					const tex = new THREE.Texture(image);
+					tex.needsUpdate = true;
+
+					textures.push(tex);
+				};
+
+				return textures.map(texture => new THREE.MeshBasicMaterial({map: texture, transparent: true}));
 			},
 
 
@@ -325,4 +353,8 @@
 </script>
 
 <style scoped>
+	.texture-canvas
+	{
+		border: black 1px solid;
+	}
 </style>

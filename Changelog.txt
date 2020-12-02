@@ -13,6 +13,8 @@ TODO:
 
 2020.12.2	K.L.	<k.l.lambda@gmail.com>
 
+	+	labeled-cube3.vue: substrate cube3 object added.
+
 	+	labeled-cube3.vue: textures creation implemented.
 
 	+	App entry of labeled-cube3 added.

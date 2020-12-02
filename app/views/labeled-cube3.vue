@@ -45,6 +45,10 @@
 		new THREE.Vector3(0, 0, +CUBE_RADIUS),
 	];
 
+	const BASIC_MATERIALS = [
+		"#f90", "#d00", "#ff2", "white", "blue", "#0e0", "black",
+	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
+
 
 
 	export default {
@@ -61,17 +65,20 @@
 
 
 		async mounted () {
-			//window.cube3 = cube3;
-
 			this.rendererActive = true;
 
 			this.initializeRenderer();
 
-			const materials = await this.createLabelMaterials();
+			this.cubeGroup = new THREE.Object3D();
+			this.scene.add(this.cubeGroup);
 
-			this.cube = new CubeObject({materials, onChange: algebra => this.onChange(algebra), meshSchema: "cube26"});
-			this.scene.add(this.cube.graph);
-			//console.log("this.cube:", this.cube);
+			this.cube = new CubeObject({materials: BASIC_MATERIALS, onChange: algebra => this.onChange(algebra), meshSchema: "cube"});
+			this.cubeGroup.add(this.cube.graph);
+
+			const blackMaterials = await this.createLabelMaterials();
+			this.cubeLB = new CubeObject({materials: blackMaterials, meshSchema: "cube26"});
+			this.cubeLB.graph.scale.set(1.01, 1.01, 1.01);
+			this.cubeGroup.add(this.cubeLB.graph);
 
 			this.raycaster = new THREE.Raycaster();
 
@@ -205,8 +212,8 @@
 						switch (event.buttons) {
 						case 1:
 						case 4:
-							this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 1e-2);
-							this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), event.movementY * 1e-2);
+							this.cubeGroup.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 1e-2);
+							this.cubeGroup.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), event.movementY * 1e-2);
 
 							break;
 						/*case 0:

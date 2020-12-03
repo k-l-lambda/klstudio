@@ -1,5 +1,6 @@
 
 TODO:
+	labeled-cube3.vue: orientation label
 	stylegan-mapping.vue
 		show images on z-graph
 	globe-cube3:

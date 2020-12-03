@@ -50,7 +50,7 @@
 	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
 
 	const COLORED_MATERIALS = [
-		"#fd6", "#faa", "#ffa", "#fff", "#aaf", "#8f8", "black",
+		"#fd6", "#faa", "#efb", "#fff", "#aaf", "#8f8", "black",
 	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
 
 

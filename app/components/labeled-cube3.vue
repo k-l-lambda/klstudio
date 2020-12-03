@@ -53,6 +53,8 @@
 		"#fd6", "#faa", "#efb", "#fff", "#aaf", "#8f8", "black",
 	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
 
+	const LATIN_LATTERS = "EJFTVSGNHKXLYZOWPAIBQURCMD";
+
 
 
 	export default {
@@ -129,23 +131,22 @@
 			async createLabelMaterials (type = "black") {
 				const ctx = this.$refs.textureCanvas.getContext("2d");
 
-				const A = "A".charCodeAt(0);
-
 				const textures = [];
 
-				for (let char = A; char < A + 26; ++char) {
+				for (let i = 0; i < 26; ++i) {
+					const char = LATIN_LATTERS[i];
 					ctx.clearRect(0, 0, 256, 256);
 					switch (type) {
 					case "black":
 						ctx.font = "240px monospace";
 						ctx.fillStyle = "black";
-						ctx.fillText(String.fromCharCode(char), 60, 200);
+						ctx.fillText(char, 60, 200);
 
 						break;
 					case "red":
 						ctx.font = "160px monospace";
 						ctx.fillStyle = "red";
-						ctx.fillText(String.fromCharCode(char), 160, 240);
+						ctx.fillText(char, 160, 240);
 
 						break;
 					}

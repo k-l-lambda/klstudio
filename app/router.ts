@@ -54,8 +54,13 @@ export const routes = [
 	},
 	{
 		path: "/documents/static-labeled-cube3",
-		name: "Labeled Cube3",
-		component: () => import(/* webpackChunkName: "labeled-cube3" */ "./views/static-labeled-cube3.vue"),
+		name: "Static Labeled Cube3",
+		component: () => import(/* webpackChunkName: "static-labeled-cube3" */ "./views/static-labeled-cube3.vue"),
+	},
+	{
+		path: "/documents/dynamic-labeled-cube3",
+		name: "Dynamic Labeled Cube3",
+		component: () => import(/* webpackChunkName: "dynamic-labeled-cube3" */ "./views/dynamic-labeled-cube3.vue"),
 	},
 	{
 		path: "/documents/stylegan-mapping",

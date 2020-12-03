@@ -45,8 +45,12 @@
 		new THREE.Vector3(0, 0, +CUBE_RADIUS),
 	];
 
-	const BASIC_MATERIALS = [
+	const WHITE_MATERIALS = [
 		...Array(6).fill("white"), "black",
+	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
+
+	const COLORED_MATERIALS = [
+		"#fd6", "#faa", "#ffa", "#fff", "#aaf", "#8f8", "black",
 	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
 
 
@@ -65,6 +69,8 @@
 				type: Boolean,
 				default: true,
 			},
+			showRedLabels: Boolean,
+			coloredUnderbox: Boolean,
 		},
 
 
@@ -76,13 +82,20 @@
 			this.cubeGroup = new THREE.Object3D();
 			this.scene.add(this.cubeGroup);
 
-			this.cube = new CubeObject({materials: BASIC_MATERIALS, onChange: algebra => this.onChange(algebra), meshSchema: "cube"});
+			this.cube = new CubeObject({materials: this.coloredUnderbox ? COLORED_MATERIALS : WHITE_MATERIALS, onChange: algebra => this.onChange(algebra), meshSchema: "cube"});
 			this.cubeGroup.add(this.cube.graph);
 
 			const blackMaterials = await this.createLabelMaterials();
 			this.cubeLB = new CubeObject({materials: blackMaterials, meshSchema: "cube26"});
 			this.cubeLB.graph.scale.set(1.01, 1.01, 1.01);
 			this.cubeGroup.add(this.cubeLB.graph);
+
+			if (this.showRedLabels) {
+				const redMaterials = await this.createLabelMaterials("red");
+				this.cubeLR = new CubeObject({materials: redMaterials, meshSchema: "cube26"});
+				this.cubeLR.graph.scale.set(1.005, 1.005, 1.005);
+				this.cubeGroup.add(this.cubeLR.graph);
+			}
 
 			this.raycaster = new THREE.Raycaster();
 
@@ -113,9 +126,8 @@
 			},
 
 
-			async createLabelMaterials () {
+			async createLabelMaterials (type = "black") {
 				const ctx = this.$refs.textureCanvas.getContext("2d");
-				ctx.font = "240px monospace";
 
 				const A = "A".charCodeAt(0);
 
@@ -123,7 +135,20 @@
 
 				for (let char = A; char < A + 26; ++char) {
 					ctx.clearRect(0, 0, 256, 256);
-					ctx.fillText(String.fromCharCode(char), 60, 200);
+					switch (type) {
+					case "black":
+						ctx.font = "240px monospace";
+						ctx.fillStyle = "black";
+						ctx.fillText(String.fromCharCode(char), 60, 200);
+
+						break;
+					case "red":
+						ctx.font = "160px monospace";
+						ctx.fillStyle = "red";
+						ctx.fillText(String.fromCharCode(char), 160, 240);
+
+						break;
+					}
 
 					const blob = await new Promise(resolve => this.$refs.textureCanvas.toBlob(resolve, "image/png"));
 					const image = new Image();
@@ -211,6 +236,9 @@
 						const arm = this.holdPosition.start.clone().sub(this.holdPosition.pivot).normalize();
 						const angle = -arm.clone().cross(hand).z * 3;
 						this.cube.twistGraph(this.holdingAxis, angle);
+
+						if (this.cubeLR)
+							this.cubeLR.twistGraph(this.holdingAxis, angle);
 					}
 					else {
 						switch (event.buttons) {
@@ -262,6 +290,8 @@
 			onMouseUp () {
 				if (Number.isInteger(this.holdingAxis)) {
 					this.cube.releaseGraph();
+					if (this.cubeLR)
+						this.cubeLR.releaseGraph();
 					this.holdingAxis = null;
 				}
 			},

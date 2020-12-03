@@ -46,7 +46,7 @@
 	];
 
 	const BASIC_MATERIALS = [
-		"#f90", "#d00", "#ff2", "white", "blue", "#0e0", "black",
+		...Array(6).fill("white"), "black",
 	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
 
 
@@ -61,6 +61,10 @@
 				default: () => ({width: 800, height: 800}),
 			},
 			code: String,
+			enabledTwist: {
+				type: Boolean,
+				default: true,
+			},
 		},
 
 
@@ -234,18 +238,20 @@
 			onMouseDown (event) {
 				switch (event.buttons) {
 				case 1:
-					const axis = this.raycastAxis(event);
-					if (Number.isInteger(axis)) {
-						const pivot = this.cube.graph.localToWorld(AXIS_POINTS[axis].clone());
-						pivot.project(this.camera);
-						pivot.z = 0;
-						//console.log("pivot1:", axis, pivot.toArray());
+					if (this.enabledTwist) {
+						const axis = this.raycastAxis(event);
+						if (Number.isInteger(axis)) {
+							const pivot = this.cube.graph.localToWorld(AXIS_POINTS[axis].clone());
+							pivot.project(this.camera);
+							pivot.z = 0;
+							//console.log("pivot1:", axis, pivot.toArray());
 
-						this.holdingAxis = axis;
-						this.holdPosition = {
-							pivot,
-							start: this.normalizeScreenPoint(event),
-						};
+							this.holdingAxis = axis;
+							this.holdPosition = {
+								pivot,
+								start: this.normalizeScreenPoint(event),
+							};
+						}
 					}
 
 					break;

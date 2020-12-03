@@ -53,9 +53,9 @@ export const routes = [
 		props: true,
 	},
 	{
-		path: "/documents/labeled-cube3",
+		path: "/documents/static-labeled-cube3",
 		name: "Labeled Cube3",
-		component: () => import(/* webpackChunkName: "labeled-cube3" */ "./views/labeled-cube3.vue"),
+		component: () => import(/* webpackChunkName: "labeled-cube3" */ "./views/static-labeled-cube3.vue"),
 	},
 	{
 		path: "/documents/stylegan-mapping",

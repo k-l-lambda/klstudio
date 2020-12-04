@@ -8,25 +8,13 @@
 <script>
 	import * as THREE from "three";
 
-	import {GREEK_LETTERS} from "../../inc/greek-letters";
+	import {GREEK_LETTERS, ORIENTATION_GREEK_LETTER_ORDER} from "../../inc/greek-letters";
 	import {MULTIPLICATION_TABLE, NORMAL_ORIENTATIONS} from "../../inc/cube-algebra";
 	import {animationDelay, msDelay} from "../delay.js";
 
 	import MeshViewer from "./mesh-viewer";
 
 
-
-	const GREEK_LETTER_ORDER = [
-		0,
-		4, 5, 6,
-		7, 8, 9,
-		1, 2, 3,
-		10, 14, 20,
-		11, 15, 21,
-		12, 16, 22,
-		13, 17, 23,
-		18, 19,
-	];
 
 	const QUATERNIONS = NORMAL_ORIENTATIONS.map(o => o.toQuaternion());
 
@@ -56,7 +44,7 @@
 					entities: [
 						{
 							name: "cube",
-							label: GREEK_LETTERS[GREEK_LETTER_ORDER[this.orientation]],
+							label: GREEK_LETTERS[ORIENTATION_GREEK_LETTER_ORDER[this.orientation]],
 							labelOffset: [0, 0, 0],
 							euler: [0, -Math.PI / 2, 0],
 							prototype: "cube.gltf",
@@ -124,7 +112,7 @@
 
 		watch: {
 			orientation () {
-				this.$refs.viewer.labels[0].content = GREEK_LETTERS[GREEK_LETTER_ORDER[this.orientation]];
+				this.$refs.viewer.labels[0].content = GREEK_LETTERS[ORIENTATION_GREEK_LETTER_ORDER[this.orientation]];
 			},
 		},
 	};

@@ -1,5 +1,7 @@
 
 TODO:
+	cube3-matrix:
+		update highlight animation.
 	labeled-cube3.vue: orientation label
 	stylegan-mapping.vue
 		show images on z-graph
@@ -13,6 +15,8 @@ TODO:
 
 
 2020.12.4	K.L.	<k.l.lambda@gmail.com>
+
+	+	cube3-matrix.vue: matrix data update implemented.
 
 	+	app/components/cube3-matrix.vue created.
 

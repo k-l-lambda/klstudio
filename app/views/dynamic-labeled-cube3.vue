@@ -9,9 +9,10 @@
 			:showRedLabels="true"
 			:coloredUnderbox="true"
 			@cubeCreated="onCubeCreated"
+			@update:code="onCubeChanged"
 		/>
 		<div class="matrix-side">
-			<Cube3Matrix v-if="showMatrix && cube" />
+			<Cube3Matrix v-if="showMatrix && cube" ref="matrix" :cube="cube" />
 		</div>
 	</div>
 </template>
@@ -73,6 +74,12 @@
 
 			onCubeCreated (cubeObj) {
 				this.cube = cubeObj.algebra;
+			},
+
+
+			onCubeChanged () {
+				if (this.$refs.matrix)
+					this.$refs.matrix.updateMatrix();
 			},
 
 

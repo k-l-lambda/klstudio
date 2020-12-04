@@ -20,6 +20,7 @@
 
 	import {animationDelay} from "../delay";
 	import CubeObject from "../cubeObject";
+	import {CUBE3_POSITION_LABELS} from "../../inc/latin-letters";
 
 
 
@@ -52,8 +53,6 @@
 	const COLORED_MATERIALS = [
 		"#fd6", "#faa", "#efb", "#fff", "#aaf", "#8f8", "black",
 	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
-
-	const LATIN_LATTERS = "EJFTVSGNHKXLYZOWPAIBQURCMD";
 
 
 
@@ -136,7 +135,7 @@
 				const textures = [];
 
 				for (let i = 0; i < 26; ++i) {
-					const char = LATIN_LATTERS[i];
+					const char = CUBE3_POSITION_LABELS[i];
 					ctx.clearRect(0, 0, 256, 256);
 					switch (type) {
 					case "black":

@@ -12,6 +12,11 @@ TODO:
 
 
 
+2020.12.4	K.L.	<k.l.lambda@gmail.com>
+
+	+	app/components/cube3-matrix.vue created.
+
+
 2020.12.3	K.L.	<k.l.lambda@gmail.com>
 
 	+	App entry of dynamic-labeled-cube3 added.

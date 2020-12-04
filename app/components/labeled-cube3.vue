@@ -1,10 +1,10 @@
 <template>
-	<div>
+	<div class="labeled-cube3">
 		<canvas
 			ref="canvas"
 			:width="size.width"
 			:height="size.height"
-			@mousemove="onMouseMove"
+			@mousemove.stop="onMouseMove"
 			@mousedown.prevent="onMouseDown"
 			@mouseup="onMouseUp"
 			@touchstart="onTouchStart"
@@ -86,6 +86,8 @@
 
 			this.cube = new CubeObject({materials: this.coloredUnderbox ? COLORED_MATERIALS : WHITE_MATERIALS, onChange: algebra => this.onChange(algebra), meshSchema: "cube"});
 			this.cubeGroup.add(this.cube.graph);
+
+			this.$emit("cubeCreated", this.cube);
 
 			const blackMaterials = await this.createLabelMaterials();
 			this.cubeLB = new CubeObject({materials: blackMaterials, meshSchema: "cube26"});

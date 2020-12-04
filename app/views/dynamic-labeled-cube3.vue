@@ -1,20 +1,28 @@
 <template>
-	<div class="dynamic-labeled-cube3" v-resize="onResize">
+	<div class="dynamic-labeled-cube3" v-resize="onResize"
+		@mousemove="onMouseMove"
+		@mouseup="onMouseUp"
+	>
 		<LabeledCube3 ref="cube"
-			:size="size"
+			:size="size && {width: Math.max(size.width * .4, size.height * 0.7), height: size.height}"
 			:showRedLabels="true"
 			:coloredUnderbox="true"
+			@cubeCreated="onCubeCreated"
 		/>
+		<div class="matrix-side">
+			<Cube3Matrix v-if="showMatrix && cube" />
+		</div>
 	</div>
 </template>
 
 <script>
 	import resize from "vue-resize-directive";
-	import * as THREE from "three";
+	//import * as THREE from "three";
 
-	import {animationDelay, msDelay} from "../delay";
+	//import {animationDelay, msDelay} from "../delay";
 
 	import LabeledCube3 from "../components/labeled-cube3.vue";
+	import Cube3Matrix from "../components/cube3-matrix.vue";
 
 
 
@@ -29,12 +37,22 @@
 
 		components: {
 			LabeledCube3,
+			Cube3Matrix,
+		},
+
+
+		props: {
+			showMatrix: {
+				type: Boolean,
+				default: true,
+			},
 		},
 
 
 		data () {
 			return {
 				size: undefined,
+				cube: null,
 			};
 		},
 
@@ -45,11 +63,28 @@
 			},
 
 
+			onCubeCreated (cubeObj) {
+				this.cube = cubeObj.algebra;
+			},
+
+
 			async animate () {
 				this.animating = true;
 
 				//while (this.animating) {
 				//}
+			},
+
+
+			onMouseMove (event) {
+				if (this.$refs.cube)
+					this.$refs.cube.onMouseMove(event);
+			},
+
+
+			onMouseUp (event) {
+				if (this.$refs.cube)
+					this.$refs.cube.onMouseUp(event);
 			},
 		},
 	};
@@ -61,5 +96,30 @@
 		width: 100%;
 		height: 100%;
 		background-color: lightblue;
+
+		display: flex;
+		flex-direction: row;
+
+		.labeled-cube3
+		{
+			flex: 0 0 auto;
+			position: relative;
+		}
+
+		.matrix-side
+		{
+			flex: 1 1 auto;
+			position: relative;
+
+			.cube3-matrix
+			{
+				user-select: none;
+				position: absolute;
+				left: 0;
+				top: 50%;
+				transform: translate(0, -50%);
+				font-size: 1.8vw;
+			}
+		}
 	}
 </style>

@@ -2,9 +2,10 @@
 	<div class="dynamic-labeled-cube3" v-resize="onResize"
 		@mousemove="onMouseMove"
 		@mouseup="onMouseUp"
+		:style="{'--matrix-font-size': size && `${Math.min(size.width * .015, size.height * .025)}px`}"
 	>
 		<LabeledCube3 ref="cube"
-			:size="size && {width: Math.max(size.width * .4, size.height * 0.7), height: size.height}"
+			:size="canvasSize"
 			:showRedLabels="true"
 			:coloredUnderbox="true"
 			@cubeCreated="onCubeCreated"
@@ -54,6 +55,13 @@
 				size: undefined,
 				cube: null,
 			};
+		},
+
+
+		computed: {
+			canvasSize () {
+				return this.size && {width: Math.max(this.size.width * .4, this.size.height * 0.7), height: this.size.height};
+			},
 		},
 
 
@@ -118,7 +126,7 @@
 				left: 0;
 				top: 50%;
 				transform: translate(0, -50%);
-				font-size: 1.8vw;
+				font-size: var(--matrix-font-size);
 			}
 		}
 	}

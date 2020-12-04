@@ -1,13 +1,21 @@
 <template>
-	<table class="cube3-matrix">
+	<table class="cube3-matrix" :class="{
+		'hide-corners': !showCorners,
+		'hide-edges': !showEdges,
+		'hide-axes': !showAxes,
+	}">
 		<thead>
 			<tr>
 				<th>&times;</th>
-				<th v-for="ic of 8" :key="ic" class="corner">{{labels[ic - 1]}}</th>
-				<th v-for="ie of 12" :key="ie + 8" class="edge">{{labels[ie + 7]}}</th>
-				<th v-for="ia of 12" :key="ia + 20" class="axis">{{labels[ia + 19]}}</th>
+				<th v-for="i of 26" :key="i" :class="{corner: i <= 8, edge: i > 8 && i <= 20, axis: i > 20}">{{labels[i - 1]}}</th>
 			</tr>
 		</thead>
+		<tbody>
+			<tr v-for="i of 26" :key="i" :class="{corner: i <= 8, edge: i > 8 && i <= 20, axis: i > 20}">
+				<th class="column">{{labels[i - 1]}}</th>
+				<td v-for="i of 26" :key="i" :class="{corner: i <= 8, edge: i > 8 && i <= 20, axis: i > 20}"></td>
+			</tr>
+		</tbody>
 	</table>
 </template>
 
@@ -50,6 +58,17 @@
 	table
 	{
 		text-align: center;
-		font-family: Verdana, Arial, Helvetica, sans-serif;
+		font-family: monospace;
+
+		td, th
+		{
+			width: 1em;
+			padding: 0 .2em;
+		}
+
+		th.column
+		{
+			color: red;
+		}
 	}
 </style>

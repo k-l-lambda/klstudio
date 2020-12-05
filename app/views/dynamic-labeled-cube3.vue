@@ -8,6 +8,7 @@
 			:size="canvasSize"
 			:showRedLabels="true"
 			:coloredUnderbox="true"
+			:showOrientations="true"
 			@cubeCreated="onCubeCreated"
 			@update:code="onCubeChanged"
 		/>

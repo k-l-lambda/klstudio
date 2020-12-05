@@ -14,10 +14,12 @@ export default class Label3D {
 	content: string;
 	_pos: Position2;
 
+	visible: boolean = true;
+
 
 	constructor (parent: THREE.Object3D, camera: THREE.Camera, {content, offset = [0, 1.3, 0]}: {content?: string, offset?: Vector3} = {}) {
 		this.camera = camera;
-		this.content = content;
+		this.content = content || null;
 
 		this.graphNode = new THREE.Object3D();
 		this.graphNode.position.set(...offset);

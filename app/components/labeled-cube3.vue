@@ -12,6 +12,13 @@
 			@touchend="onTouchEnd"
 		/>
 		<canvas v-show="false" ref="textureCanvas" class="texture-canvas" :width="256" :height="256" />
+		<div v-if="showOrientations">
+			<span class="label" v-for="(label, i) of labels" :key="i"
+				v-show="label.visible"
+				v-html="label.content"
+				:style="{left: `${label.position.x * 100}%`, top: `${label.position.y * 100}%`}"
+			></span>
+		</div>
 	</div>
 </template>
 
@@ -21,6 +28,8 @@
 	import {animationDelay} from "../delay";
 	import CubeObject from "../cubeObject";
 	import {CUBE3_POSITION_LABELS} from "../../inc/latin-letters";
+	import Label3D from "../label3D";
+	import {GREEK_LETTERS, ORIENTATION_GREEK_LETTER_ORDER} from "../../inc/greek-letters";
 
 
 
@@ -57,7 +66,7 @@
 
 
 	export default {
-		name: "cube3",
+		name: "labeled-cube3",
 
 
 		props: {
@@ -72,6 +81,14 @@
 			},
 			showRedLabels: Boolean,
 			coloredUnderbox: Boolean,
+			showOrientations: Boolean,
+		},
+
+
+		data () {
+			return {
+				labels: [],
+			};
 		},
 
 
@@ -85,6 +102,12 @@
 
 			this.cube = new CubeObject({materials: this.coloredUnderbox ? COLORED_MATERIALS : WHITE_MATERIALS, onChange: algebra => this.onChange(algebra), meshSchema: "cube"});
 			this.cubeGroup.add(this.cube.graph);
+
+			// labels
+			this.labels = this.cube.graph.children.map(proxy => {
+				const cube = proxy.children[0];
+				return new Label3D(cube, this.camera, {offset: [0, 0, 0]});
+			});
 
 			this.$emit("cubeCreated", this.cube);
 
@@ -180,6 +203,9 @@
 
 					this.$emit("afterRender", this);
 
+					if (this.showOrientations)
+						this.updateLabels();
+
 					++frames;
 
 					const now = performance.now();
@@ -200,6 +226,17 @@
 					lastTime = now;
 
 					await animationDelay();
+				}
+			},
+
+
+			updateLabels () {
+				for (let i = 0; i < this.labels.length; i++) {
+					const label = this.labels[i];
+					label.updatePosition();
+
+					const o = this.cube.algebra.units[i];
+					label.content = GREEK_LETTERS[ORIENTATION_GREEK_LETTER_ORDER[o]];
 				}
 			},
 
@@ -401,5 +438,19 @@
 	.texture-canvas
 	{
 		border: black 1px solid;
+	}
+
+	.label
+	{
+		position: absolute;
+		transform: translate(-50%, -50%);
+		font-weight: bold;
+		font-family: Arial, Helvetica, sans-serif;
+		color: white;
+		font-size: 4vh;
+		text-shadow: 0 0 2px black;
+		user-select: none;
+		white-space: nowrap;
+		pointer-events: none;
 	}
 </style>

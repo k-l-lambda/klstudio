@@ -241,7 +241,7 @@
 
 
 			updateLabels () {
-				for (const label of this.labels) 
+				for (const label of this.labels)
 					label.updatePosition();
 
 				if (this.labels.length)

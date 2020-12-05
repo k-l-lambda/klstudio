@@ -123,6 +123,7 @@
 	{
 		.label
 		{
+			font-family: monospace;
 			font-size: 30vh;
 			font-weight: bold;
 			color: white;

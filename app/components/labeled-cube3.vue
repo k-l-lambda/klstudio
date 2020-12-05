@@ -106,7 +106,12 @@
 			// labels
 			this.labels = this.cube.graph.children.map(proxy => {
 				const cube = proxy.children[0];
-				return new Label3D(cube, this.camera, {offset: [0, 0, 0]});
+				const label = new Label3D(cube, this.camera, {offset: [0, 0, 0]});
+
+				const cubePos = label.graphNode.parent.position;
+				label.graphNode.position.set(cubePos.x * 0.5, cubePos.y * 0.5, cubePos.z * 0.5);
+
+				return label;
 			});
 
 			this.$emit("cubeCreated", this.cube);
@@ -231,12 +236,23 @@
 
 
 			updateLabels () {
+				const localViewVector = this.cube.graph.worldToLocal(this.camera.position.clone());
+				//console.log("localViewVector:", localViewVector);
+
 				for (let i = 0; i < this.labels.length; i++) {
 					const label = this.labels[i];
 					label.updatePosition();
 
 					const o = this.cube.algebra.units[i];
 					label.content = GREEK_LETTERS[ORIENTATION_GREEK_LETTER_ORDER[o]];
+
+					const cubePos = label.graphNode.parent.position.clone();
+					cubePos.applyQuaternion(label.graphNode.parent.parent.quaternion);
+
+					const sideX = Math.round(cubePos.x) * localViewVector.x > 0 && Math.abs(localViewVector.x) > 1.5;
+					const sideY = Math.round(cubePos.y) * localViewVector.y > 0 && Math.abs(localViewVector.y) > 1.5;
+					const sideZ = Math.round(cubePos.z) * localViewVector.z > 0 && Math.abs(localViewVector.z) > 1.5;
+					label.visible = sideX || sideY || sideZ;
 				}
 			},
 
@@ -445,10 +461,10 @@
 		position: absolute;
 		transform: translate(-50%, -50%);
 		font-weight: bold;
-		font-family: Arial, Helvetica, sans-serif;
+		font-family: monospace;
 		color: white;
-		font-size: 4vh;
-		text-shadow: 0 0 2px black;
+		font-size: 6vh;
+		text-shadow: 0 0 6px black;
 		user-select: none;
 		white-space: nowrap;
 		pointer-events: none;

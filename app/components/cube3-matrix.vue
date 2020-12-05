@@ -204,6 +204,11 @@
 				text-shadow: white 0 0 12px;
 				background-color: black;
 			}
+
+			td, th
+			{
+				transition-duration: .1s;
+			}
 		}
 
 		tr

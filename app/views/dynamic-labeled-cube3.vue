@@ -20,9 +20,10 @@
 
 <script>
 	import resize from "vue-resize-directive";
-	//import * as THREE from "three";
+	import * as THREE from "three";
 
-	//import {animationDelay, msDelay} from "../delay";
+	import {animationDelay, msDelay} from "../delay";
+	import {invertPath} from "../../inc/cube3";
 
 	import LabeledCube3 from "../components/labeled-cube3.vue";
 	import Cube3Matrix from "../components/cube3-matrix.vue";
@@ -74,6 +75,7 @@
 
 
 			onCubeCreated (cubeObj) {
+				this.cubeObj = cubeObj;
 				this.cube = cubeObj.algebra;
 			},
 
@@ -87,8 +89,45 @@
 			async animate () {
 				this.animating = true;
 
-				//while (this.animating) {
-				//}
+				this.rotate();
+
+				while (this.animating) {
+					const length = Math.floor(Math.random() * Math.random() * 9 + 1);
+					const path = Array(length).fill().map(() => Math.floor(Math.random() * 12));
+					const ipath = invertPath(path);
+					//console.log("path:", path, ipath);
+
+					for (const twist of path) {
+						await this.cubeObj.twist(twist);
+						await msDelay(300);
+					}
+
+					await msDelay(1200);
+
+					for (const twist of ipath) {
+						await this.cubeObj.twist(twist);
+						await msDelay(100);
+					}
+
+					await msDelay(1600);
+				}
+			},
+
+
+			async rotate () {
+				const start = Date.now();
+				let time = start;
+
+				while (this.animating) {
+					const now = Date.now();
+					const elapsed = now - time;
+					time = now;
+
+					this.$refs.cube.cubeGroup.rotateOnAxis(new THREE.Vector3(0, 1, 0), elapsed * -1e-4);
+					this.$refs.cube.cubeGroup.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), Math.cos((time - start) * 1e-5) * elapsed * .4e-6);
+
+					await animationDelay();
+				}
 			},
 
 

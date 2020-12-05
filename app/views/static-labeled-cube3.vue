@@ -51,12 +51,6 @@
 
 				while (this.animating) {
 					if (this.$refs.cube) {
-						/*const now = Date.now();
-						const elapsed = now - time;
-						time = now;
-
-						this.$refs.cube.cubeGroup.rotateOnAxis(new THREE.Vector3(0, 1, 0), elapsed * 0.4e-3);
-						this.$refs.cube.cubeGroup.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), Math.cos((time - start) * .74e-3) * elapsed * .4e-3);*/
 						const begin = this.$refs.cube.cubeGroup.quaternion.clone();
 						const target = new THREE.Quaternion()
 							.setFromEuler(new THREE.Euler((Math.random() - 0.5) * 2.4, Math.random() * 2 * Math.PI, (Math.random() - 0.5) * 0.2, "YXZ"));

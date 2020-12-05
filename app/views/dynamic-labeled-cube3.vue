@@ -75,7 +75,6 @@
 
 
 			onCubeCreated (cubeObj) {
-				this.cubeObj = cubeObj;
 				this.cube = cubeObj.algebra;
 			},
 
@@ -98,14 +97,14 @@
 					//console.log("path:", path, ipath);
 
 					for (const twist of path) {
-						await this.cubeObj.twist(twist);
+						await this.$refs.cube.twist(twist);
 						await msDelay(300);
 					}
 
 					await msDelay(1200);
 
 					for (const twist of ipath) {
-						await this.cubeObj.twist(twist);
+						await this.$refs.cube.twist(twist);
 						await msDelay(100);
 					}
 

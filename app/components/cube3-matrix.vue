@@ -107,10 +107,12 @@
 
 				const positions = Array.from(this.cube.positions);
 
-				this.vector = CUBE3_POSITION_INDICES.map(index => CUBE3_POSITION_INDICES.indexOf(positions[index]));
+				const positionVector = CUBE3_POSITION_INDICES.map(index => CUBE3_POSITION_INDICES.indexOf(positions[index]));
 
-				this.matrix = this.vector.map((index, j) => Array(26).fill().map((_, i) =>
-					i === index ? GREEK_LETTERS[ORIENTATION_GREEK_LETTER_ORDER[this.cube.units[CUBE3_POSITION_INDICES[j]]]] : ""));
+				this.vector = positionVector.map((_, j) => this.cube.units[CUBE3_POSITION_INDICES[j]]);
+
+				this.matrix = positionVector.map((index, j) => Array(26).fill().map((_, i) =>
+					i === index ? GREEK_LETTERS[ORIENTATION_GREEK_LETTER_ORDER[this.vector[j]]] : ""));
 
 				//console.log("matrix:", positions, vector, [...this.cube.units]);
 			},
@@ -130,6 +132,9 @@
 </script>
 
 <style lang="scss" scoped>
+	$boldBolderColor: #fff6;
+
+
 	table
 	{
 		text-align: center;
@@ -174,6 +179,19 @@
 			text-shadow: white 0 0 12px;
 			border: #fff1 1px solid;
 			font-weight: bold;
+		}
+
+		tr:nth-child(8), tr:nth-child(20)
+		{
+			td
+			{
+				border-bottom-color: $boldBolderColor;
+			}
+		}
+
+		td:nth-child(9), td:nth-child(21)
+		{
+			border-right-color: $boldBolderColor;
 		}
 
 		&:hover

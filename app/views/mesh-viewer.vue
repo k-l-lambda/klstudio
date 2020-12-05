@@ -25,6 +25,7 @@
 	import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 
 	import {animationDelay} from "../delay";
+	import Label3D from "../label3D";
 
 	import QuitClearner from "../mixins/quit-cleaner";
 	import Accelerometer from "../mixins/accelerometer.js";
@@ -36,37 +37,6 @@
 		r * Math.cos(theta),
 		r * Math.sin(theta) * Math.sin(phi),
 	);
-
-
-	class Label {
-		constructor (parent, camera, {content, offset = [0, 1.3, 0]} = {}) {
-			this.camera = camera;
-			this.content = content;
-
-			this.graphNode = new THREE.Object3D();
-			this.graphNode.position.set(...offset);
-			parent.add(this.graphNode);
-
-			this._pos = null;
-		}
-
-
-		get position () {
-			if (!this._pos)
-				this.updatePosition();
-
-			return this._pos;
-		}
-
-
-		updatePosition () {
-			const p = this.graphNode.getWorldPosition(new THREE.Vector3()).project(this.camera);
-
-			this._pos = this._pos || {};
-			this._pos.x = (p.x + 1) / 2;
-			this._pos.y = (-p.y + 1) / 2;
-		}
-	};
 
 
 	const SENSOR_SENSITIVITY = .4e-3;
@@ -259,7 +229,7 @@
 						//console.log("obj:", obj);
 
 						if (entity.label) {
-							const label = new Label(node1, this.camera, typeof entity.label === "object" ? entity.label : {content: entity.label, offset: entity.labelOffset});
+							const label = new Label3D(node1, this.camera, typeof entity.label === "object" ? entity.label : {content: entity.label, offset: entity.labelOffset});
 
 							this.labels.push(label);
 						}

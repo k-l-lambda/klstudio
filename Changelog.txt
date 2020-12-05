@@ -16,6 +16,8 @@ TODO:
 
 2020.12.5	K.L.	<k.l.lambda@gmail.com>
 
+	+	app/label3D.ts: separated from mesh-viewer.vue.
+
 	+	cube3-matrix.vue: rows activating added.
 
 

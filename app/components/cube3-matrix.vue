@@ -14,7 +14,11 @@
 		</thead>
 		<tbody v-if="matrix">
 			<tr v-for="j of 26" :key="j"
-				:class="{corner: j <= 8, edge: j > 8 && j <= 20, axis: j > 20, focus: j === focusRow}"
+				:class="{
+					corner: j <= 8, edge: j > 8 && j <= 20, axis: j > 20,
+					focus: j === focusRow,
+					activated: activatedRows[j - 1],
+				}"
 			>
 				<th class="column">{{labels[j - 1]}}</th>
 				<td v-for="i of 26" :key="i"
@@ -30,6 +34,7 @@
 <script>
 	import {CUBE3_POSITION_LABELS} from "../../inc/latin-letters";
 	import {GREEK_LETTERS, ORIENTATION_GREEK_LETTER_ORDER} from "../../inc/greek-letters";
+	import {msDelay} from "../delay";
 
 
 
@@ -64,9 +69,11 @@
 		data () {
 			return {
 				labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+				vector: null,
 				matrix: null,
 				focusColumn: null,
 				focusRow: null,
+				activatedRows: Array(26).fill(false),
 			};
 		},
 
@@ -100,12 +107,23 @@
 
 				const positions = Array.from(this.cube.positions);
 
-				const vector = CUBE3_POSITION_INDICES.map(index => CUBE3_POSITION_INDICES.indexOf(positions[index]));
+				this.vector = CUBE3_POSITION_INDICES.map(index => CUBE3_POSITION_INDICES.indexOf(positions[index]));
 
-				this.matrix = vector.map((index, j) => Array(26).fill().map((_, i) =>
+				this.matrix = this.vector.map((index, j) => Array(26).fill().map((_, i) =>
 					i === index ? GREEK_LETTERS[ORIENTATION_GREEK_LETTER_ORDER[this.cube.units[CUBE3_POSITION_INDICES[j]]]] : ""));
 
 				//console.log("matrix:", positions, vector, [...this.cube.units]);
+			},
+		},
+
+
+		watch: {
+			async vector (value, oldValue) {
+				if (value && oldValue)
+					this.activatedRows = value.map((o, i) => o !== oldValue[i]);
+
+				await msDelay(100);
+				this.activatedRows = Array(26).fill(false);
 			},
 		},
 	};
@@ -185,6 +203,34 @@
 				font-weight: bold;
 				text-shadow: white 0 0 12px;
 				background-color: black;
+			}
+		}
+
+		tr
+		{
+			td
+			{
+				transition: background-color .6s ease-out;
+			}
+
+			th
+			{
+				transition: color .6s ease-out;
+			}
+
+			&.activated
+			{
+				td
+				{
+					background-color: #440;
+					transition: background-color .01s;
+				}
+
+				th
+				{
+					color: gold;
+					transition: color .01s;
+				}
 			}
 		}
 	}

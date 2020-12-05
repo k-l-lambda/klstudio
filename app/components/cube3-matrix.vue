@@ -136,8 +136,6 @@
 
 		th
 		{
-			font-weight: normal;
-			font-size: 80%;
 			overflow: hidden;
 		}
 
@@ -151,19 +149,43 @@
 			}
 		}
 
-		tr.focus th, th.focus
-		{
-			font-weight: bold;
-			font-size: 100%;
-		}
-
 		td
 		{
-			background-color: #000d;
+			background-color: #000e;
 			color: white;
 			text-shadow: white 0 0 12px;
 			border: #fff1 1px solid;
 			font-weight: bold;
+		}
+
+		&:hover
+		{
+			th
+			{
+				font-weight: normal;
+				font-size: 80%;
+				overflow: hidden;
+			}
+
+			td
+			{
+				font-weight: normal;
+				text-shadow: none;
+				background-color: #000d;
+			}
+
+			tr.focus th, th.focus
+			{
+				font-weight: bold;
+				font-size: 100%;
+			}
+
+			tr.focus td, td.focus
+			{
+				font-weight: bold;
+				text-shadow: white 0 0 12px;
+				background-color: black;
+			}
 		}
 	}
 </style>

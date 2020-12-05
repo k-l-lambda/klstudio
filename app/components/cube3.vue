@@ -90,6 +90,8 @@
 			this.scene.add(this.cube.graph);
 			//console.log("this.cube:", this.cube);
 
+			this.$emit("cubeCreated", this.cube);
+
 			this.raycaster = new THREE.Raycaster();
 
 			this.holdingAxis = null;

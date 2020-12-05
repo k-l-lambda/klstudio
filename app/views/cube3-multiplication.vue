@@ -8,11 +8,11 @@
 		@touchend="onTouchEnd"
 	>
 		<div class="cubes">
-			<Cube3 ref="cube1" :size="cubeCanvasSize" @cubeCreated="onCubeCreated(0, $event)" />
+			<Cube3 ref="cube1" :size="cubeCanvasSize" @cubeCreated="onCubeCreated(0, $event)" @update:code="onCubeChanged(0)" />
 			<span class="symbol">&times;</span>
-			<Cube3 ref="cube2" :size="cubeCanvasSize" @cubeCreated="onCubeCreated(1, $event)" />
+			<Cube3 ref="cube2" :size="cubeCanvasSize" @cubeCreated="onCubeCreated(1, $event)" @update:code="onCubeChanged(1)" />
 			<span class="symbol">=</span>
-			<Cube3 ref="cube3" :size="cubeCanvasSize" @cubeCreated="onCubeCreated(2, $event)" />
+			<Cube3 ref="cube3" :size="cubeCanvasSize" @cubeCreated="onCubeCreated(2, $event)" @update:code="onCubeChanged(2)" />
 		</div>
 		<div class="formula">
 			<div class="matrix">
@@ -34,7 +34,7 @@
 	import resize from "vue-resize-directive";
 
 	import {msDelay} from "../delay.js";
-	import {MULTIPLICATION_TABLE} from "../../inc/cube-algebra";
+	import {invertPath} from "../../inc/cube3";
 
 	import Cube3 from "../components/cube3.vue";
 	import Cube3Matrix from "../components/cube3-matrix.vue";
@@ -67,11 +67,6 @@
 		computed: {
 			$cubes () {
 				return [this.$refs.cube1, this.$refs.cube2, this.$refs.cube3];
-			},
-
-
-			$matrices () {
-				return [this.$refs.matrix1, this.$refs.matrix3, this.$refs.matrix3];
 			},
 
 
@@ -131,12 +126,46 @@
 			},
 
 
+			matrices (index) {
+				return [this.$refs.matrix1, this.$refs.matrix2, this.$refs.matrix3][index];
+			},
+
+
+			onCubeChanged (index) {
+				if (this.matrices(index))
+					this.matrices(index).updateMatrix();
+			},
+
+
 			async animate () {
 				this.animating = true;
 
 				while (this.animating) {
-					// TODO:
-					await msDelay(1e+3);
+					const length = Math.floor(Math.random() * Math.random() * 9 + 1);
+					const path = Array(length).fill().map(() => Math.floor(Math.random() * 12));
+					const ipath = invertPath(path);
+					//console.log("path:", path, ipath);
+
+					for (const twist of path) {
+						this.$refs.cube2.cube.twist(twist);
+						await this.$refs.cube3.cube.twist(twist);
+						await msDelay(600);
+					}
+
+					await msDelay(1000);
+
+					for (const twist of ipath) {
+						this.$refs.cube2.cube.twist(twist);
+						await this.$refs.cube3.cube.twist(twist);
+						await msDelay(600);
+					}
+
+					await msDelay(1000);
+
+					const twist = Math.floor(Math.random() * 12);
+					this.$refs.cube1.cube.twist(twist);
+					await this.$refs.cube3.cube.twist(twist);
+					await msDelay(1200);
 				}
 			},
 		},
@@ -189,7 +218,7 @@
 					top: 50%;
 					left: 50%;
 					transform: translate(-50%, -50%);
-					font-size: 1.6vh;
+					font-size: 1.9vh;
 				}
 			}
 
@@ -210,6 +239,14 @@
 		canvas
 		{
 			pointer-events: none;
+		}
+
+		.cube3-matrix
+		{
+			th, th.column
+			{
+				color: transparent;
+			}
 		}
 	}
 </style>

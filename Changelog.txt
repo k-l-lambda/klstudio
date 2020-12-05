@@ -13,6 +13,8 @@ TODO:
 
 2020.12.5	K.L.	<k.l.lambda@gmail.com>
 
+	+	cube3-multiplication.vue: animation demo added.
+
 	+	App entry of cube3-multiplication.vue created.
 
 	+	dynamic-labeled-cube3.vue: animation demo added.

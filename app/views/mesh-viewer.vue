@@ -22,9 +22,10 @@
 <script>
 	import resize from "vue-resize-directive";
 	import * as THREE from "three";
+	import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 
 	import {animationDelay} from "../delay";
-	import {MULTIPLICATION_TABLE} from "../../inc/cube-algebra";
+	import Label3D from "../label3D";
 
 	import QuitClearner from "../mixins/quit-cleaner";
 	import Accelerometer from "../mixins/accelerometer.js";
@@ -38,38 +39,10 @@
 	);
 
 
-	class Label {
-		constructor (parent, camera, {content, offset = [0, 1.3, 0]} = {}) {
-			this.camera = camera;
-			this.content = content;
-
-			this.graphNode = new THREE.Object3D();
-			this.graphNode.position.set(...offset);
-			parent.add(this.graphNode);
-
-			this._pos = null;
-		}
-
-
-		get position () {
-			if (!this._pos)
-				this.updatePosition();
-
-			return this._pos;
-		}
-
-
-		updatePosition () {
-			const p = this.graphNode.getWorldPosition(new THREE.Vector3()).project(this.camera);
-
-			this._pos = this._pos || {};
-			this._pos.x = (p.x + 1) / 2;
-			this._pos.y = (-p.y + 1) / 2;
-		}
-	};
-
-
 	const SENSOR_SENSITIVITY = .4e-3;
+
+
+	const gltfLoader = new GLTFLoader();
 
 
 
@@ -116,12 +89,6 @@
 		},
 
 
-		created () {
-			if (process.env.NODE_ENV === "development")
-				window.$view = this;
-		},
-
-
 		mounted () {
 			this.initializeRenderer();
 
@@ -165,7 +132,7 @@
 				skyLight.target = this.scene;
 				this.scene.add(skyLight);
 
-				this.scene.add(new THREE.AmbientLight("#323f43"));
+				this.scene.add(new THREE.AmbientLight("#525f63"));
 
 				this.rendererActive = true;
 			},
@@ -215,38 +182,66 @@
 			},
 
 
+			async loadByObjectLoader ({default: prototype}) {
+				return await new Promise(resolve => new THREE.ObjectLoader().parse(prototype, resolve));
+			},
+
+
+			async loadByGltfLoader ({default: prototype}) {
+				return new Promise((resolve, reject) => {
+					gltfLoader.load( prototype, function ( gltf ) {
+						//console.log("gltf:", gltf);
+						resolve(gltf.scene);
+					}, undefined, err => reject(err));
+				});
+			},
+
+
 			async createScene () {
 				if (this.entities) {
 					for (const entity of this.entities) {
 						const node1 = new THREE.Object3D();
 						this.scene.add(node1);
 
-						const {default: prototype} = await import(`../assets/${entity.prototype}.json`);
-						const obj = await new Promise(resolve => new THREE.ObjectLoader().parse(prototype, resolve));
+						//const {default: prototype} = await import(`../assets/${entity.prototype}.json`);
+						//const obj = await new Promise(resolve => new THREE.ObjectLoader().parse(prototype, resolve));
+						let obj = null;
+						if (/\.(glb|gltf)$/.test(entity.prototype))
+							obj = await this.loadByGltfLoader(await import(`../assets/${entity.prototype}`));
+						else
+							obj = await this.loadByObjectLoader(await import(`../assets/${entity.prototype}.json`));
 						node1.add(obj);
 
-						if (entity.position) 
+						if (entity.name)
+							node1.name = entity.name;
+
+						if (entity.position)
 							node1.position.set(...entity.position);
 
-						if (entity.quaternion) 
+						if (entity.quaternion)
 							obj.quaternion.set(...entity.quaternion);
 						else if (entity.euler)
 							obj.quaternion.setFromEuler(new THREE.Euler(...entity.euler, "XZY"));
 
+						if (entity.scale)
+							obj.scale.set(...entity.scale);
+
 						//console.log("obj:", obj);
 
 						if (entity.label) {
-							const label = new Label(node1, this.camera, typeof entity.label === "object" ? entity.label : {content: entity.label});
+							const label = new Label3D(node1, this.camera, typeof entity.label === "object" ? entity.label : {content: entity.label, offset: entity.labelOffset});
 
 							this.labels.push(label);
 						}
 					}
 				}
+
+				this.$emit("sceneReady");
 			},
 
 
 			updateLabels () {
-				for (const label of this.labels) 
+				for (const label of this.labels)
 					label.updatePosition();
 
 				if (this.labels.length)
@@ -293,19 +288,6 @@
 			onMouseWheel (event) {
 				//console.log("onMouseWheel:", events);
 				this.viewRadius *= Math.exp(event.deltaY * 0.001);
-			},
-
-
-			permute (index) {
-				//const positions = this.elements.reduce((ps, e, i) => ((ps[elementsSchema[i].index] = this.elementPositions[i]), ps), []);
-				this.elements.forEach((e, i) => {
-					const target = MULTIPLICATION_TABLE[elementsSchema[i].index][index];
-					e.position.copy(this.elementPositions[target]);
-				});
-				this.elementPositions = this.elements.reduce((ps, e, i) => ((ps[elementsSchema[i].index] = e.position.clone()), ps), []);
-
-				this.rotationIndex = 0;
-				this.rotationT = 0;
 			},
 		},
 

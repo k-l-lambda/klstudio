@@ -180,12 +180,6 @@
 		},
 
 
-		created () {
-			if (process.env.NODE_ENV === "development")
-				window.$view = this;
-		},
-
-
 		mounted () {
 			this.initializeRenderer();
 

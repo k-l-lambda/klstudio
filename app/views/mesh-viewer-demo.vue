@@ -1,8 +1,10 @@
 <template>
-	<MeshViewer v-bind="param" />
+	<MeshViewer class="mesh-viewer-demo" v-bind="param" />
 </template>
 
 <script>
+	import {GREEK_LETTERS} from "../../inc/greek-letters";
+
 	import MeshViewer from "./mesh-viewer.vue";
 
 
@@ -18,6 +20,30 @@
 	const config4x6 = {
 		entities: EULERS_4x6.map((euler, i) => ({
 			label: `${i + 1}`,
+			prototype: "chess-knight",
+			position: [(i % 4 - 1.5) * 5, (2.5 - Math.floor(i / 4)) * 3, 0],
+			euler,
+		})),
+		cameraInit: {
+			radius: 18,
+			theta: 0,
+			phi: 0,
+		},
+	};
+
+
+	const EULER4X6_INDICES = [
+		0, 8, 2, 5,
+		7, 17, 18, 16,
+		4, 12, 19, 13,
+		9, 11, 22, 14,
+		6, 15, 23, 10,
+		1, 20, 3, 21,
+	];
+
+	const config4x6_greek = {
+		entities: EULERS_4x6.map((euler, i) => ({
+			label: GREEK_LETTERS[EULER4X6_INDICES[i]],
 			prototype: "chess-knight",
 			position: [(i % 4 - 1.5) * 5, (2.5 - Math.floor(i / 4)) * 3, 0],
 			euler,
@@ -159,6 +185,7 @@
 
 	const configs = {
 		"quarter-array-4x6": config4x6,
+		"quarter-array-4x6-greek": config4x6_greek,
 		"quarter-categories": configCategories,
 	};
 
@@ -185,3 +212,13 @@
 		},
 	};
 </script>
+
+<style lang="scss">
+	.mesh-viewer-demo
+	{
+		.label
+		{
+			font-size: 18px;
+		}
+	}
+</style>

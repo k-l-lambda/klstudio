@@ -1,7 +1,7 @@
 <template>
 	<body>
 		<main>
-			<router-view />
+			<router-view ref="view" />
 			<h1 v-if="home">K.L. Studio</h1>
 		</main>
 		<header :class="{faint: !home}">
@@ -34,8 +34,15 @@
 
 
 		created () {
-			if (process.env.NODE_ENV === "development")
+			if (process.env.NODE_ENV === "development") {
 				window.$main = this;
+
+				Object.defineProperty(window, "$view", {
+					get: () => {
+						return this.$refs.view;
+					},
+				});
+			}
 		},
 
 
@@ -79,7 +86,7 @@
 
 	main h1
 	{
-		color: #eee;
+		color: #eee5;
 		font-size: 20vh;
 		user-select: none;
 		text-align: center;

@@ -37,8 +37,30 @@ export const routes = [
 	{
 		path: "/documents/mesh-viewer-demo::config",
 		name: "Mesh Viewer Demo",
-		component: () => import("./views/mesh-viewer-demo.vue"),
+		component: () => import(/* webpackChunkName: "mesh-viewer-demo" */ "./views/mesh-viewer-demo.vue"),
 		props: true,
+	},
+	{
+		path: "/documents/flipping-cube",
+		name: "Flipping Cube",
+		component: () => import(/* webpackChunkName: "flipping-cube" */ "./views/flipping-cube.vue"),
+		props: true,
+	},
+	{
+		path: "/documents/cube-multiplication",
+		name: "Cube Multiplication",
+		component: () => import(/* webpackChunkName: "cube-multiplication" */ "./views/cube-multiplication.vue"),
+		props: true,
+	},
+	{
+		path: "/documents/static-labeled-cube3",
+		name: "Static Labeled Cube3",
+		component: () => import(/* webpackChunkName: "static-labeled-cube3" */ "./views/static-labeled-cube3.vue"),
+	},
+	{
+		path: "/documents/dynamic-labeled-cube3",
+		name: "Dynamic Labeled Cube3",
+		component: () => import(/* webpackChunkName: "dynamic-labeled-cube3" */ "./views/dynamic-labeled-cube3.vue"),
 	},
 	{
 		path: "/documents/stylegan-mapping",
@@ -74,6 +96,11 @@ export const routes = [
 		path: "/globe-cube3",
 		name: "Cube Globe",
 		component: () => import(/* webpackChunkName: "globe-cube3", webpackPrefetch: true */ "./views/globe-cube3.vue"),
+	},
+	{
+		path: "/pca-playground",
+		name: "PCA Playgound",
+		component: () => import(/* webpackChunkName: "pca-playground", */ "./views/pca-playground.vue"),
 	},
 ];
 

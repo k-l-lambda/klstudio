@@ -1,8 +1,8 @@
 
 TODO:
+	labeled-cube3.vue: orientation label
 	stylegan-mapping.vue
 		show images on z-graph
-	new favicon
 	globe-cube3:
 		auto twists
 	4D regular polytopes viewer
@@ -10,6 +10,68 @@ TODO:
 		test solveCubeBinary
 		invalid solution issue.
 
+
+
+2020.12.5	K.L.	<k.l.lambda@gmail.com>
+
+	+	dynamic-labeled-cube3.vue: animation demo added.
+
+	+	labeled-cube3.vue: labels visibility updating implemented.
+
+	+	labeled-cube3.vue: orientation labels added.
+
+	+	app/label3D.ts: separated from mesh-viewer.vue.
+
+	+	cube3-matrix.vue: rows activating added.
+
+
+2020.12.4	K.L.	<k.l.lambda@gmail.com>
+
+	+	cube3-matrix.vue: matrix data update implemented.
+
+	+	app/components/cube3-matrix.vue created.
+
+
+2020.12.3	K.L.	<k.l.lambda@gmail.com>
+
+	+	App entry of dynamic-labeled-cube3 added.
+
+	+	App entry of static-labeled-cube3 added.
+
+
+2020.12.2	K.L.	<k.l.lambda@gmail.com>
+
+	+	labeled-cube3.vue: substrate cube3 object added.
+
+	+	labeled-cube3.vue: textures creation implemented.
+
+	+	App entry of labeled-cube3 added.
+
+
+2020.12.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	App entry of cube-multiplication added.
+
+
+2020.11.30	K.L.	<k.l.lambda@gmail.com>
+
+	+	flipping-cube.vue: flip animation added.
+
+
+2020.11.29	K.L.	<k.l.lambda@gmail.com>
+
+	+	mesh-viewer.vue: GLTF model loading added.
+
+	+	App entry of flipping-cube added.
+
+	+	mesh-viewer-demo.vue: added config of config4x6_greek.
+
+	+	cube3.ts: refined type declarations.
+
+
+2020.11.26	K.L.	<k.l.lambda@gmail.com>
+
+	+	App entry of pca-playground added.
 
 
 2020.11.15	K.L.	<k.l.lambda@gmail.com>

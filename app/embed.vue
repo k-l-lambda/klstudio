@@ -6,7 +6,7 @@
 
 <script>
 	export default {
-		name: "embed",
+		name: "klstudio-embed",
 
 
 		computed: {

@@ -177,3 +177,16 @@
 		}
 	}
 </style>
+
+<style lang="scss">
+	.dynamic-labeled-cube3
+	{
+		.cube3-matrix
+		{
+			td, th
+			{
+				padding: 0;
+			}
+		}
+	}
+</style>

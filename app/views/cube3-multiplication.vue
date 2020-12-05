@@ -141,7 +141,7 @@
 				this.animating = true;
 
 				while (this.animating) {
-					const length = Math.floor(Math.random() * Math.random() * 9 + 1);
+					const length = Math.floor(Math.random() * Math.random() * 24 + 1);
 					const path = Array(length).fill().map(() => Math.floor(Math.random() * 12));
 					const ipath = invertPath(path);
 					//console.log("path:", path, ipath);

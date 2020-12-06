@@ -111,6 +111,8 @@
 			});
 			this.cubeGroup.add(this.cube.graph);
 
+			this.code && this.cube.setState(this.code);
+
 			// labels
 			this.labels = this.cube.graph.children.map(proxy => {
 				const cube = proxy.children[0];
@@ -134,6 +136,8 @@
 				this.cubeLR = new CubeObject({materials: redMaterials, meshSchema: "cube26", twistDuration: TWIST_DURATION});
 				this.cubeLR.graph.scale.set(1.005, 1.005, 1.005);
 				this.cubeGroup.add(this.cubeLR.graph);
+
+				this.code && this.cubeLR.setState(this.code);
 			}
 
 			this.raycaster = new THREE.Raycaster();
@@ -465,8 +469,10 @@
 
 			code (value) {
 				//console.log("code changed:", value);
-				if (this.innerCode !== value)
-					this.cube.setState(value);
+				if (value && this.innerCode !== value) {
+					this.cube && this.cube.setState(value);
+					this.cubeLR && this.cubeLR.setState(value);
+				}
 			},
 		},
 	};

@@ -46,9 +46,21 @@ export const routes = [
 		component: () => import(/* webpackChunkName: "flipping-cube" */ "./views/flipping-cube.vue"),
 	},
 	{
+		path: "/documents/flipping-cube-demo",
+		name: "Flipping Cube",
+		component: () => import(/* webpackChunkName: "flipping-cube" */ "./views/flipping-cube.vue"),
+		props: {demo: true},
+	},
+	{
 		path: "/documents/cube-multiplication",
 		name: "Cube Multiplication",
 		component: () => import(/* webpackChunkName: "cube-multiplication" */ "./views/cube-multiplication.vue"),
+	},
+	{
+		path: "/documents/cube-multiplication-demo",
+		name: "Cube Multiplication",
+		component: () => import(/* webpackChunkName: "cube-multiplication" */ "./views/cube-multiplication.vue"),
+		props: {demo: true},
 	},
 	{
 		path: "/documents/static-labeled-cube3",

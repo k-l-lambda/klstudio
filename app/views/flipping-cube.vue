@@ -29,6 +29,11 @@
 		},
 
 
+		props: {
+			demo: Boolean,
+		},
+
+
 		data () {
 			return {
 				orientation: 0,
@@ -97,7 +102,7 @@
 				while (this.randomFlipping) {
 					await this.flip(Math.floor(Math.random() * 6) + 1);
 
-					await msDelay(2e+3);
+					await msDelay(0.8e+3);
 				}
 			},
 
@@ -106,6 +111,9 @@
 				//console.log("scene:", this.$refs.viewer.scene);
 				this.cube = this.$refs.viewer.scene.children.find(node => node.name === "cube");
 				console.assert(this.cube, "cube not found");
+
+				if (this.demo)
+					this.randomFlip();
 			},
 		},
 

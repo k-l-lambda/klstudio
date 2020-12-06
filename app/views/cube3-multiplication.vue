@@ -18,7 +18,7 @@
 			<div class="matrix">
 				<Cube3Matrix v-if="cubes[0]" ref="matrix1" :cube="cubes[0]" />
 			</div>
-			<span class="symbol">&middot;</span>
+			<span class="symbol">&times;</span>
 			<div class="matrix">
 				<Cube3Matrix v-if="cubes[1]" ref="matrix2" :cube="cubes[1]" />
 			</div>

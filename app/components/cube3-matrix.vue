@@ -204,6 +204,11 @@
 				overflow: hidden;
 			}
 
+			.corner-cell
+			{
+				font-size: 100%;
+			}
+
 			td
 			{
 				font-weight: normal;

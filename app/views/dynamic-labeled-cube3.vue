@@ -10,7 +10,7 @@
 			:coloredUnderbox="true"
 			:showOrientations="true"
 			@cubeCreated="onCubeCreated"
-			@update:code="onCubeChanged"
+			:code.sync="code"
 		/>
 		<div class="matrix-side">
 			<Cube3Matrix v-if="showMatrix && cube" ref="matrix" :cube="cube" />
@@ -21,12 +21,17 @@
 <script>
 	import resize from "vue-resize-directive";
 	import * as THREE from "three";
+	import url from "url";
 
 	import {animationDelay, msDelay} from "../delay";
 	import {invertPath} from "../../inc/cube3";
 
 	import LabeledCube3 from "../components/labeled-cube3.vue";
 	import Cube3Matrix from "../components/cube3-matrix.vue";
+
+
+
+	const TWIST_KEYS = "LrDuBflRdUbF";
 
 
 
@@ -57,6 +62,7 @@
 			return {
 				size: undefined,
 				cube: null,
+				code: null,
 			};
 		},
 
@@ -68,6 +74,29 @@
 		},
 
 
+		created () {
+			document.addEventListener("keydown", event => {
+				//console.log("keydown:", event);
+
+				switch (event.key) {
+				case "Home":
+					if (this.$refs.cube)
+						this.$refs.cube.reset();
+
+					break;
+				default:
+					if (this.$refs.cube) {
+						const twist = TWIST_KEYS.indexOf(event.key);
+						if (twist >= 0)
+							this.$refs.cube.twist(twist);
+					}
+				}
+			});
+
+			window.onhashchange = () => this.onHashChange();
+		},
+
+
 		methods: {
 			onResize () {
 				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
@@ -75,8 +104,9 @@
 
 
 			onCubeCreated (cubeObj) {
-				this.cubeObj = cubeObj;
 				this.cube = cubeObj.algebra;
+
+				this.onHashChange();
 			},
 
 
@@ -98,14 +128,14 @@
 					//console.log("path:", path, ipath);
 
 					for (const twist of path) {
-						await this.cubeObj.twist(twist);
+						await this.$refs.cube.twist(twist);
 						await msDelay(300);
 					}
 
 					await msDelay(1200);
 
 					for (const twist of ipath) {
-						await this.cubeObj.twist(twist);
+						await this.$refs.cube.twist(twist);
 						await msDelay(100);
 					}
 
@@ -141,6 +171,51 @@
 				if (this.$refs.cube)
 					this.$refs.cube.onMouseUp(event);
 			},
+
+
+			onHashChange () {
+				let hash = location.hash.substr(1);
+				if (hash[0] === "/" && !/#/.test(hash))
+					hash += "#";
+
+				hash = hash.replace(/.*#/, "");	// ignore router path
+
+				//console.log("url:", hash, url.parse("abc?a=1", true));
+				const hashurl = url.parse(hash, true);
+
+				const code = hashurl.pathname;
+				if (code)
+					this.code = code;
+
+				if (hashurl.query.path) {
+					//console.log("path:", hashurl.query.path);
+					const twists = parsePath(hashurl.query.path);
+					if (twists.length) {
+						const twist = twists[0];
+						if (twist >= 0 && this.$refs.cube) {
+							this.$refs.cube.twist(twist).then(() => {
+								const rest = stringifyPath(twists.slice(1));
+								location.hash = `${this.getRouterPath()}${this.code}?path=${rest}`;
+							});
+						}
+					}
+				}
+			},
+
+
+			getRouterPath () {
+				const [path] = location.hash.match(/^#\/[^#]*/) || [];
+
+				return path ? path + "#" : "";
+			},
+		},
+
+
+		watch: {
+			code (value) {
+				this.onCubeChanged();
+				location.hash = this.getRouterPath() + value;
+			},
 		},
 	};
 </script>
@@ -174,6 +249,19 @@
 				top: 50%;
 				transform: translate(0, -50%);
 				font-size: var(--matrix-font-size);
+			}
+		}
+	}
+</style>
+
+<style lang="scss">
+	.dynamic-labeled-cube3
+	{
+		.cube3-matrix
+		{
+			td, th
+			{
+				padding: 0;
 			}
 		}
 	}

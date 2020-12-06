@@ -44,13 +44,11 @@ export const routes = [
 		path: "/documents/flipping-cube",
 		name: "Flipping Cube",
 		component: () => import(/* webpackChunkName: "flipping-cube" */ "./views/flipping-cube.vue"),
-		props: true,
 	},
 	{
 		path: "/documents/cube-multiplication",
 		name: "Cube Multiplication",
 		component: () => import(/* webpackChunkName: "cube-multiplication" */ "./views/cube-multiplication.vue"),
-		props: true,
 	},
 	{
 		path: "/documents/static-labeled-cube3",
@@ -61,6 +59,11 @@ export const routes = [
 		path: "/documents/dynamic-labeled-cube3",
 		name: "Dynamic Labeled Cube3",
 		component: () => import(/* webpackChunkName: "dynamic-labeled-cube3" */ "./views/dynamic-labeled-cube3.vue"),
+	},
+	{
+		path: "/documents/cube3-multiplication",
+		name: "Cube3 Multiplication",
+		component: () => import(/* webpackChunkName: "cube3-multiplication" */ "./views/cube3-multiplication.vue"),
 	},
 	{
 		path: "/documents/stylegan-mapping",

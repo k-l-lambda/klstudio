@@ -144,6 +144,7 @@
 		td, th
 		{
 			width: 1em;
+			line-height: 1em;
 			padding: 0 .2em;
 		}
 

@@ -64,6 +64,9 @@
 	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
 
 
+	const TWIST_DURATION = 700;
+
+
 
 	export default {
 		name: "labeled-cube3",
@@ -100,7 +103,12 @@
 			this.cubeGroup = new THREE.Object3D();
 			this.scene.add(this.cubeGroup);
 
-			this.cube = new CubeObject({materials: this.coloredUnderbox ? COLORED_MATERIALS : WHITE_MATERIALS, onChange: algebra => this.onChange(algebra), meshSchema: "cube"});
+			this.cube = new CubeObject({
+				materials: this.coloredUnderbox ? COLORED_MATERIALS : WHITE_MATERIALS, 
+				onChange: algebra => this.onChange(algebra), 
+				meshSchema: "cube",
+				twistDuration: TWIST_DURATION,
+			});
 			this.cubeGroup.add(this.cube.graph);
 
 			// labels
@@ -123,7 +131,7 @@
 
 			if (this.showRedLabels) {
 				const redMaterials = await this.createLabelMaterials("red");
-				this.cubeLR = new CubeObject({materials: redMaterials, meshSchema: "cube26"});
+				this.cubeLR = new CubeObject({materials: redMaterials, meshSchema: "cube26", twistDuration: TWIST_DURATION});
 				this.cubeLR.graph.scale.set(1.005, 1.005, 1.005);
 				this.cubeGroup.add(this.cubeLR.graph);
 			}
@@ -279,6 +287,20 @@
 				}
 
 				return null;
+			},
+
+
+			reset () {
+				this.cube.reset();
+				this.cubeLR.reset();
+			},
+
+
+			twist (twist) {
+				return Promise.all([
+					this.cube.twist(twist),
+					this.cubeLR && this.cubeLR.twist(twist),
+				]);
 			},
 
 

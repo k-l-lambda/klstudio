@@ -30,6 +30,10 @@
 
 
 
+	const TWIST_KEYS = "LrDuBflRdUbF";
+
+
+
 	export default {
 		name: "dynamic-labeled-cube3",
 
@@ -65,6 +69,27 @@
 			canvasSize () {
 				return this.size && {width: Math.max(this.size.width * .4, this.size.height * 0.7), height: this.size.height};
 			},
+		},
+
+
+		created () {
+			document.addEventListener("keydown", event => {
+				//console.log("keydown:", event);
+
+				switch (event.key) {
+				case "Home":
+					if (this.$refs.cube)
+						this.$refs.cube.reset();
+
+					break;
+				default:
+					if (this.$refs.cube) {
+						const twist = TWIST_KEYS.indexOf(event.key);
+						if (twist >= 0)
+							this.$refs.cube.twist(twist);
+					}
+				}
+			});
 		},
 
 

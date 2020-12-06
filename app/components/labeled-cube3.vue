@@ -290,6 +290,12 @@
 			},
 
 
+			reset () {
+				this.cube.reset();
+				this.cubeLR.reset();
+			},
+
+
 			twist (twist) {
 				return Promise.all([
 					this.cube.twist(twist),

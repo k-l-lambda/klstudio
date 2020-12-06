@@ -213,8 +213,11 @@
 
 		watch: {
 			code (value) {
-				this.onCubeChanged();
 				location.hash = this.getRouterPath() + value;
+
+				this.$nextTick(() => {
+					this.onCubeChanged();
+				});
 			},
 		},
 	};

@@ -13,6 +13,8 @@ TODO:
 
 2020.12.6	K.L.	<k.l.lambda@gmail.com>
 
+	+	dynamic-labeled-cube3.vue: URL hash code added.
+
 	+	dynamic-labeled-cube3.vue: twist by keyboard added.
 
 

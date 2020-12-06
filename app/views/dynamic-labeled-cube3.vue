@@ -10,7 +10,7 @@
 			:coloredUnderbox="true"
 			:showOrientations="true"
 			@cubeCreated="onCubeCreated"
-			@update:code="onCubeChanged"
+			:code.sync="code"
 		/>
 		<div class="matrix-side">
 			<Cube3Matrix v-if="showMatrix && cube" ref="matrix" :cube="cube" />
@@ -21,6 +21,7 @@
 <script>
 	import resize from "vue-resize-directive";
 	import * as THREE from "three";
+	import url from "url";
 
 	import {animationDelay, msDelay} from "../delay";
 	import {invertPath} from "../../inc/cube3";
@@ -61,6 +62,7 @@
 			return {
 				size: undefined,
 				cube: null,
+				code: null,
 			};
 		},
 
@@ -90,6 +92,8 @@
 					}
 				}
 			});
+
+			window.onhashchange = () => this.onHashChange();
 		},
 
 
@@ -101,6 +105,8 @@
 
 			onCubeCreated (cubeObj) {
 				this.cube = cubeObj.algebra;
+
+				this.onHashChange();
 			},
 
 
@@ -164,6 +170,51 @@
 			onMouseUp (event) {
 				if (this.$refs.cube)
 					this.$refs.cube.onMouseUp(event);
+			},
+
+
+			onHashChange () {
+				let hash = location.hash.substr(1);
+				if (hash[0] === "/" && !/#/.test(hash))
+					hash += "#";
+
+				hash = hash.replace(/.*#/, "");	// ignore router path
+
+				//console.log("url:", hash, url.parse("abc?a=1", true));
+				const hashurl = url.parse(hash, true);
+
+				const code = hashurl.pathname;
+				if (code)
+					this.code = code;
+
+				if (hashurl.query.path) {
+					//console.log("path:", hashurl.query.path);
+					const twists = parsePath(hashurl.query.path);
+					if (twists.length) {
+						const twist = twists[0];
+						if (twist >= 0 && this.$refs.cube) {
+							this.$refs.cube.twist(twist).then(() => {
+								const rest = stringifyPath(twists.slice(1));
+								location.hash = `${this.getRouterPath()}${this.code}?path=${rest}`;
+							});
+						}
+					}
+				}
+			},
+
+
+			getRouterPath () {
+				const [path] = location.hash.match(/^#\/[^#]*/) || [];
+
+				return path ? path + "#" : "";
+			},
+		},
+
+
+		watch: {
+			code (value) {
+				this.onCubeChanged();
+				location.hash = this.getRouterPath() + value;
 			},
 		},
 	};

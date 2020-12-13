@@ -521,6 +521,16 @@
 			background-repeat: no-repeat;
 			background-position: center center;
 			background-size: 70% 70%;
+
+			.ellipsis
+			{
+				zoom: 200%;
+
+				div
+				{
+					background: #000c;
+				}
+			}
 		}
 	}
 </style>

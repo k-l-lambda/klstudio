@@ -1,5 +1,5 @@
 
-export const GREEK_LETTERS = [
+export const HTML_GREEK_LETTERS = [
 	"&alpha;", "&beta;", "&gamma;", "&delta;",
 	"&epsilon;", "&zeta;", "&eta;", "&theta;",
 	"&iota;", "&kappa;", "&lambda;", "&mu;",
@@ -7,6 +7,19 @@ export const GREEK_LETTERS = [
 	"&rho;", "&sigma;", "&tau;", "&upsilon;",
 	"&phi;", "&chi;", "&psi;", "&omega;",
 ];
+
+
+export const LATEX_GREEK_LETTERS = [
+	"\\alpha", "\\beta", "\\gamma", "\\delta",
+	"\\epsilon", "\\zeta", "\\eta", "\\theta",
+	"\\iota", "\\kappa", "\\lambda", "\\mu",
+	"\\nu", "\\xi", "\\omicron", "\\pi",
+	"\\rho", "\\sigma", "\\tau", "\\upsilon",
+	"\\phi", "\\chi", "\\psi", "\\omega",
+];
+
+
+export const GREEK_LETTERS = HTML_GREEK_LETTERS;
 
 
 export const ORIENTATION_GREEK_LETTER_ORDER = [

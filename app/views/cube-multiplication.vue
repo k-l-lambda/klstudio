@@ -34,10 +34,27 @@
 		},
 
 
+		props: {
+			demo: Boolean,
+		},
+
+
 		computed: {
 			$cubes () {
 				return [this.$refs.cube1, this.$refs.cube2, this.$refs.cube3];
 			},
+		},
+
+
+		async mounted () {
+			if (this.demo) {
+				while (!this.$refs.cube1 || !this.$refs.cube1.cube || !this.$refs.cube2 || !this.$refs.cube2.cube || !this.$refs.cube3 || !this.$refs.cube3.cube)
+					await msDelay(50);
+
+				await msDelay(1000);
+
+				this.randomFlip();
+			}
 		},
 
 

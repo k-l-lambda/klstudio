@@ -32,6 +32,7 @@
 
 <script>
 	import resize from "vue-resize-directive";
+	import * as THREE from "three";
 
 	import {msDelay} from "../delay.js";
 	import {invertPath} from "../../inc/cube3";
@@ -56,6 +57,11 @@
 		},
 
 
+		props: {
+			demo: Boolean,
+		},
+
+
 		data () {
 			return {
 				size: undefined,
@@ -76,6 +82,22 @@
 					height: this.size.height * .4,
 				};
 			},
+		},
+
+
+		async mounted () {
+			if (this.demo) {
+				while (!this.$refs.cube1 || !this.$refs.cube1.cube || !this.$refs.cube2 || !this.$refs.cube2.cube || !this.$refs.cube3 || !this.$refs.cube3.cube)
+					await msDelay(50);
+
+				this.$refs.cube1.cube.graph.quaternion.setFromEuler(new THREE.Euler(Math.PI * 0.16, Math.PI * -0.2, 0));
+				this.$refs.cube2.cube.graph.quaternion.setFromEuler(new THREE.Euler(Math.PI * 0.16, Math.PI * -0.2, 0));
+				this.$refs.cube3.cube.graph.quaternion.setFromEuler(new THREE.Euler(Math.PI * 0.16, Math.PI * -0.2, 0));
+
+				await msDelay(1000);
+
+				this.animate();
+			}
 		},
 
 

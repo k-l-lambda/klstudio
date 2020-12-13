@@ -46,9 +46,21 @@ export const routes = [
 		component: () => import(/* webpackChunkName: "flipping-cube" */ "./views/flipping-cube.vue"),
 	},
 	{
+		path: "/documents/flipping-cube-demo",
+		name: "Flipping Cube",
+		component: () => import(/* webpackChunkName: "flipping-cube" */ "./views/flipping-cube.vue"),
+		props: {demo: true},
+	},
+	{
 		path: "/documents/cube-multiplication",
 		name: "Cube Multiplication",
 		component: () => import(/* webpackChunkName: "cube-multiplication" */ "./views/cube-multiplication.vue"),
+	},
+	{
+		path: "/documents/cube-multiplication-demo",
+		name: "Cube Multiplication",
+		component: () => import(/* webpackChunkName: "cube-multiplication" */ "./views/cube-multiplication.vue"),
+		props: {demo: true},
 	},
 	{
 		path: "/documents/static-labeled-cube3",
@@ -56,14 +68,32 @@ export const routes = [
 		component: () => import(/* webpackChunkName: "static-labeled-cube3" */ "./views/static-labeled-cube3.vue"),
 	},
 	{
+		path: "/documents/static-labeled-cube3-demo",
+		name: "Static Labeled Cube3",
+		component: () => import(/* webpackChunkName: "static-labeled-cube3" */ "./views/static-labeled-cube3.vue"),
+		props: {demo: true},
+	},
+	{
 		path: "/documents/dynamic-labeled-cube3",
 		name: "Dynamic Labeled Cube3",
 		component: () => import(/* webpackChunkName: "dynamic-labeled-cube3" */ "./views/dynamic-labeled-cube3.vue"),
 	},
 	{
+		path: "/documents/dynamic-labeled-cube3-demo",
+		name: "Dynamic Labeled Cube3",
+		component: () => import(/* webpackChunkName: "dynamic-labeled-cube3" */ "./views/dynamic-labeled-cube3.vue"),
+		props: {demo: true},
+	},
+	{
 		path: "/documents/cube3-multiplication",
 		name: "Cube3 Multiplication",
 		component: () => import(/* webpackChunkName: "cube3-multiplication" */ "./views/cube3-multiplication.vue"),
+	},
+	{
+		path: "/documents/cube3-multiplication-demo",
+		name: "Cube3 Multiplication",
+		component: () => import(/* webpackChunkName: "cube3-multiplication" */ "./views/cube3-multiplication.vue"),
+		props: {demo: true},
 	},
 	{
 		path: "/documents/stylegan-mapping",

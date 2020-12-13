@@ -55,6 +55,7 @@
 				type: Boolean,
 				default: true,
 			},
+			demo: Boolean,
 		},
 
 
@@ -97,6 +98,18 @@
 		},
 
 
+		async mounted () {
+			if (this.demo) {
+				while (!this.$refs.cube || !this.$refs.cube.cubeGroup)
+					await animationDelay();
+				this.$refs.cube.cubeGroup.quaternion.setFromEuler(new THREE.Euler(Math.PI * 0.16, 0, 0));
+
+				await msDelay(1000);
+				this.animate();
+			}
+		},
+
+
 		methods: {
 			onResize () {
 				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
@@ -122,6 +135,9 @@
 				this.rotate();
 
 				while (this.animating) {
+					while (!this.$refs.cube)
+						await animationDelay();
+
 					const length = Math.floor(Math.random() * Math.random() * 9 + 1);
 					const path = Array(length).fill().map(() => Math.floor(Math.random() * 12));
 					const ipath = invertPath(path);
@@ -213,8 +229,12 @@
 
 		watch: {
 			code (value) {
-				this.onCubeChanged();
-				location.hash = this.getRouterPath() + value;
+				if (!this.animating)
+					location.hash = this.getRouterPath() + value;
+
+				this.$nextTick(() => {
+					this.onCubeChanged();
+				});
 			},
 		},
 	};

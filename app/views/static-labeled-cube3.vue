@@ -31,10 +31,23 @@
 		},
 
 
+		props: {
+			demo: Boolean,
+		},
+
+
 		data () {
 			return {
 				size: undefined,
 			};
+		},
+
+
+		async mounted () {
+			if (this.demo) {
+				await msDelay(1000);
+				this.animate();
+			}
 		},
 
 

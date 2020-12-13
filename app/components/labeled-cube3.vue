@@ -19,6 +19,7 @@
 				:style="{left: `${label.position.x * 100}%`, top: `${label.position.y * 100}%`}"
 			></span>
 		</div>
+		<Loading v-if="loading" />
 	</div>
 </template>
 
@@ -30,6 +31,8 @@
 	import {CUBE3_POSITION_LABELS} from "../../inc/latin-letters";
 	import Label3D from "../label3D";
 	import {GREEK_LETTERS, ORIENTATION_GREEK_LETTER_ORDER} from "../../inc/greek-letters";
+
+	import Loading from "./loading-dots.vue";
 
 
 
@@ -72,6 +75,11 @@
 		name: "labeled-cube3",
 
 
+		components: {
+			Loading,
+		},
+
+
 		props: {
 			size: {
 				type: Object,
@@ -91,12 +99,14 @@
 		data () {
 			return {
 				labels: [],
+				loading: false,
 			};
 		},
 
 
 		async mounted () {
 			this.rendererActive = true;
+			this.loading = true;
 
 			this.initializeRenderer();
 
@@ -110,6 +120,8 @@
 				twistDuration: TWIST_DURATION,
 			});
 			this.cubeGroup.add(this.cube.graph);
+
+			this.code && this.cube.setState(this.code);
 
 			// labels
 			this.labels = this.cube.graph.children.map(proxy => {
@@ -134,6 +146,8 @@
 				this.cubeLR = new CubeObject({materials: redMaterials, meshSchema: "cube26", twistDuration: TWIST_DURATION});
 				this.cubeLR.graph.scale.set(1.005, 1.005, 1.005);
 				this.cubeGroup.add(this.cubeLR.graph);
+
+				this.code && this.cubeLR.setState(this.code);
 			}
 
 			this.raycaster = new THREE.Raycaster();
@@ -143,6 +157,8 @@
 			this.$emit("sceneInitialized", this);
 
 			this.render();
+
+			this.loading = false;
 		},
 
 
@@ -465,8 +481,10 @@
 
 			code (value) {
 				//console.log("code changed:", value);
-				if (this.innerCode !== value)
-					this.cube.setState(value);
+				if (value && this.innerCode !== value) {
+					this.cube && this.cube.setState(value);
+					this.cubeLR && this.cubeLR.setState(value);
+				}
 			},
 		},
 	};
@@ -490,5 +508,19 @@
 		user-select: none;
 		white-space: nowrap;
 		pointer-events: none;
+	}
+</style>
+
+<style lang="scss">
+	.labeled-cube3
+	{
+		.loading-dots
+		{
+			background-color: transparent;
+			background-image: url(../assets/cube-placeholder.drawio.svg);
+			background-repeat: no-repeat;
+			background-position: center center;
+			background-size: 70% 70%;
+		}
 	}
 </style>

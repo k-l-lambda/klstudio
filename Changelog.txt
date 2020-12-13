@@ -13,6 +13,11 @@ TODO:
 
 
 
+2020.12.13	K.L.	<k.l.lambda@gmail.com>
+
+	+	labeled-cube3.vue: added loading placeholder animation.
+
+
 2020.12.6	K.L.	<k.l.lambda@gmail.com>
 
 	+	dynamic-labeled-cube3.vue: URL hash code added.

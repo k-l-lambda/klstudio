@@ -79,6 +79,14 @@
 
 	const apps = [
 		{
+			name: "Cube & Matrix",
+			_title: "Cube &amp; Matrix",
+			path: "/documents/dynamic-labeled-cube3",
+			cover: "cube-matrix.png",
+			description: `Rubik's Cube matrix representation visualization.
+<a href="/" target="_blank">Read details</a>.`,
+		},
+		{
 			name: "StyleGAN Mapping Visualization",
 			_title: "StyleGAN Mapping<wbr /> Visualization",
 			path: "/documents/stylegan-mapping",

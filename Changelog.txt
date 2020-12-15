@@ -1,7 +1,6 @@
 
 TODO:
 	cube3-multiplication: twist cube individually by user
-	dynamic-labeled-cube3.vue: highlight hover cube
 	stylegan-mapping.vue
 		show images on z-graph
 	globe-cube3:

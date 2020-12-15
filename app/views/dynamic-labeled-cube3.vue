@@ -11,9 +11,10 @@
 			:showOrientations="true"
 			@cubeCreated="onCubeCreated"
 			:code.sync="code"
+			:highlightCubie.sync="highlightCubie"
 		/>
 		<div class="matrix-side">
-			<Cube3Matrix v-if="showMatrix && cube" ref="matrix" :cube="cube" />
+			<Cube3Matrix v-if="showMatrix && cube" ref="matrix" :cube="cube" :highlightCubie="highlightCubie" />
 		</div>
 	</div>
 </template>
@@ -64,6 +65,7 @@
 				size: undefined,
 				cube: null,
 				code: null,
+				highlightCubie: null,
 			};
 		},
 

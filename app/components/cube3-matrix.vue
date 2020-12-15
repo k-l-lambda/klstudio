@@ -18,6 +18,7 @@
 					corner: j <= 8, edge: j > 8 && j <= 20, axis: j > 20,
 					focus: j === focusRow,
 					activated: activatedRows[j - 1],
+					highlight: j === highlightRow + 1,
 				}"
 			>
 				<th class="column">{{labels[j - 1]}}</th>
@@ -63,6 +64,7 @@
 				type: Boolean,
 				default: true,
 			},
+			highlightCubie: Number,
 		},
 
 
@@ -78,21 +80,16 @@
 		},
 
 
-		/*computed: {
-			columnVector () {
-				if (!this.cube)
+		computed: {
+			highlightRow () {
+				if (!Number.isInteger(this.highlightCubie))
 					return null;
 
-				const positions = Array.from(this.cube.positions);
+				const position = this.highlightCubie > 13 ? this.highlightCubie - 1 : this.highlightCubie;
 
-				return CUBE3_POSITION_INDICES.map(index => CUBE3_POSITION_INDICES.indexOf(positions[index]));
+				return CUBE3_POSITION_LABELS_NUMBERS[position];
 			},
-
-
-			matrix () {
-				return this.columnVector && this.columnVector.map((index, j) => Array(26).fill().map((_, i) => i === index ? GREEK_LETTERS[ORIENTATION_GREEK_LETTER_ORDER[this.cube.units[j]]] : ""));
-			},
-		},*/
+		},
 
 
 		created () {
@@ -126,6 +123,11 @@
 
 				await msDelay(100);
 				this.activatedRows = Array(26).fill(false);
+			},
+
+
+			highlightRow () {
+				console.log("highlightRow:", this.highlightRow);
 			},
 		},
 	};
@@ -259,6 +261,19 @@
 				{
 					color: gold;
 					transition: color .01s;
+				}
+			}
+
+			&.highlight
+			{
+				th, td
+				{
+					color: gold;
+				}
+
+				td
+				{
+					background-color: #444;
 				}
 			}
 		}

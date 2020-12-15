@@ -14,6 +14,7 @@
 		<canvas v-show="false" ref="textureCanvas" class="texture-canvas" :width="256" :height="256" />
 		<div v-if="showOrientations">
 			<span class="label" v-for="(label, i) of labels" :key="i"
+				:class="{highlight: i === highlightCubie}"
 				v-show="label.visible"
 				v-html="label.content"
 				:style="{left: `${label.position.x * 100}%`, top: `${label.position.y * 100}%`}"
@@ -319,7 +320,7 @@
 					if (intersects[0]) {
 						const point = this.cube.graph.worldToLocal(intersects[0].point);
 						const xs = [point.x, point.y, point.z].map(x => Math.round(x) + 1);
-						console.log("xs:", xs);
+						//console.log("xs:", xs);
 
 						return xs[0] + xs[1] * 3 + xs[2] * 9;
 					}
@@ -365,7 +366,8 @@
 
 							break;
 						case 0:
-							this.highlightCubie = this.raycastCubie(event);
+							const positionIndex = this.raycastCubie(event);
+							this.highlightCubie = this.cube.algebra.positions.indexOf(positionIndex);
 							if (this.coloredUnderbox) {
 								this.cube.cubeMeshes.forEach(mesh => mesh.material = COLORED_MATERIALS);
 								//console.log("cubie index:", index);
@@ -511,11 +513,16 @@
 					this.cubeLR && this.cubeLR.setState(value);
 				}
 			},
+
+
+			highlightCubie (value) {
+				this.$emit("update:highlightCubie", value);
+			},
 		},
 	};
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 	.texture-canvas
 	{
 		border: black 1px solid;
@@ -533,6 +540,11 @@
 		user-select: none;
 		white-space: nowrap;
 		pointer-events: none;
+
+		&.highlight
+		{
+			color: gold;
+		}
 	}
 </style>
 

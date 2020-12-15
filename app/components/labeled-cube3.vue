@@ -66,6 +66,10 @@
 		"#fd6", "#faa", "#efb", "#fff", "#aaf", "#8f8", "black",
 	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
 
+	const COLORED_HIGHLIGHT_MATERIALS = [
+		"#fea", "#fcc", "#ff8", "#ddd", "#ddf", "#cfc", "#222",
+	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
+
 
 	const TWIST_DURATION = 700;
 
@@ -100,6 +104,7 @@
 			return {
 				labels: [],
 				loading: false,
+				highlightCubie: null,
 			};
 		},
 
@@ -306,6 +311,24 @@
 			},
 
 
+			raycastCubie () {
+				if (this.raycaster) {
+					const mouse = this.normalizeScreenPoint(event);
+					this.raycaster.setFromCamera(mouse, this.camera);
+					const intersects = this.raycaster.intersectObject(this.cube.graph, true);
+					if (intersects[0]) {
+						const point = this.cube.graph.worldToLocal(intersects[0].point);
+						const xs = [point.x, point.y, point.z].map(x => Math.round(x) + 1);
+						console.log("xs:", xs);
+
+						return xs[0] + xs[1] * 3 + xs[2] * 9;
+					}
+				}
+
+				return null;
+			},
+
+
 			reset () {
 				this.cube.reset();
 				this.cubeLR.reset();
@@ -341,15 +364,17 @@
 							this.cubeGroup.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), event.movementY * 1e-2);
 
 							break;
-						/*case 0:
-							this.cube.cubeMeshes.forEach(mesh => mesh.material = this.material);
-							const axis = this.raycastAxis(event);
-							if (Number.isInteger(axis)) {
-								const faceIndices = this.cube.algebra.faceIndicesFromAxis(axis);
-								faceIndices.forEach(index => this.cube.cubeMeshes[index].material = this.highlightMaterial);
+						case 0:
+							this.highlightCubie = this.raycastCubie(event);
+							if (this.coloredUnderbox) {
+								this.cube.cubeMeshes.forEach(mesh => mesh.material = COLORED_MATERIALS);
+								//console.log("cubie index:", index);
+
+								if (Number.isInteger(this.highlightCubie) && this.cube.cubeMeshes[this.highlightCubie])
+									this.cube.cubeMeshes[this.highlightCubie].material = COLORED_HIGHLIGHT_MATERIALS;
 							}
 
-							break;*/
+							break;
 						}
 					}
 				}

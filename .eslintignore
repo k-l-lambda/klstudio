@@ -1,2 +1,4 @@
 # ignore third-party packed code
 *.min.js
+
+inc/third-party/*

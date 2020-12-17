@@ -135,6 +135,11 @@ export const routes = [
 		name: "PCA Playgound",
 		component: () => import(/* webpackChunkName: "pca-playground", */ "./views/pca-playground.vue"),
 	},
+	{
+		path: "/tools/webm-fixer",
+		name: "WEBM Fixer",
+		component: () => import(/* webpackChunkName: "webm-fixer", */ "./views/webm-fixer.vue"),
+	},
 ];
 
 

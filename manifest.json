@@ -8,7 +8,6 @@
    "content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
    "default_locale": "en",
    "description": "__MSG_appDesc__",
-   "differential_fingerprint": "1.6b33a6e26b0995ad250e80a89d8c030655e7485e1056b3e33eeb9eab245f9cca",
    "icons": {
       "128": "assets/icon-128.png",
       "16": "assets/icon-16.png"

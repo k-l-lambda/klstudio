@@ -255,15 +255,35 @@
                     }), w(this, "recorderOnStop", () => {
                         const e = new Blob(this.recordedChunks, {
                                 type: "video/webm;codecs=h264"
-                            }),
-                            t = URL.createObjectURL(e);
-                        this.video.srcObject = null, this.setState({
+                            });
+                        const t = URL.createObjectURL(e);
+						this.video.srcObject = null;
+						this.setState({
                             isRecording: !1,
                             hasSource: !0,
                             src: t
-                        }), chrome.runtime.sendMessage({
+						});
+
+						// fix video duration
+						(async () => {
+							await new Promise(resolve => this.video.onloadedmetadata = resolve);
+
+							this.video.currentTime = 1e+9;
+							await new Promise(resolve => this.video.onseeked = resolve);
+							console.debug("duration:", this.video.duration);
+
+							const fixedBlob = await new Promise(resolve => ysFixWebmDuration(e, this.video.duration * 1e+3, resolve));
+							const fixedURL = URL.createObjectURL(fixedBlob);
+							this.setState({
+								isRecording: !1,
+								hasSource: !0,
+								src: fixedURL,
+							});
+						})();
+
+						chrome.runtime.sendMessage({
                             type: S.c
-                        })
+                        });
                     }), w(this, "stopRecording", () => {
                         console.log("Stop recording", this.recorder.state), "inactive" !== this.recorder.state && (this.recorder.stop(), this.streams.forEach(e => {
                             e && e.getTracks().forEach(e => {
@@ -282,16 +302,16 @@
                             isPaused: !1
                         }), R(["_trackEvent", "video", "recordingResumed"])
                     }), w(this, "save", () => {
-                        ! function(e, t) {
-                            const a = new Blob(e, {
+                        ! function(o, t) {
+                            /*const a = new Blob(e, {
                                     type: "video/webm"
                                 }),
-                                o = URL.createObjectURL(a),
-                                r = document.createElement("a");
+								o = URL.createObjectURL(a),*/
+                            const r = document.createElement("a");
                             document.body.appendChild(r), r.style = "display: none", r.target = "_blank", r.href = o, r.download = t, r.click(), setTimeout(() => {
                                 document.body.removeChild(r), window.URL.revokeObjectURL(o)
                             }, 100)
-                        }(this.recordedChunks, "screen-capture.webm"), R(["_trackEvent", "video", "saved"])
+                        }(this.state.src, "screen-capture.webm"), R(["_trackEvent", "video", "saved"])
                     }), w(this, "reset", () => {
                         this.setState({
                             hasSource: !1,

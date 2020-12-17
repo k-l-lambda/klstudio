@@ -1,0 +1,25 @@
+{
+   "background": {
+      "scripts": [ "./background.js" ]
+   },
+   "browser_action": {
+      "default_icon": "assets/icon-128.png"
+   },
+   "content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
+   "default_locale": "en",
+   "description": "__MSG_appDesc__",
+   "differential_fingerprint": "1.6b33a6e26b0995ad250e80a89d8c030655e7485e1056b3e33eeb9eab245f9cca",
+   "icons": {
+      "128": "assets/icon-128.png",
+      "16": "assets/icon-16.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlmvS4Na2Sm+BET2BjMg8wU99b56XPf+9FuY8UTFc5JH4YVZceXu1MeZSKyWaSpXvmGfwKd7CXG4ay5eQE1cQDr8WqTFqxMRLCC/NcLzWFzVscNEX6xVKn3HqEAzdtpLaDYLizeX0NJ3svce6A8C/cxH94rr0nfi9dizgnw5R1aQPaCgmitnMCimv/LMohZZRxzsRdNlkGcKKze/NnzGpkCWxIMuw69a5CsIGrkBrHCHEFc5Xci+Y/Hkm5KrDgrCdIkJdMQrdd8m/3uQ5afnf9JfgE24oCYhS7al9ptsCy8AFrFfsP4dHJFPrtnKR17F+SUEGZEgYVnn2hY9jcwRVFwIDAQAB",
+   "manifest_version": 2,
+   "minimum_chrome_version": "49",
+   "name": "__MSG_appName__",
+   "offline_enabled": true,
+   "options_page": "options.html",
+   "permissions": [ "desktopCapture" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "2.1.1"
+}

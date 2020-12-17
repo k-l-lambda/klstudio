@@ -208,8 +208,9 @@
                                 }
                             }
                         }).catch(f).then(this.gotMediaStream) : console.log("Access to media rejected")
-                    }), w(this, "gotMediaStream", e => {
-                        if (console.log("Received local stream"), this.state.includeAudioSystem && (console.log("Checking for system audio track"), e.getAudioTracks().length < 1)) return console.log("No audio track in screen stream"), e.getTracks().forEach(e => e.stop()), this.setState({
+                    }), w(this, "gotMediaStream", e => setTimeout(() => {
+						if (console.log("Received local stream"), this.state.includeAudioSystem && (console.log("Checking for system audio track"), e.getAudioTracks().length < 1))
+							return console.log("No audio track in screen stream"), e.getTracks().forEach(e => e.stop()), this.setState({
                             error: S.b.SYSTEM_AUDIO_NOT_RECEIVED
                         }), void chrome.runtime.sendMessage({
                             type: S.c
@@ -231,15 +232,19 @@
                         } catch (e) {
                             return void console.error("Error creating MediaRecorder", e)
                         }
-                        this.recorder.ondataavailable = this.recorderOnDataAvailable, this.recorder.onstop = this.recorderOnStop, this.recorder.start(), this.setState({
+						this.recorder.ondataavailable = this.recorderOnDataAvailable;
+						this.recorder.onstop = this.recorderOnStop;
+						this.recorder.start();
+						this.setState({
                             hasSource: !0
                         }, () => {
                             this.video.srcObject = this.localStream
-                        }), this.setState({
+						});
+						this.setState({
                             isRecording: !0,
                             isPaused: !1
-                        })
-                    }), w(this, "gotAudio", e => {
+                        });
+                    }, 2000)), w(this, "gotAudio", e => {
                         console.log("Received audio stream"), this.audioStream = e, e.getTracks().forEach(t => {
                             t.addEventListener("ended", () => {
                                 console.log(e.id, "track ended", t.kind, t.id)

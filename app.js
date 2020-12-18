@@ -244,7 +244,7 @@
                             isRecording: !0,
                             isPaused: !1
                         });
-                    }, 2000)), w(this, "gotAudio", e => {
+                    }, 1000)), w(this, "gotAudio", e => {
                         console.log("Received audio stream"), this.audioStream = e, e.getTracks().forEach(t => {
                             t.addEventListener("ended", () => {
                                 console.log(e.id, "track ended", t.kind, t.id)

@@ -25,7 +25,7 @@
 	import url from "url";
 
 	import {animationDelay, msDelay} from "../delay";
-	import {invertPath} from "../../inc/cube3";
+	import {invertPath, invertTwist} from "../../inc/cube3";
 
 	import LabeledCube3 from "../components/labeled-cube3.vue";
 	import Cube3Matrix from "../components/cube3-matrix.vue";
@@ -131,7 +131,7 @@
 			},
 
 
-			async animate () {
+			async animate (fixedLength = null) {
 				this.animating = true;
 
 				this.rotate();
@@ -140,8 +140,18 @@
 					while (!this.$refs.cube)
 						await animationDelay();
 
-					const length = Math.floor(Math.random() * Math.random() * 9 + 1);
-					const path = Array(length).fill().map(() => Math.floor(Math.random() * 12));
+					let lastTwist = null;
+
+					const length = fixedLength || Math.floor(Math.random() * Math.random() * 9 + 1);
+					const path = Array(length).fill().map(() => {
+						let twist = Math.floor(Math.random() * 12);
+						while (Number.isInteger(lastTwist) && twist === invertTwist(lastTwist))
+							twist = Math.floor(Math.random() * 12);
+
+						lastTwist = twist;
+
+						return twist;
+					});
 					const ipath = invertPath(path);
 					//console.log("path:", path, ipath);
 

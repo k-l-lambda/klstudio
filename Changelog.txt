@@ -12,6 +12,11 @@ TODO:
 
 
 
+2020.12.19	K.L.	<k.l.lambda@gmail.com>
+
+	+	dynamic-labeled-cube3.vue: avoid backward twists in animation random path.
+
+
 2020.12.18	K.L.	<k.l.lambda@gmail.com>
 
 	+	labeled-cube3.vue: disabled depth writing for label material to fix overlapping problem.

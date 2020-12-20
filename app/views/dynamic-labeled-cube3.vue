@@ -12,6 +12,7 @@
 			@cubeCreated="onCubeCreated"
 			:code.sync="code"
 			:highlightCubie.sync="highlightCubie"
+			@sceneInitialized="onSceneInitialized"
 		/>
 		<div class="matrix-side">
 			<Cube3Matrix v-if="showMatrix && cube" ref="matrix" :cube="cube" :highlightCubie="highlightCubie" />
@@ -100,18 +101,6 @@
 		},
 
 
-		async mounted () {
-			if (this.demo) {
-				while (!this.$refs.cube || !this.$refs.cube.cubeGroup)
-					await animationDelay();
-				this.$refs.cube.cubeGroup.quaternion.setFromEuler(new THREE.Euler(Math.PI * 0.16, 0, 0));
-
-				await msDelay(1000);
-				this.animate();
-			}
-		},
-
-
 		methods: {
 			onResize () {
 				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
@@ -128,6 +117,17 @@
 			onCubeChanged () {
 				if (this.$refs.matrix)
 					this.$refs.matrix.updateMatrix();
+			},
+
+
+			async onSceneInitialized () {
+				if (this.demo) {
+					while (!this.$refs.cube || !this.$refs.cube.cubeGroup)
+						await animationDelay();
+					this.$refs.cube.cubeGroup.quaternion.setFromEuler(new THREE.Euler(Math.PI * 0.16, 0, 0));
+
+					this.animate();
+				}
 			},
 
 

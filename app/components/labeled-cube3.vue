@@ -221,7 +221,7 @@
 					textures.push(tex);
 				};
 
-				return textures.map(texture => new THREE.MeshBasicMaterial({map: texture, transparent: true}));
+				return textures.map(texture => new THREE.MeshBasicMaterial({map: texture, transparent: true, depthWrite: false}));
 			},
 
 

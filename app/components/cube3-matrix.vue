@@ -18,7 +18,7 @@
 					corner: j <= 8, edge: j > 8 && j <= 20, axis: j > 20,
 					focus: j === focusRow,
 					activated: activatedRows[j - 1],
-					highlight: j === highlightRow + 1,
+					highlight: Number.isInteger(highlightRow) && (j === highlightRow + 1),
 				}"
 			>
 				<th class="column">{{labels[j - 1]}}</th>

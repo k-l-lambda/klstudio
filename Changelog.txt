@@ -1,5 +1,6 @@
 
 TODO:
+	dynamic-labeled-cube3: caption text of greek code vector, twist path
 	cube3-multiplication: twist cube individually by user
 	stylegan-mapping.vue
 		show images on z-graph

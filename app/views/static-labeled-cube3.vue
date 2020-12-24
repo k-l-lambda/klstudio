@@ -62,11 +62,15 @@
 
 				const SEGMENT_DURATION = 1.2e+3;
 
+				let yaw = 0;
+
 				while (this.animating) {
 					if (this.$refs.cube) {
+						yaw += (1 + (Math.random() - 0.5) * (Math.random() - 0.5) * 4) * Math.PI;
+
 						const begin = this.$refs.cube.cubeGroup.quaternion.clone();
 						const target = new THREE.Quaternion()
-							.setFromEuler(new THREE.Euler((Math.random() - 0.5) * 2.4, Math.random() * 2 * Math.PI, (Math.random() - 0.5) * 0.2, "YXZ"));
+							.setFromEuler(new THREE.Euler((Math.random() - 0.5) * 2.4, yaw, (Math.random() - 0.5) * 0.2, "YXZ"));
 
 						const start = Date.now();
 						let now = start;

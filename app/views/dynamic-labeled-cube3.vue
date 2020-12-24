@@ -4,19 +4,24 @@
 		@mouseup="onMouseUp"
 		:style="{'--matrix-font-size': size && `${Math.min(size.width * .015, size.height * .025)}px`}"
 	>
-		<LabeledCube3 ref="cube"
-			:size="canvasSize"
-			:showRedLabels="true"
-			:coloredUnderbox="true"
-			:showOrientations="true"
-			@cubeCreated="onCubeCreated"
-			:code.sync="code"
-			:highlightCubie.sync="highlightCubie"
-			@sceneInitialized="onSceneInitialized"
-		/>
-		<div class="matrix-side">
-			<Cube3Matrix v-if="showMatrix && cube" ref="matrix" :cube="cube" :highlightCubie="highlightCubie" />
-		</div>
+		<main>
+			<LabeledCube3 ref="cube"
+				:size="canvasSize"
+				:showRedLabels="true"
+				:coloredUnderbox="true"
+				:showOrientations="true"
+				@cubeCreated="onCubeCreated"
+				:code.sync="code"
+				:highlightCubie.sync="highlightCubie"
+				@sceneInitialized="onSceneInitialized"
+			/>
+			<div class="matrix-side">
+				<Cube3Matrix v-if="showMatrix && cube" ref="matrix" :cube="cube" :highlightCubie="highlightCubie" :vector.sync="vector" />
+			</div>
+		</main>
+		<header>
+			<h1 v-if="vectorText" v-html="vectorText"></h1>
+		</header>
 	</div>
 </template>
 
@@ -27,6 +32,7 @@
 
 	import {animationDelay, msDelay} from "../delay";
 	import {invertPath, invertTwist} from "../../inc/cube3";
+	import {GREEK_LETTERS, ORIENTATION_GREEK_LETTER_ORDER} from "../../inc/greek-letters";
 
 	import LabeledCube3 from "../components/labeled-cube3.vue";
 	import Cube3Matrix from "../components/cube3-matrix.vue";
@@ -67,6 +73,7 @@
 				cube: null,
 				code: null,
 				highlightCubie: null,
+				vector: null,
 			};
 		},
 
@@ -74,6 +81,11 @@
 		computed: {
 			canvasSize () {
 				return this.size && {width: Math.max(this.size.width * .4, this.size.height * 0.7), height: this.size.height};
+			},
+
+
+			vectorText () {
+				return this.vector && this.vector.map(index => GREEK_LETTERS[ORIENTATION_GREEK_LETTER_ORDER[index]]).join("");
 			},
 		},
 
@@ -259,28 +271,46 @@
 		height: 100%;
 		background-color: lightblue;
 
-		display: flex;
-		flex-direction: row;
-
-		.labeled-cube3
+		main
 		{
-			flex: 0 0 auto;
-			position: relative;
+			width: 100%;
+			height: 100%;
+			display: flex;
+			flex-direction: row;
+
+			.labeled-cube3
+			{
+				flex: 0 0 auto;
+				position: relative;
+			}
+
+			.matrix-side
+			{
+				flex: 1 1 auto;
+				position: relative;
+
+				.cube3-matrix
+				{
+					user-select: none;
+					position: absolute;
+					left: 0;
+					top: 50%;
+					transform: translate(0, -50%);
+					font-size: var(--matrix-font-size);
+				}
+			}
 		}
 
-		.matrix-side
+		header
 		{
-			flex: 1 1 auto;
-			position: relative;
+			position: absolute;
+			top: 1em;
+			width: 100%;
+			text-align: center;
 
-			.cube3-matrix
+			h1
 			{
-				user-select: none;
-				position: absolute;
-				left: 0;
-				top: 50%;
-				transform: translate(0, -50%);
-				font-size: var(--matrix-font-size);
+				font-size: 60px;
 			}
 		}
 	}

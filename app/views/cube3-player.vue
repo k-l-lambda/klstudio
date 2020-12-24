@@ -127,7 +127,7 @@
 				await rollQuaternion(this.$refs.viewer.cube.graph.quaternion, {
 					onSegment: () => true,
 					segmentDuration: 1.2e+3,
-					segmentInterval: 400,
+					segmentInterval: 100,
 				});
 			},
 		},

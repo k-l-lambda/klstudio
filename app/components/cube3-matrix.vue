@@ -121,14 +121,16 @@
 				if (value && oldValue)
 					this.activatedRows = value.map((o, i) => o !== oldValue[i]);
 
+				this.$emit("update:vector", value);
+
 				await msDelay(100);
 				this.activatedRows = Array(26).fill(false);
 			},
 
 
-			highlightRow () {
+			/*highlightRow () {
 				console.log("highlightRow:", this.highlightRow);
-			},
+			},*/
 		},
 	};
 </script>

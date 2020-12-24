@@ -3,15 +3,15 @@
 		<LabeledCube3 ref="cube"
 			:size="size"
 			:enabledTwist="false"
+			@sceneInitialized="onSceneInitialized"
 		/>
 	</div>
 </template>
 
 <script>
 	import resize from "vue-resize-directive";
-	import * as THREE from "three";
 
-	import {animationDelay, msDelay} from "../delay";
+	import rollQuaternion from "../roll-quaternion";
 
 	import LabeledCube3 from "../components/labeled-cube3.vue";
 
@@ -43,24 +43,22 @@
 		},
 
 
-		async mounted () {
-			if (this.demo) {
-				await msDelay(1000);
-				this.animate();
-			}
-		},
-
-
 		methods: {
 			onResize () {
 				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
 			},
 
 
+			onSceneInitialized () {
+				if (this.demo)
+					this.animate();
+			},
+
+
 			async animate () {
 				this.animating = true;
 
-				const SEGMENT_DURATION = 1.2e+3;
+				/*const SEGMENT_DURATION = 1.2e+3;
 
 				let yaw = 0;
 
@@ -87,7 +85,12 @@
 					}
 
 					await animationDelay();
-				}
+				}*/
+				await rollQuaternion(this.$refs.cube.cubeGroup.quaternion, {
+					onSegment: () => this.animating,
+					segmentDuration: 1.2e+3,
+					segmentInterval: 400,
+				});
 			},
 		},
 	};

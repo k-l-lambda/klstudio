@@ -1,6 +1,5 @@
 
 TODO:
-	dynamic-labeled-cube3: twist path
 	cube3-multiplication: twist cube individually by user
 	stylegan-mapping.vue
 		show images on z-graph
@@ -11,6 +10,11 @@ TODO:
 		test solveCubeBinary
 		invalid solution issue.
 
+
+
+2020.12.25	K.L.	<k.l.lambda@gmail.com>
+
+	+	dynamic-labeled-cube3.vue: twist path added.
 
 
 2020.12.24	K.L.	<k.l.lambda@gmail.com>

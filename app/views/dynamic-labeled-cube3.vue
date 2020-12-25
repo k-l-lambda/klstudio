@@ -20,6 +20,9 @@
 			</div>
 		</main>
 		<header>
+			<p v-if="twistsSeq" class="twists">
+				<span v-for="(twist, i) of twistsSeq" :key="i" v-html="twist"></span>
+			</p>
 			<h1 v-if="vectorText" v-html="vectorText"></h1>
 		</header>
 	</div>
@@ -31,7 +34,7 @@
 	import url from "url";
 
 	import {animationDelay, msDelay} from "../delay";
-	import {invertPath, invertTwist} from "../../inc/cube3";
+	import {invertPath, invertTwist, parsePath} from "../../inc/cube3";
 	import {GREEK_LETTERS, ORIENTATION_GREEK_LETTER_ORDER} from "../../inc/greek-letters";
 
 	import LabeledCube3 from "../components/labeled-cube3.vue";
@@ -41,6 +44,11 @@
 
 	const TWIST_KEYS = "LrDuBflRdUbF";
 
+	const TWIST_NAMES = [
+		"L'", "R", "D'", "U", "B'", "F",
+		"L", "R'", "D", "U'", "B", "F'",
+		"L<sup>2</sup>", "R<sup>2</sup>", "D<sup>2</sup>", "U<sup>2</sup>", "B<sup>2</sup>", "F<sup>2</sup>",
+	];
 
 
 	export default {
@@ -64,6 +72,7 @@
 				default: true,
 			},
 			demo: Boolean,
+			demoPath: String,
 		},
 
 
@@ -74,6 +83,7 @@
 				code: null,
 				highlightCubie: null,
 				vector: null,
+				twistsSeq: null,
 			};
 		},
 
@@ -140,6 +150,8 @@
 
 					this.animate();
 				}
+				else if (this.demoPath)
+					this.twists(this.demoPath);
 			},
 
 
@@ -184,7 +196,23 @@
 			},
 
 
-			async rotate () {
+			async twists (pathText) {
+				this.$refs.cube.cubeGroup.quaternion.setFromEuler(new THREE.Euler(Math.PI * 0.16, Math.PI * 0.309, 0));
+				this.animating = true;
+
+				const path = parsePath(pathText);
+				this.twistsSeq = [];
+
+				for (const twist of path) {
+					this.twistsSeq.push(TWIST_NAMES[twist]);
+					await this.$refs.cube.twist(twist);
+				}
+
+				this.rotate(-3e-4);
+			},
+
+
+			async rotate (speed = -1e-4) {
 				const start = Date.now();
 				let time = start;
 
@@ -193,7 +221,7 @@
 					const elapsed = now - time;
 					time = now;
 
-					this.$refs.cube.cubeGroup.rotateOnAxis(new THREE.Vector3(0, 1, 0), elapsed * -1e-4);
+					this.$refs.cube.cubeGroup.rotateOnAxis(new THREE.Vector3(0, 1, 0), elapsed * speed);
 					this.$refs.cube.cubeGroup.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), Math.cos((time - start) * 1e-5) * elapsed * .4e-6);
 
 					await animationDelay();
@@ -304,13 +332,32 @@
 		header
 		{
 			position: absolute;
-			top: 1em;
+			top: 0;
 			width: 100%;
 			text-align: center;
+			padding: 40px 0;
 
 			h1
 			{
 				font-size: 60px;
+				font-family: monospace;
+				color: black;
+				margin: .1em 0;
+			}
+
+			.twists
+			{
+				padding: 0 0 0 30%;
+				text-align: left;
+				font-size: 40px;
+				margin: 0;
+				font-family: Verdana, Arial, Helvetica, sans-serif;
+
+				span
+				{
+					display: inline-block;
+					margin: 0 .1em;
+				}
 			}
 		}
 	}

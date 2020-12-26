@@ -128,6 +128,8 @@
 					onSegment: () => true,
 					segmentDuration: 1.2e+3,
 					segmentInterval: 100,
+					pitchSpan: Math.PI,
+					rollSpan: Math.PI * 0.6,
 				});
 			},
 		},

@@ -15,29 +15,30 @@ TODO:
 2020.12.25	K.L.	<k.l.lambda@gmail.com>
 
 	*	Cube3 patterns:
-			checkerboard			U2 D2 L2 R2 F2 B2
+			checkerboard			U2 D2 L2 R2 F2 B2												AAAAAAAAHIIHJJJJHIIHJIHHIJ
 			checkerboard2			D2 F2 U' B2 F2 L2 R2 D R' B F D' U L R D2 U2 F' U2
 			facing checkerboards	D2 F2 U2 B2 F2 U2 F2 U2
-			wire					U L2 B' L2 D2 U2 R2 F' R2 U'
-			spiral					U B2 U2 F2 U L2 B L' D' F L B L D2 L B' D' L U
-			stripes					F2 U F2 D R2 F2 U' L2 B F' R D' U B2 R2 F' L' R' U'
-			cross					D2 U' B2 L2 R2 D2 U2 F2 L2 R2 U'
-			cube in cube			U2 R2 F2 U B2 D' L' F L' F L' F D B2 U
-			cube in cube in cube	D2 F2 D' F2 U' R2 F D R F' D F' L D F2 L' U F2
-			anaconda				U B2 L D B' F L' D U' L' R F' D2 R'
-			python					D R2 B2 D' U R' B F' U' B2 U B' F R' U'
+			wire					U L2 B' L2 D2 U2 R2 F' R2 U'									IAAIAIIAIAAIIIIIIAAIDIAAIG
+			spiral					U B2 U2 F2 U L2 B L' D' F L B L D2 L B' D' L U					AKKKKKKADBKKCKKCKKBDDAEACG
+			stripes					F2 U F2 D R2 F2 U' L2 B F' R D' U B2 R2 F' L' R' U'				FCFCCFCFAFCAAAAAACFADAEAAA
+			cross					D2 U' B2 L2 R2 D2 U2 F2 L2 R2 U'								MMMMMMMMAAAAAAAAAAAAJAAAAJ
+			cube in cube			U2 R2 F2 U B2 D' L' F L' F L' F D B2 U							AKKKKKKAAAKKAKKAKKAAAAEHAD
+			cube in cube in cube	D2 F2 D' F2 U' R2 F D R F' D F' L D F2 L' U F2					KUUUUUUKAAUUAUUAUUAAAAAEAG
+			anaconda				U B2 L D B' F L' D U' L' R F' D2 R'								KKKKKKKKKKAAKAAKAAKKGABAAA
+			python					D R2 B2 D' U R' B F' U' B2 U B' F R' U'							MMMMMMMMMMAAAAMMMAMAAAAAAA
 			four spots				D B2 F2 D U' L2 R2 U'
-			six spots				D' U L' R B' F D' U
-			twister					U' F2 U F' R2 F R U2 R2 U2 R' U' F2 U
-			tetris					L R B F D' U' L' R'
-			black mamba				R2 F2 D R2 B2 R B2 D' R2 F' R' D R' F' R' D'
+			six spots				D' U L' R B' F D' U												KKKKKKKKKKKKKKKKKKKKDIBBID
+			twister					U' F2 U F' R2 F R U2 R2 U2 R' U' F2 U							AUUUUUUAAAUAAAUAUAAAAAAAAA
+			tetris					L R B F D' U' L' R'												LKONLKONLOKNLKONKLNOGCAAFD
+			black mamba				R2 F2 D R2 B2 R B2 D' R2 F' R' D R' F' R' D'					TTTTTTTTATTATTABCAATAAAAAA
 			green mamba				D' U2 L D F U' L' R F R' F' U' F'
 			six Ts					D2 B2 L2 D U' R2 F2 D' U'
-			twisted peaks			U F2 D' L2 F2 R' F2 L' B' F' D2 R' D' R' F' U R'
+			twisted peaks			U F2 D' L2 F2 R' F2 L' B' F' D2 R' D' R' F' U R'				KAAAAAAKKKAAKAAKAAKKDAEAIA
 			chicken feet			B2 D F2 U' L2 B' D2 B U B' D2 F L R' D U F'
 			duck feet				R2 B2 D2 L2 U L2 D B L2 U2 B2 L' R2 F2 D' U R U2 R'
-			pillars					L2 U' B2 U F2 U R2 U' L' F D' U' B2 D' B' D F2 U2 F'
-			the superflip			D' B2 D' L2 D R2 D2 B2 L2 U' B' F' R F2 D U R2 U2 F' L' R'
+			pillars					L2 U' B2 U F2 U R2 U' L' F D' U' B2 D' B' D F2 U2 F'			VPSPVMSMAHPAVHSHAHMADCEHCA
+			flower					D' B2 F2 U2 L2 R2 U' R D' U B F D2 U2 F2 L R' U'				LLLLLLLLQUUQTTTTQUUQDABHFD
+			the superflip			D' B2 D' L2 D R2 D2 B2 L2 U' B' F' R F2 D U R2 U2 F' L' R'		AAAAAAAAWMPXVSSVXPMWDIBAIA
 
 	+	dynamic-labeled-cube3.vue: twist path added.
 

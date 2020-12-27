@@ -83,14 +83,14 @@
 				code: null,
 				highlightCubie: null,
 				vector: null,
-				twistsSeq: null,
+				twistsSeq: [],
 			};
 		},
 
 
 		computed: {
 			canvasSize () {
-				return this.size && {width: Math.max(this.size.width * .4, this.size.height * 0.7), height: this.size.height};
+				return this.size && {width: Math.max(this.size.width * .5, this.size.height * 0.7), height: this.size.height};
 			},
 
 
@@ -305,6 +305,7 @@
 			height: 100%;
 			display: flex;
 			flex-direction: row;
+			padding-top: 40px;
 
 			.labeled-cube3
 			{
@@ -335,7 +336,7 @@
 			top: 0;
 			width: 100%;
 			text-align: center;
-			padding: 40px 0;
+			padding: 10px 0;
 
 			h1
 			{
@@ -347,9 +348,10 @@
 
 			.twists
 			{
-				padding: 0 0 0 30%;
+				padding: 0 0 0 24%;
 				text-align: left;
 				font-size: 40px;
+				height: 1em;
 				margin: 0;
 				font-family: Verdana, Arial, Helvetica, sans-serif;
 

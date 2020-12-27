@@ -1,5 +1,6 @@
 <template>
 	<div class="dynamic-labeled-cube3" v-resize="onResize"
+		:class="{captional: showCaption}"
 		@mousemove="onMouseMove"
 		@mouseup="onMouseUp"
 		:style="{'--matrix-font-size': size && `${Math.min(size.width * .015, size.height * .025)}px`}"
@@ -19,7 +20,7 @@
 				<Cube3Matrix v-if="showMatrix && cube" ref="matrix" :cube="cube" :highlightCubie="highlightCubie" :vector.sync="vector" />
 			</div>
 		</main>
-		<header>
+		<header v-if="showCaption">
 			<p v-if="twistsSeq" class="twists">
 				<span v-for="(twist, i) of twistsSeq" :key="i" v-html="twist"></span>
 			</p>
@@ -71,6 +72,7 @@
 				type: Boolean,
 				default: true,
 			},
+			showCaption: Boolean,
 			demo: Boolean,
 			demoPath: String,
 		},
@@ -305,7 +307,6 @@
 			height: 100%;
 			display: flex;
 			flex-direction: row;
-			padding-top: 40px;
 
 			.labeled-cube3
 			{
@@ -327,6 +328,14 @@
 					transform: translate(0, -50%);
 					font-size: var(--matrix-font-size);
 				}
+			}
+		}
+
+		&.captional
+		{
+			main
+			{
+				padding-top: 40px;
 			}
 		}
 

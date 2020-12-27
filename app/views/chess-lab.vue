@@ -1,7 +1,9 @@
 <template>
 	<div class="chess-lab">
-		<div id="board">
-
+		<div id="board"></div>
+		<div class="players"></div>
+		<div class="footer">
+			<button class="edit">&#x1F58A;</button>
 		</div>
 	</div>
 </template>
@@ -47,5 +49,16 @@
 <style lang="scss" scoped>
 	.chess-lab
 	{
+		.footer
+		{
+			position: absolute;
+			right: 0;
+			bottom: 0;
+		}
+
+		.players
+		{
+			position: absolute;
+		}
 	}
 </style>

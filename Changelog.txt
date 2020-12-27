@@ -1,5 +1,6 @@
 
 TODO:
+	chess-lab: edit mode, play mode
 	cube3-multiplication: twist cube individually by user
 	stylegan-mapping.vue
 		show images on z-graph

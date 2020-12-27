@@ -12,6 +12,11 @@ TODO:
 
 
 
+2020.12.27	K.L.	<k.l.lambda@gmail.com>
+
+	+	App entry of chess-lab.
+
+
 2020.12.25	K.L.	<k.l.lambda@gmail.com>
 
 	*	Cube3 patterns:

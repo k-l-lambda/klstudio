@@ -146,6 +146,11 @@ export const routes = [
 		name: "WEBM Fixer",
 		component: () => import(/* webpackChunkName: "webm-fixer", */ "./views/webm-fixer.vue"),
 	},
+	{
+		path: "/chess-lab",
+		name: "Chess Lab",
+		component: () => import(/* webpackChunkName: "chess-lab", */ "./views/chess-lab.vue"),
+	},
 ];
 
 

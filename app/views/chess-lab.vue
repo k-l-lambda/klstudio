@@ -3,17 +3,30 @@
 		<div id="board"></div>
 		<div class="players"></div>
 		<div class="footer">
-			<button class="edit">&#x1F58A;</button>
+			<CheckButton class="edit" content="&#x1F58A;" v-model="editMode" />
 		</div>
 	</div>
 </template>
 
 <script>
+	import CheckButton from "../components/check-button.vue";
 
 
 
 	export default {
 		name: "chess-lab",
+
+
+		components: {
+			CheckButton,
+		},
+
+
+		data () {
+			return {
+				editMode: false,
+			};
+		},
 
 
 		async mounted () {
@@ -59,6 +72,14 @@
 		.players
 		{
 			position: absolute;
+		}
+
+		.check-button
+		{
+			&.on
+			{
+				background-color: #cfc;
+			}
 		}
 	}
 </style>

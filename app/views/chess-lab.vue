@@ -3,6 +3,7 @@
 		<div id="board"></div>
 		<div class="players"></div>
 		<div class="footer">
+			<CheckButton v-if="!editMode" class="turn" v-model="whiteOnTurn" />
 			<CheckButton class="edit" content="&#x1F58A;" v-model="editMode" />
 		</div>
 	</div>
@@ -25,6 +26,7 @@
 		data () {
 			return {
 				editMode: false,
+				whiteOnTurn: true,
 			};
 		},
 
@@ -36,7 +38,7 @@
 				await import ("@chrisoakman/chessboardjs/dist/chessboard-1.0.0.js");
 			const Chessboard = window.Chessboard;
 
-			console.log("Chessboard:", Chessboard);
+			//console.log("Chessboard:", Chessboard);
 			this.board = new Chessboard("board", {
 				draggable: true,
 				dropOffBoard: "trash",
@@ -67,6 +69,13 @@
 			position: absolute;
 			right: 0;
 			bottom: 0;
+
+			& > button
+			{
+				margin: 0 .2em;
+				font-size: 30px;
+				vertical-align: middle;
+			}
 		}
 
 		.players
@@ -74,7 +83,23 @@
 			position: absolute;
 		}
 
-		.check-button
+		.turn
+		{
+			width: 48px;
+			height: 48px;
+
+			&.on
+			{
+				background: url(../assets/chess/wP.svg);
+			}
+
+			&.off
+			{
+				background: url(../assets/chess/bP.svg);
+			}
+		}
+
+		button.edit
 		{
 			&.on
 			{

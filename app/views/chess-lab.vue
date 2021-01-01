@@ -3,9 +3,15 @@
 		<main id="board" ref="board"></main>
 		<aside class="left-sider"></aside>
 		<aside class="right-sider">
-			<ol class="move-list">
-
-			</ol>
+			<table class="move-list">
+				<tbody>
+					<tr v-for="move of moveList" :key="move.index">
+						<th>{{move.index}}.</th>
+						<td>{{move.w}}</td>
+						<td>{{move.b}}</td>
+					</tr>
+				</tbody>
+			</table>
 		</aside>
 		<footer>
 			<button v-if="playMode">&#x2b10;</button>
@@ -45,9 +51,10 @@
 			return {
 				editMode: true,
 				whiteOnTurn: true,
-				startFen: null,
+				setupPosition: null,
 				history: [],
 				asideWidth: 200,
+				notation: null,
 			};
 		},
 
@@ -66,6 +73,17 @@
 				const fullmoves = 1;
 
 				return ` ${turn} ${castlings} ${enpassant} ${clock} ${fullmoves}`;
+			},
+
+
+			moveList () {
+				const length = Math.ceil(this.history.length / 2);
+
+				return Array(length).fill().map((_, i) => ({
+					w: this.history[i * 2],
+					b: this.history[i * 2 + 1],
+					index: i + 1,
+				}));
 			},
 		},
 
@@ -171,6 +189,8 @@
 				this.history = this.game.history();
 				if ((this.history.length % 2) ^ (!this.whiteOnTurn))
 					this.history.unshift("...");
+
+				this.notation = this.game.pgn();
 			},
 		},
 
@@ -189,7 +209,7 @@
 						this.editMode = true;
 					}
 					else {
-						this.startFen = fen;
+						this.setupPosition = fen;
 						this.updateStatus();
 					}
 				}
@@ -216,6 +236,19 @@
 		{
 			visibility: hidden;
 		}
+
+		.board-b72b1
+		{
+			box-shadow: 0 0 24px #000;
+		}
+	}
+
+	.edit-mode
+	{
+		.board-b72b1
+		{
+			outline: 4px solid #7fa650;
+		}
 	}
 </style>
 
@@ -225,6 +258,7 @@
 
 	.chess-lab
 	{
+		font-family: Segoe UI, "Helvetica Neue", Helvetica, Arial, sans-serif;
 		background-color: #312e2b;
 		color: #b7b7b7;
 
@@ -256,6 +290,26 @@
 			width: var(--aside-width);
 			top: 0;
 			height: 100%;
+		}
+
+		.move-list
+		{
+			font-size: 13px;
+			margin: 2em 0;
+
+			th
+			{
+				font-weight: normal;
+				width: 1em;
+				padding: 0 1em;
+				text-align: right;
+			}
+
+			td
+			{
+				font-weight: bold;
+				width: 5em;
+			}
 		}
 
 		.left-sider

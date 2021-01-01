@@ -1,6 +1,6 @@
 
 TODO:
-	chess-lab: game tree, players
+	chess-lab: move list, players
 	cube3-multiplication: twist cube individually by user
 	stylegan-mapping.vue
 		show images on z-graph
@@ -14,6 +14,8 @@ TODO:
 
 
 2021.1.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: move list UI added.
 
 	+	chess-lab.vue: game status synchronization implemented.
 

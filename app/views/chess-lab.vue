@@ -1,5 +1,5 @@
 <template>
-	<div class="chess-lab" v-resize="onResize">
+	<div class="chess-lab" :class="{['edit-mode']: editMode, ['play-mode']: !editMode}" v-resize="onResize">
 		<div id="board"></div>
 		<div class="players"></div>
 		<div class="footer">
@@ -32,8 +32,19 @@
 
 		data () {
 			return {
-				editMode: false,
+				editMode: true,
 				whiteOnTurn: true,
+			};
+		},
+
+
+		created () {
+			this.boardConfig = {
+				draggable: true,
+				dropOffBoard: "trash",
+				sparePieces: true,
+				pieceTheme: "/chesspieces/alpha/{piece}.png",
+				position: "start",
 			};
 		},
 
@@ -46,13 +57,7 @@
 			const Chessboard = window.Chessboard;
 
 			//console.log("Chessboard:", Chessboard);
-			this.board = new Chessboard("board", {
-				draggable: true,
-				dropOffBoard: "trash",
-				sparePieces: true,
-				pieceTheme: "/chesspieces/alpha/{piece}.png",
-				position: "start",
-			});
+			this.board = new Chessboard("board", this.boardConfig);
 		},
 
 
@@ -60,6 +65,14 @@
 			onResize () {
 				if (this.board)
 					this.board.resize();
+			},
+		},
+
+
+		watch: {
+			editMode (value) {
+				this.boardConfig.sparePieces = value;
+				this.boardConfig.dropOffBoard = value ? "trash" : "snapback";
 			},
 		},
 	};
@@ -73,6 +86,16 @@
 		max-width: min(100vw, 80vh);
 		max-height: 100vh;
 		margin: 0 auto;
+	}
+</style>
+
+<style lang="scss">
+	.play-mode
+	{
+		.spare-pieces-7492f
+		{
+			visibility: hidden;
+		}
 	}
 </style>
 

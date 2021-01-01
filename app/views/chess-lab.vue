@@ -1,5 +1,5 @@
 <template>
-	<div class="chess-lab" :class="{['edit-mode']: editMode, ['play-mode']: !editMode}" v-resize="onResize">
+	<div class="chess-lab" :class="{['edit-mode']: editMode, ['play-mode']: playMode}" v-resize="onResize">
 		<div id="board"></div>
 		<div class="players"></div>
 		<div class="footer">
@@ -11,6 +11,7 @@
 
 <script>
 	import resize from "vue-resize-directive";
+	import Chess from "chess.js";
 
 	import CheckButton from "../components/check-button.vue";
 
@@ -38,6 +39,13 @@
 		},
 
 
+		computed: {
+			playMode () {
+				return !this.editMode;
+			},
+		},
+
+
 		created () {
 			this.boardConfig = {
 				draggable: true,
@@ -45,7 +53,12 @@
 				sparePieces: true,
 				pieceTheme: "/chesspieces/alpha/{piece}.png",
 				position: "start",
+				onDragStart: this.onDragStart.bind(this),
+				onDrop: this.onDrop.bind(this),
+				onSnapEnd: this.onSnapEnd.bind(this),
 			};
+
+			this.game = new Chess();
 		},
 
 
@@ -66,6 +79,40 @@
 				if (this.board)
 					this.board.resize();
 			},
+
+
+			onDragStart (source, piece/*, position, orientation*/) {
+				//console.log("onDragStart:", source, piece, position, orientation);
+
+				if (this.editMode)
+					return true;
+
+				//console.log("onDragStart:", this.game.turn(), piece, ((this.game.turn() === "w") ^ /^b/.test(piece)));
+				return !!((this.game.turn() === "w") ^ /^b/.test(piece));
+			},
+
+
+			onDrop (source, target) {
+				if (this.playMode) {
+					const move = this.game.move({
+						from: source,
+						to: target,
+						promotion: "q", // NOTE: always promote to a queen for example simplicity
+					});
+					console.log("move:", move);
+
+					// illegal move
+					if (!move)
+						return "snapback";
+				}
+			},
+
+
+			onSnapEnd () {
+				console.log("fen:", this.game.fen());
+				if (this.playMode)
+					this.board.position(this.game.fen());
+			},
 		},
 
 
@@ -73,6 +120,9 @@
 			editMode (value) {
 				this.boardConfig.sparePieces = value;
 				this.boardConfig.dropOffBoard = value ? "trash" : "snapback";
+
+				if (!value)
+					this.game.load(this.board.fen());
 			},
 		},
 	};

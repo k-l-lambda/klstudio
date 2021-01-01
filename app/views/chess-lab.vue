@@ -1,14 +1,21 @@
 <template>
-	<div class="chess-lab" :class="{['edit-mode']: editMode, ['play-mode']: playMode}" v-resize="onResize">
-		<div id="board"></div>
-		<div class="players"></div>
-		<div class="footer">
+	<div class="chess-lab" :class="{['edit-mode']: editMode, ['play-mode']: playMode}" v-resize="onResize" :style="{['--aside-width']: `${asideWidth}px`}">
+		<main id="board" ref="board"></main>
+		<aside class="left-sider"></aside>
+		<aside class="right-sider">
+			<ol class="move-list">
+
+			</ol>
+		</aside>
+		<footer>
+			<button v-if="playMode">&#x2b10;</button>
+			<button v-if="playMode">&#x2b0e;</button>
 			<button v-if="editMode" @click="clearBoard">&#x1f5d1;</button>
 			<button v-if="editMode" @click="startPosition">&#x1f3e0;</button>
 			<CheckButton class="turn" v-model="whiteOnTurn" :disabled="playMode" />
 			<button @click="flipOrientation">&#x1f503;</button>
 			<CheckButton class="edit" content="&#x1F58A;" v-model="editMode" />
-		</div>
+		</footer>
 	</div>
 </template>
 
@@ -38,6 +45,9 @@
 			return {
 				editMode: true,
 				whiteOnTurn: true,
+				startFen: null,
+				history: [],
+				asideWidth: 200,
 			};
 		},
 
@@ -90,8 +100,11 @@
 
 		methods: {
 			onResize () {
-				if (this.board)
+				if (this.board) {
 					this.board.resize();
+
+					this.asideWidth = (window.innerWidth - this.$refs.board.clientWidth) / 2;
+				}
 			},
 
 
@@ -154,6 +167,10 @@
 
 			updateStatus () {
 				this.whiteOnTurn = this.game.turn() === "w";
+
+				this.history = this.game.history();
+				if ((this.history.length % 2) ^ (!this.whiteOnTurn))
+					this.history.unshift("...");
 			},
 		},
 
@@ -170,6 +187,10 @@
 					if (!loaded) {
 						console.warn("invalid editor position:", fen);
 						this.editMode = true;
+					}
+					else {
+						this.startFen = fen;
+						this.updateStatus();
 					}
 				}
 			},
@@ -199,13 +220,27 @@
 </style>
 
 <style lang="scss" scoped>
+	$panel-background-color: #21201d;
+
+
 	.chess-lab
 	{
-		.footer
+		background-color: #312e2b;
+		color: #b7b7b7;
+
+		#board
+		{
+			background-color: #fff1;
+		}
+
+		footer
 		{
 			position: absolute;
 			right: 0;
 			bottom: 0;
+			background-color: $panel-background-color;
+			border-top-left-radius: 12px;
+			padding: 12px;
 
 			& > button
 			{
@@ -215,9 +250,22 @@
 			}
 		}
 
-		.players
+		aside
 		{
 			position: absolute;
+			width: var(--aside-width);
+			top: 0;
+			height: 100%;
+		}
+
+		.left-sider
+		{
+			left: 0;
+		}
+
+		.right-sider
+		{
+			right: 0;
 		}
 
 		.turn
@@ -236,11 +284,23 @@
 			}
 		}
 
-		button.edit
+		button
 		{
+			background-color: #383633;
+			color: inherit;
+			border: 0;
+			border-radius: 8px;
+
 			&.on
 			{
-				background-color: #cfc;
+				background-color: #7fa650;
+				color: white;
+			}
+
+			&.turn.on
+			{
+				background-color: #383633;
+				color: inherit;
 			}
 		}
 	}

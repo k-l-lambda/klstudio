@@ -1,5 +1,6 @@
 <template>
 	<div class="chess-lab" :class="{['edit-mode']: editMode, ['play-mode']: playMode}" v-resize="onResize" :style="{['--aside-width']: `${asideWidth}px`}">
+		<StoreInput v-show="false" v-model="notation" sessionKey="chessLab.notation" />
 		<main id="board" ref="board"></main>
 		<aside class="left-sider"></aside>
 		<aside class="right-sider">
@@ -7,8 +8,8 @@
 				<tbody>
 					<tr v-for="move of moveList" :key="move.index">
 						<th>{{move.index}}.</th>
-						<td>{{move.w}}</td>
-						<td>{{move.b}}</td>
+						<td :class="{current: move.index === currentMoveIndex && blackOnTurn}">{{move.w}}</td>
+						<td :class="{current: move.index === currentMoveIndex && whiteOnTurn}">{{move.b}}</td>
 					</tr>
 				</tbody>
 			</table>
@@ -30,6 +31,7 @@
 	import Chess from "chess.js";
 
 	import CheckButton from "../components/check-button.vue";
+	import StoreInput from "../components/store-input.vue";
 
 
 
@@ -44,6 +46,7 @@
 
 		components: {
 			CheckButton,
+			StoreInput,
 		},
 
 
@@ -55,6 +58,7 @@
 				history: [],
 				asideWidth: 200,
 				notation: null,
+				currentMoveIndex: 0,
 			};
 		},
 
@@ -62,6 +66,11 @@
 		computed: {
 			playMode () {
 				return !this.editMode;
+			},
+
+
+			blackOnTurn () {
+				return !this.whiteOnTurn;
 			},
 
 
@@ -113,6 +122,16 @@
 
 			//console.log("Chessboard:", Chessboard);
 			this.board = new Chessboard("board", this.boardConfig);
+
+			if (this.notation) {
+				const pgn = this.notation;
+				this.editMode = false;
+
+				await this.$nextTick();
+				this.game.load_pgn(pgn);
+				this.board.position(this.game.fen());
+				this.updateStatus();
+			}
 		},
 
 
@@ -189,6 +208,8 @@
 				this.history = this.game.history();
 				if ((this.history.length % 2) ^ (!this.whiteOnTurn))
 					this.history.unshift("...");
+
+				this.currentMoveIndex = this.moveList.length;
 
 				this.notation = this.game.pgn();
 			},
@@ -309,6 +330,12 @@
 			{
 				font-weight: bold;
 				width: 5em;
+
+				&.current
+				{
+					color: white;
+					text-shadow: 0 0 3px #000;
+				}
 			}
 		}
 
@@ -329,12 +356,12 @@
 
 			&.on
 			{
-				background: url(../assets/chess/wP.svg);
+				background-image: url(../assets/chess/wP.svg);
 			}
 
 			&.off
 			{
-				background: url(../assets/chess/bP.svg);
+				background-image: url(../assets/chess/bP.svg);
 			}
 		}
 
@@ -351,7 +378,7 @@
 				color: white;
 			}
 
-			&.turn.on
+			&.turn
 			{
 				background-color: #383633;
 				color: inherit;

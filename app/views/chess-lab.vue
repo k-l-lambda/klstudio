@@ -3,7 +3,8 @@
 		<div id="board"></div>
 		<div class="players"></div>
 		<div class="footer">
-			<CheckButton v-if="!editMode" class="turn" v-model="whiteOnTurn" />
+			<CheckButton class="turn" v-model="whiteOnTurn" :disabled="playMode" />
+			<button @click="flipOrientation">&#x1f503;</button>
 			<CheckButton class="edit" content="&#x1F58A;" v-model="editMode" />
 		</div>
 	</div>
@@ -42,6 +43,17 @@
 		computed: {
 			playMode () {
 				return !this.editMode;
+			},
+
+
+			fenPostfix () {
+				const turn = this.whiteOnTurn ? "w" : "b";
+				const castlings = "KQkq";
+				const enpassant = "-";
+				const clock = 0;
+				const fullmoves = 1;
+
+				return ` ${turn} ${castlings} ${enpassant} ${clock} ${fullmoves}`;
 			},
 		},
 
@@ -99,19 +111,32 @@
 						to: target,
 						promotion: "q", // NOTE: always promote to a queen for example simplicity
 					});
-					console.log("move:", move);
+					//console.log("move:", move);
 
 					// illegal move
 					if (!move)
 						return "snapback";
+
+					this.updateStatus();
 				}
 			},
 
 
 			onSnapEnd () {
-				console.log("fen:", this.game.fen());
+				//console.log("fen:", this.game.fen());
 				if (this.playMode)
 					this.board.position(this.game.fen());
+			},
+
+
+			flipOrientation () {
+				if (this.board)
+					this.board.flip();
+			},
+
+
+			updateStatus () {
+				this.whiteOnTurn = this.game.turn() === "w";
 			},
 		},
 
@@ -121,8 +146,15 @@
 				this.boardConfig.sparePieces = value;
 				this.boardConfig.dropOffBoard = value ? "trash" : "snapback";
 
-				if (!value)
-					this.game.load(this.board.fen());
+				if (!value) {
+					const fen = this.board.fen() + this.fenPostfix;
+					const loaded = this.game.load(fen);
+					//console.log("fen:", loaded, this.board.fen(), this.game.fen());
+					if (!loaded) {
+						console.warn("invalid editor position:", fen);
+						this.editMode = true;
+					}
+				}
 			},
 		},
 	};

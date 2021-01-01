@@ -1,6 +1,6 @@
 
 TODO:
-	chess-lab: edit mode, play mode
+	chess-lab: game tree, players
 	cube3-multiplication: twist cube individually by user
 	stylegan-mapping.vue
 		show images on z-graph
@@ -14,6 +14,8 @@ TODO:
 
 
 2021.1.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: game status synchronization implemented.
 
 	+	chess-lab.vue: game added.
 

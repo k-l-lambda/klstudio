@@ -3,6 +3,8 @@
 		<div id="board"></div>
 		<div class="players"></div>
 		<div class="footer">
+			<button v-if="editMode" @click="clearBoard">&#x1f5d1;</button>
+			<button v-if="editMode" @click="startPosition">&#x1f3e0;</button>
 			<CheckButton class="turn" v-model="whiteOnTurn" :disabled="playMode" />
 			<button @click="flipOrientation">&#x1f503;</button>
 			<CheckButton class="edit" content="&#x1F58A;" v-model="editMode" />
@@ -99,6 +101,9 @@
 				if (this.editMode)
 					return true;
 
+				if (this.game.game_over())
+					return false;
+
 				//console.log("onDragStart:", this.game.turn(), piece, ((this.game.turn() === "w") ^ /^b/.test(piece)));
 				return !!((this.game.turn() === "w") ^ /^b/.test(piece));
 			},
@@ -132,6 +137,18 @@
 			flipOrientation () {
 				if (this.board)
 					this.board.flip();
+			},
+
+
+			startPosition () {
+				if (this.board)
+					this.board.start();
+			},
+
+
+			clearBoard () {
+				if (this.board)
+					this.board.clear();
 			},
 
 

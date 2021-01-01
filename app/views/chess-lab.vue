@@ -245,12 +245,12 @@
 				if ((history.length % 2) ^ (!this.whiteOnTurn))
 					history.unshift("...");
 
-				if (!historyContains(this.history, history))
+				if (!historyContains(this.history, history)) {
 					this.history = history;
+					this.notation = this.game.pgn();
+				}
 
 				this.currentMoveIndex = Math.ceil(history.length / 2);
-
-				this.notation = this.game.pgn();
 			},
 
 

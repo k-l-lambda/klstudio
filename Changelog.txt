@@ -1,6 +1,6 @@
 
 TODO:
-	chess-lab: move list, players
+	chess-lab: undo/redo, players
 	cube3-multiplication: twist cube individually by user
 	stylegan-mapping.vue
 		show images on z-graph

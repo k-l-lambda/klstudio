@@ -193,6 +193,8 @@
 			startPosition () {
 				if (this.board)
 					this.board.start();
+
+				this.whiteOnTurn = true;
 			},
 
 
@@ -276,6 +278,11 @@
 <style lang="scss" scoped>
 	$panel-background-color: #21201d;
 
+	$button-color: #383633;
+	$button-active-color: #7fa650;
+	$button-hover-color: #585653;
+	$button-active-hover-color: #9fc670;
+
 
 	.chess-lab
 	{
@@ -324,17 +331,24 @@
 				width: 1em;
 				padding: 0 1em;
 				text-align: right;
+				user-select: none;
 			}
 
 			td
 			{
 				font-weight: bold;
 				width: 5em;
+				cursor: pointer;
 
 				&.current
 				{
 					color: white;
 					text-shadow: 0 0 3px #000;
+				}
+
+				&:hover
+				{
+					background-color: #aaa2;
 				}
 			}
 		}
@@ -367,21 +381,37 @@
 
 		button
 		{
-			background-color: #383633;
+			background-color: $button-color;
 			color: inherit;
 			border: 0;
 			border-radius: 8px;
+			cursor: pointer;
+
+			&:hover
+			{
+				background-color: $button-hover-color;
+			}
 
 			&.on
 			{
-				background-color: #7fa650;
+				background-color: $button-active-color;
 				color: white;
+
+				&:hover
+				{
+					background-color: $button-active-hover-color;
+				}
 			}
 
 			&.turn
 			{
-				background-color: #383633;
+				background-color: $button-color;
 				color: inherit;
+
+				&:hover
+				{
+					background-color: $button-hover-color;
+				}
 			}
 		}
 	}

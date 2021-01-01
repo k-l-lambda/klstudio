@@ -15,8 +15,8 @@
 			</table>
 		</aside>
 		<footer>
-			<button v-if="playMode">&#x2b10;</button>
-			<button v-if="playMode">&#x2b0e;</button>
+			<button v-if="playMode" @click="undoMove">&#x2b10;</button>
+			<button v-if="playMode" @click="redoMove">&#x2b0e;</button>
 			<button v-if="editMode" @click="clearBoard">&#x1f5d1;</button>
 			<button v-if="editMode" @click="startPosition">&#x1f3e0;</button>
 			<CheckButton class="turn" v-model="whiteOnTurn" :disabled="playMode" />
@@ -32,6 +32,24 @@
 
 	import CheckButton from "../components/check-button.vue";
 	import StoreInput from "../components/store-input.vue";
+
+
+
+	const historyContains = (h1, h2) => {
+		if (h1.length >= h2.length) {
+			for (let i = 0; i < h2.length; i++) {
+				const m1 = h1[i];
+				const m2 = h2[i];
+
+				if (m1 !== m2)
+					return false;
+			}
+
+			return true;
+		}
+
+		return false;
+	};
 
 
 
@@ -94,6 +112,11 @@
 					index: i + 1,
 				}));
 			},
+
+
+			currentHistoryIndex () {
+				return (this.currentMoveIndex - 1) * 2 + (this.whiteOnTurn ? 1 : 0);
+			},
 		},
 
 
@@ -129,7 +152,7 @@
 
 				await this.$nextTick();
 				this.game.load_pgn(pgn);
-				this.board.position(this.game.fen());
+				this.syncBoard();
 				this.updateStatus();
 			}
 		},
@@ -180,7 +203,10 @@
 			onSnapEnd () {
 				//console.log("fen:", this.game.fen());
 				if (this.playMode)
-					this.board.position(this.game.fen());
+					this.syncBoard();
+
+				if (this.editMode)
+					this.editDirty = true;
 			},
 
 
@@ -195,25 +221,54 @@
 					this.board.start();
 
 				this.whiteOnTurn = true;
+				this.editDirty = true;
 			},
 
 
 			clearBoard () {
 				if (this.board)
 					this.board.clear();
+
+				this.editDirty = true;
+			},
+
+
+			syncBoard () {
+				this.board.position(this.game.fen());
 			},
 
 
 			updateStatus () {
 				this.whiteOnTurn = this.game.turn() === "w";
 
-				this.history = this.game.history();
-				if ((this.history.length % 2) ^ (!this.whiteOnTurn))
-					this.history.unshift("...");
+				const history = this.game.history();
+				if ((history.length % 2) ^ (!this.whiteOnTurn))
+					history.unshift("...");
 
-				this.currentMoveIndex = this.moveList.length;
+				if (!historyContains(this.history, history))
+					this.history = history;
+
+				this.currentMoveIndex = Math.ceil(history.length / 2);
 
 				this.notation = this.game.pgn();
+			},
+
+
+			undoMove () {
+				this.game.undo();
+				this.syncBoard();
+				this.updateStatus();
+			},
+
+
+			redoMove () {
+				//console.log("redo:", this.currentHistoryIndex, this.history.length);
+				if (this.history.length > this.currentHistoryIndex + 1) {
+					const nextMove = this.history[this.currentHistoryIndex + 1];
+					this.game.move(nextMove);
+					this.syncBoard();
+					this.updateStatus();
+				}
 			},
 		},
 
@@ -223,7 +278,10 @@
 				this.boardConfig.sparePieces = value;
 				this.boardConfig.dropOffBoard = value ? "trash" : "snapback";
 
-				if (!value) {
+				if (value)
+					this.editDirty = false;
+
+				if (!value && this.editDirty) {
 					const fen = this.board.fen() + this.fenPostfix;
 					const loaded = this.game.load(fen);
 					//console.log("fen:", loaded, this.board.fen(), this.game.fen());

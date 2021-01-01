@@ -1,6 +1,6 @@
 
 TODO:
-	chess-lab: undo/redo, players
+	chess-lab: move list picking, players
 	cube3-multiplication: twist cube individually by user
 	stylegan-mapping.vue
 		show images on z-graph
@@ -14,6 +14,8 @@ TODO:
 
 
 2021.1.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: undo/redo implemented.
 
 	+	chess-lab.vue: store notation in session storage.
 

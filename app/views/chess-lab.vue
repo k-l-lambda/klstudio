@@ -1,5 +1,5 @@
 <template>
-	<div class="chess-lab">
+	<div class="chess-lab" v-resize="onResize">
 		<div id="board"></div>
 		<div class="players"></div>
 		<div class="footer">
@@ -10,12 +10,19 @@
 </template>
 
 <script>
+	import resize from "vue-resize-directive";
+
 	import CheckButton from "../components/check-button.vue";
 
 
 
 	export default {
 		name: "chess-lab",
+
+
+		directives: {
+			resize,
+		},
 
 
 		components: {
@@ -46,6 +53,14 @@
 				pieceTheme: "/chesspieces/alpha/{piece}.png",
 				position: "start",
 			});
+		},
+
+
+		methods: {
+			onResize () {
+				if (this.board)
+					this.board.resize();
+			},
 		},
 	};
 </script>

@@ -1,5 +1,16 @@
 <template>
-	<div class="chess-lab" :class="{['edit-mode']: editMode, ['play-mode']: playMode}" v-resize="onResize" :style="{['--aside-width']: `${asideWidth}px`}">
+	<div class="chess-lab"
+		:class="{
+			'edit-mode': editMode,
+			'play-mode': playMode,
+			'drag-hover': drageHover,
+		}"
+		v-resize="onResize"
+		:style="{['--aside-width']: `${asideWidth}px`}"
+		@dragover.prevent="drageHover = true"
+		@dragleave="drageHover = false"
+		@drop.prevent="onDropFiles"
+	>
 		<StoreInput v-show="false" v-model="notation" sessionKey="chessLab.notation" />
 		<main id="board" ref="board"></main>
 		<aside class="left-sider"></aside>
@@ -99,6 +110,7 @@
 				pgnBoxInputActivated: false,
 				pgnBoxOutputActivated: false,
 				pgnBoxErrorActivated: false,
+				drageHover: false,
 			};
 		},
 
@@ -321,17 +333,36 @@
 			async onPgnBoxPaste (event) {
 				//console.log("paste:", event);
 				const text = await new Promise(resolve => [...event.clipboardData.items][0].getAsString(resolve));
-				if (text) {
-					if (this.game.load_pgn(text)) {
-						this.syncBoard();
-						this.updateStatus();
+				if (text)
+					this.loadNotation(text);
+			},
 
-						this.pgnBoxInputActivated = true;
-					}
-					else {
-						console.debug("invalid pgn text:", text);
-						this.pgnBoxErrorActivated = true;
-					}
+
+			async onDropFiles () {
+				this.drageHover = false;
+
+				const file = event.dataTransfer.files[0];
+				switch (file.type) {
+				case "text/plain":
+				case "":
+					const text = await file.readAs("Text");
+					this.loadNotation(text);
+
+					break;
+				}
+			},
+
+
+			loadNotation (notation) {
+				if (this.game.load_pgn(notation)) {
+					this.syncBoard();
+					this.updateStatus();
+
+					this.pgnBoxInputActivated = true;
+				}
+				else {
+					console.debug("invalid PGN text:", notation);
+					this.pgnBoxErrorActivated = true;
 				}
 			},
 
@@ -489,6 +520,16 @@
 			display: flex;
 			flex-direction: column;
 			padding-bottom: 80px;
+		}
+
+		&.drag-hover .right-sider
+		{
+			background-color: #cfc4;
+
+			.pgn-box
+			{
+				background-color: #cfc;
+			}
 		}
 
 		.notation

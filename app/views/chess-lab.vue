@@ -4,6 +4,16 @@
 		<main id="board" ref="board"></main>
 		<aside class="left-sider"></aside>
 		<aside class="right-sider">
+			<input class="pgn-box" type="text" readonly placeholder="PGN text" title="press Ctrl+C/Ctrl+V here"
+				:class="{
+					activated: pgnBoxInputActivated || pgnBoxOutputActivated || pgnBoxErrorActivated,
+					input: pgnBoxInputActivated,
+					output: pgnBoxOutputActivated,
+					error: pgnBoxErrorActivated,
+				}"
+				@copy="onPgnBoxCopy"
+				@paste="onPgnBoxPaste"
+			/>
 			<table class="move-list">
 				<tbody>
 					<tr v-for="move of moveList" :key="move.index">
@@ -29,6 +39,8 @@
 <script>
 	import resize from "vue-resize-directive";
 	import Chess from "chess.js";
+
+	import {msDelay} from "../delay";
 
 	import CheckButton from "../components/check-button.vue";
 	import StoreInput from "../components/store-input.vue";
@@ -77,6 +89,9 @@
 				asideWidth: 200,
 				notation: null,
 				currentMoveIndex: 0,
+				pgnBoxInputActivated: false,
+				pgnBoxOutputActivated: false,
+				pgnBoxErrorActivated: false,
 			};
 		},
 
@@ -151,9 +166,10 @@
 				this.editMode = false;
 
 				await this.$nextTick();
-				this.game.load_pgn(pgn);
-				this.syncBoard();
-				this.updateStatus();
+				if (this.game.load_pgn(pgn)) {
+					this.syncBoard();
+					this.updateStatus();
+				}
 			}
 		},
 
@@ -286,6 +302,31 @@
 
 				this.syncBoard();
 			},
+
+
+			onPgnBoxCopy () {
+				//console.log("copy:", event);
+				navigator.clipboard.writeText(this.game.pgn());
+				this.pgnBoxOutputActivated = true;
+			},
+
+
+			async onPgnBoxPaste (event) {
+				//console.log("paste:", event);
+				const text = await new Promise(resolve => [...event.clipboardData.items][0].getAsString(resolve));
+				if (text) {
+					if (this.game.load_pgn(text)) {
+						this.syncBoard();
+						this.updateStatus();
+
+						this.pgnBoxInputActivated = true;
+					}
+					else {
+						console.debug("invalid pgn text:", text);
+						this.pgnBoxErrorActivated = true;
+					}
+				}
+			},
 		},
 
 
@@ -309,6 +350,30 @@
 						this.setupPosition = fen;
 						this.updateStatus();
 					}
+				}
+			},
+
+
+			async pgnBoxInputActivated (value) {
+				if (value) {
+					await msDelay(100);
+					this.pgnBoxInputActivated = false;
+				}
+			},
+
+
+			async pgnBoxOutputActivated (value) {
+				if (value) {
+					await msDelay(100);
+					this.pgnBoxOutputActivated = false;
+				}
+			},
+
+
+			async pgnBoxErrorActivated (value) {
+				if (value) {
+					await msDelay(100);
+					this.pgnBoxErrorActivated = false;
 				}
 			},
 		},
@@ -357,6 +422,8 @@
 	$button-hover-color: #585653;
 	$button-active-hover-color: #9fc670;
 
+	$error-color: #ca3028;
+
 
 	.chess-lab
 	{
@@ -394,10 +461,38 @@
 			height: 100%;
 		}
 
+		.pgn-box
+		{
+			background-color: $button-color;
+			color: inherit;
+			margin: 1em;
+			transition: background-color .6s ease-out;
+
+			&.activated
+			{
+				transition: background-color .01s;
+
+				&.output
+				{
+					background-color: $button-active-color;
+				}
+
+				&.input
+				{
+					background-color: #f5f568;
+				}
+
+				&.error
+				{
+					background-color: $error-color;
+				}
+			}
+		}
+
 		.move-list
 		{
 			font-size: 13px;
-			margin: 2em 0;
+			margin: 1em 0;
 
 			th
 			{

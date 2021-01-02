@@ -14,15 +14,17 @@
 				@copy="onPgnBoxCopy"
 				@paste="onPgnBoxPaste"
 			/>
-			<table class="move-list">
-				<tbody>
-					<tr v-for="move of moveList" :key="move.index">
-						<th>{{move.index}}.</th>
-						<td :class="{current: move.index === currentMoveIndex && blackOnTurn}" @click="seekHistory(move.index * 2 - 2)">{{move.w}}</td>
-						<td :class="{current: move.index === currentMoveIndex && whiteOnTurn}" @click="seekHistory(move.index * 2 - 1)">{{move.b}}</td>
-					</tr>
-				</tbody>
-			</table>
+			<div class="move-list">
+				<table>
+					<tbody>
+						<tr v-for="move of moveList" :key="move.index">
+							<th>{{move.index}}.</th>
+							<td :class="{current: move.index === currentMoveIndex && blackOnTurn}" @click="seekHistory(move.index * 2 - 2)">{{move.w}}</td>
+							<td :class="{current: move.index === currentMoveIndex && whiteOnTurn}" @click="seekHistory(move.index * 2 - 1)">{{move.b}}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</aside>
 		<footer>
 			<button v-if="playMode" @click="undoMove">&#x2b10;</button>
@@ -459,6 +461,20 @@
 			width: var(--aside-width);
 			top: 0;
 			height: 100%;
+			box-sizing: border-box;
+		}
+
+		.left-sider
+		{
+			left: 0;
+		}
+
+		.right-sider
+		{
+			right: 0;
+			display: flex;
+			flex-direction: column;
+			padding-bottom: 80px;
 		}
 
 		.pgn-box
@@ -467,6 +483,7 @@
 			color: inherit;
 			margin: 1em;
 			transition: background-color .6s ease-out;
+			flex: 0 0 auto;
 
 			&.activated
 			{
@@ -493,6 +510,8 @@
 		{
 			font-size: 13px;
 			margin: 1em 0;
+			flex: 1 1 auto;
+			overflow-y: auto;
 
 			th
 			{
@@ -520,16 +539,6 @@
 					background-color: #aaa2;
 				}
 			}
-		}
-
-		.left-sider
-		{
-			left: 0;
-		}
-
-		.right-sider
-		{
-			right: 0;
 		}
 
 		.turn

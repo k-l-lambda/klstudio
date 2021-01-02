@@ -4,16 +4,19 @@
 		<main id="board" ref="board"></main>
 		<aside class="left-sider"></aside>
 		<aside class="right-sider">
-			<input class="pgn-box" type="text" readonly placeholder="PGN text" title="press Ctrl+C/Ctrl+V here"
-				:class="{
-					activated: pgnBoxInputActivated || pgnBoxOutputActivated || pgnBoxErrorActivated,
-					input: pgnBoxInputActivated,
-					output: pgnBoxOutputActivated,
-					error: pgnBoxErrorActivated,
-				}"
-				@copy="onPgnBoxCopy"
-				@paste="onPgnBoxPaste"
-			/>
+			<div class="notation">
+				<input class="pgn-box" type="text" readonly placeholder="PGN text" title="press Ctrl+C/Ctrl+V here"
+					:class="{
+						activated: pgnBoxInputActivated || pgnBoxOutputActivated || pgnBoxErrorActivated,
+						input: pgnBoxInputActivated,
+						output: pgnBoxOutputActivated,
+						error: pgnBoxErrorActivated,
+					}"
+					@copy="onPgnBoxCopy"
+					@paste="onPgnBoxPaste"
+				/>
+				<button @click="downloadPGN" :disabled="!notation">&#x1f4be;</button>
+			</div>
 			<div class="move-list">
 				<table>
 					<tbody>
@@ -41,8 +44,10 @@
 <script>
 	import resize from "vue-resize-directive";
 	import Chess from "chess.js";
+	import sha1 from "sha1";
 
 	import {msDelay} from "../delay";
+	import {downloadURL} from "../utils";
 
 	import CheckButton from "../components/check-button.vue";
 	import StoreInput from "../components/store-input.vue";
@@ -308,7 +313,7 @@
 
 			onPgnBoxCopy () {
 				//console.log("copy:", event);
-				navigator.clipboard.writeText(this.game.pgn());
+				navigator.clipboard.writeText(this.notation);
 				this.pgnBoxOutputActivated = true;
 			},
 
@@ -328,6 +333,15 @@
 						this.pgnBoxErrorActivated = true;
 					}
 				}
+			},
+
+
+			downloadPGN () {
+				const blob = new Blob([this.notation]);
+				const url = URL.createObjectURL(blob);
+				const filename = sha1(this.notation) + ".pgn";
+
+				downloadURL(url, filename);
 			},
 		},
 
@@ -477,39 +491,50 @@
 			padding-bottom: 80px;
 		}
 
-		.pgn-box
+		.notation
 		{
-			background-color: $button-color;
-			color: inherit;
-			margin: 1em;
-			transition: background-color .6s ease-out;
 			flex: 0 0 auto;
+			padding: 1em;
+			display: flex;
 
-			&.activated
+			.pgn-box
 			{
-				transition: background-color .01s;
+				background-color: $button-color;
+				color: inherit;
+				transition: background-color .6s ease-out;
+				flex: 1 1 auto;
 
-				&.output
+				&.activated
 				{
-					background-color: $button-active-color;
-				}
+					transition: background-color .01s;
 
-				&.input
-				{
-					background-color: #f5f568;
-				}
+					&.output
+					{
+						background-color: $button-active-color;
+					}
 
-				&.error
-				{
-					background-color: $error-color;
+					&.input
+					{
+						background-color: #f5f568;
+					}
+
+					&.error
+					{
+						background-color: $error-color;
+					}
 				}
+			}
+
+			button
+			{
+				flex: 0 0 auto;
+				margin: 0 .2em;
 			}
 		}
 
 		.move-list
 		{
 			font-size: 13px;
-			margin: 1em 0;
 			flex: 1 1 auto;
 			overflow-y: auto;
 

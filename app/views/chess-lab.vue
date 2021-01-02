@@ -8,8 +8,8 @@
 				<tbody>
 					<tr v-for="move of moveList" :key="move.index">
 						<th>{{move.index}}.</th>
-						<td :class="{current: move.index === currentMoveIndex && blackOnTurn}">{{move.w}}</td>
-						<td :class="{current: move.index === currentMoveIndex && whiteOnTurn}">{{move.b}}</td>
+						<td :class="{current: move.index === currentMoveIndex && blackOnTurn}" @click="seekHistory(move.index * 2 - 2)">{{move.w}}</td>
+						<td :class="{current: move.index === currentMoveIndex && whiteOnTurn}" @click="seekHistory(move.index * 2 - 1)">{{move.b}}</td>
 					</tr>
 				</tbody>
 			</table>
@@ -269,6 +269,22 @@
 					this.syncBoard();
 					this.updateStatus();
 				}
+			},
+
+
+			seekHistory (index) {
+				while (this.currentHistoryIndex > index) {
+					this.game.undo();
+					this.updateStatus();
+				}
+
+				while (this.currentHistoryIndex < index) {
+					const nextMove = this.history[this.currentHistoryIndex + 1];
+					this.game.move(nextMove);
+					this.updateStatus();
+				}
+
+				this.syncBoard();
 			},
 		},
 

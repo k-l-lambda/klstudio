@@ -29,7 +29,7 @@
 </script>
 
 <style scoped>
-	.check-button
+	.check-button:not([disabled])
 	{
 		cursor: pointer;
 	}

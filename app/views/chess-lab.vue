@@ -32,7 +32,7 @@
 				<table>
 					<tbody>
 						<tr v-for="move of moveList" :key="move.index">
-							<th>{{move.index}}.</th>
+							<th :class="{current: move.index === currentMoveIndex}">{{move.index}}.</th>
 							<td :class="{current: move.index === currentMoveIndex && blackOnTurn}" @click="seekHistory(move.index * 2 - 2)">{{move.w}}</td>
 							<td :class="{current: move.index === currentMoveIndex && whiteOnTurn}" @click="seekHistory(move.index * 2 - 1)">{{move.b}}</td>
 						</tr>
@@ -45,7 +45,7 @@
 			<button v-if="playMode" @click="redoMove">&#x2b0e;</button>
 			<button v-if="editMode" @click="clearBoard">&#x1f5d1;</button>
 			<button v-if="editMode" @click="startPosition">&#x1f3e0;</button>
-			<CheckButton class="turn" v-model="whiteOnTurn" :disabled="playMode" />
+			<CheckButton class="turn" v-model="whiteOnTurn" :disabled="playMode" :title="`${whiteOnTurn ? 'white' : 'black'} is on turn`" />
 			<button @click="flipOrientation">&#x1f503;</button>
 			<CheckButton class="edit" content="&#x1F58A;" v-model="editMode" />
 		</footer>
@@ -59,6 +59,8 @@
 
 	import {msDelay} from "../delay";
 	import {downloadURL} from "../utils";
+
+	import QuitCleaner from "../mixins/quit-cleaner";
 
 	import CheckButton from "../components/check-button.vue";
 	import StoreInput from "../components/store-input.vue";
@@ -90,6 +92,11 @@
 		directives: {
 			resize,
 		},
+
+
+		mixins: [
+			QuitCleaner,
+		],
 
 
 		components: {
@@ -167,6 +174,23 @@
 			};
 
 			this.game = new Chess();
+
+			const keyDownHandler = () => {
+				switch (event.code) {
+				case "ArrowLeft":
+					this.undoMove();
+
+					break;
+				case "ArrowRight":
+					this.redoMove();
+
+					break;
+				//default:
+				//	console.debug("key code:", event.code);
+				}
+			};
+			document.addEventListener("keydown", keyDownHandler);
+			this.appendCleaner(() => document.removeEventListener("keydown", keyDownHandler));
 		},
 
 
@@ -290,9 +314,11 @@
 
 
 			undoMove () {
-				this.game.undo();
-				this.syncBoard();
-				this.updateStatus();
+				if (this.currentHistoryIndex > 0) {
+					this.game.undo();
+					this.syncBoard();
+					this.updateStatus();
+				}
 			},
 
 
@@ -350,6 +376,11 @@
 
 					break;
 				}
+			},
+
+
+			onMoveListKey (event) {
+				console.log("onMoveListKey:", event);
 			},
 
 
@@ -422,6 +453,17 @@
 					await msDelay(100);
 					this.pgnBoxErrorActivated = false;
 				}
+			},
+
+
+			currentMoveIndex () {
+				this.$nextTick(() => {
+					const currentNumber = this.$el.querySelector(".move-list th.current");
+					if (currentNumber) {
+						//console.log("currentNumber:", currentNumber);
+						currentNumber.scrollIntoView({block: "nearest", behavior: "smooth"});
+					}
+				});
 			},
 		},
 	};
@@ -586,6 +628,11 @@
 				padding: 0 1em;
 				text-align: right;
 				user-select: none;
+
+				&.current
+				{
+					color: white;
+				}
 			}
 
 			td
@@ -598,6 +645,7 @@
 				{
 					color: white;
 					text-shadow: 0 0 3px #000;
+					outline: 2px solid #fff2;
 				}
 
 				&:hover
@@ -629,9 +677,13 @@
 			color: inherit;
 			border: 0;
 			border-radius: 8px;
-			cursor: pointer;
 
-			&:hover
+			&:not([disabled])
+			{
+				cursor: pointer;
+			}
+
+			&:hover:not([disabled])
 			{
 				background-color: $button-hover-color;
 			}
@@ -641,7 +693,7 @@
 				background-color: $button-active-color;
 				color: white;
 
-				&:hover
+				&:hover:not([disabled])
 				{
 					background-color: $button-active-hover-color;
 				}
@@ -652,7 +704,7 @@
 				background-color: $button-color;
 				color: inherit;
 
-				&:hover
+				&:hover:not([disabled])
 				{
 					background-color: $button-hover-color;
 				}

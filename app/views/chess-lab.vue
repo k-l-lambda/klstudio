@@ -490,10 +490,7 @@
 
 				if (value) {
 					this.analyzer = chessEngines.analyzers[value]();
-					this.analyzer.onmessage = event => {
-						//console.debug("analyzer:", event.data);
-						this.$refs.engineLogs.innerText += event.data + "\n";
-					};
+					this.analyzer.on("log", data => this.$refs.engineLogs.innerText += data + "\n");
 				}
 			},
 		},

@@ -175,6 +175,32 @@
 			currentHistoryIndex () {
 				return (this.currentMoveIndex - 1) * 2 + (this.whiteOnTurn ? 1 : 0);
 			},
+
+
+			noticableMoves () {
+				if (!this.analyzation)
+					return [];
+
+				// softmax values
+				const items = this.analyzation.map(item => ({...item}));
+				items.forEach(item => item.valueExp = Math.exp(item.value * 1));
+
+				const expsum = items.reduce((sum, item) => sum + item.valueExp, 0);
+				console.log("expsum:", expsum);
+				items.forEach(item => item.weight = item.valueExp / expsum);
+
+				const noticableItems = items.filter((item, i) => item.weight > 1 / items.length || i < 3);
+
+				this.game.moves({verbose: true}).forEach(move => {
+					const item = noticableItems.find(item => item.move === move.san);
+					if (item) {
+						item.from = move.from;
+						item.to = move.to;
+					}
+				});
+
+				return noticableItems;
+			},
 		},
 
 
@@ -502,8 +528,10 @@
 
 
 			chosenAnalyzer (value) {
-				if (this.analyzer)
+				if (this.analyzer) {
 					this.analyzer.terminate();
+					this.analyzer = null;
+				}
 
 				if (value) {
 					this.analyzer = chessEngines.analyzers[value]();
@@ -615,6 +643,7 @@
 		{
 			background-color: $button-color;
 			color: inherit;
+			border-radius: 2px;
 		}
 
 		.left-sider

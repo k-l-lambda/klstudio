@@ -16,6 +16,8 @@ TODO:
 
 2021.1.3	K.L.	<k.l.lambda@gmail.com>
 
+	+	chess-lab.vue: noticableMoves added.
+
 	+	chessEngines.ts: added multiple evaluators for WorkerAnalyzer.
 
 	+	chess-lab.vue: analyzer controls added.

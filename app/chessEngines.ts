@@ -116,6 +116,8 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 	terminate () {
 		this.worker.terminate();
 		this.evaluators.forEach(evaluator => evaluator.terminate());
+
+		this.emit("log", "- Analyzer terminated.");
 	}
 
 
@@ -145,6 +147,8 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 		const moves = game.moves();
 		//console.log("moves:", moves);
 
+		const reversion = game.turn() === "w" ? 1 : -1;
+
 		const branches = moves.map(move => {
 			game.move(move);
 			const fen = game.fen();
@@ -163,13 +167,13 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 
 		const analyzation: AnalyzationItem[] = await Promise.all(branches.map(async branch => ({
 			move: branch.move,
-			value: await branch.value,
+			value: (await branch.value) * reversion,
 		})));
 
 		if (this.analyzingFEN !== fen)
 			return;
 
-		analyzation.sort((m1, m2) => (m2.value - m1.value) * (game.turn() === "w" ? 1 : -1));
+		analyzation.sort((m1, m2) => m2.value - m1.value);
 
 		this.emit("analyzation", analyzation);
 	}

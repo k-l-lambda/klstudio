@@ -12,7 +12,20 @@
 		@drop.prevent="onDropFiles"
 	>
 		<StoreInput v-show="false" v-model="notation" sessionKey="chessLab.notation" />
-		<main id="board" ref="board"></main>
+		<main>
+			<div id="board" ref="board"></div>
+			<svg class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">
+				<g transform="translate(0, 800) scale(1, -1)">
+					<g :transform="orientationFlipped ? 'rotate(180, 400, -400)' : null">
+						<polygon v-for="(move, i) of noticableMoves" :key="i"
+							:transform="`translate(${move.arrow.x}, ${move.arrow.y}) rotate(${move.arrow.angle})`"
+							:points="[].concat(...move.arrow.points).join(' ')"
+							:fill="move.arrow.fill"
+						/>
+					</g>
+				</g>
+			</svg>
+		</main>
 		<aside class="left-sider">
 			<section class="analyzer" :class="{active: chosenAnalyzer}">
 				<h3>Analyzer</h3>
@@ -68,6 +81,7 @@
 	import Chess from "chess.js";
 	import sha1 from "sha1";
 	import {debounce} from "lodash";
+	import color from "color";
 
 	import {msDelay} from "../delay";
 	import {downloadURL} from "../utils";
@@ -97,6 +111,37 @@
 	};
 
 
+	const coordinateXY = name => ({
+		x: name[0].charCodeAt(0) - "a".charCodeAt(0),
+		y: Number(name[1]) - 1,
+	});
+
+
+	const moveToArrow = (from, to, value, weight) => {
+		const fromXY = coordinateXY(from);
+		const toXY = coordinateXY(to);
+		const vector = {x: toXY.x - fromXY.x, y: toXY.y - fromXY.y};
+		const angle = -Math.atan2(vector.x, vector.y) * 180 / Math.PI;
+		const x = (fromXY.x + 0.5) * 100;
+		const y = (fromXY.y + 0.5) * 100;
+		const length = Math.sqrt(vector.x ** 2 + vector.y ** 2) * 100;
+
+		const WIDTH = 20;
+		const ROOT = 35;
+		const TIP_SIZE = 40;
+
+		const points = [
+			[-WIDTH / 2, ROOT], [-WIDTH / 2, length - TIP_SIZE], [-TIP_SIZE, length - TIP_SIZE],
+			[0, length],
+			[+TIP_SIZE, length - TIP_SIZE], [+WIDTH / 2, length - TIP_SIZE], [+WIDTH / 2, ROOT],
+		];
+
+		const fill = color.hsv([60 + 60 * Math.tanh(value), 100, 80]).alpha(weight * .9 + .1).toString();
+
+		return {x, y, angle, points, fill};
+	};
+
+
 
 	export default {
 		name: "chess-lab",
@@ -122,9 +167,11 @@
 			return {
 				editMode: true,
 				whiteOnTurn: true,
+				orientationFlipped: false,
 				setupPosition: null,
 				history: [],
 				asideWidth: 200,
+				checkerSize: 100,
 				notation: null,
 				currentMoveIndex: 0,
 				pgnBoxInputActivated: false,
@@ -186,7 +233,7 @@
 				items.forEach(item => item.valueExp = Math.exp(item.value * 1));
 
 				const expsum = items.reduce((sum, item) => sum + item.valueExp, 0);
-				console.log("expsum:", expsum);
+				//console.log("expsum:", expsum);
 				items.forEach(item => item.weight = item.valueExp / expsum);
 
 				const noticableItems = items.filter((item, i) => item.weight > 1 / items.length || i < 3);
@@ -196,6 +243,8 @@
 					if (item) {
 						item.from = move.from;
 						item.to = move.to;
+
+						item.arrow = moveToArrow(move.from, move.to, item.value, item.weight);
 					}
 				});
 
@@ -275,6 +324,8 @@
 					this.board.resize();
 
 					this.asideWidth = (window.innerWidth - this.$refs.board.clientWidth) / 2;
+
+					this.$nextTick(() => this.checkerSize = this.$refs.board.querySelector(".board-b72b1").clientWidth / 8);
 				}
 			},
 
@@ -324,8 +375,10 @@
 
 
 			flipOrientation () {
-				if (this.board)
+				if (this.board) {
 					this.board.flip();
+					this.orientationFlipped = this.board.orientation() === "black";
+				}
 			},
 
 
@@ -560,11 +613,10 @@
 <style>
 	@import "../third-party/chessboard-1.0.0.css";
 
-	#board
+	.chess-lab main
 	{
 		max-width: min(100vw, 80vh);
 		max-height: 100vh;
-		margin: 0 auto;
 	}
 </style>
 
@@ -608,9 +660,26 @@
 		background-color: #312e2b;
 		color: #b7b7b7;
 
-		#board
+		main
 		{
-			background-color: #fff1;
+			position: relative;
+			margin: 0 auto;
+
+			#board
+			{
+				height: 100%;
+				width: 100%;
+				background-color: #fff1;
+			}
+
+			.marks
+			{
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				transform: translate(-50%, -50%);
+				pointer-events: none;
+			}
 		}
 
 		footer

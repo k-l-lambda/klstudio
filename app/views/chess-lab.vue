@@ -134,7 +134,7 @@
 				engineAnalyzerList: Object.keys(chessEngines.analyzers),
 				enginePlayerList: Object.keys(chessEngines.players),
 				chosenAnalyzer: null,
-				anaylzation: null,
+				analyzation: null,
 			};
 		},
 
@@ -215,6 +215,8 @@
 			this.appendCleaner(() => document.removeEventListener("keydown", keyDownHandler));
 
 			this.triggerAnalyzer = debounce(this.doTriggerAnalyzer.bind(this), 200);
+
+			this.appendCleaner(() => this.analyzer && this.analyzer.terminate());
 		},
 
 
@@ -321,7 +323,8 @@
 			syncBoard () {
 				this.board.position(this.game.fen());
 
-				this.triggerAnalyzer();
+				if (this.analyzer)
+					this.triggerAnalyzer();
 			},
 
 
@@ -455,6 +458,7 @@
 					}
 					else {
 						this.setupPosition = fen;
+						this.history = [];
 						this.updateStatus();
 					}
 				}
@@ -502,10 +506,23 @@
 
 				if (value) {
 					this.analyzer = chessEngines.analyzers[value]();
-					this.analyzer.on("log", data => this.$refs.engineLogs.innerText += data + "\n");
+					this.analyzer.on("log", data => {
+						if (this.$refs.engineLogs) {
+							this.$refs.engineLogs.innerText += data + "\n";
+
+							const section = this.$refs.engineLogs.parentElement;
+							section.scrollTo(0, section.scrollHeight);
+						}
+					});
+					this.analyzer.on("analyzation", analyzation => this.analyzation = analyzation);
 
 					this.triggerAnalyzer();
 				}
+			},
+
+
+			analyzation (value) {
+				console.log("analyzation:", value);
 			},
 		},
 	};

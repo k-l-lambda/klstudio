@@ -60,26 +60,49 @@ abstract class WorkerAgent extends EventEmitter implements EngineAgent {
 
 
 class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
+	evalHandler: (value: number) => void;
+
+
 	constructor (worker: Worker) {
 		super(worker);
 	}
 
 
 	async evaluate (fen: string): Promise<number> {
-		// TODO:
-		return 0;
+		this.postMessage("position fen " + fen);
+		this.postMessage("eval");
+
+		return new Promise(resolve => this.evalHandler = resolve);
 	}
 
 
-	analyze (fen: string) {
+	async analyze (fen: string) {
 		const game = new Chess(fen);
 		const moves = game.moves();
-		console.log("moves:", moves);
+		//console.log("moves:", moves);
+
+		const analyzation = [];
+
+		for (const move of moves) {
+			game.move(move);
+			const value = await this.evaluate(game.fen());
+			analyzation.push({move, value});
+
+			game.undo();
+		}
+
+		analyzation.sort((m1, m2) => (m2.value - m1.value) * (game.turn() === "w" ? 1 : -1));
+
+		this.emit("analyzation", analyzation);
 	}
 
 
 	onMessage (message: string): void {
-		// TODO:
+		if (/^Total evaluation: [-\d.]+/.test(message)) {
+			const [_, value] = message.match(/\s([-\d.]+)/);
+			if (this.evalHandler)
+				this.evalHandler(Number(value));
+		}
 	}
 };
 

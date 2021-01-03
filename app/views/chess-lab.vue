@@ -14,7 +14,7 @@
 		<StoreInput v-show="false" v-model="notation" sessionKey="chessLab.notation" />
 		<main id="board" ref="board"></main>
 		<aside class="left-sider">
-			<section class="anaylzer">
+			<section class="analyzer" :class="{active: chosenAnalyzer}">
 				<h3>Analyzer</h3>
 				<select v-model="chosenAnalyzer">
 					<option :value="null">(None)</option>
@@ -322,9 +322,6 @@
 
 			syncBoard () {
 				this.board.position(this.game.fen());
-
-				if (this.analyzer)
-					this.triggerAnalyzer();
 			},
 
 
@@ -341,6 +338,10 @@
 				}
 
 				this.currentMoveIndex = Math.ceil(history.length / 2);
+
+				this.analyzation = null;
+				if (this.analyzer)
+					this.triggerAnalyzer();
 			},
 
 
@@ -521,9 +522,9 @@
 			},
 
 
-			analyzation (value) {
+			/*analyzation (value) {
 				console.log("analyzation:", value);
-			},
+			},*/
 		},
 	};
 </script>
@@ -636,6 +637,12 @@
 			.analyzer
 			{
 				flex: 0 0 auto;
+
+				&.active select
+				{
+					background-color: $button-active-color;
+					color: #fff;
+				}
 			}
 
 			.engine-logs

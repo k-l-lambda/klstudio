@@ -14,12 +14,15 @@
 		<StoreInput v-show="false" v-model="notation" sessionKey="chessLab.notation" />
 		<main id="board" ref="board"></main>
 		<aside class="left-sider">
-			<section>
+			<section class="anaylzer">
 				<h3>Analyzer</h3>
 				<select v-model="chosenAnalyzer">
 					<option :value="null">(None)</option>
 					<option v-for="name of engineAnalyzerList" :key="name">{{name}}</option>
 				</select>
+			</section>
+			<section class="engine-logs">
+				<pre ref="engineLogs"></pre>
 			</section>
 		</aside>
 		<aside class="right-sider">
@@ -488,7 +491,8 @@
 				if (value) {
 					this.analyzer = chessEngines.analyzers[value]();
 					this.analyzer.onmessage = event => {
-						console.debug("analyzer:", event.data);
+						//console.debug("analyzer:", event.data);
+						this.$refs.engineLogs.innerText += event.data + "\n";
 					};
 				}
 			},
@@ -587,6 +591,8 @@
 		.left-sider
 		{
 			left: 0;
+			display: flex;
+			flex-direction: column;
 
 			h3
 			{
@@ -597,6 +603,26 @@
 			section
 			{
 				padding: 1em;
+			}
+
+			.analyzer
+			{
+				flex: 0 0 auto;
+			}
+
+			.engine-logs
+			{
+				flex: 0 1 auto;
+				overflow: auto;
+				background: #000c;
+				color: #ccc;
+
+				pre
+				{
+					margin: 0;
+					//white-space: pre-wrap;
+					font-size: 9px;
+				}
 			}
 		}
 

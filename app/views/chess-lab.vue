@@ -13,7 +13,15 @@
 	>
 		<StoreInput v-show="false" v-model="notation" sessionKey="chessLab.notation" />
 		<main id="board" ref="board"></main>
-		<aside class="left-sider"></aside>
+		<aside class="left-sider">
+			<section>
+				<h3>Analyzer</h3>
+				<select v-model="chosenAnalyzer">
+					<option :value="null">(None)</option>
+					<option v-for="name of engineAnalyzerList" :key="name">{{name}}</option>
+				</select>
+			</section>
+		</aside>
 		<aside class="right-sider">
 			<div class="notation">
 				<input class="pgn-box" type="text" readonly placeholder="PGN text" title="press Ctrl+C/Ctrl+V here"
@@ -59,6 +67,7 @@
 
 	import {msDelay} from "../delay";
 	import {downloadURL} from "../utils";
+	import * as chessEngines from "../chessEngines";
 
 	import QuitCleaner from "../mixins/quit-cleaner";
 
@@ -118,6 +127,9 @@
 				pgnBoxOutputActivated: false,
 				pgnBoxErrorActivated: false,
 				drageHover: false,
+				engineAnalyzerList: Object.keys(chessEngines.analyzers),
+				enginePlayerList: Object.keys(chessEngines.players),
+				chosenAnalyzer: null,
 			};
 		},
 
@@ -166,7 +178,7 @@
 				draggable: true,
 				dropOffBoard: "trash",
 				sparePieces: true,
-				pieceTheme: "/chesspieces/alpha/{piece}.png",
+				pieceTheme: "/chess/pieces/alpha/{piece}.png",
 				position: "start",
 				onDragStart: this.onDragStart.bind(this),
 				onDrop: this.onDrop.bind(this),
@@ -174,6 +186,11 @@
 			};
 
 			this.game = new Chess();
+
+			/*this.stockfish = new Worker("/chess/engines/stockfish.js");
+			this.stockfish.onmessage = event => {
+				console.log("stockfish:", event.data);
+			};*/
 
 			const keyDownHandler = () => {
 				switch (event.code) {
@@ -256,6 +273,8 @@
 
 					this.updateStatus();
 				}
+				else
+					this.editDirty = true;
 			},
 
 
@@ -379,11 +398,6 @@
 			},
 
 
-			onMoveListKey (event) {
-				console.log("onMoveListKey:", event);
-			},
-
-
 			loadNotation (notation) {
 				if (this.game.load_pgn(notation)) {
 					this.syncBoard();
@@ -464,6 +478,19 @@
 						currentNumber.scrollIntoView({block: "nearest", behavior: "smooth"});
 					}
 				});
+			},
+
+
+			chosenAnalyzer (value) {
+				if (this.analyzer)
+					this.analyzer.terminate();
+
+				if (value) {
+					this.analyzer = chessEngines.analyzers[value]();
+					this.analyzer.onmessage = event => {
+						console.debug("analyzer:", event.data);
+					};
+				}
 			},
 		},
 	};
@@ -551,9 +578,26 @@
 			box-sizing: border-box;
 		}
 
+		select
+		{
+			background-color: $button-color;
+			color: inherit;
+		}
+
 		.left-sider
 		{
 			left: 0;
+
+			h3
+			{
+				display: inline-block;
+				margin: 0 1em;
+			}
+
+			section
+			{
+				padding: 1em;
+			}
 		}
 
 		.right-sider

@@ -1,6 +1,7 @@
 
 TODO:
 	chess-lab: players
+		promote option controls
 	cube3-multiplication: twist cube individually by user
 	stylegan-mapping.vue
 		show images on z-graph

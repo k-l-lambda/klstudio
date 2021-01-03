@@ -67,6 +67,7 @@
 	import resize from "vue-resize-directive";
 	import Chess from "chess.js";
 	import sha1 from "sha1";
+	import {debounce} from "lodash";
 
 	import {msDelay} from "../delay";
 	import {downloadURL} from "../utils";
@@ -133,6 +134,7 @@
 				engineAnalyzerList: Object.keys(chessEngines.analyzers),
 				enginePlayerList: Object.keys(chessEngines.players),
 				chosenAnalyzer: null,
+				anaylzation: null,
 			};
 		},
 
@@ -211,6 +213,8 @@
 			};
 			document.addEventListener("keydown", keyDownHandler);
 			this.appendCleaner(() => document.removeEventListener("keydown", keyDownHandler));
+
+			this.triggerAnalyzer = debounce(this.doTriggerAnalyzer.bind(this), 200);
 		},
 
 
@@ -316,6 +320,8 @@
 
 			syncBoard () {
 				this.board.position(this.game.fen());
+
+				this.triggerAnalyzer();
 			},
 
 
@@ -422,6 +428,12 @@
 
 				downloadURL(url, filename);
 			},
+
+
+			doTriggerAnalyzer () {
+				if (this.analyzer)
+					this.analyzer.analyze(this.game.fen());
+			},
 		},
 
 
@@ -491,6 +503,8 @@
 				if (value) {
 					this.analyzer = chessEngines.analyzers[value]();
 					this.analyzer.on("log", data => this.$refs.engineLogs.innerText += data + "\n");
+
+					this.triggerAnalyzer();
 				}
 			},
 		},

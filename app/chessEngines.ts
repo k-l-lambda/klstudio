@@ -124,9 +124,11 @@ class WorkerEvaluator extends WorkerAgent {
 		}
 		else if (/^info depth /.test(message)) {
 			const [_, depth] = message.match(/depth\s(\d+)/);
-			const pv = message.match(/[a-z][1-8][a-z][1-8]/g);
-			if (this.infoHandler)
-				this.infoHandler({depth: Number(depth), pv});
+			const pv = message.match(/[a-h][1-8][a-h][1-8][qrbn]?/g);
+			if (this.infoHandler) {
+				const moves = pv.map(move => move.match(/([a-h][1-8])([a-h][1-8])([qrbn])?/).slice(1));
+				this.infoHandler({depth: Number(depth), pv: moves});
+			}
 		}
 	}
 };
@@ -172,7 +174,7 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 	}*/
 
 
-	async analyze (fen: string) {
+	async analyze (fen: string, {depth = 10} = {}) {
 		this.analyzingFEN = fen;
 
 		const game = new Chess(fen);
@@ -183,17 +185,44 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 
 		const branches = moves.map(move => {
 			game.move(move);
+			let over = null;
+			if (game.game_over())
+				over = game.in_draw() ? 0 : (game.turn() === "b" ? 1 : -1);
+
 			const fen = game.fen();
 			game.undo();
 
-			return {move, fen};
+			return {move, fen, over};
 		});
 
 		this.emit("log", `-> evaluting ${branches.length} moves...`);
 
 		for (const branch of branches) {
-			const evaluator = await this.getIdleEvaluator();
-			branch.value = evaluator.evaluate(branch.fen);
+			if (Number.isFinite(branch.over))
+				branch.value = branch.over * 1e+6;
+			else {
+				const evaluator = await this.getIdleEvaluator();
+
+				let fen = branch.fen;
+				if (depth) {
+					const result = await evaluator.go(fen, {depth});
+
+					game.move(branch.move);
+					result.prediction.forEach(move => game.move({from: move[0], to: move[1], promotion: move[2]}));
+
+					fen = game.fen();
+					if (game.game_over()) {
+						branch.over = game.in_draw() ? 0 : (game.turn() === "b" ? 1 : -1);
+						branch.value = branch.over * 1e+6 * (0.9 ** result.prediction.length);
+					}
+
+					result.prediction.forEach(() => game.undo());
+					game.undo();
+				}
+
+				if (!Number.isFinite(branch.over))
+					branch.value = evaluator.evaluate(fen);
+			}
 			//console.log("fen:", branch.fen);
 		}
 		this.emit("log", "-< moves evaluting done.");

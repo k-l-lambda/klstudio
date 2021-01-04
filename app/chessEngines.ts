@@ -29,6 +29,12 @@ interface AnalyzationItem {
 };
 
 
+interface SearchResult {
+	prediction: string[];
+	bestMove: string;
+};
+
+
 abstract class WorkerAgent extends EventEmitter implements EngineAgent {
 	worker: Worker;
 
@@ -69,6 +75,8 @@ abstract class WorkerAgent extends EventEmitter implements EngineAgent {
 
 class WorkerEvaluator extends WorkerAgent {
 	evalHandler: (value: number) => void;
+	bestMoveHandler: (move: string) => void;
+	infoHandler: (dict: {[key: string]: any}) => void;
 	buzy: boolean = false;
 
 
@@ -90,11 +98,35 @@ class WorkerEvaluator extends WorkerAgent {
 	}
 
 
+	async go (fen: string, {depth = 10} = {}): Promise<SearchResult> {
+		this.postMessage("position fen " + fen);
+		this.postMessage(`go depth ${depth}`);
+
+		let info;
+		this.infoHandler = dict => info = dict;
+
+		const bestMove = await new Promise<string>(resolve => this.bestMoveHandler = resolve);
+
+		return {bestMove, prediction: info.pv};
+	}
+
+
 	onMessage (message: string): void {
 		if (/^Total evaluation: [-\d.]+/.test(message)) {
 			const [_, value] = message.match(/\s([-\d.]+)/);
 			if (this.evalHandler)
 				this.evalHandler(Number(value));
+		}
+		else if (/^bestmove /.test(message)) {
+			const [_, bestmove] = message.match(/bestmove\s(\w+)/);
+			if (this.bestMoveHandler)
+				this.bestMoveHandler(bestmove);
+		}
+		else if (/^info depth /.test(message)) {
+			const [_, depth] = message.match(/depth\s(\d+)/);
+			const pv = message.match(/[a-z][1-8][a-z][1-8]/g);
+			if (this.infoHandler)
+				this.infoHandler({depth: Number(depth), pv});
 		}
 	}
 };
@@ -162,6 +194,7 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 		for (const branch of branches) {
 			const evaluator = await this.getIdleEvaluator();
 			branch.value = evaluator.evaluate(branch.fen);
+			//console.log("fen:", branch.fen);
 		}
 		this.emit("log", "-< moves evaluting done.");
 

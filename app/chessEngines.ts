@@ -166,8 +166,12 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 		while (true) {
 			const tail = this.evaluators.pop();
 			this.evaluators.unshift(tail);
-			if (!tail.buzy)
+			//console.log("tail:", tail.buzy);
+			if (!tail.buzy) {
+				tail.buzy = true;
+				//console.log("idle got");
 				return tail;
+			}
 
 			await msDelay(0);
 		}
@@ -205,14 +209,14 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 		this.emit("log", `-> evaluting ${branches.length} moves...`);
 
 		for (const branch of branches) {
-			branch.task = async (): Promise<AnalyzationItem> => {
+			const run = async (): Promise<AnalyzationItem> => {
 				let value;
 
 				if (Number.isFinite(branch.over))
 					value = branch.over * BEAT_REWARD;
 				else {
 					const evaluator = await this.getIdleEvaluator();
-					evaluator.buzy = true;
+					//console.log("evaluator got.");
 
 					// drop obsoleted task
 					if (this.analyzingFEN !== fen)
@@ -221,6 +225,7 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 					let targetFEN = branch.fen;
 					if (depth) {
 						const result = await evaluator.go(targetFEN, {depth});
+						//console.log("go finished.");
 
 						game.move(branch.move);
 						result.prediction.forEach(move => game.move({from: move[0], to: move[1], promotion: move[2]}));
@@ -237,17 +242,22 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 
 					if (!Number.isFinite(branch.over))
 						value = await evaluator.evaluate(targetFEN);
+					//console.log("evaluation finished.");
 
 					evaluator.buzy = false;
 				}
 
 				return {move: branch.move, value: value * reversion};
 			};
+
+			branch.task = run();
 			//console.log("fen:", branch.fen);
 		}
-		this.emit("log", "-< moves evaluting done.");
+		//this.emit("log", "-< moves evaluting done.");
+		//console.log("branches:", branches);
 
 		const analyzation: AnalyzationItem[] = await Promise.all(branches.map(branch => branch.task));
+		this.emit("log", "-< moves evaluting done.");
 
 		if (this.analyzingFEN !== fen)
 			return;

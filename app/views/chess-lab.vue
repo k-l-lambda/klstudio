@@ -238,7 +238,7 @@
 
 				const noticableItems = items.filter((item, i) => item.weight > 1 / items.length || i < 3);
 
-				this.game.moves({verbose: true}).forEach(move => {
+				/*this.game.moves({verbose: true}).forEach(move => {
 					const item = noticableItems.find(item => item.move === move.san);
 					if (item) {
 						item.from = move.from;
@@ -246,7 +246,8 @@
 
 						item.arrow = moveToArrow(move.from, move.to, item.value, item.weight);
 					}
-				});
+				});*/
+				items.forEach(item => item.arrow = moveToArrow(item.move[0], item.move[1], item.value, item.weight));
 
 				return noticableItems;
 			},

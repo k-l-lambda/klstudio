@@ -1,8 +1,8 @@
 
 import {EventEmitter} from "events";
-import Chess from "chess.js";
+//import Chess from "chess.js";
 
-import {msDelay} from "./delay";
+//import {msDelay} from "./delay";
 
 
 
@@ -23,18 +23,21 @@ interface EngineAnalyzer extends EngineAgent {
 };
 
 
-interface AnalyzationItem {
-	move: string;
-	value: number;
+type MoveTuple = [string, string, string?];
+
+
+interface PVInfo {
+	move: MoveTuple;
+	score: number;
+	pv: MoveTuple[];
+	depth?: number;
 	bmc?: number;
-	prediction?: string[];
 };
 
 
 interface SearchResult {
-	prediction: string[];
-	bestMove: string;
-	bmc: number;
+	bestMove: MoveTuple;
+	pvs: PVInfo[];
 };
 
 
@@ -45,7 +48,15 @@ interface EvalResult {
 };
 
 
-abstract class WorkerAgent extends EventEmitter implements EngineAgent {
+interface AnalyzationItem {
+	move: MoveTuple;
+	value: number;
+	pv?: MoveTuple[];
+	bmc?: number;
+};
+
+
+abstract class WorkerAgentBase extends EventEmitter implements EngineAgent {
 	worker: Worker;
 
 
@@ -83,20 +94,36 @@ abstract class WorkerAgent extends EventEmitter implements EngineAgent {
 };
 
 
-const BEAT_REWARD = 1e+2;
-const STEP_DECAY = 0.9;
+//const BEAT_REWARD = 1e+2;
+//const STEP_DECAY = 0.9;
 
 
-class WorkerEvaluator extends WorkerAgent {
+const parseMove = (move: string): MoveTuple => move.match(/([a-h][1-8])([a-h][1-8])([qrbn])?/).slice(1) as MoveTuple;
+
+
+class WorkerAgent extends WorkerAgentBase {
 	evalHandler: (result: EvalResult) => void;
-	bestMoveHandler: (move: string) => void;
+	bestMoveHandler: (move: MoveTuple) => void;
 	infoHandler: (dict: {[key: string]: any}) => void;
+	readyOKHandler: () => void;
+
 	cacheDict: {[key: string]: any} = {};
 	buzy: boolean = false;
 
 
 	constructor (worker: Worker) {
 		super(worker);
+	}
+
+
+	async waitReady () {
+		this.postMessage("isready");
+		await new Promise<void>(resolve => this.readyOKHandler = resolve);
+	}
+
+
+	setOptions (dict: {[key: string]: any}) {
+		Object.entries(dict).forEach(([key, value]) => this.postMessage(`setoption name ${key} value ${value}`));
 	}
 
 
@@ -122,13 +149,19 @@ class WorkerEvaluator extends WorkerAgent {
 		else
 			this.postMessage("go");
 
-		let info;
-		this.infoHandler = dict => info = dict;
+		const pvs: PVInfo[] = [];
+		this.infoHandler = info => pvs[info.multipv - 1] = {
+			move: info.pv[0],
+			score: info.scoreCP,
+			pv: info.pv,
+			depth: info.depth,
+			bmc: info.bmc,
+		};
 
-		const bestMove = await new Promise<string>(resolve => this.bestMoveHandler = resolve);
+		const bestMove = await new Promise<MoveTuple>(resolve => this.bestMoveHandler = resolve);
 		this.buzy = false;
 
-		return {bestMove, prediction: info && info.pv, bmc: info && info.bmc};
+		return {bestMove, pvs};
 	}
 
 
@@ -152,44 +185,56 @@ class WorkerEvaluator extends WorkerAgent {
 		else if (/^bestmove /.test(message)) {
 			const [_, bestmove] = message.match(/bestmove\s(\w+)/);
 			if (this.bestMoveHandler)
-				this.bestMoveHandler(bestmove);
+				this.bestMoveHandler(parseMove(bestmove));
 		}
 		else if (/^info depth /.test(message)) {
-			const [_, depth] = message.match(/depth\s(\d+)/);
+			const [_1, depth] = message.match(/depth\s(\d+)/);
 			const pv = message.match(/[a-h][1-8][a-h][1-8][qrbn]?/g);
-			const [__, bmc] = message.match(/bmc\s([-\d.]+)/);
+			const [_2, bmc] = message.match(/bmc\s([-\d.]+)/);
+			const [_3, multipv] = message.match(/multipv\s([\d]+)/);
+			const [_4, scoreCP] = message.match(/score cp\s([-\d]+)/);
 
 			if (this.infoHandler) {
-				const moves = pv.map(move => move.match(/([a-h][1-8])([a-h][1-8])([qrbn])?/).slice(1));
-				this.infoHandler({depth: Number(depth), pv: moves, bmc: Number(bmc)});
+				const moves = pv.map(parseMove);
+				this.infoHandler({
+					depth: Number(depth),
+					multipv: Number(multipv),
+					scoreCP: Number(scoreCP),
+					pv: moves,
+					bmc: Number(bmc),
+				});
 			}
+		}
+		else if (message === "readyok") {
+			if (this.readyOKHandler)
+				this.readyOKHandler();
 		}
 	}
 };
 
 
 class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
-	evaluators: WorkerEvaluator[];
+	//evaluators: WorkerAgent[];
 	analyzingFEN: string;
 
 
-	constructor (workerFactory: () => Worker, {evaluatorCount = 6} = {}) {
+	constructor (workerFactory: () => Worker, {/*evaluatorCount = 6*/multiPV = 10} = {}) {
 		super(workerFactory());
 
-		this.evaluators = Array(evaluatorCount).fill(null).map(() => new WorkerEvaluator(workerFactory()));
-		//this.evaluators.forEach(evaluator => evaluator.on("log", message => this.emit("log", message)));
+		//this.evaluators = Array(evaluatorCount).fill(null).map(() => new WorkerAgent(workerFactory()));
+		this.setOptions({MultiPV: multiPV});
 	}
 
 
 	terminate () {
 		this.worker.terminate();
-		this.evaluators.forEach(evaluator => evaluator.terminate());
+		//this.evaluators.forEach(evaluator => evaluator.terminate());
 
 		this.emit("log", "- Analyzer terminated.");
 	}
 
 
-	async getIdleEvaluator (): Promise<WorkerEvaluator> {
+	/*async getIdleEvaluator (): Promise<WorkerAgent> {
 		while (true) {
 			const tail = this.evaluators.pop();
 			this.evaluators.unshift(tail);
@@ -202,17 +247,10 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 
 			await msDelay(0);
 		}
-	}
-
-
-	/*async evaluate (fen: string): Promise<number> {
-		const evaluator = await this.getIdleEvaluator();
-
-		return evaluator.evaluate(fen);
 	}*/
 
 
-	async analyze (fen: string) {
+	/*async analyze (fen: string) {
 		this.analyzingFEN = fen;
 
 		const game = new Chess(fen);
@@ -298,15 +336,21 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 		analyzation.sort((m1, m2) => m2.value - m1.value);
 
 		this.emit("analyzation", analyzation);
-	}
+	}*/
 
 
-	onMessage (message: string): void {
-		/*if (/^Total evaluation: [-\d.]+/.test(message)) {
-			const [_, value] = message.match(/\s([-\d.]+)/);
-			if (this.evalHandler)
-				this.evalHandler(Number(value));
-		}*/
+	async analyze (fen: string) {
+		const result = await this.go(fen, {depth: 10});
+		//console.log("result:", result);
+
+		const analyzation: AnalyzationItem[] = result.pvs.map(info => ({
+			move: info.move,
+			value: info.score * 0.1,
+			pv: info.pv,
+			bmc: info.bmc,
+		}));
+
+		this.emit("analyzation", analyzation);
 	}
 };
 
@@ -315,12 +359,6 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 class WorkerPlayer extends WorkerAgent implements EnginePlayer {
 	constructor (worker: Worker) {
 		super(worker);
-	}
-
-
-	onMessage (message: string) {
-		void(message);
-		// TODO:
 	}
 };
 

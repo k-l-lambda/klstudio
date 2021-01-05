@@ -38,6 +38,13 @@ interface SearchResult {
 };
 
 
+interface EvalResult {
+	total: number;
+	totalMG: number;
+	totalEG: number;
+};
+
+
 abstract class WorkerAgent extends EventEmitter implements EngineAgent {
 	worker: Worker;
 
@@ -81,9 +88,10 @@ const STEP_DECAY = 0.9;
 
 
 class WorkerEvaluator extends WorkerAgent {
-	evalHandler: (value: number) => void;
+	evalHandler: (result: EvalResult) => void;
 	bestMoveHandler: (move: string) => void;
 	infoHandler: (dict: {[key: string]: any}) => void;
+	cacheDict: {[key: string]: any} = {};
 	buzy: boolean = false;
 
 
@@ -92,24 +100,27 @@ class WorkerEvaluator extends WorkerAgent {
 	}
 
 
-	async evaluate (fen: string): Promise<number> {
+	async evaluate (fen: string): Promise<EvalResult> {
 		this.buzy = true;
 
 		this.postMessage("position fen " + fen);
 		this.postMessage("eval");
 
-		const value = await new Promise<number>(resolve => this.evalHandler = resolve);
+		const result = await new Promise<EvalResult>(resolve => this.evalHandler = resolve);
 		this.buzy = false;
 
-		return value;
+		return result;
 	}
 
 
-	async go (fen: string, {depth = 10} = {}): Promise<SearchResult> {
+	async go (fen: string, {depth = null} = {}): Promise<SearchResult> {
 		this.buzy = true;
 
 		this.postMessage("position fen " + fen);
-		this.postMessage(`go depth ${depth}`);
+		if (depth)
+			this.postMessage(`go depth ${depth}`);
+		else
+			this.postMessage("go");
 
 		let info;
 		this.infoHandler = dict => info = dict;
@@ -117,15 +128,26 @@ class WorkerEvaluator extends WorkerAgent {
 		const bestMove = await new Promise<string>(resolve => this.bestMoveHandler = resolve);
 		this.buzy = false;
 
-		return {bestMove, prediction: info.pv, bmc: info.bmc};
+		return {bestMove, prediction: info && info.pv, bmc: info && info.bmc};
 	}
 
 
 	onMessage (message: string): void {
-		if (/^Total evaluation: [-\d.]+/.test(message)) {
+		if (/Total \|/.test(message)) {
+			const numbers = message.match(/([-\d.]+)/g);
+			const [mg, eg] = numbers.slice(numbers.length - 2);
+			this.cacheDict.totalMG = Number(mg);
+			this.cacheDict.totalEG = Number(eg);
+		}
+		else if (/^Total evaluation: [-\d.]+/.test(message)) {
 			const [_, value] = message.match(/\s([-\d.]+)/);
-			if (this.evalHandler)
-				this.evalHandler(Number(value));
+			if (this.evalHandler) {
+				this.evalHandler({
+					total: Number(value),
+					totalMG: this.cacheDict.totalMG,
+					totalEG: this.cacheDict.totalEG,
+				});
+			}
 		}
 		else if (/^bestmove /.test(message)) {
 			const [_, bestmove] = message.match(/bestmove\s(\w+)/);
@@ -190,7 +212,7 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 	}*/
 
 
-	async analyze (fen: string, {depth = 10} = {}) {
+	async analyze (fen: string) {
 		this.analyzingFEN = fen;
 
 		const game = new Chess(fen);
@@ -228,8 +250,8 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 						return null;
 
 					let targetFEN = branch.fen;
-					if (depth) {
-						const result = await evaluator.go(targetFEN, {depth});
+					{
+						const result = await evaluator.go(targetFEN);
 						//console.log("go finished.");
 
 						branch.bmc = result.bmc;
@@ -248,8 +270,11 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 						game.undo();
 					}
 
-					if (!Number.isFinite(branch.over))
-						value = await evaluator.evaluate(targetFEN);
+					if (!Number.isFinite(branch.over)) {
+						const evaluation = await evaluator.evaluate(targetFEN);
+						//value = evaluation.totalMG;
+						value = evaluation.total;
+					}
 					//console.log("evaluation finished.");
 
 					evaluator.buzy = false;

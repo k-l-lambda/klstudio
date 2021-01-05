@@ -14,7 +14,7 @@
 		<StoreInput v-show="false" v-model="notation" sessionKey="chessLab.notation" />
 		<main>
 			<div id="board" ref="board"></div>
-			<svg class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">
+			<svg v-show="!editMode" class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">
 				<g transform="translate(0, 800) scale(1, -1)">
 					<g :transform="orientationFlipped ? 'rotate(180, 400, 400)' : null">
 						<polygon v-for="(move, i) of noticableMoves" :key="i"
@@ -289,7 +289,7 @@
 			document.addEventListener("keydown", keyDownHandler);
 			this.appendCleaner(() => document.removeEventListener("keydown", keyDownHandler));
 
-			this.triggerAnalyzer = debounce(this.doTriggerAnalyzer.bind(this), 200);
+			this.triggerAnalyzer = debounce(this.doTriggerAnalyzer.bind(this), 600);
 
 			this.appendCleaner(() => this.analyzer && this.analyzer.terminate());
 		},
@@ -621,6 +621,11 @@
 </style>
 
 <style lang="scss">
+	.notation-322f9
+	{
+		font-size: 6vh;
+	}
+
 	.play-mode
 	{
 		.spare-pieces-7492f

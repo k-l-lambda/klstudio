@@ -26,12 +26,15 @@ interface EngineAnalyzer extends EngineAgent {
 interface AnalyzationItem {
 	move: string;
 	value: number;
+	bmc?: number;
+	prediction?: string[];
 };
 
 
 interface SearchResult {
 	prediction: string[];
 	bestMove: string;
+	bmc: number;
 };
 
 
@@ -114,7 +117,7 @@ class WorkerEvaluator extends WorkerAgent {
 		const bestMove = await new Promise<string>(resolve => this.bestMoveHandler = resolve);
 		this.buzy = false;
 
-		return {bestMove, prediction: info.pv};
+		return {bestMove, prediction: info.pv, bmc: info.bmc};
 	}
 
 
@@ -132,9 +135,11 @@ class WorkerEvaluator extends WorkerAgent {
 		else if (/^info depth /.test(message)) {
 			const [_, depth] = message.match(/depth\s(\d+)/);
 			const pv = message.match(/[a-h][1-8][a-h][1-8][qrbn]?/g);
+			const [__, bmc] = message.match(/bmc\s([-\d.]+)/);
+
 			if (this.infoHandler) {
 				const moves = pv.map(move => move.match(/([a-h][1-8])([a-h][1-8])([qrbn])?/).slice(1));
-				this.infoHandler({depth: Number(depth), pv: moves});
+				this.infoHandler({depth: Number(depth), pv: moves, bmc: Number(bmc)});
 			}
 		}
 	}
@@ -227,6 +232,9 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 						const result = await evaluator.go(targetFEN, {depth});
 						//console.log("go finished.");
 
+						branch.bmc = result.bmc;
+						branch.prediction = result.prediction;
+
 						game.move(branch.move);
 						result.prediction.forEach(move => game.move({from: move[0], to: move[1], promotion: move[2]}));
 
@@ -247,7 +255,7 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 					evaluator.buzy = false;
 				}
 
-				return {move: branch.move, value: value * reversion};
+				return {move: branch.move, value: value * reversion, bmc: branch.bmc, prediction: branch.prediction};
 			};
 
 			branch.task = run();

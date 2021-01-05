@@ -16,7 +16,7 @@
 			<div id="board" ref="board"></div>
 			<svg class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">
 				<g transform="translate(0, 800) scale(1, -1)">
-					<g :transform="orientationFlipped ? 'rotate(180, 400, -400)' : null">
+					<g :transform="orientationFlipped ? 'rotate(180, 400, 400)' : null">
 						<polygon v-for="(move, i) of noticableMoves" :key="i"
 							:transform="`translate(${move.arrow.x}, ${move.arrow.y}) rotate(${move.arrow.angle})`"
 							:points="[].concat(...move.arrow.points).join(' ')"

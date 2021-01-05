@@ -73,6 +73,10 @@ abstract class WorkerAgent extends EventEmitter implements EngineAgent {
 };
 
 
+const BEAT_REWARD = 1e+2;
+const STEP_DECAY = 0.9;
+
+
 class WorkerEvaluator extends WorkerAgent {
 	evalHandler: (value: number) => void;
 	bestMoveHandler: (move: string) => void;
@@ -99,6 +103,8 @@ class WorkerEvaluator extends WorkerAgent {
 
 
 	async go (fen: string, {depth = 10} = {}): Promise<SearchResult> {
+		this.buzy = true;
+
 		this.postMessage("position fen " + fen);
 		this.postMessage(`go depth ${depth}`);
 
@@ -106,6 +112,7 @@ class WorkerEvaluator extends WorkerAgent {
 		this.infoHandler = dict => info = dict;
 
 		const bestMove = await new Promise<string>(resolve => this.bestMoveHandler = resolve);
+		this.buzy = false;
 
 		return {bestMove, prediction: info.pv};
 	}
@@ -198,39 +205,49 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 		this.emit("log", `-> evaluting ${branches.length} moves...`);
 
 		for (const branch of branches) {
-			if (Number.isFinite(branch.over))
-				branch.value = branch.over * 1e+6;
-			else {
-				const evaluator = await this.getIdleEvaluator();
+			branch.task = async (): Promise<AnalyzationItem> => {
+				let value;
 
-				let fen = branch.fen;
-				if (depth) {
-					const result = await evaluator.go(fen, {depth});
+				if (Number.isFinite(branch.over))
+					value = branch.over * BEAT_REWARD;
+				else {
+					const evaluator = await this.getIdleEvaluator();
+					evaluator.buzy = true;
 
-					game.move(branch.move);
-					result.prediction.forEach(move => game.move({from: move[0], to: move[1], promotion: move[2]}));
+					// drop obsoleted task
+					if (this.analyzingFEN !== fen)
+						return null;
 
-					fen = game.fen();
-					if (game.game_over()) {
-						branch.over = game.in_draw() ? 0 : (game.turn() === "b" ? 1 : -1);
-						branch.value = branch.over * 1e+6 * (0.9 ** result.prediction.length);
+					let targetFEN = branch.fen;
+					if (depth) {
+						const result = await evaluator.go(targetFEN, {depth});
+
+						game.move(branch.move);
+						result.prediction.forEach(move => game.move({from: move[0], to: move[1], promotion: move[2]}));
+
+						targetFEN = game.fen();
+						if (game.game_over()) {
+							branch.over = game.in_draw() ? 0 : (game.turn() === "b" ? 1 : -1);
+							value = branch.over * BEAT_REWARD * (STEP_DECAY ** result.prediction.length);
+						}
+
+						result.prediction.forEach(() => game.undo());
+						game.undo();
 					}
 
-					result.prediction.forEach(() => game.undo());
-					game.undo();
+					if (!Number.isFinite(branch.over))
+						value = await evaluator.evaluate(targetFEN);
+
+					evaluator.buzy = false;
 				}
 
-				if (!Number.isFinite(branch.over))
-					branch.value = evaluator.evaluate(fen);
-			}
+				return {move: branch.move, value: value * reversion};
+			};
 			//console.log("fen:", branch.fen);
 		}
 		this.emit("log", "-< moves evaluting done.");
 
-		const analyzation: AnalyzationItem[] = await Promise.all(branches.map(async branch => ({
-			move: branch.move,
-			value: (await branch.value) * reversion,
-		})));
+		const analyzation: AnalyzationItem[] = await Promise.all(branches.map(branch => branch.task));
 
 		if (this.analyzingFEN !== fen)
 			return;

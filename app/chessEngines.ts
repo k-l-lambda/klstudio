@@ -28,7 +28,8 @@ type MoveTuple = [string, string, string?];
 
 interface PVInfo {
 	move: MoveTuple;
-	score: number;
+	scoreCP: number;
+	scoreMate: number;
 	pv: MoveTuple[];
 	depth?: number;
 	bmc?: number;
@@ -96,6 +97,7 @@ abstract class WorkerAgentBase extends EventEmitter implements EngineAgent {
 
 //const BEAT_REWARD = 1e+2;
 //const STEP_DECAY = 0.9;
+const MATE_VALUE = 100;
 
 
 const parseMove = (move: string): MoveTuple => move.match(/([a-h][1-8])([a-h][1-8])([qrbn])?/).slice(1) as MoveTuple;
@@ -152,7 +154,8 @@ class WorkerAgent extends WorkerAgentBase {
 		const pvs: PVInfo[] = [];
 		this.infoHandler = info => pvs[info.multipv - 1] = {
 			move: info.pv[0],
-			score: info.scoreCP,
+			scoreCP: info.scoreCP,
+			scoreMate: info.scoreMate,
 			pv: info.pv,
 			depth: info.depth,
 			bmc: info.bmc,
@@ -192,7 +195,8 @@ class WorkerAgent extends WorkerAgentBase {
 			const pv = message.match(/[a-h][1-8][a-h][1-8][qrbn]?/g);
 			const [_2, bmc] = message.match(/bmc\s([-\d.]+)/);
 			const [_3, multipv] = message.match(/multipv\s([\d]+)/);
-			const [_4, scoreCP] = message.match(/score cp\s([-\d]+)/);
+			const [_4, scoreCP = null] = message.match(/score cp\s([-\d]+)/) || [null];
+			const [_5, scoreMate = null] = message.match(/score mate\s([-\d]+)/) || [null];
 
 			if (this.infoHandler) {
 				const moves = pv.map(parseMove);
@@ -200,6 +204,7 @@ class WorkerAgent extends WorkerAgentBase {
 					depth: Number(depth),
 					multipv: Number(multipv),
 					scoreCP: Number(scoreCP),
+					scoreMate: Number(scoreMate),
 					pv: moves,
 					bmc: Number(bmc),
 				});
@@ -343,12 +348,16 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 		const result = await this.go(fen, {depth: 10});
 		//console.log("result:", result);
 
-		const analyzation: AnalyzationItem[] = result.pvs.map(info => ({
-			move: info.move,
-			value: info.score * 0.1,
-			pv: info.pv,
-			bmc: info.bmc,
-		}));
+		const analyzation: AnalyzationItem[] = result.pvs.map(info => {
+			const value = Number.isFinite(info.scoreCP) ? info.scoreCP * 0.1 : (MATE_VALUE * Math.sign(info.scoreMate) - info.scoreMate);
+
+			return {
+				move: info.move,
+				value,
+				pv: info.pv,
+				bmc: info.bmc,
+			};
+		});
 
 		this.emit("analyzation", analyzation);
 	}

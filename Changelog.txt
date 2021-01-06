@@ -1,6 +1,7 @@
 
 TODO:
 	chess-lab: players
+		game over UI
 		try analyze by go ponder
 		promote option controls
 	cube3-multiplication: twist cube individually by user

@@ -515,7 +515,7 @@
 
 
 			doTriggerAnalyzer () {
-				if (this.analyzer)
+				if (this.analyzer && !this.game.game_over())
 					this.analyzer.analyze(this.game.fen());
 			},
 		},

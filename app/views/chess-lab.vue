@@ -24,6 +24,11 @@
 						/>
 					</g>
 				</g>
+				<text class="result" v-if="gameResult" :x="400" :y="480">
+					<tspan v-if="gameResult === 'draw'">&#x00bd;</tspan>
+					<tspan v-if="gameResult === 'white'"><tspan class="king">&#x2654;</tspan><tspan class="trophy">&#x1f3c6;</tspan></tspan>
+					<tspan v-if="gameResult === 'black'"><tspan class="king">&#x265A;</tspan><tspan class="trophy">&#x1f3c6;</tspan></tspan>
+				</text>
 			</svg>
 		</main>
 		<aside class="left-sider">
@@ -182,6 +187,7 @@
 				enginePlayerList: Object.keys(chessEngines.players),
 				chosenAnalyzer: null,
 				analyzation: null,
+				gameResult: null,
 			};
 		},
 
@@ -422,6 +428,10 @@
 				this.analyzation = null;
 				if (this.analyzer)
 					this.triggerAnalyzer();
+
+				this.gameResult = null;
+				if (this.game.game_over())
+					this.gameResult = this.game.in_draw() ? "draw" : (this.whiteOnTurn ? "black" : "white");
 			},
 
 
@@ -689,6 +699,17 @@
 				top: 50%;
 				transform: translate(-50%, -50%);
 				pointer-events: none;
+
+				.result
+				{
+					font-size: 280px;
+					text-anchor: middle;
+
+					.trophy
+					{
+						font-size: 120px;
+					}
+				}
 			}
 		}
 

@@ -1,7 +1,6 @@
 
 TODO:
 	chess-lab: players
-		game over UI
 		try analyze by go ponder
 		promote option controls
 	cube3-multiplication: twist cube individually by user
@@ -14,6 +13,11 @@ TODO:
 		test solveCubeBinary
 		invalid solution issue.
 
+
+
+2021.1.6	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: game result mark added.
 
 
 2021.1.5	K.L.	<k.l.lambda@gmail.com>

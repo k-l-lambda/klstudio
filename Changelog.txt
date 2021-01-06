@@ -17,6 +17,8 @@ TODO:
 
 2021.1.6	K.L.	<k.l.lambda@gmail.com>
 
+	+	chessEngines.ts: added null protection for WorkerAgent.
+
 	+	chess-lab.vue: game result mark added.
 
 

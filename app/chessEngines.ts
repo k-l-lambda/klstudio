@@ -153,7 +153,7 @@ class WorkerAgent extends WorkerAgentBase {
 
 		const pvs: PVInfo[] = [];
 		this.infoHandler = info => pvs[info.multipv - 1] = {
-			move: info.pv[0],
+			move: info.pv && info.pv[0],
 			scoreCP: info.scoreCP,
 			scoreMate: info.scoreMate,
 			pv: info.pv,
@@ -186,20 +186,20 @@ class WorkerAgent extends WorkerAgentBase {
 			}
 		}
 		else if (/^bestmove /.test(message)) {
-			const [_, bestmove] = message.match(/bestmove\s(\w+)/);
+			const [_, bestmove] = message.match(/bestmove\s(\w+)/) || [null, null];
 			if (this.bestMoveHandler)
-				this.bestMoveHandler(parseMove(bestmove));
+				this.bestMoveHandler(bestmove && parseMove(bestmove));
 		}
 		else if (/^info depth /.test(message)) {
 			const [_1, depth] = message.match(/depth\s(\d+)/);
 			const pv = message.match(/[a-h][1-8][a-h][1-8][qrbn]?/g);
-			const [_2, bmc] = message.match(/bmc\s([-\d.]+)/);
-			const [_3, multipv] = message.match(/multipv\s([\d]+)/);
+			const [_2, bmc] = message.match(/bmc\s([-\d.]+)/) || [null, null];
+			const [_3, multipv] = message.match(/multipv\s([\d]+)/) || [null, null];
 			const [_4, scoreCP = undefined] = message.match(/score cp\s([-\d]+)/) || [null];
 			const [_5, scoreMate = undefined] = message.match(/score mate\s([-\d]+)/) || [null];
 
 			if (this.infoHandler) {
-				const moves = pv.map(parseMove);
+				const moves = pv && pv.map(parseMove);
 				this.infoHandler({
 					depth: Number(depth),
 					multipv: Number(multipv),

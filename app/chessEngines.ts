@@ -195,8 +195,8 @@ class WorkerAgent extends WorkerAgentBase {
 			const pv = message.match(/[a-h][1-8][a-h][1-8][qrbn]?/g);
 			const [_2, bmc] = message.match(/bmc\s([-\d.]+)/);
 			const [_3, multipv] = message.match(/multipv\s([\d]+)/);
-			const [_4, scoreCP = null] = message.match(/score cp\s([-\d]+)/) || [null];
-			const [_5, scoreMate = null] = message.match(/score mate\s([-\d]+)/) || [null];
+			const [_4, scoreCP = undefined] = message.match(/score cp\s([-\d]+)/) || [null];
+			const [_5, scoreMate = undefined] = message.match(/score mate\s([-\d]+)/) || [null];
 
 			if (this.infoHandler) {
 				const moves = pv.map(parseMove);
@@ -349,7 +349,7 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 		//console.log("result:", result);
 
 		const analyzation: AnalyzationItem[] = result.pvs.map(info => {
-			const value = Number.isFinite(info.scoreCP) ? info.scoreCP * 0.1 : (MATE_VALUE * Math.sign(info.scoreMate) - info.scoreMate);
+			const value = Number.isFinite(info.scoreCP) ? info.scoreCP * 0.01 : (MATE_VALUE * Math.sign(info.scoreMate) - info.scoreMate);
 
 			return {
 				move: info.move,

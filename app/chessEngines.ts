@@ -49,7 +49,7 @@ interface EvalResult {
 };
 
 
-interface AnalyzationItem {
+interface AnalyzationBranch {
 	move: MoveTuple;
 	value: number;
 	pv?: MoveTuple[];
@@ -279,7 +279,7 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 		this.emit("log", `-> evaluting ${branches.length} moves...`);
 
 		for (const branch of branches) {
-			const run = async (): Promise<AnalyzationItem> => {
+			const run = async (): Promise<AnalyzationBranch> => {
 				let value;
 
 				if (Number.isFinite(branch.over))
@@ -332,7 +332,7 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 		//this.emit("log", "-< moves evaluting done.");
 		//console.log("branches:", branches);
 
-		const analyzation: AnalyzationItem[] = await Promise.all(branches.map(branch => branch.task));
+		const analyzation: AnalyzationBranch[] = await Promise.all(branches.map(branch => branch.task));
 		this.emit("log", "-< moves evaluting done.");
 
 		if (this.analyzingFEN !== fen)
@@ -348,7 +348,7 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 		const result = await this.go(fen, {depth: 10});
 		//console.log("result:", result);
 
-		const analyzation: AnalyzationItem[] = result.pvs.map(info => {
+		const branches: AnalyzationBranch[] = result.pvs.map(info => {
 			const value = Number.isFinite(info.scoreCP) ? info.scoreCP * 0.01 : (MATE_VALUE * Math.sign(info.scoreMate) - info.scoreMate);
 
 			return {
@@ -359,7 +359,7 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 			};
 		});
 
-		this.emit("analyzation", analyzation);
+		this.emit("analyzation", {fen: fen, branches});
 	}
 };
 

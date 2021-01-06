@@ -12,6 +12,7 @@
 		@drop.prevent="onDropFiles"
 	>
 		<StoreInput v-show="false" v-model="notation" sessionKey="chessLab.notation" />
+		<BoolStoreInput v-show="false" v-model="orientationFlipped" sessionKey="chessLab.orientationFlipped" />
 		<main>
 			<div id="board" ref="board"></div>
 			<svg v-show="!editMode" class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">
@@ -96,6 +97,7 @@
 
 	import CheckButton from "../components/check-button.vue";
 	import StoreInput from "../components/store-input.vue";
+	import BoolStoreInput from "../components/bool-store-input.vue";
 
 
 
@@ -165,6 +167,7 @@
 		components: {
 			CheckButton,
 			StoreInput,
+			BoolStoreInput,
 		},
 
 
@@ -235,7 +238,7 @@
 					return [];
 
 				// softmax values
-				const items = this.analyzation.map(item => ({...item}));
+				const items = this.analyzation.branches.map(item => ({...item}));
 				items.forEach(item => item.valueExp = Math.exp(item.value * 1));
 
 				const expsum = items.reduce((sum, item) => sum + item.valueExp, 0);
@@ -310,6 +313,8 @@
 			const Chessboard = window.Chessboard;
 
 			//console.log("Chessboard:", Chessboard);
+			this.boardConfig.orientation = this.orientationFlipped ? "black" : "white";
+
 			this.board = new Chessboard("board", this.boardConfig);
 
 			if (this.notation) {
@@ -382,10 +387,7 @@
 
 
 			flipOrientation () {
-				if (this.board) {
-					this.board.flip();
-					this.orientationFlipped = this.board.orientation() === "black";
-				}
+				this.orientationFlipped = !this.orientationFlipped;
 			},
 
 
@@ -611,10 +613,19 @@
 							section.scrollTo(0, section.scrollHeight);
 						}
 					});
-					this.analyzer.on("analyzation", analyzation => this.analyzation = analyzation);
+					this.analyzer.on("analyzation", analyzation => {
+						if (analyzation.fen === this.game.fen())
+							this.analyzation = analyzation;
+					});
 
 					this.triggerAnalyzer();
 				}
+			},
+
+
+			orientationFlipped (value) {
+				if (this.board)
+					this.board.orientation(value ? "black" : "white");
 			},
 
 

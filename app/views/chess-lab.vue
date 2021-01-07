@@ -57,6 +57,19 @@
 					@paste="onPgnBoxPaste"
 				/>
 				<button @click="downloadPGN" :disabled="!notation">&#x1f4be;</button>
+				<span class="help">
+					<span class="icon" @click="showNotationTips = true">&#9432;</span>
+					<div class="tips embed-dialog" v-show="showNotationTips"
+						@mouseleave="showNotationTips = false"
+					>
+						<p>Drag this link into your bookmark bar.</p>
+						<ul>
+							<li v-for="widget of PGN_WIDGETS" :key="widget.domain">
+								<a :href="widget.script">{{widget.domain}}.copyNotation</a>
+							</li>
+						</ul>
+					</div>
+				</span>
 			</div>
 			<div class="move-list">
 				<table>
@@ -149,6 +162,14 @@
 	};
 
 
+	const PGN_WIDGETS = [
+		{
+			domain: "Chesscom",
+			script: "javascript:navigator.clipboard.writeText([...document.querySelectorAll(\"vertical-move-list .move\")].map((move, i) => `${i+1}. ${move.querySelector(\".white\").textContent} ${move.querySelector(\".black\").textContent}`).join(\" \"));alert('Chess notation text copied.');",
+		},
+	];
+
+
 
 	export default {
 		name: "chess-lab",
@@ -191,6 +212,8 @@
 				chosenAnalyzer: null,
 				analyzation: null,
 				gameResult: null,
+				PGN_WIDGETS,
+				showNotationTips: false,
 			};
 		},
 
@@ -819,6 +842,15 @@
 			}
 		}
 
+		.embed-dialog
+		{
+			position: absolute;
+			background-color: #111;
+			padding: 1em;
+			z-index: 100;
+			border-radius: 4px;
+		}
+
 		.notation
 		{
 			flex: 0 0 auto;
@@ -857,6 +889,41 @@
 			{
 				flex: 0 0 auto;
 				margin: 0 .2em;
+			}
+
+			.help
+			{
+				position: relative;
+
+				.icon
+				{
+					cursor: pointer;
+				}
+
+				.tips
+				{
+					top: 100%;
+					right: 0;
+					white-space: nowrap;
+
+					ul
+					{
+						list-style: none;
+						margin: .4em;
+						padding: 0;
+
+						a
+						{
+							display: inline-block;
+							padding: .4em;
+							text-decoration: none;
+							background-color: $button-active-color;
+							color: #fff;
+							border-radius: .4em;
+							font-weight: bold;
+						}
+					}
+				}
 			}
 		}
 

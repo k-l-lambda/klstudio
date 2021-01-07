@@ -58,11 +58,11 @@
 				/>
 				<button @click="downloadPGN" :disabled="!notation">&#x1f4be;</button>
 				<span class="help">
-					<span class="icon" @click="showNotationTips = true">&#9432;</span>
+					<span class="icon" @click="showNotationTips = true" :class="{on: showNotationTips}">&#9432;</span>
 					<div class="tips embed-dialog" v-show="showNotationTips"
 						@mouseleave="showNotationTips = false"
 					>
-						<p>Drag this link into your bookmark bar.</p>
+						<p>Drag this widget link into your bookmark bar<wbr/> to copy notation in third-party websites.</p>
 						<ul>
 							<li v-for="widget of PGN_WIDGETS" :key="widget.domain">
 								<a :href="widget.script">{{widget.domain}}.copyNotation</a>
@@ -165,7 +165,7 @@
 	const PGN_WIDGETS = [
 		{
 			domain: "Chesscom",
-			script: "javascript:navigator.clipboard.writeText([...document.querySelectorAll(\"vertical-move-list .move\")].map((move, i) => `${i+1}. ${move.querySelector(\".white\").textContent} ${move.querySelector(\".black\").textContent}`).join(\" \"));alert('Chess notation text copied.');",
+			script: "javascript:navigator.clipboard.writeText([...document.querySelectorAll(\"vertical-move-list .move\")].map((move, i) => `${i+1}. ${move.querySelector(\".white\").textContent} ${move.querySelector(\".black\") ? move.querySelector(\".black\").textContent : ''}`).join(\" \"));alert('Chess notation text copied.');",
 		},
 	];
 
@@ -849,7 +849,7 @@
 			padding: 1em;
 			z-index: 100;
 			border-radius: 4px;
-			box-shadow: 8px 8px 20px #000;
+			box-shadow: 0px 8px 20px #000;
 		}
 
 		.notation
@@ -899,6 +899,11 @@
 				.icon
 				{
 					cursor: pointer;
+
+					&.on
+					{
+						color: #cfc;
+					}
 				}
 
 				.tips
@@ -907,20 +912,26 @@
 					right: 0;
 					white-space: nowrap;
 
+					p
+					{
+						margin: .4em;
+					}
+
 					ul
 					{
 						list-style: none;
 						margin: .4em;
 						padding: 0;
+						font-size: 12px;
 
 						a
 						{
 							display: inline-block;
-							padding: .4em;
+							padding: .2em .6em;
 							text-decoration: none;
 							background-color: $button-active-color;
 							color: #fff;
-							border-radius: .4em;
+							border-radius: .8em;
 							font-weight: bold;
 						}
 					}

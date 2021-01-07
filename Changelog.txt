@@ -1,7 +1,10 @@
 
 TODO:
 	chess-lab: players
-		try analyze by go ponder
+		engine
+			new game
+			try analyze by go ponder
+		check mark
 		promote option controls
 	cube3-multiplication: twist cube individually by user
 	stylegan-mapping.vue

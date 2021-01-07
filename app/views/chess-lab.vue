@@ -849,6 +849,7 @@
 			padding: 1em;
 			z-index: 100;
 			border-radius: 4px;
+			box-shadow: 8px 8px 20px #000;
 		}
 
 		.notation

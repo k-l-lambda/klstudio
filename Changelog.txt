@@ -4,6 +4,7 @@ TODO:
 		engine
 			new game
 			try analyze by go ponder
+		win UI: vertical 1:0
 		check mark
 		promote option controls
 	cube3-multiplication: twist cube individually by user

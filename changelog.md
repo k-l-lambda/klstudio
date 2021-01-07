@@ -1,4 +1,12 @@
 
+TODO:
+	chessAnalyzer
+		match domian
+
+
+*	2021.1.7
+
+	+	chessAnalyzer.js created.
 
 
 *	2020.9.20

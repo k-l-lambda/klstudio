@@ -11,6 +11,11 @@ const mountAnalyzer = ({analyzerURL}) => {
 	const styleSheet = document.createElement("style")
 	styleSheet.type = "text/css"
 	styleSheet.innerText = `
+		body
+		{
+			outline: 2px solid orange;
+		}
+
 		.analyzer-frame
 		{
 			display: none;
@@ -43,17 +48,27 @@ const mountAnalyzer = ({analyzerURL}) => {
 	frame.classList.add("analyzer-frame");
 	frame.src = analyzerURL;
 
+	const syncGame = () => {
+		const moves = [...document.querySelectorAll("vertical-move-list .node")].map(node => node.textContent);
+		frame.contentWindow.$view.setHistory(moves);
+	};
+
 	//document.body.classList.add("analyzing");
 	document.body.appendChild(frame);
 
 	document.addEventListener("keydown", event => {
 		switch (event.code) {
-			case "F9":
+			case "F9": {
 				const analyzing = document.body.classList.contains("analyzing");
 				if (analyzing)
 					document.body.classList.remove("analyzing");
 				else
 					document.body.classList.add("analyzing");
+			}
+
+				break;
+			case "F10":
+				syncGame();
 
 				break;
 		}
@@ -88,7 +103,8 @@ const main = async () => {
 		args: [
 			"--disable-web-security",
 			`--disable-extensions-except=${pathToExtension}`,
-			`--load-extension=${pathToExtension}`
+			`--load-extension=${pathToExtension}`,
+			"--disable-features=site-per-process",
 		],
 	});
 	browser.on("targetcreated", async target => {

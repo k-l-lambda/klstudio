@@ -6,6 +6,8 @@ TODO:
 
 *	2021.1.8
 
+	+	chessAnalyzer.js: sync game added.
+
 	+	chessAnalyzer.js: added shortcut to toggle analyzer panel.
 
 

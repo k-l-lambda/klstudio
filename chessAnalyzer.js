@@ -13,6 +13,7 @@ const mountAnalyzer = ({analyzerURL}) => {
 	styleSheet.innerText = `
 		.analyzer-frame
 		{
+			display: none;
 			position: fixed;
 			right: 0;
 			top: 0;
@@ -30,6 +31,11 @@ const mountAnalyzer = ({analyzerURL}) => {
 		{
 			padding-right: 40vw;
 		}
+
+		.analyzing .analyzer-frame
+		{
+			display: block;
+		}
 	`;
 	document.head.appendChild(styleSheet);
 
@@ -37,8 +43,21 @@ const mountAnalyzer = ({analyzerURL}) => {
 	frame.classList.add("analyzer-frame");
 	frame.src = analyzerURL;
 
-	document.body.classList.add("analyzing");
+	//document.body.classList.add("analyzing");
 	document.body.appendChild(frame);
+
+	document.addEventListener("keydown", event => {
+		switch (event.code) {
+			case "F9":
+				const analyzing = document.body.classList.contains("analyzing");
+				if (analyzing)
+					document.body.classList.remove("analyzing");
+				else
+					document.body.classList.add("analyzing");
+
+				break;
+		}
+	});
 
 	console.debug("Analyzer mounted.");
 };

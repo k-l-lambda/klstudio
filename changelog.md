@@ -4,6 +4,11 @@ TODO:
 		match domian
 
 
+*	2021.1.8
+
+	+	chessAnalyzer.js: added shortcut to toggle analyzer panel.
+
+
 *	2021.1.7
 
 	+	chessAnalyzer.js created.

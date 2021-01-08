@@ -667,6 +667,11 @@
 		max-width: min(100vw, 80vh);
 		max-height: 100vh;
 	}
+
+	.chess-lab footer
+	{
+		font-size: min(30px, 4vh);
+	}
 </style>
 
 <style lang="scss">
@@ -765,14 +770,15 @@
 			right: 0;
 			bottom: 0;
 			background-color: $panel-background-color;
-			border-top-left-radius: 12px;
-			padding: 12px;
+			border-top-left-radius: .4em;
+			padding: .4em;
+			//font-size: 30px;
 
 			& > button
 			{
 				margin: 0 .2em;
-				font-size: 30px;
 				vertical-align: middle;
+				font-size: inherit;
 			}
 		}
 
@@ -993,8 +999,15 @@
 
 		.turn
 		{
-			width: 48px;
-			height: 48px;
+			//width: 1.4em;
+			//height: 1.4em;
+			line-height: 140%;
+			background-size: contain;
+
+			&::before
+			{
+				content: "\3000";
+			}
 
 			&.on
 			{

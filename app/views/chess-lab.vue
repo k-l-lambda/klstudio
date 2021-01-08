@@ -25,10 +25,10 @@
 						/>
 					</g>
 				</g>
-				<text class="result" v-if="gameResult" :x="400" :y="480">
+				<text class="result" :class="{flipped: orientationFlipped, mate: gameResult !== 'draw'}" v-if="gameResult" :x="400" :y="500">
 					<tspan v-if="gameResult === 'draw'">&#x00bd;</tspan>
-					<tspan v-if="gameResult === 'white'"><tspan class="king">&#x2654;</tspan><tspan class="trophy">&#x1f3c6;</tspan></tspan>
-					<tspan v-if="gameResult === 'black'"><tspan class="king">&#x265A;</tspan><tspan class="trophy">&#x1f3c6;</tspan></tspan>
+					<tspan v-if="gameResult === 'white'">0:1</tspan>
+					<tspan v-if="gameResult === 'black'">1:0</tspan>
 				</text>
 			</svg>
 		</main>
@@ -737,11 +737,23 @@
 				.result
 				{
 					font-size: 280px;
+					font-weight: bold;
 					text-anchor: middle;
+					transform-origin: 50% 50%;
 
 					.trophy
 					{
 						font-size: 120px;
+					}
+
+					&.mate
+					{
+						transform: rotate(90deg);
+					}
+
+					&.mate.flipped
+					{
+						transform: rotate(-90deg);
 					}
 				}
 			}

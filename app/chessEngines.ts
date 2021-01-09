@@ -20,6 +20,7 @@ interface EnginePlayer extends EngineAgent {};
 interface EngineAnalyzer extends EngineAgent {
 	//evaluate (fen: string): Promise<number>;
 	analyze (fen: string): void;
+	newGame(): Promise<void>;
 };
 
 

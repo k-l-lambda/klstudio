@@ -532,6 +532,9 @@
 					this.syncBoard();
 					this.updateStatus();
 
+					if (this.analyzer)
+						this.analyzer.newGame();
+
 					this.pgnBoxInputActivated = true;
 				}
 				else {
@@ -573,7 +576,9 @@
 
 					const pgn = Array(ms.length / 2).fill(null).map((_, i) => `${i + 1}. ${ms[i * 2]} ${ms[i * 2 + 1]}`).join(" ");
 					this.game.load_pgn(pgn);
-					// TODO: new game for engine
+
+					if (this.analyzer)
+						this.analyzer.newGame();
 				}
 
 				this.syncBoard();
@@ -602,6 +607,9 @@
 						this.setupPosition = fen;
 						this.history = [];
 						this.updateStatus();
+
+						if (this.analyzer)
+							this.analyzer.newGame();
 					}
 				}
 			},

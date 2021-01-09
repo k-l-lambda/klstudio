@@ -1,7 +1,5 @@
 
 TODO:
-	chessAnalyzer
-		match domian
 
 
 *	2021.1.8

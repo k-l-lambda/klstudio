@@ -157,7 +157,7 @@
 			[+TIP_SIZE, length - TIP_SIZE], [+WIDTH / 2, length - TIP_SIZE], [+WIDTH / 2, ROOT],
 		];
 
-		const fill = color.hsv([60 + 60 * Math.tanh(value), 100, 80]).alpha(weight * .9 + .1).toString();
+		const fill = color.hsv([60 + 60 * Math.tanh(value / 8), 100, 80]).alpha(weight * .9 + .1).toString();
 
 		return {x, y, angle, points, fill};
 	};
@@ -872,11 +872,17 @@
 				overflow: auto;
 				background: #000c;
 				color: #ccc;
+				padding: .2em;
+
+				&::-webkit-scrollbar
+				{
+					display: none;
+				}
 
 				pre
 				{
 					margin: 0;
-					//white-space: pre-wrap;
+					white-space: pre-wrap;
 					font-size: 9px;
 				}
 			}
@@ -1005,6 +1011,11 @@
 			font-size: 13px;
 			flex: 1 1 auto;
 			overflow-y: auto;
+
+			&::-webkit-scrollbar
+			{
+				display: none;
+			}
 
 			th
 			{

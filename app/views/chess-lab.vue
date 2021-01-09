@@ -13,17 +13,21 @@
 	>
 		<StoreInput v-show="false" v-model="notation" sessionKey="chessLab.notation" />
 		<BoolStoreInput v-show="false" v-model="orientationFlipped" sessionKey="chessLab.orientationFlipped" />
+		<BoolStoreInput v-show="false" v-model="showArrowMarks" localKey="chessLab.showArrowMarks" />
+		<StoreInput v-show="false" v-model="chosenAnalyzer" localKey="chessLab.chosenAnalyzer" />
 		<main>
 			<div id="board" ref="board"></div>
 			<svg v-show="!editMode" class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">
 				<g transform="translate(0, 800) scale(1, -1)">
 					<g :transform="orientationFlipped ? 'rotate(180, 400, 400)' : null">
-						<polygon v-for="(move, i) of noticableMoves" :key="i" class="move"
-							:class="{best: i === 0}"
-							:transform="`translate(${move.arrow.x}, ${move.arrow.y}) rotate(${move.arrow.angle})`"
-							:points="[].concat(...move.arrow.points).join(' ')"
-							:fill="move.arrow.fill"
-						/>
+						<g v-if="showArrowMarks">
+							<polygon v-for="(move, i) of noticableMoves" :key="i" class="move"
+								:class="{best: i === 0}"
+								:transform="`translate(${move.arrow.x}, ${move.arrow.y}) rotate(${move.arrow.angle})`"
+								:points="[].concat(...move.arrow.points).join(' ')"
+								:fill="move.arrow.fill"
+							/>
+						</g>
 					</g>
 				</g>
 				<text class="result" :class="{flipped: orientationFlipped, mate: gameResult !== 'draw'}" v-if="gameResult" :x="400" :y="500">
@@ -40,6 +44,7 @@
 					<option :value="null">(None)</option>
 					<option v-for="name of engineAnalyzerList" :key="name">{{name}}</option>
 				</select>
+				<CheckButton v-if="chosenAnalyzer" v-model="showArrowMarks" title="show arrows" content="&#x21e7;" />
 			</section>
 			<section class="engine-logs">
 				<pre ref="engineLogs"></pre>
@@ -201,7 +206,7 @@
 
 		data () {
 			return {
-				editMode: true,
+				editMode: false,
 				whiteOnTurn: true,
 				orientationFlipped: false,
 				setupPosition: null,
@@ -222,6 +227,7 @@
 				gameResult: null,
 				PGN_WIDGETS,
 				showNotationTips: false,
+				showArrowMarks: true,
 			};
 		},
 
@@ -939,26 +945,28 @@
 			left: 0;
 			display: flex;
 			flex-direction: column;
+			padding-top: 1em;
 
 			h3
 			{
 				display: inline-block;
-				margin: 0 1em;
-			}
-
-			section
-			{
-				padding: .4em;
+				margin: 0;
 			}
 
 			.analyzer
 			{
 				flex: 0 0 auto;
+				padding: 1em;
 
 				&.active select
 				{
 					background-color: $button-active-color;
 					color: #fff;
+				}
+
+				& > * + *
+				{
+					margin-left: 1em;
 				}
 			}
 

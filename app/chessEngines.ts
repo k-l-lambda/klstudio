@@ -335,25 +335,6 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 	}*/
 
 
-	/*async analyze (fen: string) {
-		const result = await this.go(fen, {depth: 10});
-		//console.log("result:", result);
-
-		const branches: AnalyzationBranch[] = result.pvs.map(info => {
-			const value = Number.isFinite(info.scoreCP) ? info.scoreCP * 0.01 : (MATE_VALUE * Math.sign(info.scoreMate) - info.scoreMate);
-
-			return {
-				move: info.move,
-				value,
-				pv: info.pv,
-				bmc: info.bmc,
-			};
-		});
-
-		this.emit("analyzation", {fen: fen, branches});
-	}*/
-
-
 	async analyze (fen: string) {
 		++this.analyzingIndex;
 		const analyzingIndex = this.analyzingIndex;
@@ -374,7 +355,7 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 				break;
 
 			const bestMove = pvs[0].pv.slice(0, 2);
-			this.emit("log", `< Analyzer: depth ${pvs[0].depth} score ${Number.isFinite(pvs[0].scoreCP) ? pvs[0].scoreCP : "m" + pvs[0].scoreMate} best ${bestMove.map(move => move.join("")).join(" ")}`);
+			this.emit("log", `< a: depth ${pvs[0].depth} score ${Number.isFinite(pvs[0].scoreCP) ? pvs[0].scoreCP : "m" + pvs[0].scoreMate} best ${bestMove.map(move => move.join("")).join(" ")}`);
 
 			const branches: AnalyzationBranch[] = pvs.map(info => {
 				const value = Number.isFinite(info.scoreCP) ? info.scoreCP * 0.01 : (MATE_VALUE * Math.sign(info.scoreMate) - info.scoreMate);

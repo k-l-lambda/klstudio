@@ -1,7 +1,7 @@
 
 TODO:
 	chess-lab:
-		analyzer panel
+		win rates from history
 		check mark
 		last move mark
 		promote option controls

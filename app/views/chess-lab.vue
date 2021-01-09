@@ -217,6 +217,7 @@
 				enginePlayerList: Object.keys(chessEngines.players),
 				chosenAnalyzer: null,
 				analyzation: null,
+				winRates: [],
 				gameResult: null,
 				PGN_WIDGETS,
 				showNotationTips: false,
@@ -292,6 +293,11 @@
 
 
 			winrateChart () {
+				const rows = this.winRates
+					.map((item, step) => ({step, item}))
+					.filter(({item}) => item)
+					.map(({step, item}) => ({step: Number(step), rate: item.rate}));
+
 				return {
 					height: "240px",
 					settings: {
@@ -327,28 +333,7 @@
 					},
 					data: {
 						columns: ["step", "rate"],
-						rows: [
-							{
-								step: 0,
-								rate: 0,
-							},
-							{
-								step: 1,
-								rate: 0.1,
-							},
-							{
-								step: 2,
-								rate: 0.6,
-							},
-							{
-								step: 3,
-								rate: -0.8,
-							},
-							{
-								step: 12,
-								rate: -0.8,
-							},
-						],
+						rows,
 					},
 					markLine: {
 						animation: false,
@@ -617,6 +602,8 @@
 						this.analyzer.newGame();
 
 					this.pgnBoxInputActivated = true;
+
+					this.winRates = [];
 				}
 				else {
 					console.debug("invalid PGN text:", notation);
@@ -664,6 +651,8 @@
 
 					if (this.analyzer)
 						this.analyzer.newGame();
+
+					this.winRates = [];
 				}
 
 				this.syncBoard();
@@ -691,6 +680,7 @@
 					else {
 						this.setupPosition = fen;
 						this.history = [];
+						this.winRates = [];
 						this.updateStatus();
 
 						if (this.analyzer)
@@ -756,8 +746,22 @@
 						}
 					});
 					this.analyzer.on("analyzation", analyzation => {
-						if (analyzation.fen === this.game.fen())
+						if (analyzation.fen === this.game.fen()) {
 							this.analyzation = analyzation;
+
+							const reversion = this.game.turn() === "w" ? 1 : -1;
+
+							let rate = 0;
+							if (Number.isFinite(analyzation.best.scoreMate))
+								rate = reversion * Math.sign(analyzation.best.scoreMate);
+							else
+								rate = reversion * Math.tanh(analyzation.best.scoreCP / 400);
+
+							this.winRates[this.currentHistoryIndex + 1] = {
+								depth: analyzation.best.depth,
+								rate,
+							};
+						}
 					});
 
 					this.triggerAnalyzer();

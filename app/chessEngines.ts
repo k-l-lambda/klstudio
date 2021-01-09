@@ -359,7 +359,7 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 
 			const branches: AnalyzationBranch[] = pvs.map(info => {
 				const value = Number.isFinite(info.scoreCP) ? info.scoreCP * 0.01 : (MATE_VALUE * Math.sign(info.scoreMate) - info.scoreMate);
-		
+
 				return {
 					move: info.move,
 					value,
@@ -367,8 +367,9 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 					bmc: info.bmc,
 				};
 			});
+			const best = pvs[0];
 
-			this.emit("analyzation", {fen, branches});
+			this.emit("analyzation", {fen, branches, best});
 		}
 
 		await thinker.stop();

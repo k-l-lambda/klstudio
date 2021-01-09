@@ -44,6 +44,9 @@
 			<section class="engine-logs">
 				<pre ref="engineLogs"></pre>
 			</section>
+			<section class="winrate" v-if="chosenAnalyzer">
+				<Chart ref="winrateChart" type="Line" :sourceData="winrateChart" />
+			</section>
 		</aside>
 		<aside class="right-sider">
 			<div class="notation">
@@ -112,6 +115,7 @@
 	import CheckButton from "../components/check-button.vue";
 	import StoreInput from "../components/store-input.vue";
 	import BoolStoreInput from "../components/bool-store-input.vue";
+	import Chart from "../components/chart.vue";
 
 
 
@@ -190,6 +194,7 @@
 			CheckButton,
 			StoreInput,
 			BoolStoreInput,
+			Chart,
 		},
 
 
@@ -284,6 +289,78 @@
 
 				return noticableItems;
 			},
+
+
+			winrateChart () {
+				return {
+					height: "240px",
+					settings: {
+						dimension: ["step"],
+						metrics: ["rate"],
+						xAxisType: "value",
+						animation: false,
+					},
+					theme: {
+						line: {
+							smooth: false,
+						},
+						grid: {
+							left: 8,
+							top: 8,
+							right: 8,
+							bottom: 8,
+						},
+					},
+					legend: {
+						show: false,
+					},
+					yAxis: {
+						max: 1,
+						min: -1,
+						splitLine: {
+							show: false,
+						},
+						splitArea: {
+							show: true,
+							interval: 2,
+						},
+					},
+					data: {
+						columns: ["step", "rate"],
+						rows: [
+							{
+								step: 0,
+								rate: 0,
+							},
+							{
+								step: 1,
+								rate: 0.1,
+							},
+							{
+								step: 2,
+								rate: 0.6,
+							},
+							{
+								step: 3,
+								rate: -0.8,
+							},
+							{
+								step: 12,
+								rate: -0.8,
+							},
+						],
+					},
+					markLine: {
+						animation: false,
+						data: [
+							{
+								xAxis: this.currentHistoryIndex,
+							},
+						],
+					},
+					animation: {animation: false},
+				};
+			},
 		},
 
 
@@ -351,6 +428,8 @@
 					this.updateStatus();
 				}
 			}
+
+			this.onResize();
 		},
 
 
@@ -363,6 +442,8 @@
 
 					this.$nextTick(() => this.checkerSize = this.$refs.board.querySelector(".board-b72b1").clientWidth / 8);
 				}
+
+				this.$refs.winrateChart && this.$refs.winrateChart.getVChart().resize();
 			},
 
 
@@ -872,7 +953,7 @@
 
 			.engine-logs
 			{
-				flex: 0 1 auto;
+				flex: 1 1 auto;
 				overflow: auto;
 				background: #000c;
 				color: #ccc;
@@ -889,6 +970,11 @@
 					white-space: pre-wrap;
 					font-size: 9px;
 				}
+			}
+
+			.winrate
+			{
+				flex: 0 0 auto;
 			}
 		}
 

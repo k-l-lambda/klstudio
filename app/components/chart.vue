@@ -83,31 +83,6 @@
 		},
 
 
-		/*data () {
-			return {
-				sourceData: null,
-			};
-		},*/
-
-
-		/*async created () {
-			const json = await (await fetch(this.source)).json();
-
-			if (json._preprocess) {
-				if (json._preprocess.singleField) {
-					const field = json._preprocess.singleField;
-
-					json.data = {
-						columns: ["index", field],
-						rows: json._preprocess.metaData.map((value, index) => ({[field]: value, index})),
-					};
-				}
-			}
-
-			this.sourceData = json;
-		},*/
-
-
 		methods: {
 			getVChart () {
 				return this.$refs.vchart;

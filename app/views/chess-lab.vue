@@ -152,9 +152,9 @@
 		const TIP_SIZE = 40;
 
 		const points = [
-			[-WIDTH / 2, ROOT], [-WIDTH / 2, length - TIP_SIZE], [-TIP_SIZE, length - TIP_SIZE],
+			[-WIDTH / 2, ROOT], [-WIDTH / 2, length - TIP_SIZE], [-TIP_SIZE * 0.7, length - TIP_SIZE],
 			[0, length],
-			[+TIP_SIZE, length - TIP_SIZE], [+WIDTH / 2, length - TIP_SIZE], [+WIDTH / 2, ROOT],
+			[+TIP_SIZE * 0.7, length - TIP_SIZE], [+WIDTH / 2, length - TIP_SIZE], [+WIDTH / 2, ROOT],
 		];
 
 		const fill = color.hsv([60 + 60 * Math.tanh(value / 8), 100, 80]).alpha(weight * .9 + .1).toString();

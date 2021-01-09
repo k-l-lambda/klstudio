@@ -49,10 +49,26 @@ const mountAnalyzer = ({analyzerURL}) => {
 	frame.classList.add("analyzer-frame");
 	frame.src = analyzerURL;
 
+	let moveList = null;
+
+	const listenMoveList = list => {
+		list.addEventListener("DOMNodeInserted", () => {
+			//console.log("DOMNodeInserted");
+			syncGame();
+		});
+		console.debug("Listening to move list.");
+	};
+
 	const syncGame = () => {
-		if (!document.querySelector("vertical-move-list")) {
+		const list = document.querySelector("vertical-move-list");
+		if (!list) {
 			console.debug("No move list found, sync game cancelled.");
 			return;
+		}
+
+		if (list !== moveList) {
+			moveList = list;
+			listenMoveList(list);
 		}
 
 		const moves = [...document.querySelectorAll("vertical-move-list .node")].map(node => node.textContent);
@@ -86,15 +102,11 @@ const mountAnalyzer = ({analyzerURL}) => {
 		}
 	});
 
-	const listenMoveList = async () => {
-		while (true) {
-			const moveList = document.querySelector("vertical-move-list");
+	const waitToListen = async () => {
+		while (!moveList) {
+			moveList = document.querySelector("vertical-move-list");
 			if (moveList) {
-				moveList.addEventListener("DOMNodeInserted", event => {
-					//console.log("DOMNodeInserted");
-					syncGame();
-				});
-				console.debug("Listening to move list.");
+				listenMoveList(moveList);
 
 				return;
 			}
@@ -102,7 +114,7 @@ const mountAnalyzer = ({analyzerURL}) => {
 			await new Promise(resolve => setTimeout(resolve, 500));
 		}
 	};
-	listenMoveList();
+	waitToListen();
 
 	console.debug("Analyzer mounted.");
 };

@@ -749,18 +749,22 @@
 						if (analyzation.fen === this.game.fen()) {
 							this.analyzation = analyzation;
 
-							const reversion = this.game.turn() === "w" ? 1 : -1;
+							const best = analyzation.best;
+							const oldRate = this.winRates[this.currentHistoryIndex + 1];
+							if (!oldRate || best.depth >= oldRate.depth) {
+								const reversion = this.game.turn() === "w" ? 1 : -1;
 
-							let rate = 0;
-							if (Number.isFinite(analyzation.best.scoreMate))
-								rate = reversion * Math.sign(analyzation.best.scoreMate);
-							else
-								rate = reversion * Math.tanh(analyzation.best.scoreCP / 400);
+								let rate = 0;
+								if (Number.isFinite(best.scoreMate))
+									rate = reversion * Math.sign(best.scoreMate);
+								else
+									rate = reversion * Math.tanh(best.scoreCP / 400);
 
-							this.winRates[this.currentHistoryIndex + 1] = {
-								depth: analyzation.best.depth,
-								rate,
-							};
+								this.winRates[this.currentHistoryIndex + 1] = {
+									depth: best.depth,
+									rate,
+								};
+							}
 						}
 					});
 
@@ -941,7 +945,7 @@
 
 			section
 			{
-				padding: 1em;
+				padding: .4em;
 			}
 
 			.analyzer

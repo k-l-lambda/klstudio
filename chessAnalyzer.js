@@ -23,18 +23,18 @@ const mountAnalyzer = ({analyzerURL}) => {
 			right: 0;
 			top: 0;
 			height: 100vh;
-			min-width: 150vh;
+			min-width: 142vh;
 			width: 40vw;
 		}
 
 		body.analyzing
 		{
-			padding-right: 40vw;
+			padding-right: max(40vw, 142vh);
 		}
 
 		.analyzing .base-layout
 		{
-			padding-right: 40vw;
+			padding-right: max(40vw, 142vh);
 		}
 
 		.analyzing .analyzer-frame

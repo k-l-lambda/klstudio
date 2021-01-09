@@ -108,10 +108,13 @@ class WorkerAgent extends WorkerAgentBase {
 	evalHandler: (result: EvalResult) => void;
 	bestMoveHandler: (move: MoveTuple) => void;
 	infoHandler: (dict: {[key: string]: any}) => void;
-	readyOKHandler: () => void;
+	readyOKHandler: (ready: boolean) => void;
 
 	cacheDict: {[key: string]: any} = {};
 	buzy: boolean = false;
+
+	lastRequest: string;
+	lastResponse: string;
 
 
 	constructor (worker: Worker) {
@@ -120,8 +123,15 @@ class WorkerAgent extends WorkerAgentBase {
 
 
 	async waitReady () {
-		this.postMessage("isready");
-		await new Promise<void>(resolve => this.readyOKHandler = resolve);
+		let ready = false;
+		while (!ready) {
+			this.postMessage("isready");
+
+			ready = await Promise.race([
+				new Promise<boolean>(resolve => this.readyOKHandler = resolve),
+				new Promise<boolean>(resolve => setTimeout(resolve, 1e+3)),
+			]);
+		}
 
 		this.buzy = false;
 	}
@@ -211,7 +221,15 @@ class WorkerAgent extends WorkerAgentBase {
 	}
 
 
+	postMessage (message: string) {
+		this.lastRequest = message;
+		super.postMessage(message);
+	}
+
+
 	onMessage (message: string): void {
+		this.lastResponse = message;
+
 		if (/Total \|/.test(message)) {
 			const numbers = message.match(/([-\d.]+)/g);
 			const [mg, eg] = numbers.slice(numbers.length - 2);
@@ -255,7 +273,7 @@ class WorkerAgent extends WorkerAgentBase {
 		}
 		else if (message === "readyok") {
 			if (this.readyOKHandler)
-				this.readyOKHandler();
+				this.readyOKHandler(true);
 		}
 	}
 };
@@ -355,7 +373,8 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 			if (this.analyzingIndex !== analyzingIndex)
 				break;
 
-			this.emit("log", `< Analyzer ponder: depth ${pvs[0].depth} score ${Number.isFinite(pvs[0].scoreCP) ? pvs[0].scoreCP : "m" + pvs[0].scoreMate} pv ${pvs[0].pv.map(move => move.join("")).join(" ")}`);
+			const bestMove = pvs[0].pv.slice(0, 2);
+			this.emit("log", `< Analyzer: depth ${pvs[0].depth} score ${Number.isFinite(pvs[0].scoreCP) ? pvs[0].scoreCP : "m" + pvs[0].scoreMate} best ${bestMove.map(move => move.join("")).join(" ")}`);
 
 			const branches: AnalyzationBranch[] = pvs.map(info => {
 				const value = Number.isFinite(info.scoreCP) ? info.scoreCP * 0.01 : (MATE_VALUE * Math.sign(info.scoreMate) - info.scoreMate);
@@ -372,6 +391,11 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 		}
 
 		await thinker.stop();
+	}
+
+
+	async analyzeStop () {
+		++this.analyzingIndex;
 	}
 };
 

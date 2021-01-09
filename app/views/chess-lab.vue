@@ -554,8 +554,12 @@
 
 
 			doTriggerAnalyzer () {
-				if (this.analyzer && !this.game.game_over())
-					this.analyzer.analyze(this.game.fen());
+				if (this.analyzer) {
+					if (this.game.game_over())
+						this.analyzer.analyzeStop();
+					else
+						this.analyzer.analyze(this.game.fen());
+				}
 			},
 
 

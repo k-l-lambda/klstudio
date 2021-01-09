@@ -553,6 +553,31 @@
 				if (this.analyzer && !this.game.game_over())
 					this.analyzer.analyze(this.game.fen());
 			},
+
+
+			setHistory (moves) {
+				this.editMode = false;
+				if (historyContains(moves, this.history)) {
+					const newMoves = moves.slice(this.history.length);
+					newMoves.forEach(move => this.game.move(move));
+				}
+				else if (historyContains(this.history, moves)) {
+					for (let i = 0; i < this.history.length - moves.length; i++)
+						this.game.undo();
+				}
+				else {
+					const ms = [...moves];
+					if (ms.length % 2)
+						ms.push("");
+
+					const pgn = Array(ms.length / 2).fill(null).map((_, i) => `${i + 1}. ${ms[i * 2]} ${ms[i * 2 + 1]}`).join(" ");
+					this.game.load_pgn(pgn);
+					// TODO: new game for engine
+				}
+
+				this.syncBoard();
+				this.updateStatus();
+			},
 		},
 
 

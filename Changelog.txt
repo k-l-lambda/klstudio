@@ -19,6 +19,11 @@ TODO:
 
 
 
+2021.1.9	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: setHistory added.
+
+
 2021.1.8	K.L.	<k.l.lambda@gmail.com>
 
 	+	chess-lab.vue: refined checkmate mark.

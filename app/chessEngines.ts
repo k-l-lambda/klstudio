@@ -124,6 +124,12 @@ class WorkerAgent extends WorkerAgentBase {
 	}
 
 
+	newGame () {
+		this.postMessage("ucinewgame");
+		return this.waitReady();
+	}
+
+
 	setOptions (dict: {[key: string]: any}) {
 		Object.entries(dict).forEach(([key, value]) => this.postMessage(`setoption name ${key} value ${value}`));
 	}

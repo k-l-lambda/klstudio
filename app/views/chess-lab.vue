@@ -18,7 +18,8 @@
 			<svg v-show="!editMode" class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">
 				<g transform="translate(0, 800) scale(1, -1)">
 					<g :transform="orientationFlipped ? 'rotate(180, 400, 400)' : null">
-						<polygon v-for="(move, i) of noticableMoves" :key="i"
+						<polygon v-for="(move, i) of noticableMoves" :key="i" class="move"
+							:class="{best: i === 0}"
 							:transform="`translate(${move.arrow.x}, ${move.arrow.y}) rotate(${move.arrow.angle})`"
 							:points="[].concat(...move.arrow.points).join(' ')"
 							:fill="move.arrow.fill"
@@ -764,6 +765,12 @@
 				transform: translate(-50%, -50%);
 				pointer-events: none;
 
+				.move.best
+				{
+					stroke: #000a;
+					stroke-width: 5px;
+				}
+
 				.result
 				{
 					font-size: 280px;
@@ -900,13 +907,15 @@
 			flex: 0 0 auto;
 			padding: 1em;
 			display: flex;
+			flex-direction: row;
 
 			.pgn-box
 			{
 				background-color: $button-color;
 				color: inherit;
 				transition: background-color .6s ease-out;
-				flex: 1 1 auto;
+				flex: 1 1 2em;
+				width: 2em;
 
 				&.activated
 				{
@@ -937,6 +946,7 @@
 
 			.help
 			{
+				flex: 0 0 auto;
 				position: relative;
 
 				.icon

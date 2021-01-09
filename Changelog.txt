@@ -1,6 +1,7 @@
 
 TODO:
 	chess-lab:
+		option to hide analyzation marks.
 		win rates from history
 		check mark
 		last move mark

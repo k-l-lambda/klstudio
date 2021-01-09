@@ -44,7 +44,7 @@
 			<section class="engine-logs">
 				<pre ref="engineLogs"></pre>
 			</section>
-			<section class="winrate" v-if="chosenAnalyzer">
+			<section class="winrate" v-if="winRates">
 				<Chart ref="winrateChart" type="Line" :sourceData="winrateChart" />
 			</section>
 		</aside>
@@ -105,6 +105,7 @@
 	import sha1 from "sha1";
 	import {debounce} from "lodash";
 	import color from "color";
+	import Vue from "vue";
 
 	import {msDelay} from "../delay";
 	import {downloadURL} from "../utils";
@@ -217,7 +218,7 @@
 				enginePlayerList: Object.keys(chessEngines.players),
 				chosenAnalyzer: null,
 				analyzation: null,
-				winRates: [],
+				winRates: null,
 				gameResult: null,
 				PGN_WIDGETS,
 				showNotationTips: false,
@@ -339,7 +340,7 @@
 						animation: false,
 						data: [
 							{
-								xAxis: this.currentHistoryIndex,
+								xAxis: this.currentHistoryIndex + 1,
 							},
 						],
 					},
@@ -603,7 +604,7 @@
 
 					this.pgnBoxInputActivated = true;
 
-					this.winRates = [];
+					this.winRates = this.analyzer ? [] : null;
 				}
 				else {
 					console.debug("invalid PGN text:", notation);
@@ -652,7 +653,7 @@
 					if (this.analyzer)
 						this.analyzer.newGame();
 
-					this.winRates = [];
+					this.winRates = this.analyzer ? [] : null;;
 				}
 
 				this.syncBoard();
@@ -680,7 +681,7 @@
 					else {
 						this.setupPosition = fen;
 						this.history = [];
-						this.winRates = [];
+						this.winRates = this.analyzer ? [] : null;;
 						this.updateStatus();
 
 						if (this.analyzer)
@@ -760,13 +761,15 @@
 								else
 									rate = reversion * Math.tanh(best.scoreCP / 400);
 
-								this.winRates[this.currentHistoryIndex + 1] = {
+								Vue.set(this.winRates, this.currentHistoryIndex + 1, {
 									depth: best.depth,
 									rate,
-								};
+								});
 							}
 						}
 					});
+
+					this.winRates = [];
 
 					this.triggerAnalyzer();
 				}
@@ -983,6 +986,7 @@
 			.winrate
 			{
 				flex: 0 0 auto;
+				padding: 0;
 			}
 		}
 

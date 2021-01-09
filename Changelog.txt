@@ -1,12 +1,11 @@
 
 TODO:
-	chess-lab: players
-		engine
-			new game
-			try analyze by go ponder
+	chess-lab:
+		analyzer panel
 		check mark
 		last move mark
 		promote option controls
+		engine players
 	cube3-multiplication: twist cube individually by user
 	stylegan-mapping.vue
 		show images on z-graph
@@ -20,6 +19,8 @@ TODO:
 
 
 2021.1.9	K.L.	<k.l.lambda@gmail.com>
+
+	+	chessEngines.ts: refined analyzer by go ponder.
 
 	+	chess-lab.vue: best move mark added.
 

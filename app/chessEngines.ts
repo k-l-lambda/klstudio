@@ -2,7 +2,7 @@
 import {EventEmitter} from "events";
 //import Chess from "chess.js";
 
-//import {msDelay} from "./delay";
+import {msDelay} from "./delay";
 
 
 
@@ -122,11 +122,19 @@ class WorkerAgent extends WorkerAgentBase {
 	async waitReady () {
 		this.postMessage("isready");
 		await new Promise<void>(resolve => this.readyOKHandler = resolve);
+
+		this.buzy = false;
 	}
 
 
 	newGame () {
 		this.postMessage("ucinewgame");
+		return this.waitReady();
+	}
+
+
+	stop () {
+		this.postMessage("stop");
 		return this.waitReady();
 	}
 
@@ -172,6 +180,34 @@ class WorkerAgent extends WorkerAgentBase {
 		this.buzy = false;
 
 		return {bestMove, pvs};
+	}
+
+
+	goPonder (fen: string, onPVs: (pvs: PVInfo[]) => void) {
+		this.buzy = true;
+		this.postMessage("position fen " + fen);
+
+		let pvs: PVInfo[] = [];
+		this.infoHandler = info => {
+			if (info.multipv === 1) {
+				if (pvs.length)
+					onPVs(pvs);
+
+				pvs = [];
+			}
+
+			pvs[info.multipv - 1] = {
+				move: info.pv && info.pv[0],
+				scoreCP: info.scoreCP,
+				scoreMate: info.scoreMate,
+				pv: info.pv,
+				depth: info.depth,
+				bmc: info.bmc,
+			};
+
+		};
+
+		this.postMessage("go ponder");
 	}
 
 
@@ -226,23 +262,42 @@ class WorkerAgent extends WorkerAgentBase {
 
 
 class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
-	//evaluators: WorkerAgent[];
-	analyzingFEN: string;
+	thinkers: WorkerAgent[];
+	analyzingIndex: number = 0;
 
 
-	constructor (workerFactory: () => Worker, {/*evaluatorCount = 6*/multiPV = 10} = {}) {
+	constructor (workerFactory: () => Worker, {thinkerCount = 3, multiPV = 20} = {}) {
 		super(workerFactory());
 
-		//this.evaluators = Array(evaluatorCount).fill(null).map(() => new WorkerAgent(workerFactory()));
-		this.setOptions({MultiPV: multiPV});
+		this.thinkers = Array(thinkerCount).fill(null).map(() => new WorkerAgent(workerFactory()));
+		this.thinkers.forEach(thinker => thinker.setOptions({MultiPV: multiPV}));
 	}
 
 
 	terminate () {
 		this.worker.terminate();
-		//this.evaluators.forEach(evaluator => evaluator.terminate());
+		this.thinkers.forEach(thinker => thinker.terminate());
 
 		this.emit("log", "- Analyzer terminated.");
+	}
+
+
+	async newGame () {
+		await Promise.all(this.thinkers.map(thinker => thinker.newGame()));
+	}
+
+
+	async getIdleThinker (): Promise<WorkerAgent> {
+		while (true) {
+			for (let i = 0; i < this.thinkers.length; ++i) {
+				if (!this.thinkers[i].buzy) {
+					this.emit("log", `< Thinker[${i}].`);
+					return this.thinkers[i];
+				}
+			}
+
+			await msDelay(10);
+		}
 	}
 
 
@@ -263,95 +318,6 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 
 
 	/*async analyze (fen: string) {
-		this.analyzingFEN = fen;
-
-		const game = new Chess(fen);
-		const moves = game.moves();
-		//console.log("moves:", moves);
-
-		const reversion = game.turn() === "w" ? 1 : -1;
-
-		const branches = moves.map(move => {
-			game.move(move);
-			let over = null;
-			if (game.game_over())
-				over = game.in_draw() ? 0 : (game.turn() === "b" ? 1 : -1);
-
-			const fen = game.fen();
-			game.undo();
-
-			return {move, fen, over};
-		});
-
-		this.emit("log", `-> evaluting ${branches.length} moves...`);
-
-		for (const branch of branches) {
-			const run = async (): Promise<AnalyzationBranch> => {
-				let value;
-
-				if (Number.isFinite(branch.over))
-					value = branch.over * BEAT_REWARD;
-				else {
-					const evaluator = await this.getIdleEvaluator();
-					//console.log("evaluator got.");
-
-					// drop obsoleted task
-					if (this.analyzingFEN !== fen)
-						return null;
-
-					let targetFEN = branch.fen;
-					{
-						const result = await evaluator.go(targetFEN);
-						//console.log("go finished.");
-
-						branch.bmc = result.bmc;
-						branch.prediction = result.prediction;
-
-						game.move(branch.move);
-						result.prediction.forEach(move => game.move({from: move[0], to: move[1], promotion: move[2]}));
-
-						targetFEN = game.fen();
-						if (game.game_over()) {
-							branch.over = game.in_draw() ? 0 : (game.turn() === "b" ? 1 : -1);
-							value = branch.over * BEAT_REWARD * (STEP_DECAY ** result.prediction.length);
-						}
-
-						result.prediction.forEach(() => game.undo());
-						game.undo();
-					}
-
-					if (!Number.isFinite(branch.over)) {
-						const evaluation = await evaluator.evaluate(targetFEN);
-						//value = evaluation.totalMG;
-						value = evaluation.total;
-					}
-					//console.log("evaluation finished.");
-
-					evaluator.buzy = false;
-				}
-
-				return {move: branch.move, value: value * reversion, bmc: branch.bmc, prediction: branch.prediction};
-			};
-
-			branch.task = run();
-			//console.log("fen:", branch.fen);
-		}
-		//this.emit("log", "-< moves evaluting done.");
-		//console.log("branches:", branches);
-
-		const analyzation: AnalyzationBranch[] = await Promise.all(branches.map(branch => branch.task));
-		this.emit("log", "-< moves evaluting done.");
-
-		if (this.analyzingFEN !== fen)
-			return;
-
-		analyzation.sort((m1, m2) => m2.value - m1.value);
-
-		this.emit("analyzation", analyzation);
-	}*/
-
-
-	async analyze (fen: string) {
 		const result = await this.go(fen, {depth: 10});
 		//console.log("result:", result);
 
@@ -367,6 +333,45 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 		});
 
 		this.emit("analyzation", {fen: fen, branches});
+	}*/
+
+
+	async analyze (fen: string) {
+		++this.analyzingIndex;
+		const analyzingIndex = this.analyzingIndex;
+
+		let onPVs = null;
+
+		const thinker = await this.getIdleThinker();
+		thinker.goPonder(fen, pvs => {
+			if (onPVs)
+				onPVs(pvs);
+		});
+
+		this.emit("log", "> Analyzer pondering.");
+
+		while (true) {
+			const pvs = await new Promise<PVInfo[]>(resolve => onPVs = resolve);
+			if (this.analyzingIndex !== analyzingIndex)
+				break;
+
+			this.emit("log", `< Analyzer ponder: depth ${pvs[0].depth} score ${Number.isFinite(pvs[0].scoreCP) ? pvs[0].scoreCP : "m" + pvs[0].scoreMate} pv ${pvs[0].pv.map(move => move.join("")).join(" ")}`);
+
+			const branches: AnalyzationBranch[] = pvs.map(info => {
+				const value = Number.isFinite(info.scoreCP) ? info.scoreCP * 0.01 : (MATE_VALUE * Math.sign(info.scoreMate) - info.scoreMate);
+		
+				return {
+					move: info.move,
+					value,
+					pv: info.pv,
+					bmc: info.bmc,
+				};
+			});
+
+			this.emit("analyzation", {fen, branches});
+		}
+
+		await thinker.stop();
 	}
 };
 

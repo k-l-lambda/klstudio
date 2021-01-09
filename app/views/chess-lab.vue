@@ -263,7 +263,7 @@
 
 				// softmax values
 				const items = this.analyzation.branches.map(item => ({...item}));
-				items.forEach(item => item.valueExp = Math.exp(item.value * 1));
+				items.forEach(item => item.valueExp = Math.exp(item.value * 3));
 
 				const expsum = items.reduce((sum, item) => sum + item.valueExp, 0);
 				//console.log("expsum:", expsum);
@@ -663,7 +663,7 @@
 							this.$refs.engineLogs.innerText += data + "\n";
 							if (this.$refs.engineLogs.innerText.length > 0x4000) {
 								const lines = this.$refs.engineLogs.innerText = this.$refs.engineLogs.innerText.split("\n");
-								this.$refs.engineLogs.innerText = lines.slice(Math.max(lines.length - 80, 0)).join("\n");
+								this.$refs.engineLogs.innerText = lines.slice(Math.max(lines.length - 90, 0)).join("\n");
 							}
 
 							const section = this.$refs.engineLogs.parentElement;

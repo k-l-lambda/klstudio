@@ -30,6 +30,7 @@ const mountAnalyzer = ({analyzerURL}) => {
 		body.analyzing
 		{
 			padding-right: max(40vw, 142vh);
+			margin-right: 0 !important;
 		}
 
 		.analyzing .base-layout

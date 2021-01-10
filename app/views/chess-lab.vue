@@ -427,7 +427,7 @@
 				if (this.board) {
 					this.board.resize();
 
-					this.asideWidth = (window.innerWidth - this.$refs.board.clientWidth) / 2;
+					this.asideWidth = (this.$el.clientWidth - this.$refs.board.clientWidth) / 2;
 
 					this.$nextTick(() => this.checkerSize = this.$refs.board.querySelector(".board-b72b1").clientWidth / 8);
 				}
@@ -532,7 +532,7 @@
 
 
 			undoMove () {
-				if (this.currentHistoryIndex > 0) {
+				if (this.currentHistoryIndex >= 0) {
 					this.game.undo();
 					this.syncBoard();
 					this.updateStatus();

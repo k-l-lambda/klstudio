@@ -18,6 +18,8 @@ TODO:
 
 2021.1.10	K.L.	<k.l.lambda@gmail.com>
 
+	+	chess-lab.vue: engine player agents added.
+
 	+	chess-lab.vue: players controls added.
 
 	+	chess-lab.vue: checking mark added.

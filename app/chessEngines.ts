@@ -1,6 +1,6 @@
 
 import {EventEmitter} from "events";
-//import Chess from "chess.js";
+import Chess from "chess.js";
 
 import {msDelay} from "./delay";
 
@@ -14,7 +14,12 @@ interface EngineAgent {
 };
 
 
-interface EnginePlayer extends EngineAgent {};
+interface EnginePlayer {
+	terminate (): void;
+	on (name: string, handler: Function): void;
+
+	go (fen: string): Promise<string>;
+};
 
 
 interface EngineAnalyzer extends EngineAgent {
@@ -382,10 +387,30 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 };
 
 
-// TODO:
 class WorkerPlayer extends WorkerAgent implements EnginePlayer {
 	constructor (worker: Worker) {
 		super(worker);
+	}
+
+	go (fen: string) {
+		// TODO:
+		return null;
+	}
+};
+
+
+class RandomPlayer implements EnginePlayer {
+	terminate () {}
+	on () {}
+
+
+	go (fen: string) {
+		const game = new Chess(fen);
+		const moves = game.moves();
+		if (moves.length)
+			return moves[Math.floor(moves.length * Math.random())];
+
+		return null;
 	}
 };
 
@@ -405,7 +430,6 @@ export const players: {[key: string]: () => EnginePlayer} = {
 
 
 	Random () {
-		// TODO:
-		return null;
+		return new RandomPlayer();
 	},
 };

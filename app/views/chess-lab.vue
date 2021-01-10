@@ -51,7 +51,7 @@
 				<CheckButton v-if="chosenAnalyzer" v-model="showArrowMarks" title="show arrows on board" content="&#x21e7;" />
 			</section>
 			<section class="engine players">
-				<h3>Players</h3> <button>&#x25b6;</button>
+				<h3>Players</h3> <button @click="runPlayer">&#x25b6;</button>
 				<p class="white">
 					<span class="icon"></span>
 					<select v-model="chosenWhitePlayer">
@@ -704,6 +704,21 @@
 				this.syncBoard();
 				this.updateStatus();
 			},
+
+
+			async runPlayer () {
+				let move = null;
+				if (this.whiteOnTurn && this.whitePlayer)
+					move = await this.whitePlayer.go(this.game.fen());
+				else if (!this.whiteOnTurn && this.blackPlayer)
+					move = await this.blackPlayer.go(this.game.fen());
+
+				if (move) {
+					this.game.move(move);
+					this.syncBoard();
+					this.updateStatus();
+				}
+			},
 		},
 
 
@@ -818,6 +833,28 @@
 
 					this.triggerAnalyzer();
 				}
+			},
+
+
+			chosenWhitePlayer (value) {
+				if (this.whitePlayer) {
+					this.whitePlayer.terminate();
+					this.whitePlayer = null;
+				}
+
+				if (value)
+					this.whitePlayer = chessEngines.players[value]();
+			},
+
+
+			chosenBlackPlayer (value) {
+				if (this.blackPlayer) {
+					this.blackPlayer.terminate();
+					this.blackPlayer = null;
+				}
+
+				if (value)
+					this.blackPlayer = chessEngines.players[value]();
 			},
 
 

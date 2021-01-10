@@ -235,6 +235,7 @@
 				showNotationTips: false,
 				showArrowMarks: true,
 				lastMove: null,
+				checkSquare: null,
 			};
 		},
 
@@ -542,6 +543,14 @@
 					//from: coordinateXY(lastMove.from),
 					//to: coordinateXY(lastMove.to),
 				};
+
+				this.checkSquare = null;
+				if (this.game.in_check()) {
+					const pieces = Object.entries(this.board.position());
+					const item = pieces.find(([_, piece]) => piece === this.game.turn() + "K");
+					if (item)
+						this.checkSquare = item[0];
+				}
 			},
 
 
@@ -806,6 +815,13 @@
 					document.querySelector(`.square-${value.to}`).classList.add("last-move", "to");
 				}
 			},
+
+
+			checkSquare (value) {
+				document.querySelectorAll(".square-55d63.checking").forEach(elem => elem.classList.remove("checking"));
+				if (value)
+					document.querySelector(`.square-${value}`).classList.add("checking");
+			},
 		},
 	};
 </script>
@@ -863,9 +879,23 @@
 				filter: hue-rotate(-10deg) saturate(180%);
 			}
 		}
+
 		&.last-move.to img
 		{
 			filter: drop-shadow(0 0 3px #000a);
+		}
+
+		&.checking
+		{
+			&.white-1e1d7
+			{
+				background-color: #f66;
+			}
+
+			&.black-3c85d
+			{
+				background-color: #800;
+			}
 		}
 	}
 </style>

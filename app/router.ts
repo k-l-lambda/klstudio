@@ -47,7 +47,7 @@ export const routes = [
 	},
 	{
 		path: "/documents/flipping-cube-demo",
-		name: "Flipping Cube",
+		name: "Flipping Cube Demo",
 		component: () => import(/* webpackChunkName: "flipping-cube" */ "./views/flipping-cube.vue"),
 		props: {demo: true},
 	},
@@ -58,7 +58,7 @@ export const routes = [
 	},
 	{
 		path: "/documents/cube-multiplication-demo",
-		name: "Cube Multiplication",
+		name: "Cube Multiplication Demo",
 		component: () => import(/* webpackChunkName: "cube-multiplication" */ "./views/cube-multiplication.vue"),
 		props: {demo: true},
 	},
@@ -69,7 +69,7 @@ export const routes = [
 	},
 	{
 		path: "/documents/static-labeled-cube3-demo",
-		name: "Static Labeled Cube3",
+		name: "Static Labeled Cube3 Demo",
 		component: () => import(/* webpackChunkName: "static-labeled-cube3" */ "./views/static-labeled-cube3.vue"),
 		props: {demo: true},
 	},
@@ -80,9 +80,15 @@ export const routes = [
 	},
 	{
 		path: "/documents/dynamic-labeled-cube3-demo",
-		name: "Dynamic Labeled Cube3",
+		name: "Dynamic Labeled Cube3 Demo",
 		component: () => import(/* webpackChunkName: "dynamic-labeled-cube3" */ "./views/dynamic-labeled-cube3.vue"),
 		props: {demo: true},
+	},
+	{
+		path: "/documents/dynamic-labeled-cube3-twists::demoPath",
+		name: "Dynamic Labeled Cube3 Twists",
+		component: () => import(/* webpackChunkName: "dynamic-labeled-cube3" */ "./views/dynamic-labeled-cube3.vue"),
+		props: true,
 	},
 	{
 		path: "/documents/cube3-multiplication",
@@ -91,7 +97,7 @@ export const routes = [
 	},
 	{
 		path: "/documents/cube3-multiplication-demo",
-		name: "Cube3 Multiplication",
+		name: "Cube3 Multiplication Demo",
 		component: () => import(/* webpackChunkName: "cube3-multiplication" */ "./views/cube3-multiplication.vue"),
 		props: {demo: true},
 	},
@@ -139,6 +145,11 @@ export const routes = [
 		path: "/tools/webm-fixer",
 		name: "WEBM Fixer",
 		component: () => import(/* webpackChunkName: "webm-fixer", */ "./views/webm-fixer.vue"),
+	},
+	{
+		path: "/chess-lab",
+		name: "Chess Lab",
+		component: () => import(/* webpackChunkName: "chess-lab", */ "./views/chess-lab.vue"),
 	},
 ];
 

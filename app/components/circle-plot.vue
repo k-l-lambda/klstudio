@@ -67,7 +67,7 @@
 
 
 		async created () {
-			const {default: Plotly} = await import("../plotly.min.js") ;
+			const {default: Plotly} = await import("../third-party/plotly.min.js") ;
 			//console.log("Plotly:", Plotly);
 			this.Plotly = Plotly;
 			//console.assert(window.Plotly, "plotly is required.");

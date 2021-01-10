@@ -1,22 +1,31 @@
 <template>
 	<div class="dynamic-labeled-cube3" v-resize="onResize"
+		:class="{captional: showCaption}"
 		@mousemove="onMouseMove"
 		@mouseup="onMouseUp"
 		:style="{'--matrix-font-size': size && `${Math.min(size.width * .015, size.height * .025)}px`}"
 	>
-		<LabeledCube3 ref="cube"
-			:size="canvasSize"
-			:showRedLabels="true"
-			:coloredUnderbox="true"
-			:showOrientations="true"
-			@cubeCreated="onCubeCreated"
-			:code.sync="code"
-			:highlightCubie.sync="highlightCubie"
-			@sceneInitialized="onSceneInitialized"
-		/>
-		<div class="matrix-side">
-			<Cube3Matrix v-if="showMatrix && cube" ref="matrix" :cube="cube" :highlightCubie="highlightCubie" />
-		</div>
+		<main>
+			<LabeledCube3 ref="cube"
+				:size="canvasSize"
+				:showRedLabels="true"
+				:coloredUnderbox="true"
+				:showOrientations="true"
+				@cubeCreated="onCubeCreated"
+				:code.sync="code"
+				:highlightCubie.sync="highlightCubie"
+				@sceneInitialized="onSceneInitialized"
+			/>
+			<div class="matrix-side">
+				<Cube3Matrix v-if="showMatrix && cube" ref="matrix" :cube="cube" :highlightCubie="highlightCubie" :vector.sync="vector" />
+			</div>
+		</main>
+		<header v-if="showCaption">
+			<p v-if="twistsSeq" class="twists">
+				<span v-for="(twist, i) of twistsSeq" :key="i" v-html="twist"></span>
+			</p>
+			<h1 v-if="vectorText" v-html="vectorText"></h1>
+		</header>
 	</div>
 </template>
 
@@ -26,7 +35,8 @@
 	import url from "url";
 
 	import {animationDelay, msDelay} from "../delay";
-	import {invertPath, invertTwist} from "../../inc/cube3";
+	import {invertPath, invertTwist, parsePath} from "../../inc/cube3";
+	import {GREEK_LETTERS, ORIENTATION_GREEK_LETTER_ORDER} from "../../inc/greek-letters";
 
 	import LabeledCube3 from "../components/labeled-cube3.vue";
 	import Cube3Matrix from "../components/cube3-matrix.vue";
@@ -35,6 +45,11 @@
 
 	const TWIST_KEYS = "LrDuBflRdUbF";
 
+	const TWIST_NAMES = [
+		"L'", "R", "D'", "U", "B'", "F",
+		"L", "R'", "D", "U'", "B", "F'",
+		"L<sup>2</sup>", "R<sup>2</sup>", "D<sup>2</sup>", "U<sup>2</sup>", "B<sup>2</sup>", "F<sup>2</sup>",
+	];
 
 
 	export default {
@@ -57,7 +72,9 @@
 				type: Boolean,
 				default: true,
 			},
+			showCaption: Boolean,
 			demo: Boolean,
+			demoPath: String,
 		},
 
 
@@ -67,13 +84,20 @@
 				cube: null,
 				code: null,
 				highlightCubie: null,
+				vector: null,
+				twistsSeq: [],
 			};
 		},
 
 
 		computed: {
 			canvasSize () {
-				return this.size && {width: Math.max(this.size.width * .4, this.size.height * 0.7), height: this.size.height};
+				return this.size && {width: Math.max(this.size.width * .5, this.size.height * 0.7), height: this.size.height};
+			},
+
+
+			vectorText () {
+				return this.vector && this.vector.map(index => GREEK_LETTERS[ORIENTATION_GREEK_LETTER_ORDER[index]]).join("");
 			},
 		},
 
@@ -128,6 +152,8 @@
 
 					this.animate();
 				}
+				else if (this.demoPath)
+					this.twists(this.demoPath);
 			},
 
 
@@ -172,7 +198,23 @@
 			},
 
 
-			async rotate () {
+			async twists (pathText) {
+				this.$refs.cube.cubeGroup.quaternion.setFromEuler(new THREE.Euler(Math.PI * 0.16, Math.PI * 0.309, 0));
+				this.animating = true;
+
+				const path = parsePath(pathText);
+				this.twistsSeq = [];
+
+				for (const twist of path) {
+					this.twistsSeq.push(TWIST_NAMES[twist]);
+					await this.$refs.cube.twist(twist);
+				}
+
+				this.rotate(-3e-4);
+			},
+
+
+			async rotate (speed = -1e-4) {
 				const start = Date.now();
 				let time = start;
 
@@ -181,7 +223,7 @@
 					const elapsed = now - time;
 					time = now;
 
-					this.$refs.cube.cubeGroup.rotateOnAxis(new THREE.Vector3(0, 1, 0), elapsed * -1e-4);
+					this.$refs.cube.cubeGroup.rotateOnAxis(new THREE.Vector3(0, 1, 0), elapsed * speed);
 					this.$refs.cube.cubeGroup.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), Math.cos((time - start) * 1e-5) * elapsed * .4e-6);
 
 					await animationDelay();
@@ -259,28 +301,74 @@
 		height: 100%;
 		background-color: lightblue;
 
-		display: flex;
-		flex-direction: row;
-
-		.labeled-cube3
+		main
 		{
-			flex: 0 0 auto;
-			position: relative;
+			width: 100%;
+			height: 100%;
+			display: flex;
+			flex-direction: row;
+
+			.labeled-cube3
+			{
+				flex: 0 0 auto;
+				position: relative;
+			}
+
+			.matrix-side
+			{
+				flex: 1 1 auto;
+				position: relative;
+
+				.cube3-matrix
+				{
+					user-select: none;
+					position: absolute;
+					left: 0;
+					top: 50%;
+					transform: translate(0, -50%);
+					font-size: var(--matrix-font-size);
+				}
+			}
 		}
 
-		.matrix-side
+		&.captional
 		{
-			flex: 1 1 auto;
-			position: relative;
-
-			.cube3-matrix
+			main
 			{
-				user-select: none;
-				position: absolute;
-				left: 0;
-				top: 50%;
-				transform: translate(0, -50%);
-				font-size: var(--matrix-font-size);
+				padding-top: 40px;
+			}
+		}
+
+		header
+		{
+			position: absolute;
+			top: 0;
+			width: 100%;
+			text-align: center;
+			padding: 10px 0;
+
+			h1
+			{
+				font-size: 60px;
+				font-family: monospace;
+				color: black;
+				margin: .1em 0;
+			}
+
+			.twists
+			{
+				padding: 0 0 0 24%;
+				text-align: left;
+				font-size: 40px;
+				height: 1em;
+				margin: 0;
+				font-family: Verdana, Arial, Helvetica, sans-serif;
+
+				span
+				{
+					display: inline-block;
+					margin: 0 .1em;
+				}
 			}
 		}
 	}

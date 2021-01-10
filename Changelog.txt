@@ -1,5 +1,11 @@
 
 TODO:
+	chess-lab:
+		win rates from history
+		check mark
+		last move mark
+		promote option controls
+		engine players
 	cube3-multiplication: twist cube individually by user
 	stylegan-mapping.vue
 		show images on z-graph
@@ -10,6 +16,137 @@ TODO:
 		test solveCubeBinary
 		invalid solution issue.
 
+
+
+2021.1.10	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: added crown icons on winrate panel.
+
+
+2021.1.9	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: added controls for arrow marks visibility.
+
+	+	chessEngines.ts: refined analyzer by go ponder.
+
+	+	chess-lab.vue: best move mark added.
+
+	+	chess-lab.vue: setHistory added.
+
+
+2021.1.8	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: refined checkmate mark.
+
+
+2021.1.7	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: notation control tips added.
+
+
+2021.1.6	K.L.	<k.l.lambda@gmail.com>
+
+	+	chessEngines.ts: added null protection for WorkerAgent.
+
+	+	chess-lab.vue: game result mark added.
+
+
+2021.1.5	K.L.	<k.l.lambda@gmail.com>
+
+	+	chessEngines.ts: refined WorkerAnalyzer by mutliPV.
+
+	+	chessEngines.ts: refined WorkerAnalyzer tasks.
+
+
+2021.1.4	K.L.	<k.l.lambda@gmail.com>
+
+	+	chessEngines.ts: added searching in WorkerAnalyzer.
+
+	+	chessEngines.ts: WorkerEvaluator.go added.
+
+
+2021.1.3	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: arrows visualization added.
+
+	+	chess-lab.vue: noticableMoves added.
+
+	+	chessEngines.ts: added multiple evaluators for WorkerAnalyzer.
+
+	+	chess-lab.vue: analyzer controls added.
+
+
+2021.1.2	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: PGN file importing added.
+	+	chess-lab.vue: PGN file exporting added.
+
+	+	chess-lab.vue: PGN box added.
+
+	+	chess-lab.vue: move list picking added.
+
+
+2021.1.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: undo/redo implemented.
+
+	+	chess-lab.vue: store notation in session storage.
+
+	+	chess-lab.vue: move list UI added.
+
+	+	chess-lab.vue: game status synchronization implemented.
+
+	+	chess-lab.vue: game added.
+
+	+	chess-lab.vue: board resizing added.
+
+
+2020.12.31	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: turn button added.
+
+
+2020.12.27	K.L.	<k.l.lambda@gmail.com>
+
+	+	App entry of chess-lab.
+
+
+2020.12.25	K.L.	<k.l.lambda@gmail.com>
+
+	*	Cube3 patterns:
+			checkerboard			U2 D2 L2 R2 F2 B2												AAAAAAAAHIIHJJJJHIIHJIHHIJ
+			checkerboard2			D2 F2 U' B2 F2 L2 R2 D R' B F D' U L R D2 U2 F' U2
+			facing checkerboards	D2 F2 U2 B2 F2 U2 F2 U2
+			wire					U L2 B' L2 D2 U2 R2 F' R2 U'									IAAIAIIAIAAIIIIIIAAIDIAAIG
+			spiral					U B2 U2 F2 U L2 B L' D' F L B L D2 L B' D' L U					AKKKKKKADBKKCKKCKKBDDAEACG
+			stripes					F2 U F2 D R2 F2 U' L2 B F' R D' U B2 R2 F' L' R' U'				FCFCCFCFAFCAAAAAACFADAEAAA
+			cross					D2 U' B2 L2 R2 D2 U2 F2 L2 R2 U'								MMMMMMMMAAAAAAAAAAAAJAAAAJ
+			cube in cube			U2 R2 F2 U B2 D' L' F L' F L' F D B2 U							AKKKKKKAAAKKAKKAKKAAAAEHAD
+			cube in cube in cube	D2 F2 D' F2 U' R2 F D R F' D F' L D F2 L' U F2					KUUUUUUKAAUUAUUAUUAAAAAEAG
+			anaconda				U B2 L D B' F L' D U' L' R F' D2 R'								KKKKKKKKKKAAKAAKAAKKGABAAA
+			python					D R2 B2 D' U R' B F' U' B2 U B' F R' U'							MMMMMMMMMMAAAAMMMAMAAAAAAA
+			four spots				D B2 F2 D U' L2 R2 U'
+			six spots				D' U L' R B' F D' U												KKKKKKKKKKKKKKKKKKKKDIBBID
+			twister					U' F2 U F' R2 F R U2 R2 U2 R' U' F2 U							AUUUUUUAAAUAAAUAUAAAAAAAAA
+			tetris					L R B F D' U' L' R'												LKONLKONLOKNLKONKLNOGCAAFD
+			black mamba				R2 F2 D R2 B2 R B2 D' R2 F' R' D R' F' R' D'					TTTTTTTTATTATTABCAATAAAAAA
+			green mamba				D' U2 L D F U' L' R F R' F' U' F'
+			six Ts					D2 B2 L2 D U' R2 F2 D' U'
+			twisted peaks			U F2 D' L2 F2 R' F2 L' B' F' D2 R' D' R' F' U R'				KAAAAAAKKKAAKAAKAAKKDAEAIA
+			chicken feet			B2 D F2 U' L2 B' D2 B U B' D2 F L R' D U F'
+			duck feet				R2 B2 D2 L2 U L2 D B L2 U2 B2 L' R2 F2 D' U R U2 R'
+			pillars					L2 U' B2 U F2 U R2 U' L' F D' U' B2 D' B' D F2 U2 F'			VPSPVMSMAHPAVHSHAHMADCEHCA
+			flower					D' B2 F2 U2 L2 R2 U' R D' U B F D2 U2 F2 L R' U'				LLLLLLLLQUUQTTTTQUUQDABHFD
+			the superflip			D' B2 D' L2 D R2 D2 B2 L2 U' B' F' R F2 D U R2 U2 F' L' R'		AAAAAAAAWMPXVSSVXPMWDIBAIA
+
+	+	dynamic-labeled-cube3.vue: twist path added.
+
+
+2020.12.24	K.L.	<k.l.lambda@gmail.com>
+
+	+	dynamic-labeled-cube3.vue: vector code caption added.
+
+	+	cube3-player.vue: method of roll added.
 
 
 2020.12.19	K.L.	<k.l.lambda@gmail.com>

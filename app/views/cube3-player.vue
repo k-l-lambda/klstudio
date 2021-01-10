@@ -19,6 +19,7 @@
 	import Cube3 from "../components/cube3.vue";
 
 	import {stringifyPath, parsePath} from "../../inc/cube3.ts";
+	import rollQuaternion from "../roll-quaternion";
 
 
 
@@ -119,6 +120,17 @@
 				const [path] = location.hash.match(/^#\/[^#]*/) || [];
 
 				return path ? path + "#" : "";
+			},
+
+
+			async roll () {
+				await rollQuaternion(this.$refs.viewer.cube.graph.quaternion, {
+					onSegment: () => true,
+					segmentDuration: 1.2e+3,
+					segmentInterval: 100,
+					pitchSpan: Math.PI,
+					rollSpan: Math.PI * 0.6,
+				});
 			},
 		},
 

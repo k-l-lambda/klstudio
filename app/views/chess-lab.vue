@@ -28,6 +28,10 @@
 								:fill="move.arrow.fill"
 							/>
 						</g>
+						<!--g class="last-move" v-if="lastMove">
+							<rect width="100" height="100" :x="lastMove.from.x * 100" :y="lastMove.from.y * 100" />
+							<rect width="100" height="100" :x="lastMove.to.x * 100" :y="lastMove.to.y * 100" />
+						</g-->
 					</g>
 				</g>
 				<text class="result" :class="{flipped: orientationFlipped, mate: gameResult !== 'draw'}" v-if="gameResult" :x="400" :y="500">
@@ -230,6 +234,7 @@
 				PGN_WIDGETS,
 				showNotationTips: false,
 				showArrowMarks: true,
+				lastMove: null,
 			};
 		},
 
@@ -528,6 +533,15 @@
 				this.gameResult = null;
 				if (this.game.game_over())
 					this.gameResult = this.game.in_draw() ? "draw" : (this.whiteOnTurn ? "black" : "white");
+
+				const historyVerbose = this.game.history({verbose: true});
+				const lastMove = historyVerbose.length ? historyVerbose[historyVerbose.length - 1] : null;
+				this.lastMove = lastMove && {
+					from: lastMove.from,
+					to: lastMove.to,
+					//from: coordinateXY(lastMove.from),
+					//to: coordinateXY(lastMove.to),
+				};
 			},
 
 
@@ -785,9 +799,13 @@
 			},
 
 
-			/*analyzation (value) {
-				console.log("analyzation:", value);
-			},*/
+			lastMove (value) {
+				document.querySelectorAll(".square-55d63.last-move").forEach(elem => elem.classList.remove("last-move", "from", "to"));
+				if (value) {
+					document.querySelector(`.square-${value.from}`).classList.add("last-move", "from");
+					document.querySelector(`.square-${value.to}`).classList.add("last-move", "to");
+				}
+			},
 		},
 	};
 </script>
@@ -831,6 +849,23 @@
 		.board-b72b1
 		{
 			outline: 4px solid #7fa650;
+		}
+	}
+
+	.square-55d63
+	{
+		&.last-move
+		{
+			filter: contrast(170%);
+
+			&.white-1e1d7
+			{
+				filter: hue-rotate(-10deg) saturate(180%);
+			}
+		}
+		&.last-move.to img
+		{
+			filter: drop-shadow(0 0 3px #000a);
 		}
 	}
 </style>
@@ -900,6 +935,16 @@
 						transform: rotate(-90deg);
 					}
 				}
+
+				/*.last-move
+				{
+					rect
+					{
+						fill: transparent;
+						stroke: #a00;
+						stroke-width: 5px;
+					}
+				}*/
 			}
 		}
 

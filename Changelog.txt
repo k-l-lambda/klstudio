@@ -20,6 +20,8 @@ TODO:
 
 2021.1.10	K.L.	<k.l.lambda@gmail.com>
 
+	+	chess-lab.vue: last move mark added.
+
 	+	chess-lab.vue: added crown icons on winrate panel.
 
 

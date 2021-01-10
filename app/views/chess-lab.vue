@@ -44,13 +44,15 @@
 					<option :value="null">(None)</option>
 					<option v-for="name of engineAnalyzerList" :key="name">{{name}}</option>
 				</select>
-				<CheckButton v-if="chosenAnalyzer" v-model="showArrowMarks" title="show arrows" content="&#x21e7;" />
+				<CheckButton v-if="chosenAnalyzer" v-model="showArrowMarks" title="show arrows on board" content="&#x21e7;" />
 			</section>
 			<section class="engine-logs">
 				<pre ref="engineLogs"></pre>
 			</section>
 			<section class="winrate" v-if="winRates">
 				<Chart ref="winrateChart" type="Line" :sourceData="winrateChart" />
+				<span class="white crown"></span>
+				<span class="black crown"></span>
 			</section>
 		</aside>
 		<aside class="right-sider">
@@ -995,6 +997,27 @@
 			{
 				flex: 0 0 auto;
 				padding: 0;
+				position: relative;
+
+				.crown
+				{
+					position: absolute;
+					left: 0;
+					width: 16px;
+					height: 16px;
+
+					&.white
+					{
+						background-image: url(../assets/chess/crown-white.svg);
+						top: 0;
+					}
+
+					&.black
+					{
+						background-image: url(../assets/chess/crown-black.svg);
+						bottom: 0;
+					}
+				}
 			}
 		}
 

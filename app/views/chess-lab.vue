@@ -489,6 +489,9 @@
 						return "snapback";
 
 					this.updateStatus();
+
+					this.$nextTick(() => this.runPlayer());
+
 				}
 				else
 					this.editDirty = true;
@@ -717,6 +720,8 @@
 					this.game.move(move);
 					this.syncBoard();
 					this.updateStatus();
+
+					this.$nextTick(() => this.runPlayer());
 				}
 			},
 		},

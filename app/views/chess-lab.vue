@@ -42,13 +42,30 @@
 			</svg>
 		</main>
 		<aside class="left-sider">
-			<section class="analyzer" :class="{active: chosenAnalyzer}">
+			<section class="engine analyzer" :class="{active: chosenAnalyzer}">
 				<h3>Analyzer</h3>
 				<select v-model="chosenAnalyzer">
 					<option :value="null">(None)</option>
 					<option v-for="name of engineAnalyzerList" :key="name">{{name}}</option>
 				</select>
 				<CheckButton v-if="chosenAnalyzer" v-model="showArrowMarks" title="show arrows on board" content="&#x21e7;" />
+			</section>
+			<section class="engine players">
+				<h3>Players</h3> <button>&#x25b6;</button>
+				<p class="white">
+					<span class="icon"></span>
+					<select v-model="chosenWhitePlayer">
+						<option :value="null">User</option>
+						<option v-for="name of enginePlayerList" :key="name">{{name}}</option>
+					</select>
+				</p>
+				<p class="black">
+					<span class="icon"></span>
+					<select v-model="chosenBlackPlayer">
+						<option :value="null">User</option>
+						<option v-for="name of enginePlayerList" :key="name">{{name}}</option>
+					</select>
+				</p>
 			</section>
 			<section class="engine-logs">
 				<pre ref="engineLogs"></pre>
@@ -228,6 +245,8 @@
 				engineAnalyzerList: Object.keys(chessEngines.analyzers),
 				enginePlayerList: Object.keys(chessEngines.players),
 				chosenAnalyzer: null,
+				chosenWhitePlayer: null,
+				chosenBlackPlayer: null,
 				analyzation: null,
 				winRates: null,
 				gameResult: null,
@@ -1026,7 +1045,7 @@
 				font-size: 16px;
 			}
 
-			.analyzer
+			.engine
 			{
 				flex: 0 0 auto;
 				padding: .4em;
@@ -1040,6 +1059,42 @@
 				& > * + *
 				{
 					margin-left: .6em;
+				}
+			}
+
+			.players
+			{
+				p
+				{
+					margin: .6em;
+
+					& > *
+					{
+						vertical-align: middle;
+					}
+
+					& > * + *
+					{
+						margin-left: .6em;
+					}
+				}
+
+				.icon
+				{
+					display: inline-block;
+					width: 1.2em;
+					height: 1.2em;
+					background-size: contain;
+				}
+
+				.white .icon
+				{
+					background-image: url(../assets/chess/wP.svg);
+				}
+
+				.black .icon
+				{
+					background-image: url(../assets/chess/bP.svg);
 				}
 			}
 

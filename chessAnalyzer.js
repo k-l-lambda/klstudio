@@ -25,6 +25,9 @@ const mountAnalyzer = ({analyzerURL}) => {
 			height: 100vh;
 			min-width: 142vh;
 			width: 40vw;
+			border-right: 0;
+			border-top: 0;
+			border-bottom: 0;
 		}
 
 		body.analyzing

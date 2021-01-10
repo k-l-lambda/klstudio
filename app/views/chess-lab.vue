@@ -1023,12 +1023,13 @@
 			{
 				display: inline-block;
 				margin: 0;
+				font-size: 16px;
 			}
 
 			.analyzer
 			{
 				flex: 0 0 auto;
-				padding: 1em;
+				padding: .4em;
 
 				&.active select
 				{
@@ -1038,7 +1039,7 @@
 
 				& > * + *
 				{
-					margin-left: 1em;
+					margin-left: .6em;
 				}
 			}
 

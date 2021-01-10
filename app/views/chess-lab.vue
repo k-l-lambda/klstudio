@@ -363,7 +363,7 @@
 				draggable: true,
 				dropOffBoard: "trash",
 				sparePieces: true,
-				pieceTheme: "/chess/pieces/alpha/{piece}.png",
+				pieceTheme: "chess/pieces/alpha/{piece}.png",
 				position: "start",
 				onDragStart: this.onDragStart.bind(this),
 				onDrop: this.onDrop.bind(this),
@@ -371,11 +371,6 @@
 			};
 
 			this.game = new Chess();
-
-			/*this.stockfish = new Worker("/chess/engines/stockfish.js");
-			this.stockfish.onmessage = event => {
-				console.log("stockfish:", event.data);
-			};*/
 
 			const keyDownHandler = () => {
 				switch (event.code) {

@@ -393,14 +393,14 @@ class WorkerPlayer extends WorkerAgent implements EnginePlayer {
 
 export const analyzers: {[key: string]: () => EngineAnalyzer} = {
 	Stockfish () {
-		return new WorkerAnalyzer(() => new Worker("/chess/engines/stockfish.js"));
+		return new WorkerAnalyzer(() => new Worker("chess/engines/stockfish.js"));
 	},
 };
 
 
 export const players: {[key: string]: () => EnginePlayer} = {
 	Stockfish () {
-		return new WorkerPlayer(new Worker("/chess/engines/stockfish.js"));
+		return new WorkerPlayer(new Worker("chess/engines/stockfish.js"));
 	},
 
 

@@ -15,6 +15,8 @@
 		<BoolStoreInput v-show="false" v-model="orientationFlipped" sessionKey="chessLab.orientationFlipped" />
 		<BoolStoreInput v-show="false" v-model="showArrowMarks" localKey="chessLab.showArrowMarks" />
 		<StoreInput v-show="false" v-model="chosenAnalyzer" localKey="chessLab.chosenAnalyzer" />
+		<StoreInput v-show="false" v-model="chosenWhitePlayer" sessionKey="chessLab.chosenWhitePlayer" />
+		<StoreInput v-show="false" v-model="chosenBlackPlayer" sessionKey="chessLab.chosenBlackPlayer" />
 		<main>
 			<div id="board" ref="board"></div>
 			<svg v-show="!editMode" class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">
@@ -28,6 +30,10 @@
 								:fill="move.arrow.fill"
 							/>
 						</g>
+						<!--g class="last-move" v-if="lastMove">
+							<rect width="100" height="100" :x="lastMove.from.x * 100" :y="lastMove.from.y * 100" />
+							<rect width="100" height="100" :x="lastMove.to.x * 100" :y="lastMove.to.y * 100" />
+						</g-->
 					</g>
 				</g>
 				<text class="result" :class="{flipped: orientationFlipped, mate: gameResult !== 'draw'}" v-if="gameResult" :x="400" :y="500">
@@ -38,13 +44,30 @@
 			</svg>
 		</main>
 		<aside class="left-sider">
-			<section class="analyzer" :class="{active: chosenAnalyzer}">
+			<section class="engine analyzer" :class="{active: chosenAnalyzer}">
 				<h3>Analyzer</h3>
 				<select v-model="chosenAnalyzer">
 					<option :value="null">(None)</option>
 					<option v-for="name of engineAnalyzerList" :key="name">{{name}}</option>
 				</select>
 				<CheckButton v-if="chosenAnalyzer" v-model="showArrowMarks" title="show arrows on board" content="&#x21e7;" />
+			</section>
+			<section class="engine players">
+				<h3>Players</h3> <button @click="runPlayer">&#x25b6;</button>
+				<p class="white">
+					<span class="icon"></span>
+					<select v-model="chosenWhitePlayer">
+						<option :value="null">User</option>
+						<option v-for="name of enginePlayerList" :key="name">{{name}}</option>
+					</select>
+				</p>
+				<p class="black">
+					<span class="icon"></span>
+					<select v-model="chosenBlackPlayer">
+						<option :value="null">User</option>
+						<option v-for="name of enginePlayerList" :key="name">{{name}}</option>
+					</select>
+				</p>
 			</section>
 			<section class="engine-logs">
 				<pre ref="engineLogs"></pre>
@@ -224,12 +247,16 @@
 				engineAnalyzerList: Object.keys(chessEngines.analyzers),
 				enginePlayerList: Object.keys(chessEngines.players),
 				chosenAnalyzer: null,
+				chosenWhitePlayer: null,
+				chosenBlackPlayer: null,
 				analyzation: null,
 				winRates: null,
 				gameResult: null,
 				PGN_WIDGETS,
 				showNotationTips: false,
 				showArrowMarks: true,
+				lastMove: null,
+				checkSquare: null,
 			};
 		},
 
@@ -427,7 +454,7 @@
 				if (this.board) {
 					this.board.resize();
 
-					this.asideWidth = (window.innerWidth - this.$refs.board.clientWidth) / 2;
+					this.asideWidth = (this.$el.clientWidth - this.$refs.board.clientWidth) / 2;
 
 					this.$nextTick(() => this.checkerSize = this.$refs.board.querySelector(".board-b72b1").clientWidth / 8);
 				}
@@ -464,6 +491,9 @@
 						return "snapback";
 
 					this.updateStatus();
+
+					this.$nextTick(() => this.runPlayer());
+
 				}
 				else
 					this.editDirty = true;
@@ -528,11 +558,28 @@
 				this.gameResult = null;
 				if (this.game.game_over())
 					this.gameResult = this.game.in_draw() ? "draw" : (this.whiteOnTurn ? "black" : "white");
+
+				const historyVerbose = this.game.history({verbose: true});
+				const lastMove = historyVerbose.length ? historyVerbose[historyVerbose.length - 1] : null;
+				this.lastMove = lastMove && {
+					from: lastMove.from,
+					to: lastMove.to,
+					//from: coordinateXY(lastMove.from),
+					//to: coordinateXY(lastMove.to),
+				};
+
+				this.checkSquare = null;
+				if (this.game.in_check()) {
+					const pieces = Object.entries(this.board.position());
+					const item = pieces.find(([_, piece]) => piece === this.game.turn() + "K");
+					if (item)
+						this.checkSquare = item[0];
+				}
 			},
 
 
 			undoMove () {
-				if (this.currentHistoryIndex > 0) {
+				if (this.currentHistoryIndex >= 0) {
 					this.game.undo();
 					this.syncBoard();
 					this.updateStatus();
@@ -662,6 +709,46 @@
 				this.syncBoard();
 				this.updateStatus();
 			},
+
+
+			async runPlayer () {
+				if (this.game.game_over())
+					return;
+
+				let move = null;
+				if (this.whiteOnTurn && this.whitePlayer)
+					move = await this.whitePlayer.think(this.game.fen());
+				else if (!this.whiteOnTurn && this.blackPlayer)
+					move = await this.blackPlayer.think(this.game.fen());
+
+				if (move) {
+					this.game.move({
+						from: move[0],
+						to: move[1],
+						promotion: move[2],
+					});
+					this.syncBoard();
+					this.updateStatus();
+
+					this.$nextTick(() => this.runPlayer());
+				}
+			},
+
+
+			listenLogs (agent) {
+				agent.on("log", data => {
+					if (this.$refs.engineLogs) {
+						this.$refs.engineLogs.innerText += data + "\n";
+						if (this.$refs.engineLogs.innerText.length > 0x4000) {
+							const lines = this.$refs.engineLogs.innerText = this.$refs.engineLogs.innerText.split("\n");
+							this.$refs.engineLogs.innerText = lines.slice(Math.max(lines.length - 90, 0)).join("\n");
+						}
+
+						const section = this.$refs.engineLogs.parentElement;
+						section.scrollTo(0, section.scrollHeight);
+					}
+				});
+			},
 		},
 
 
@@ -737,18 +824,8 @@
 
 				if (value) {
 					this.analyzer = chessEngines.analyzers[value]();
-					this.analyzer.on("log", data => {
-						if (this.$refs.engineLogs) {
-							this.$refs.engineLogs.innerText += data + "\n";
-							if (this.$refs.engineLogs.innerText.length > 0x4000) {
-								const lines = this.$refs.engineLogs.innerText = this.$refs.engineLogs.innerText.split("\n");
-								this.$refs.engineLogs.innerText = lines.slice(Math.max(lines.length - 90, 0)).join("\n");
-							}
 
-							const section = this.$refs.engineLogs.parentElement;
-							section.scrollTo(0, section.scrollHeight);
-						}
-					});
+					this.listenLogs(this.analyzer);
 					this.analyzer.on("analyzation", analyzation => {
 						if (analyzation.fen === this.game.fen()) {
 							this.analyzation = analyzation;
@@ -772,9 +849,35 @@
 						}
 					});
 
-					this.winRates = [];
+					this.winRates = this.winRates || [];
 
 					this.triggerAnalyzer();
+				}
+			},
+
+
+			chosenWhitePlayer (value) {
+				if (this.whitePlayer) {
+					this.whitePlayer.terminate();
+					this.whitePlayer = null;
+				}
+
+				if (value) {
+					this.whitePlayer = chessEngines.players[value]();
+					this.listenLogs(this.whitePlayer);
+				}
+			},
+
+
+			chosenBlackPlayer (value) {
+				if (this.blackPlayer) {
+					this.blackPlayer.terminate();
+					this.blackPlayer = null;
+				}
+
+				if (value) {
+					this.blackPlayer = chessEngines.players[value]();
+					this.listenLogs(this.blackPlayer);
 				}
 			},
 
@@ -785,9 +888,20 @@
 			},
 
 
-			/*analyzation (value) {
-				console.log("analyzation:", value);
-			},*/
+			lastMove (value) {
+				document.querySelectorAll(".square-55d63.last-move").forEach(elem => elem.classList.remove("last-move", "from", "to"));
+				if (value) {
+					document.querySelector(`.square-${value.from}`).classList.add("last-move", "from");
+					document.querySelector(`.square-${value.to}`).classList.add("last-move", "to");
+				}
+			},
+
+
+			checkSquare (value) {
+				document.querySelectorAll(".square-55d63.checking").forEach(elem => elem.classList.remove("checking"));
+				if (value)
+					document.querySelector(`.square-${value}`).classList.add("checking");
+			},
 		},
 	};
 </script>
@@ -831,6 +945,37 @@
 		.board-b72b1
 		{
 			outline: 4px solid #7fa650;
+		}
+	}
+
+	.square-55d63
+	{
+		&.last-move
+		{
+			filter: contrast(170%);
+
+			&.white-1e1d7
+			{
+				filter: hue-rotate(-10deg) saturate(180%);
+			}
+		}
+
+		&.last-move.to img
+		{
+			filter: drop-shadow(0 0 3px #000a);
+		}
+
+		&.checking
+		{
+			&.white-1e1d7
+			{
+				background-color: #f66;
+			}
+
+			&.black-3c85d
+			{
+				background-color: #800;
+			}
 		}
 	}
 </style>
@@ -900,6 +1045,16 @@
 						transform: rotate(-90deg);
 					}
 				}
+
+				/*.last-move
+				{
+					rect
+					{
+						fill: transparent;
+						stroke: #a00;
+						stroke-width: 5px;
+					}
+				}*/
 			}
 		}
 
@@ -948,12 +1103,13 @@
 			{
 				display: inline-block;
 				margin: 0;
+				font-size: 16px;
 			}
 
-			.analyzer
+			.engine
 			{
 				flex: 0 0 auto;
-				padding: 1em;
+				padding: .4em;
 
 				&.active select
 				{
@@ -963,7 +1119,43 @@
 
 				& > * + *
 				{
-					margin-left: 1em;
+					margin-left: .6em;
+				}
+			}
+
+			.players
+			{
+				p
+				{
+					margin: .6em;
+
+					& > *
+					{
+						vertical-align: middle;
+					}
+
+					& > * + *
+					{
+						margin-left: .6em;
+					}
+				}
+
+				.icon
+				{
+					display: inline-block;
+					width: 1.2em;
+					height: 1.2em;
+					background-size: contain;
+				}
+
+				.white .icon
+				{
+					background-image: url(../assets/chess/wP.svg);
+				}
+
+				.black .icon
+				{
+					background-image: url(../assets/chess/bP.svg);
 				}
 			}
 

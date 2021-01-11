@@ -1,9 +1,12 @@
 
 import {EventEmitter} from "events";
-//import Chess from "chess.js";
+import Chess from "chess.js";
 
 import {msDelay} from "./delay";
 
+
+
+type MoveTuple = [string, string, string?];
 
 
 interface EngineAgent {
@@ -14,7 +17,12 @@ interface EngineAgent {
 };
 
 
-interface EnginePlayer extends EngineAgent {};
+interface EnginePlayer {
+	terminate (): void;
+	on (name: string, handler: Function): void;
+
+	think (fen: string): Promise<MoveTuple>;
+};
 
 
 interface EngineAnalyzer extends EngineAgent {
@@ -22,9 +30,6 @@ interface EngineAnalyzer extends EngineAgent {
 	analyze (fen: string): void;
 	newGame(): Promise<void>;
 };
-
-
-type MoveTuple = [string, string, string?];
 
 
 interface PVInfo {
@@ -382,10 +387,33 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 };
 
 
-// TODO:
 class WorkerPlayer extends WorkerAgent implements EnginePlayer {
 	constructor (worker: Worker) {
 		super(worker);
+	}
+
+	async think (fen: string) {
+		const result = await super.go(fen);
+
+		return result && result.bestMove;
+	}
+};
+
+
+class RandomPlayer implements EnginePlayer {
+	terminate () {}
+	on () {}
+
+
+	think (fen: string) {
+		const game = new Chess(fen);
+		const moves = game.moves({verbose: true});
+		if (moves.length) {
+			const move = moves[Math.floor(moves.length * Math.random())];
+			return Promise.resolve([move.from, move.to, move.promotion] as MoveTuple);
+		}
+
+		return null;
 	}
 };
 
@@ -405,7 +433,6 @@ export const players: {[key: string]: () => EnginePlayer} = {
 
 
 	Random () {
-		// TODO:
-		return null;
+		return new RandomPlayer();
 	},
 };

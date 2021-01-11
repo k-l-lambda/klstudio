@@ -1,11 +1,11 @@
 
 TODO:
 	chess-lab:
+		available move squares mark
+		save engine name in win rate items
 		win rates from history
-		check mark
-		last move mark
 		promote option controls
-		engine players
+		engine player options
 	cube3-multiplication: twist cube individually by user
 	stylegan-mapping.vue
 		show images on z-graph
@@ -18,7 +18,20 @@ TODO:
 
 
 
+2021.1.11	K.L.	<k.l.lambda@gmail.com>
+
+	+	chessEngines.ts: WorkerPlayer.think implemented.
+
+
 2021.1.10	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: engine player agents added.
+
+	+	chess-lab.vue: players controls added.
+
+	+	chess-lab.vue: checking mark added.
+
+	+	chess-lab.vue: last move mark added.
 
 	+	chess-lab.vue: added crown icons on winrate panel.
 

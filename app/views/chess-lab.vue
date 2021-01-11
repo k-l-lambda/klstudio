@@ -15,6 +15,8 @@
 		<BoolStoreInput v-show="false" v-model="orientationFlipped" sessionKey="chessLab.orientationFlipped" />
 		<BoolStoreInput v-show="false" v-model="showArrowMarks" localKey="chessLab.showArrowMarks" />
 		<StoreInput v-show="false" v-model="chosenAnalyzer" localKey="chessLab.chosenAnalyzer" />
+		<StoreInput v-show="false" v-model="chosenWhitePlayer" sessionKey="chessLab.chosenWhitePlayer" />
+		<StoreInput v-show="false" v-model="chosenBlackPlayer" sessionKey="chessLab.chosenBlackPlayer" />
 		<main>
 			<div id="board" ref="board"></div>
 			<svg v-show="!editMode" class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">

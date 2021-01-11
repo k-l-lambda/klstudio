@@ -712,19 +712,42 @@
 
 
 			async runPlayer () {
+				if (this.game.game_over())
+					return;
+
 				let move = null;
 				if (this.whiteOnTurn && this.whitePlayer)
-					move = await this.whitePlayer.go(this.game.fen());
+					move = await this.whitePlayer.think(this.game.fen());
 				else if (!this.whiteOnTurn && this.blackPlayer)
-					move = await this.blackPlayer.go(this.game.fen());
+					move = await this.blackPlayer.think(this.game.fen());
 
 				if (move) {
-					this.game.move(move);
+					this.game.move({
+						from: move[0],
+						to: move[1],
+						promotion: move[2],
+					});
 					this.syncBoard();
 					this.updateStatus();
 
 					this.$nextTick(() => this.runPlayer());
 				}
+			},
+
+
+			listenLogs (agent) {
+				agent.on("log", data => {
+					if (this.$refs.engineLogs) {
+						this.$refs.engineLogs.innerText += data + "\n";
+						if (this.$refs.engineLogs.innerText.length > 0x4000) {
+							const lines = this.$refs.engineLogs.innerText = this.$refs.engineLogs.innerText.split("\n");
+							this.$refs.engineLogs.innerText = lines.slice(Math.max(lines.length - 90, 0)).join("\n");
+						}
+
+						const section = this.$refs.engineLogs.parentElement;
+						section.scrollTo(0, section.scrollHeight);
+					}
+				});
 			},
 		},
 
@@ -801,18 +824,8 @@
 
 				if (value) {
 					this.analyzer = chessEngines.analyzers[value]();
-					this.analyzer.on("log", data => {
-						if (this.$refs.engineLogs) {
-							this.$refs.engineLogs.innerText += data + "\n";
-							if (this.$refs.engineLogs.innerText.length > 0x4000) {
-								const lines = this.$refs.engineLogs.innerText = this.$refs.engineLogs.innerText.split("\n");
-								this.$refs.engineLogs.innerText = lines.slice(Math.max(lines.length - 90, 0)).join("\n");
-							}
 
-							const section = this.$refs.engineLogs.parentElement;
-							section.scrollTo(0, section.scrollHeight);
-						}
-					});
+					this.listenLogs(this.analyzer);
 					this.analyzer.on("analyzation", analyzation => {
 						if (analyzation.fen === this.game.fen()) {
 							this.analyzation = analyzation;
@@ -849,8 +862,10 @@
 					this.whitePlayer = null;
 				}
 
-				if (value)
+				if (value) {
 					this.whitePlayer = chessEngines.players[value]();
+					this.listenLogs(this.whitePlayer);
+				}
 			},
 
 
@@ -860,8 +875,10 @@
 					this.blackPlayer = null;
 				}
 
-				if (value)
+				if (value) {
 					this.blackPlayer = chessEngines.players[value]();
+					this.listenLogs(this.blackPlayer);
+				}
 			},
 
 

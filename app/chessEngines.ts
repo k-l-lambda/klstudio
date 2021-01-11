@@ -6,6 +6,9 @@ import {msDelay} from "./delay";
 
 
 
+type MoveTuple = [string, string, string?];
+
+
 interface EngineAgent {
 	postMessage (message: string): void;
 	terminate (): void;
@@ -18,7 +21,7 @@ interface EnginePlayer {
 	terminate (): void;
 	on (name: string, handler: Function): void;
 
-	go (fen: string): Promise<string>;
+	think (fen: string): Promise<MoveTuple>;
 };
 
 
@@ -27,9 +30,6 @@ interface EngineAnalyzer extends EngineAgent {
 	analyze (fen: string): void;
 	newGame(): Promise<void>;
 };
-
-
-type MoveTuple = [string, string, string?];
 
 
 interface PVInfo {
@@ -392,9 +392,10 @@ class WorkerPlayer extends WorkerAgent implements EnginePlayer {
 		super(worker);
 	}
 
-	go (fen: string) {
-		// TODO:
-		return null;
+	async think (fen: string) {
+		const result = await super.go(fen);
+
+		return result && result.bestMove;
 	}
 };
 
@@ -404,11 +405,13 @@ class RandomPlayer implements EnginePlayer {
 	on () {}
 
 
-	go (fen: string) {
+	think (fen: string) {
 		const game = new Chess(fen);
-		const moves = game.moves();
-		if (moves.length)
-			return moves[Math.floor(moves.length * Math.random())];
+		const moves = game.moves({verbose: true});
+		if (moves.length) {
+			const move = moves[Math.floor(moves.length * Math.random())];
+			return Promise.resolve([move.from, move.to, move.promotion] as MoveTuple);
+		}
 
 		return null;
 	}

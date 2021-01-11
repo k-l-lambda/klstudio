@@ -834,7 +834,7 @@
 						}
 					});
 
-					this.winRates = [];
+					this.winRates = this.winRates || [];
 
 					this.triggerAnalyzer();
 				}

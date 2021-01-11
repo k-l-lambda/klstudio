@@ -1,6 +1,7 @@
 
 TODO:
 	chess-lab:
+		save engine name in win rate items
 		win rates from history
 		promote option controls
 		engine players

@@ -72,7 +72,7 @@
 			<section class="engine-logs">
 				<pre ref="engineLogs"></pre>
 			</section>
-			<section class="winrate" v-if="winRates">
+			<section class="winrate" ref="winrate" v-if="winRates">
 				<Chart ref="winrateChart" type="Line" :sourceData="winrateChart" />
 				<span class="white crown"></span>
 				<span class="black crown"></span>
@@ -251,6 +251,7 @@
 				chosenBlackPlayer: null,
 				analyzation: null,
 				winRates: null,
+				winrateChartHeight: 240,
 				gameResult: null,
 				PGN_WIDGETS,
 				showNotationTips: false,
@@ -335,7 +336,7 @@
 					.map(({step, item}) => ({step: Number(step), rate: item.rate}));
 
 				return {
-					height: "240px",
+					height: `${this.winrateChartHeight}px`,
 					settings: {
 						dimension: ["step"],
 						metrics: ["rate"],
@@ -460,6 +461,9 @@
 				}
 
 				this.$refs.winrateChart && this.$refs.winrateChart.getVChart().resize();
+
+				if (this.$refs.winrate)
+					this.winrateChartHeight = this.$refs.winrate.clientHeight;
 			},
 
 
@@ -1182,9 +1186,10 @@
 
 			.winrate
 			{
-				flex: 0 0 auto;
+				flex: 0 0.7 240px;
 				padding: 0;
 				position: relative;
+				overflow: hidden;
 
 				.crown
 				{

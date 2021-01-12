@@ -2,10 +2,10 @@
 TODO:
 	chess-lab:
 		available move squares mark
-		save engine name in win rate items
-		win rates from history
 		promote option controls
 		engine player options
+		save engine name in win rate items
+		win rates from history
 	cube3-multiplication: twist cube individually by user
 	stylegan-mapping.vue
 		show images on z-graph
@@ -16,6 +16,11 @@ TODO:
 		test solveCubeBinary
 		invalid solution issue.
 
+
+
+2021.1.12	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: refined winrate panel styles.
 
 
 2021.1.11	K.L.	<k.l.lambda@gmail.com>

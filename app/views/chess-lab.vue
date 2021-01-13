@@ -1186,7 +1186,7 @@
 
 			.winrate
 			{
-				flex: 0 0.7 240px;
+				flex: 0 0.2 240px;
 				padding: 0;
 				position: relative;
 				overflow: hidden;

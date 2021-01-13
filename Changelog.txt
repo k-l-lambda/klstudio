@@ -3,6 +3,7 @@ TODO:
 	chess-lab:
 		available move squares mark
 		promote option controls
+		predicted moves animation
 		engine player options
 		save engine name in win rate items
 		win rates from history

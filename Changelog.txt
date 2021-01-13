@@ -2,7 +2,6 @@
 TODO:
 	chess-lab:
 		available move squares mark
-		promote option controls
 		predicted moves animation
 		engine player options
 		save engine name in win rate items
@@ -17,6 +16,11 @@ TODO:
 		test solveCubeBinary
 		invalid solution issue.
 
+
+
+2021.1.13	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: promotion panel added.
 
 
 2021.1.12	K.L.	<k.l.lambda@gmail.com>

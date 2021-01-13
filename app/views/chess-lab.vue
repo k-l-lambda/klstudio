@@ -6,7 +6,7 @@
 			'drag-hover': drageHover,
 		}"
 		v-resize="onResize"
-		:style="{['--aside-width']: `${asideWidth}px`}"
+		:style="{'--aside-width': `${asideWidth}px`, '--checker-size': `${checkerSize}px`}"
 		@dragover.prevent="drageHover = true"
 		@dragleave="drageHover = false"
 		@drop.prevent="onDropFiles"
@@ -42,6 +42,19 @@
 					<tspan v-if="gameResult === 'black'">1:0</tspan>
 				</text>
 			</svg>
+			<div class="promotion" v-if="promotionData"
+				:style="{
+					left: `${promotionData.left}px`,
+					top: `${promotionData.top}px`,
+				}"
+				@mouseleave="promotionPending = null"
+			>
+				<span v-for="piece of promotionData.pieces" :key="piece.notation" class="piece"
+					@click="promote(piece.notation)"
+				>
+					<img :src="piece.img">
+				</span>
+			</div>
 		</main>
 		<aside class="left-sider">
 			<section class="engine analyzer" :class="{active: chosenAnalyzer}">
@@ -258,6 +271,7 @@
 				showArrowMarks: true,
 				lastMove: null,
 				checkSquare: null,
+				promotionPending: null,
 			};
 		},
 
@@ -383,6 +397,39 @@
 					animation: {animation: false},
 				};
 			},
+
+
+			promotionData () {
+				if (!this.promotionPending)
+					return null;
+
+				const turn = this.whiteOnTurn ? "w" : "b";
+				const position = coordinateXY(this.promotionPending.to);
+
+				const downside = !!(this.orientationFlipped ^ (position.y === 0));
+
+				const ps = ["Q", "N", "R", "B"];
+				if (downside)
+					ps.reverse();
+
+				if (this.orientationFlipped) {
+					position.x = 7 - position.x;
+					position.y = 7 - position.y;
+				}
+
+				const left = position.x * this.checkerSize;
+				const top = ((downside ? 5 : 8) - position.y) * this.checkerSize + (downside ? -12 : 0);
+
+				return {
+					downside,
+					left,
+					top,
+					pieces: ps.map(p => ({
+						notation: p.toLowerCase(),
+						img: `chess/pieces/alpha/${turn}${p}.png`,
+					})),
+				};
+			},
 		},
 
 
@@ -483,21 +530,30 @@
 
 			onDrop (source, target) {
 				if (this.playMode) {
-					const move = this.game.move({
+					const moves = this.game.moves({verbose: true});
+					const move = moves.find(move => move.from === source && move.to === target);
+
+					/*const move = this.game.move({
 						from: source,
 						to: target,
 						promotion: "q", // NOTE: always promote to a queen for example simplicity
 					});
-					//console.log("move:", move);
+					//console.log("move:", move);*/
 
 					// illegal move
 					if (!move)
 						return "snapback";
 
+					if (move.promotion) {
+						this.promotionPending = {from: source, to: target};
+						return;
+					}
+
+					this.game.move(move);
+
 					this.updateStatus();
 
 					this.$nextTick(() => this.runPlayer());
-
 				}
 				else
 					this.editDirty = true;
@@ -511,6 +567,19 @@
 
 				if (this.editMode)
 					this.editDirty = true;
+			},
+
+
+			promote (notation) {
+				if (this.promotionPending) {
+					this.game.move({
+						from: this.promotionPending.from,
+						to: this.promotionPending.to,
+						promotion: notation,
+					});
+					this.updateStatus();
+					this.syncBoard();
+				}
 			},
 
 
@@ -766,8 +835,12 @@
 				this.boardConfig.sparePieces = value;
 				this.boardConfig.dropOffBoard = value ? "trash" : "snapback";
 
-				if (value)
+				if (value) {
 					this.editDirty = false;
+					this.lastMove = null;
+					this.checkSquare = null;
+					this.promotionPending = null;
+				}
 
 				if (!value && this.editDirty) {
 					const fen = this.board.fen() + this.fenPostfix;
@@ -1064,6 +1137,31 @@
 						stroke-width: 5px;
 					}
 				}*/
+			}
+
+			.promotion
+			{
+				position: absolute;
+				background-color: #777;
+				border: 4px solid $button-active-color;
+				border-radius: 4px;
+
+				.piece
+				{
+					display: block;
+					cursor: pointer;
+
+					&:hover
+					{
+						background-color: $button-active-hover-color;
+					}
+
+					img
+					{
+						width: var(--checker-size);
+						height: var(--checker-size);
+					}
+				}
 			}
 		}
 

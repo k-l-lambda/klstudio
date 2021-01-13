@@ -757,6 +757,11 @@
 
 
 		watch: {
+			whiteOnTurn () {
+				this.editDirty = true;
+			},
+
+
 			editMode (value) {
 				this.boardConfig.sparePieces = value;
 				this.boardConfig.dropOffBoard = value ? "trash" : "snapback";

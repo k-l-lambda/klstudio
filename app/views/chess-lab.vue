@@ -22,7 +22,7 @@
 			<svg v-show="!editMode" class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">
 				<g transform="translate(0, 800) scale(1, -1)">
 					<g :transform="orientationFlipped ? 'rotate(180, 400, 400)' : null">
-						<g v-if="showArrowMarks">
+						<g v-if="showArrowMarks" class="arrows">
 							<polygon v-for="(move, i) of noticableMoves" :key="i" class="move"
 								:class="{best: i === 0}"
 								:transform="`translate(${move.arrow.x}, ${move.arrow.y}) rotate(${move.arrow.angle})`"
@@ -34,6 +34,15 @@
 							<rect width="100" height="100" :x="lastMove.from.x * 100" :y="lastMove.from.y * 100" />
 							<rect width="100" height="100" :x="lastMove.to.x * 100" :y="lastMove.to.y * 100" />
 						</g-->
+						<g class="target-squares">
+							<g v-for="square of targetSquares" :key="square.name"
+								:transform="`translate(${(square.pos.x + 0.5) * 100}, ${(square.pos.y + 0.5) * 100})`"
+								@click.stop="targetMove(square.name)"
+							>
+								<rect :x="-50" :y="-50" :width="100" :height="100" />
+								<circle :r="20" />
+							</g>
+						</g>
 					</g>
 				</g>
 				<text class="result" :class="{flipped: orientationFlipped, mate: gameResult !== 'draw'}" v-if="gameResult" :x="400" :y="500">
@@ -431,6 +440,19 @@
 					})),
 				};
 			},
+
+
+			targetSquares () {
+				if (!this.chosenSquare || !this.game)
+					return [];
+
+				const moves = this.game.moves({verbose: true}).filter(move => move.from === this.chosenSquare);
+
+				return moves.map(move => ({
+					name: move.to,
+					pos: coordinateXY(move.to),
+				}));
+			},
 		},
 
 
@@ -515,7 +537,7 @@
 			},
 
 
-			onDragStart (source, piece, position/*, orientation*/) {
+			onDragStart (source, piece /*position, orientation*/) {
 				//console.log("onDragStart:", source, piece, position, orientation);
 
 				if (this.editMode)
@@ -536,32 +558,8 @@
 
 
 			onDrop (source, target) {
-				if (this.playMode) {
-					const moves = this.game.moves({verbose: true});
-					const move = moves.find(move => move.from === source && move.to === target);
-
-					/*const move = this.game.move({
-						from: source,
-						to: target,
-						promotion: "q", // NOTE: always promote to a queen for example simplicity
-					});
-					//console.log("move:", move);*/
-
-					// illegal move
-					if (!move)
-						return "snapback";
-
-					if (move.promotion) {
-						this.promotionPending = {from: source, to: target};
-						return;
-					}
-
-					this.game.move(move);
-
-					this.updateStatus();
-
-					this.$nextTick(() => this.runPlayer());
-				}
+				if (this.playMode)
+					return this.move(source, target);
 				else
 					this.editDirty = true;
 			},
@@ -586,6 +584,38 @@
 					});
 					this.updateStatus();
 					this.syncBoard();
+				}
+			},
+
+
+			move (from, to) {
+				const moves = this.game.moves({verbose: true});
+				const move = moves.find(move => move.from === from && move.to === to);
+
+				// illegal move
+				if (!move)
+					return "snapback";
+
+				if (move.promotion) {
+					this.promotionPending = {from, to};
+					return;
+				}
+
+				this.game.move(move);
+
+				this.updateStatus();
+
+				this.$nextTick(() => this.runPlayer());
+
+				return "move";
+			},
+
+
+			targetMove (to) {
+				//console.log("targetMove:", this.chosenSquare, to);
+				if (this.chosenSquare) {
+					if (this.move(this.chosenSquare, to) === "move")
+						this.syncBoard();
 				}
 			},
 
@@ -1166,6 +1196,26 @@
 						stroke-width: 5px;
 					}
 				}*/
+
+				.arrows
+				{
+					pointer-events: all;
+				}
+
+				.target-squares
+				{
+					pointer-events: all;
+
+					rect
+					{
+						fill: #9fc67044;
+					}
+
+					circle
+					{
+						fill: #fff4;
+					}
+				}
 			}
 
 			.promotion

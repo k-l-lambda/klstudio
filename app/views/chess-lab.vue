@@ -18,7 +18,7 @@
 		<StoreInput v-show="false" v-model="chosenWhitePlayer" sessionKey="chessLab.chosenWhitePlayer" />
 		<StoreInput v-show="false" v-model="chosenBlackPlayer" sessionKey="chessLab.chosenBlackPlayer" />
 		<main>
-			<div id="board" ref="board"></div>
+			<div id="board" ref="board" @click="chosenSquare = null"></div>
 			<svg v-show="!editMode" class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">
 				<g transform="translate(0, 800) scale(1, -1)">
 					<g :transform="orientationFlipped ? 'rotate(180, 400, 400)' : null">
@@ -271,6 +271,7 @@
 				showArrowMarks: true,
 				lastMove: null,
 				checkSquare: null,
+				chosenSquare: null,
 				promotionPending: null,
 			};
 		},
@@ -514,7 +515,7 @@
 			},
 
 
-			onDragStart (source, piece/*, position, orientation*/) {
+			onDragStart (source, piece, position/*, orientation*/) {
 				//console.log("onDragStart:", source, piece, position, orientation);
 
 				if (this.editMode)
@@ -523,8 +524,14 @@
 				if (this.game.game_over())
 					return false;
 
-				//console.log("onDragStart:", this.game.turn(), piece, ((this.game.turn() === "w") ^ /^b/.test(piece)));
-				return !!((this.game.turn() === "w") ^ /^b/.test(piece));
+				//console.log("position:", source, piece, position);
+
+				const movable = !!((this.game.turn() === "w") ^ /^b/.test(piece));
+
+				if (movable)
+					this.chosenSquare = source;
+
+				return movable;
 			},
 
 
@@ -648,6 +655,8 @@
 					if (item)
 						this.checkSquare = item[0];
 				}
+
+				this.chosenSquare = null;
 			},
 
 
@@ -984,6 +993,13 @@
 				if (value)
 					document.querySelector(`.square-${value}`).classList.add("checking");
 			},
+
+
+			chosenSquare (value) {
+				document.querySelectorAll(".square-55d63.chosen").forEach(elem => elem.classList.remove("chosen"));
+				if (value)
+					document.querySelector(`.square-${value}`).classList.add("chosen");
+			},
 		},
 	};
 </script>
@@ -1057,6 +1073,19 @@
 			&.black-3c85d
 			{
 				background-color: #800;
+			}
+		}
+
+		&.chosen
+		{
+			&.white-1e1d7
+			{
+				background-color: #d0f3a5;
+			}
+
+			&.black-3c85d
+			{
+				background-color: #cfd854;
 			}
 		}
 	}

@@ -18,6 +18,11 @@ TODO:
 
 
 
+2021.1.14	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: chosen sqaure added.
+
+
 2021.1.13	K.L.	<k.l.lambda@gmail.com>
 
 	+	chess-lab.vue: promotion panel added.

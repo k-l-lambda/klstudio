@@ -1,7 +1,6 @@
 
 TODO:
 	chess-lab:
-		available move squares mark
 		predicted moves animation
 		engine player options
 		save engine name in win rate items
@@ -16,6 +15,15 @@ TODO:
 		test solveCubeBinary
 		invalid solution issue.
 
+
+
+2021.1.14	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: refined mark squares.
+
+	+	chess-lab.vue: move by square picking implemented.
+
+	+	chess-lab.vue: chosen sqaure added.
 
 
 2021.1.13	K.L.	<k.l.lambda@gmail.com>

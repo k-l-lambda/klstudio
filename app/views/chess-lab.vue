@@ -6,7 +6,10 @@
 			'drag-hover': drageHover,
 		}"
 		v-resize="onResize"
-		:style="{'--aside-width': `${asideWidth}px`, '--checker-size': `${checkerSize}px`}"
+		:style="{
+			'--aside-width': `${asideWidth}px`,
+			'--checker-size': `${checkerSize}px`,
+		}"
 		@dragover.prevent="drageHover = true"
 		@dragleave="drageHover = false"
 		@drop.prevent="onDropFiles"
@@ -40,7 +43,7 @@
 								@click.stop="targetMove(square.name)"
 							>
 								<rect :x="-50" :y="-50" :width="100" :height="100" />
-								<circle :r="20" />
+								<circle :r="16" />
 							</g>
 						</g>
 					</g>
@@ -551,7 +554,7 @@
 				const movable = !!((this.game.turn() === "w") ^ /^b/.test(piece));
 
 				if (movable)
-					this.chosenSquare = source;
+					this.chosenSquare = this.chosenSquare === source ? null : source;
 
 				return movable;
 			},
@@ -1115,7 +1118,7 @@
 
 			&.black-3c85d
 			{
-				background-color: #cfd854;
+				background-color: #95a253;
 			}
 		}
 	}
@@ -1153,9 +1156,8 @@
 			.marks
 			{
 				position: absolute;
-				left: 50%;
-				top: 50%;
-				transform: translate(-50%, -50%);
+				left: 2px;
+				top: calc(var(--checker-size) + 6px);
 				pointer-events: none;
 
 				.move.best
@@ -1208,12 +1210,12 @@
 
 					rect
 					{
-						fill: #9fc67044;
+						fill: #9fc67022;
 					}
 
 					circle
 					{
-						fill: #fff4;
+						fill: #fff6;
 					}
 				}
 			}

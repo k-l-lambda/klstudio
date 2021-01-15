@@ -879,12 +879,15 @@
 				//console.log("showPrediction:", path, fen);
 				this.predictionPreparing = true;
 
+				document.body.classList.add("preparing-predict");
+
 				const game = new Chess(fen);
 				this.predictionBoard.position(fen);
 
-				msDelay(400).then(() => {
+				msDelay(650).then(() => {
 					this.showPredictionBoard = true;
 					this.predictionPreparing = false;
+					document.body.classList.remove("preparing-predict");
 				});
 
 				for (const move of path) {
@@ -1083,7 +1086,7 @@
 				if (value) {
 					//console.log("hoverMove:", value);
 
-					await msDelay(800);
+					await msDelay(600);
 					if (this.predictionPreparing || this.showPredictionBoard)
 						return;
 
@@ -1194,6 +1197,11 @@
 			background-color: #b5cff0;
 			color: #638db5;
 		}
+	}
+
+	body.preparing-predict > .piece-417db
+	{
+		visibility: hidden;
 	}
 </style>
 

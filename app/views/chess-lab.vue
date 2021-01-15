@@ -27,10 +27,12 @@
 					<g :transform="orientationFlipped ? 'rotate(180, 400, 400)' : null">
 						<g v-if="showArrowMarks" class="arrows">
 							<polygon v-for="(move, i) of noticableMoves" :key="i" class="move"
-								:class="{best: i === 0}"
+								:class="{best: i === 0, hover: hoverMove === move}"
 								:transform="`translate(${move.arrow.x}, ${move.arrow.y}) rotate(${move.arrow.angle})`"
 								:points="[].concat(...move.arrow.points).join(' ')"
 								:fill="move.arrow.fill"
+								@mouseenter="hoverMove = move"
+								@mouseleave="hoverMove = move === hoverMove ? null : hoverMove"
 							/>
 						</g>
 						<!--g class="last-move" v-if="lastMove">
@@ -48,6 +50,7 @@
 						</g>
 					</g>
 				</g>
+				<div id="prediction-board" ref="predictionBoard" v-show="showPrediction"></div>
 				<text class="result" :class="{flipped: orientationFlipped, mate: gameResult !== 'draw'}" v-if="gameResult" :x="400" :y="500">
 					<tspan v-if="gameResult === 'draw'">&#x00bd;</tspan>
 					<tspan v-if="gameResult === 'white'">0:1</tspan>
@@ -285,6 +288,8 @@
 				checkSquare: null,
 				chosenSquare: null,
 				promotionPending: null,
+				showPrediction: false,
+				hoverMove: null,
 			};
 		},
 
@@ -341,15 +346,6 @@
 
 				const noticableItems = items.filter((item, i) => item.weight > 1 / items.length || i < 3);
 
-				/*this.game.moves({verbose: true}).forEach(move => {
-					const item = noticableItems.find(item => item.move === move.san);
-					if (item) {
-						item.from = move.from;
-						item.to = move.to;
-
-						item.arrow = moveToArrow(move.from, move.to, item.value, item.weight);
-					}
-				});*/
 				items.forEach(item => item.arrow = moveToArrow(item.move[0], item.move[1], item.value, item.weight));
 
 				return noticableItems;
@@ -507,6 +503,10 @@
 			this.boardConfig.orientation = this.orientationFlipped ? "black" : "white";
 
 			this.board = new Chessboard("board", this.boardConfig);
+
+			this.predictionBoard = new Chessboard("prediction-board", {
+				pieceTheme: "chess/pieces/alpha/{piece}.png",
+			});
 
 			if (this.notation) {
 				const pgn = this.notation;
@@ -1033,6 +1033,14 @@
 				if (value)
 					document.querySelector(`.square-${value}`).classList.add("chosen");
 			},
+
+
+			hoverMove (value) {
+				if (value) 
+					console.log("hoverMove:", value);
+					// TODO: delay and show prediction
+				
+			},
 		},
 	};
 </script>
@@ -1160,12 +1168,6 @@
 				top: calc(var(--checker-size) + 6px);
 				pointer-events: none;
 
-				.move.best
-				{
-					stroke: #000a;
-					stroke-width: 5px;
-				}
-
 				.result
 				{
 					font-size: 280px;
@@ -1202,6 +1204,22 @@
 				.arrows
 				{
 					pointer-events: all;
+					cursor: help;
+
+					.move
+					{
+						&.best
+						{
+							stroke: #000a;
+							stroke-width: 5px;
+						}
+
+						&.hover
+						{
+							stroke: orange;
+							stroke-width: 12px;
+						}
+					}
 				}
 
 				.target-squares

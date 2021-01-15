@@ -9,6 +9,7 @@
 		:style="{
 			'--aside-width': `${asideWidth}px`,
 			'--checker-size': `${checkerSize}px`,
+			'--board-size': `${checkerSize * 8 + 4}px`,
 		}"
 		@dragover.prevent="drageHover = true"
 		@dragleave="drageHover = false"
@@ -27,7 +28,7 @@
 					<g :transform="orientationFlipped ? 'rotate(180, 400, 400)' : null">
 						<g v-if="showArrowMarks" class="arrows">
 							<polygon v-for="(move, i) of noticableMoves" :key="i" class="move"
-								:class="{best: i === 0, hover: hoverMove === move}"
+								:class="{best: i === 0, hover: (hoverMove && hoverMove.hash) === move.hash}"
 								:transform="`translate(${move.arrow.x}, ${move.arrow.y}) rotate(${move.arrow.angle})`"
 								:points="[].concat(...move.arrow.points).join(' ')"
 								:fill="move.arrow.fill"
@@ -50,7 +51,6 @@
 						</g>
 					</g>
 				</g>
-				<div id="prediction-board" ref="predictionBoard" v-show="showPrediction"></div>
 				<text class="result" :class="{flipped: orientationFlipped, mate: gameResult !== 'draw'}" v-if="gameResult" :x="400" :y="500">
 					<tspan v-if="gameResult === 'draw'">&#x00bd;</tspan>
 					<tspan v-if="gameResult === 'white'">0:1</tspan>
@@ -70,6 +70,9 @@
 					<img :src="piece.img">
 				</span>
 			</div>
+			<div id="prediction-board" ref="predictionBoard" v-show="showPredictionBoard"
+				@mouseleave="onPredictionBlur"
+			></div>
 		</main>
 		<aside class="left-sider">
 			<section class="engine analyzer" :class="{active: chosenAnalyzer}">
@@ -288,7 +291,7 @@
 				checkSquare: null,
 				chosenSquare: null,
 				promotionPending: null,
-				showPrediction: false,
+				showPredictionBoard: false,
 				hoverMove: null,
 			};
 		},
@@ -338,7 +341,10 @@
 
 				// softmax values
 				const items = this.analyzation.branches.map(item => ({...item}));
-				items.forEach(item => item.valueExp = Math.exp(item.value * 3));
+				items.forEach(item => {
+					item.valueExp = Math.exp(item.value * 3);
+					item.hash = item.move.filter(Boolean).join("");
+				});
 
 				const expsum = items.reduce((sum, item) => sum + item.valueExp, 0);
 				//console.log("expsum:", expsum);
@@ -532,6 +538,9 @@
 
 					this.$nextTick(() => this.checkerSize = this.$refs.board.querySelector(".board-b72b1").clientWidth / 8);
 				}
+
+				if (this.predictionBoard)
+					this.predictionBoard.resize();
 
 				this.$refs.winrateChart && this.$refs.winrateChart.getVChart().resize();
 
@@ -864,6 +873,41 @@
 					}
 				});
 			},
+
+
+			async showPrediction (fen, path) {
+				//console.log("showPrediction:", path, fen);
+				this.predictionPreparing = true;
+
+				const game = new Chess(fen);
+				this.predictionBoard.position(fen);
+
+				msDelay(400).then(() => {
+					this.showPredictionBoard = true;
+					this.predictionPreparing = false;
+				});
+
+				for (const move of path) {
+					await msDelay(800);
+
+					if (!this.showPredictionBoard)
+						break;
+
+					game.move({from: move[0], to: move[1], promotion: move[2]});
+					this.predictionBoard.position(game.fen());
+				}
+
+				this.hoverMove = null;
+			},
+
+
+			onPredictionBlur () {
+				//console.log("onPredictionBlur:", document.querySelectorAll("*:hover"));
+				if (document.querySelector(".piece-417db:hover"))
+					return;
+
+				this.showPredictionBoard = false;
+			},
 		},
 
 
@@ -1035,11 +1079,17 @@
 			},
 
 
-			hoverMove (value) {
-				if (value) 
-					console.log("hoverMove:", value);
-					// TODO: delay and show prediction
-				
+			async hoverMove (value) {
+				if (value) {
+					//console.log("hoverMove:", value);
+
+					await msDelay(800);
+					if (this.predictionPreparing || this.showPredictionBoard)
+						return;
+
+					if (this.hoverMove && this.hoverMove.hash === value.hash)
+						this.showPrediction(this.game.fen(), this.hoverMove.pv);
+				}
 			},
 		},
 	};
@@ -1130,6 +1180,21 @@
 			}
 		}
 	}
+
+	#prediction-board
+	{
+		.black-3c85d
+		{
+			background-color: #638db5;
+			color: #b5cff0;
+		}
+
+		.white-1e1d7
+		{
+			background-color: #b5cff0;
+			color: #638db5;
+		}
+	}
 </style>
 
 <style lang="scss" scoped>
@@ -1159,6 +1224,16 @@
 				height: 100%;
 				width: 100%;
 				background-color: #fff1;
+			}
+
+			#prediction-board
+			{
+				position: absolute;
+				left: 0;
+				top: calc(var(--checker-size) + 4px);
+				width: var(--board-size);
+				height: var(--board-size);
+				overflow: hidden;
 			}
 
 			.marks
@@ -1216,8 +1291,8 @@
 
 						&.hover
 						{
-							stroke: orange;
-							stroke-width: 12px;
+							stroke: #4fa2f0;
+							stroke-width: 8px;
 						}
 					}
 				}

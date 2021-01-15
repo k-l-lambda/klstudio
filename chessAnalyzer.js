@@ -126,7 +126,7 @@ const mountAnalyzer = ({analyzerURL}) => {
 const listenPage = page => {
 	console.log("listenPage:", page._client._sessionId);
 
-	page.setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36");
+	//page.setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36");
 
 	page.on("load", () => {
 		//console.log("page load:", page.url());

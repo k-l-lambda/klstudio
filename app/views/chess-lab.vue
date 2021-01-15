@@ -1056,6 +1056,9 @@
 			orientationFlipped (value) {
 				if (this.board)
 					this.board.orientation(value ? "black" : "white");
+
+				if (this.predictionBoard)
+					this.predictionBoard.orientation(value ? "black" : "white");
 			},
 
 

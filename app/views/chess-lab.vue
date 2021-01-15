@@ -1450,7 +1450,7 @@
 
 			.engine-logs
 			{
-				flex: 1 1 auto;
+				flex: 1 1 50vh;
 				overflow: auto;
 				background: #000c;
 				color: #ccc;

@@ -2,6 +2,11 @@
 TODO:
 
 
+*	2021.1.16
+
+	+	vanilla.js created.
+
+
 *	2021.1.8
 
 	+	chessAnalyzer.js: sync game added.

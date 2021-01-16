@@ -816,6 +816,9 @@
 				this.pgnBoxInputActivated = true;
 
 				this.winRates = this.analyzer ? [] : null;
+
+				if (this.analyzer)
+					this.evaluateWinrateHistory();
 			},
 
 
@@ -956,15 +959,41 @@
 
 
 			updateWinratesByAnalyzation (best, stepIndex) {
-				const oldRate = this.winRates[stepIndex + 1];
+				const oldRate = this.winRates[stepIndex];
 				if (!oldRate || best.depth >= oldRate.depth) {
-					const rate = winrateFromAnalyzationBest(best, this.game.turn());
+					const rate = winrateFromAnalyzationBest(best, stepIndex % 2 ? "b" : "w");
 
-					Vue.set(this.winRates, stepIndex + 1, {
+					Vue.set(this.winRates, stepIndex, {
 						depth: best.depth,
 						rate,
 					});
 				}
+			},
+
+
+			async evaluateWinrateHistory (depth = 16) {
+				const game = new Chess();
+				if (this.setupPosition)
+					game.load(this.setupPosition);
+
+				for (let step = 0; step <= this.history.length; step++) {
+					if (!this.analyzer)
+						break;
+
+					if (!this.winRates[step] || this.winRates[step].depth < depth) {
+						const best = await this.analyzer.evaluateFinite(game.fen(), depth);
+						if (best)
+							this.updateWinratesByAnalyzation(best, step);
+					}
+
+					if (step < this.history.length) {
+						game.move(this.history[step]);
+						if (game.game_over())
+							break;
+					}
+				}
+
+				console.log("History evaluation done.");
 			},
 		},
 
@@ -1057,7 +1086,7 @@
 						if (analyzation.fen === this.game.fen()) {
 							this.analyzation = analyzation;
 
-							this.updateWinratesByAnalyzation(analyzation.best, this.currentHistoryIndex);
+							this.updateWinratesByAnalyzation(analyzation.best, this.currentHistoryIndex + 1);
 						}
 					});
 

@@ -9,6 +9,16 @@ import {msDelay} from "./delay";
 type MoveTuple = [string, string, string?];
 
 
+interface PVInfo {
+	move: MoveTuple;
+	scoreCP: number;
+	scoreMate: number;
+	pv: MoveTuple[];
+	depth?: number;
+	bmc?: number;
+};
+
+
 interface EngineAgent {
 	postMessage (message: string): void;
 	terminate (): void;
@@ -26,19 +36,9 @@ interface EnginePlayer {
 
 
 interface EngineAnalyzer extends EngineAgent {
-	//evaluate (fen: string): Promise<number>;
 	analyze (fen: string): void;
+	evaluateFinite (fen: string, depth: number): Promise<PVInfo>;
 	newGame(): Promise<void>;
-};
-
-
-interface PVInfo {
-	move: MoveTuple;
-	scoreCP: number;
-	scoreMate: number;
-	pv: MoveTuple[];
-	depth?: number;
-	bmc?: number;
 };
 
 
@@ -324,22 +324,6 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 	}
 
 
-	/*async getIdleEvaluator (): Promise<WorkerAgent> {
-		while (true) {
-			const tail = this.evaluators.pop();
-			this.evaluators.unshift(tail);
-			//console.log("tail:", tail.buzy);
-			if (!tail.buzy) {
-				tail.buzy = true;
-				//console.log("idle got");
-				return tail;
-			}
-
-			await msDelay(0);
-		}
-	}*/
-
-
 	async analyze (fen: string) {
 		++this.analyzingIndex;
 		const analyzingIndex = this.analyzingIndex;
@@ -380,6 +364,12 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 		await thinker.stop();
 	}
 
+
+	async evaluateFinite (fen: string, depth: number): Promise<PVInfo> {
+		const result = await this.go(fen, {depth});
+
+		return result.pvs[0];
+	}
 
 	async analyzeStop () {
 		++this.analyzingIndex;

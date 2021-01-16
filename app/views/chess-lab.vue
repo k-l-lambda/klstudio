@@ -9,6 +9,7 @@
 		:style="{
 			'--aside-width': `${asideWidth}px`,
 			'--checker-size': `${checkerSize}px`,
+			'--board-size': `${checkerSize * 8 + 4}px`,
 		}"
 		@dragover.prevent="drageHover = true"
 		@dragleave="drageHover = false"
@@ -26,11 +27,14 @@
 				<g transform="translate(0, 800) scale(1, -1)">
 					<g :transform="orientationFlipped ? 'rotate(180, 400, 400)' : null">
 						<g v-if="showArrowMarks" class="arrows">
-							<polygon v-for="(move, i) of noticableMoves" :key="i" class="move"
-								:class="{best: i === 0}"
+							<polygon v-for="move of noticableMoves" :key="move.hash" class="move"
+								:class="{best: move.best, hover: (hoverMove && hoverMove.hash) === move.hash}"
 								:transform="`translate(${move.arrow.x}, ${move.arrow.y}) rotate(${move.arrow.angle})`"
 								:points="[].concat(...move.arrow.points).join(' ')"
 								:fill="move.arrow.fill"
+								@mouseenter="onHoverMovePointChange(move, $event)"
+								@mousemove="onHoverMovePointChange(move, $event)"
+								@mouseleave="hoverMove = move === hoverMove ? null : hoverMove"
 							/>
 						</g>
 						<!--g class="last-move" v-if="lastMove">
@@ -67,6 +71,9 @@
 					<img :src="piece.img">
 				</span>
 			</div>
+			<div id="prediction-board" ref="predictionBoard" v-show="showPredictionBoard"
+				@mousemove="onPredictionBlur"
+			></div>
 		</main>
 		<aside class="left-sider">
 			<section class="engine analyzer" :class="{active: chosenAnalyzer}">
@@ -162,7 +169,7 @@
 	import color from "color";
 	import Vue from "vue";
 
-	import {msDelay} from "../delay";
+	import {msDelay, mutexDelay} from "../delay";
 	import {downloadURL} from "../utils";
 	import * as chessEngines from "../chessEngines";
 
@@ -285,6 +292,9 @@
 				checkSquare: null,
 				chosenSquare: null,
 				promotionPending: null,
+				showPredictionBoard: false,
+				hoverMove: null,
+				hoverMovePoint: null,
 			};
 		},
 
@@ -333,7 +343,13 @@
 
 				// softmax values
 				const items = this.analyzation.branches.map(item => ({...item}));
-				items.forEach(item => item.valueExp = Math.exp(item.value * 3));
+				items.forEach((item, i) => {
+					item.valueExp = Math.exp(item.value * 3);
+					item.hash = item.move.filter(Boolean).join("");
+					item.best = i === 0;
+				});
+
+				items.reverse();
 
 				const expsum = items.reduce((sum, item) => sum + item.valueExp, 0);
 				//console.log("expsum:", expsum);
@@ -341,15 +357,6 @@
 
 				const noticableItems = items.filter((item, i) => item.weight > 1 / items.length || i < 3);
 
-				/*this.game.moves({verbose: true}).forEach(move => {
-					const item = noticableItems.find(item => item.move === move.san);
-					if (item) {
-						item.from = move.from;
-						item.to = move.to;
-
-						item.arrow = moveToArrow(move.from, move.to, item.value, item.weight);
-					}
-				});*/
 				items.forEach(item => item.arrow = moveToArrow(item.move[0], item.move[1], item.value, item.weight));
 
 				return noticableItems;
@@ -456,6 +463,14 @@
 					pos: coordinateXY(move.to),
 				}));
 			},
+
+
+			hoverMoveHash () {
+				if (!this.hoverMove || !this.hoverMovePoint)
+					return null;
+
+				return `${this.hoverMove.hash}|${this.hoverMovePoint.x},${this.hoverMovePoint.y}`;
+			},
 		},
 
 
@@ -508,6 +523,10 @@
 
 			this.board = new Chessboard("board", this.boardConfig);
 
+			this.predictionBoard = new Chessboard("prediction-board", {
+				pieceTheme: "chess/pieces/alpha/{piece}.png",
+			});
+
 			if (this.notation) {
 				const pgn = this.notation;
 				this.editMode = false;
@@ -532,6 +551,9 @@
 
 					this.$nextTick(() => this.checkerSize = this.$refs.board.querySelector(".board-b72b1").clientWidth / 8);
 				}
+
+				if (this.predictionBoard)
+					this.predictionBoard.resize();
 
 				this.$refs.winrateChart && this.$refs.winrateChart.getVChart().resize();
 
@@ -684,7 +706,7 @@
 				this.checkSquare = null;
 				if (this.game.in_check()) {
 					const pieces = Object.entries(this.board.position());
-					const item = pieces.find(([_, piece]) => piece === this.game.turn() + "K");
+					const item = pieces.find(([square, piece]) => square && piece === this.game.turn() + "K");
 					if (item)
 						this.checkSquare = item[0];
 				}
@@ -864,6 +886,51 @@
 					}
 				});
 			},
+
+
+			async showPrediction (fen, path) {
+				//console.log("showPrediction:", path, fen);
+				this.predictionPreparing = true;
+
+				document.body.classList.add("preparing-predict");
+
+				const game = new Chess(fen);
+				this.predictionBoard.position(fen);
+
+				await msDelay(200);
+				this.showPredictionBoard = true;
+				this.predictionPreparing = false;
+				document.body.classList.remove("preparing-predict");
+
+				await this.$nextTick();
+
+				for (const move of path) {
+					if (!this.showPredictionBoard)
+						break;
+
+					game.move({from: move[0], to: move[1], promotion: move[2]});
+					this.predictionBoard.position(game.fen());
+
+					await msDelay(800);
+				}
+
+				this.hoverMove = null;
+			},
+
+
+			onPredictionBlur () {
+				//console.log("onPredictionBlur:", document.querySelectorAll("*:hover"));
+				if (document.querySelector(".piece-417db:hover"))
+					return;
+
+				this.showPredictionBoard = false;
+			},
+
+
+			onHoverMovePointChange (move, event) {
+				this.hoverMove = move;
+				this.hoverMovePoint = {x: event.offsetX, y: event.offsetY};
+			},
 		},
 
 
@@ -1009,6 +1076,9 @@
 			orientationFlipped (value) {
 				if (this.board)
 					this.board.orientation(value ? "black" : "white");
+
+				if (this.predictionBoard)
+					this.predictionBoard.orientation(value ? "black" : "white");
 			},
 
 
@@ -1032,6 +1102,19 @@
 				document.querySelectorAll(".square-55d63.chosen").forEach(elem => elem.classList.remove("chosen"));
 				if (value)
 					document.querySelector(`.square-${value}`).classList.add("chosen");
+			},
+
+
+			async hoverMoveHash (value) {
+				if (value) {
+					if (await mutexDelay("hoverMoveHash.change", 600)) {
+						if (this.predictionPreparing || this.showPredictionBoard)
+							return;
+
+						if (this.hoverMove)
+							this.showPrediction(this.game.fen(), this.hoverMove.pv);
+					}
+				}
 			},
 		},
 	};
@@ -1122,6 +1205,26 @@
 			}
 		}
 	}
+
+	#prediction-board
+	{
+		.black-3c85d
+		{
+			background-color: #638db5;
+			color: #b5cff0;
+		}
+
+		.white-1e1d7
+		{
+			background-color: #b5cff0;
+			color: #638db5;
+		}
+	}
+
+	body.preparing-predict > .piece-417db
+	{
+		visibility: hidden;
+	}
 </style>
 
 <style lang="scss" scoped>
@@ -1153,18 +1256,22 @@
 				background-color: #fff1;
 			}
 
+			#prediction-board
+			{
+				position: absolute;
+				left: 0;
+				top: calc(var(--checker-size) + 4px);
+				width: var(--board-size);
+				height: var(--board-size);
+				overflow: hidden;
+			}
+
 			.marks
 			{
 				position: absolute;
 				left: 2px;
 				top: calc(var(--checker-size) + 6px);
 				pointer-events: none;
-
-				.move.best
-				{
-					stroke: #000a;
-					stroke-width: 5px;
-				}
 
 				.result
 				{
@@ -1202,6 +1309,22 @@
 				.arrows
 				{
 					pointer-events: all;
+					cursor: help;
+
+					.move
+					{
+						&.best
+						{
+							stroke: #000a;
+							stroke-width: 5px;
+						}
+
+						&.hover
+						{
+							stroke: #4fa2f0;
+							stroke-width: 8px;
+						}
+					}
 				}
 
 				.target-squares
@@ -1349,7 +1472,7 @@
 
 			.engine-logs
 			{
-				flex: 1 1 auto;
+				flex: 1 1 50vh;
 				overflow: auto;
 				background: #000c;
 				color: #ccc;

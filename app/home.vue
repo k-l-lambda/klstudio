@@ -191,12 +191,15 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 
 		watch: {
 			$route (to) {
-				//console.log("$route:", from);
+				//console.log("$route:", to);
 				this.currentApp = to.name;
 				if (!this.currentApp)
 					this.devoting = false;
 				else if (this.narrowScreen)
 					this.devoting = true;
+
+				const app = apps.find(app => app.path === to.path);
+				document.title = app ? `K.L. Studio - ${app.name}` : "K.L. Studio";
 			},
 		},
 	};

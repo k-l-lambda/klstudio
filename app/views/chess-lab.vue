@@ -676,7 +676,7 @@
 				if ((history.length % 2) ^ (!this.whiteOnTurn))
 					history.unshift("...");
 
-				if (!historyContains(this.history, history) || this.setupPosition) {
+				if (!historyContains(this.history, history)) {
 					this.history = history;
 					this.notation = this.game.pgn();
 				}
@@ -792,6 +792,8 @@
 					}
 				}
 
+				this.history = [];
+
 				this.syncBoard();
 				this.updateStatus();
 
@@ -863,15 +865,18 @@
 					move = await this.blackPlayer.think(this.game.fen());
 
 				if (move) {
-					this.game.move({
+					if (this.game.move({
 						from: move[0],
 						to: move[1],
 						promotion: move[2],
-					});
-					this.syncBoard();
-					this.updateStatus();
+					})) {
+						this.syncBoard();
+						this.updateStatus();
 
-					msDelay(200).then(() => this.runPlayer());
+						msDelay(200).then(() => this.runPlayer());
+					}
+					else
+						console.warn("Invalid move from agent:", move);
 				}
 			},
 

@@ -532,10 +532,7 @@
 				this.editMode = false;
 
 				await this.$nextTick();
-				if (this.game.load_pgn(pgn)) {
-					this.syncBoard();
-					this.updateStatus();
-				}
+				this.loadNotation(pgn);
 			}
 
 			this.onResize();
@@ -679,7 +676,7 @@
 				if ((history.length % 2) ^ (!this.whiteOnTurn))
 					history.unshift("...");
 
-				if (!historyContains(this.history, history)) {
+				if (!historyContains(this.history, history) || this.setupPosition) {
 					this.history = history;
 					this.notation = this.game.pgn();
 				}
@@ -782,21 +779,28 @@
 
 
 			loadNotation (notation) {
-				if (this.game.load_pgn(notation)) {
-					this.syncBoard();
-					this.updateStatus();
-
-					if (this.analyzer)
-						this.analyzer.newGame();
-
-					this.pgnBoxInputActivated = true;
-
-					this.winRates = this.analyzer ? [] : null;
+				if (!this.game.load_pgn(notation)) {
+					const [_, fen] = notation.match(/FEN "([^"]+)"/) || [];
+					if (fen) {
+						this.setupPosition = fen;
+						this.game.load(fen);
+					}
+					else {
+						console.debug("invalid PGN text:", notation);
+						this.pgnBoxErrorActivated = true;
+						return;
+					}
 				}
-				else {
-					console.debug("invalid PGN text:", notation);
-					this.pgnBoxErrorActivated = true;
-				}
+
+				this.syncBoard();
+				this.updateStatus();
+
+				if (this.analyzer)
+					this.analyzer.newGame();
+
+				this.pgnBoxInputActivated = true;
+
+				this.winRates = this.analyzer ? [] : null;
 			},
 
 
@@ -867,7 +871,7 @@
 					this.syncBoard();
 					this.updateStatus();
 
-					this.$nextTick(() => this.runPlayer());
+					msDelay(200).then(() => this.runPlayer());
 				}
 			},
 

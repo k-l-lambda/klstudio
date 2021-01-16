@@ -3,7 +3,6 @@ TODO:
 	chess-lab:
 		engine player options
 		save engine name in win rate items
-		win rates from history
 	cube3-multiplication: twist cube individually by user
 	stylegan-mapping.vue
 		show images on z-graph
@@ -17,6 +16,12 @@ TODO:
 
 
 2021.1.16	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: evaluateWinrateHistory added.
+
+	+	chess-lab.vue: added invalid move protection in runPlayer.
+
+	+	chess-lab.vue: refined notation loading.
 
 	+	home.vue: app entry of chess lab added.
 

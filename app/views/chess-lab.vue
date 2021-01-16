@@ -77,7 +77,7 @@
 		</main>
 		<aside class="left-sider">
 			<section class="engine analyzer" :class="{active: chosenAnalyzer}">
-				<h3>Analyzer</h3>
+				<span class="logo-placeholder" /><h3>Analyzer</h3>
 				<select v-model="chosenAnalyzer">
 					<option :value="null">(None)</option>
 					<option v-for="name of engineAnalyzerList" :key="name">{{name}}</option>
@@ -227,6 +227,19 @@
 		const fill = color.hsv([60 + 60 * Math.tanh(value / 8), 100, 80]).alpha(weight * .9 + .1).toString();
 
 		return {x, y, angle, points, fill};
+	};
+
+
+	const winrateFromAnalyzationBest = (best, turn) => {
+		const reversion = turn === "w" ? 1 : -1;
+
+		let rate = 0;
+		if (Number.isFinite(best.scoreMate))
+			rate = reversion * Math.sign(best.scoreMate);
+		else
+			rate = reversion * Math.tanh(best.scoreCP / 400);
+
+		return rate;
 	};
 
 
@@ -532,10 +545,7 @@
 				this.editMode = false;
 
 				await this.$nextTick();
-				if (this.game.load_pgn(pgn)) {
-					this.syncBoard();
-					this.updateStatus();
-				}
+				this.loadNotation(pgn);
 			}
 
 			this.onResize();
@@ -782,21 +792,33 @@
 
 
 			loadNotation (notation) {
-				if (this.game.load_pgn(notation)) {
-					this.syncBoard();
-					this.updateStatus();
-
-					if (this.analyzer)
-						this.analyzer.newGame();
-
-					this.pgnBoxInputActivated = true;
-
-					this.winRates = this.analyzer ? [] : null;
+				if (!this.game.load_pgn(notation)) {
+					const [_, fen] = notation.match(/FEN "([^"]+)"/) || [];
+					if (fen) {
+						this.setupPosition = fen;
+						this.game.load(fen);
+					}
+					else {
+						console.debug("invalid PGN text:", notation);
+						this.pgnBoxErrorActivated = true;
+						return;
+					}
 				}
-				else {
-					console.debug("invalid PGN text:", notation);
-					this.pgnBoxErrorActivated = true;
-				}
+
+				this.history = [];
+
+				this.syncBoard();
+				this.updateStatus();
+
+				if (this.analyzer)
+					this.analyzer.newGame();
+
+				this.pgnBoxInputActivated = true;
+
+				this.winRates = this.analyzer ? [] : null;
+
+				if (this.analyzer)
+					this.evaluateWinrateHistory();
 			},
 
 
@@ -859,15 +881,18 @@
 					move = await this.blackPlayer.think(this.game.fen());
 
 				if (move) {
-					this.game.move({
+					if (this.game.move({
 						from: move[0],
 						to: move[1],
 						promotion: move[2],
-					});
-					this.syncBoard();
-					this.updateStatus();
+					})) {
+						this.syncBoard();
+						this.updateStatus();
 
-					this.$nextTick(() => this.runPlayer());
+						msDelay(200).then(() => this.runPlayer());
+					}
+					else
+						console.warn("Invalid move from agent:", move);
 				}
 			},
 
@@ -931,6 +956,45 @@
 				this.hoverMove = move;
 				this.hoverMovePoint = {x: event.offsetX, y: event.offsetY};
 			},
+
+
+			updateWinratesByAnalyzation (best, stepIndex) {
+				const oldRate = this.winRates[stepIndex];
+				if (!oldRate || best.depth >= oldRate.depth) {
+					const rate = winrateFromAnalyzationBest(best, stepIndex % 2 ? "b" : "w");
+
+					Vue.set(this.winRates, stepIndex, {
+						depth: best.depth,
+						rate,
+					});
+				}
+			},
+
+
+			async evaluateWinrateHistory (depth = 16) {
+				const game = new Chess();
+				if (this.setupPosition)
+					game.load(this.setupPosition);
+
+				for (let step = 0; step <= this.history.length; step++) {
+					if (!this.analyzer)
+						break;
+
+					if (!this.winRates[step] || this.winRates[step].depth < depth) {
+						const best = await this.analyzer.evaluateFinite(game.fen(), depth);
+						if (best)
+							this.updateWinratesByAnalyzation(best, step);
+					}
+
+					if (step < this.history.length) {
+						game.move(this.history[step]);
+						if (game.game_over())
+							break;
+					}
+				}
+
+				console.log("History evaluation done.");
+			},
 		},
 
 
@@ -948,6 +1012,7 @@
 					this.editDirty = false;
 					this.lastMove = null;
 					this.checkSquare = null;
+					this.chosenSquare = null;
 					this.promotionPending = null;
 				}
 
@@ -1021,22 +1086,7 @@
 						if (analyzation.fen === this.game.fen()) {
 							this.analyzation = analyzation;
 
-							const best = analyzation.best;
-							const oldRate = this.winRates[this.currentHistoryIndex + 1];
-							if (!oldRate || best.depth >= oldRate.depth) {
-								const reversion = this.game.turn() === "w" ? 1 : -1;
-
-								let rate = 0;
-								if (Number.isFinite(best.scoreMate))
-									rate = reversion * Math.sign(best.scoreMate);
-								else
-									rate = reversion * Math.tanh(best.scoreCP / 400);
-
-								Vue.set(this.winRates, this.currentHistoryIndex + 1, {
-									depth: best.depth,
-									rate,
-								});
-							}
+							this.updateWinratesByAnalyzation(analyzation.best, this.currentHistoryIndex + 1);
 						}
 					});
 
@@ -1201,7 +1251,7 @@
 
 			&.black-3c85d
 			{
-				background-color: #95a253;
+				background-color: #96ad2d;
 			}
 		}
 	}
@@ -1526,6 +1576,12 @@
 			display: flex;
 			flex-direction: column;
 			padding-bottom: 80px;
+		}
+
+		.logo-placeholder
+		{
+			display: inline-block;
+			width: 30px;
 		}
 
 		&.drag-hover .right-sider

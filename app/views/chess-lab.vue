@@ -72,7 +72,7 @@
 				</span>
 			</div>
 			<div id="prediction-board" ref="predictionBoard" v-show="showPredictionBoard"
-				@mouseleave="onPredictionBlur"
+				@mousemove="onPredictionBlur"
 			></div>
 		</main>
 		<aside class="left-sider">

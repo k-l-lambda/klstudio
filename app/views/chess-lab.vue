@@ -77,7 +77,7 @@
 		</main>
 		<aside class="left-sider">
 			<section class="engine analyzer" :class="{active: chosenAnalyzer}">
-				<h3>Analyzer</h3>
+				<span class="logo-placeholder" /><h3>Analyzer</h3>
 				<select v-model="chosenAnalyzer">
 					<option :value="null">(None)</option>
 					<option v-for="name of engineAnalyzerList" :key="name">{{name}}</option>
@@ -1576,6 +1576,12 @@
 			display: flex;
 			flex-direction: column;
 			padding-bottom: 80px;
+		}
+
+		.logo-placeholder
+		{
+			display: inline-block;
+			width: 30px;
 		}
 
 		&.drag-hover .right-sider

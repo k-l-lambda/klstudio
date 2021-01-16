@@ -957,6 +957,7 @@
 					this.editDirty = false;
 					this.lastMove = null;
 					this.checkSquare = null;
+					this.chosenSquare = null;
 					this.promotionPending = null;
 				}
 
@@ -1210,7 +1211,7 @@
 
 			&.black-3c85d
 			{
-				background-color: #95a253;
+				background-color: #96ad2d;
 			}
 		}
 	}

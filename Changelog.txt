@@ -16,6 +16,11 @@ TODO:
 
 
 
+2021.1.16	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: refined prediction startup.
+
+
 2021.1.15	K.L.	<k.l.lambda@gmail.com>
 
 	+	chess-lab.vue: prediction animation added.

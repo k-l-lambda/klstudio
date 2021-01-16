@@ -27,12 +27,13 @@
 				<g transform="translate(0, 800) scale(1, -1)">
 					<g :transform="orientationFlipped ? 'rotate(180, 400, 400)' : null">
 						<g v-if="showArrowMarks" class="arrows">
-							<polygon v-for="(move, i) of noticableMoves" :key="i" class="move"
-								:class="{best: i === 0, hover: (hoverMove && hoverMove.hash) === move.hash}"
+							<polygon v-for="move of noticableMoves" :key="move.hash" class="move"
+								:class="{best: move.best, hover: (hoverMove && hoverMove.hash) === move.hash}"
 								:transform="`translate(${move.arrow.x}, ${move.arrow.y}) rotate(${move.arrow.angle})`"
 								:points="[].concat(...move.arrow.points).join(' ')"
 								:fill="move.arrow.fill"
-								@mouseenter="hoverMove = move"
+								@mouseenter="onHoverMovePointChange(move, $event)"
+								@mousemove="onHoverMovePointChange(move, $event)"
 								@mouseleave="hoverMove = move === hoverMove ? null : hoverMove"
 							/>
 						</g>
@@ -168,7 +169,7 @@
 	import color from "color";
 	import Vue from "vue";
 
-	import {msDelay} from "../delay";
+	import {msDelay, mutexDelay} from "../delay";
 	import {downloadURL} from "../utils";
 	import * as chessEngines from "../chessEngines";
 
@@ -293,6 +294,7 @@
 				promotionPending: null,
 				showPredictionBoard: false,
 				hoverMove: null,
+				hoverMovePoint: null,
 			};
 		},
 
@@ -341,10 +343,13 @@
 
 				// softmax values
 				const items = this.analyzation.branches.map(item => ({...item}));
-				items.forEach(item => {
+				items.forEach((item, i) => {
 					item.valueExp = Math.exp(item.value * 3);
 					item.hash = item.move.filter(Boolean).join("");
+					item.best = i === 0;
 				});
+
+				items.reverse();
 
 				const expsum = items.reduce((sum, item) => sum + item.valueExp, 0);
 				//console.log("expsum:", expsum);
@@ -457,6 +462,14 @@
 					name: move.to,
 					pos: coordinateXY(move.to),
 				}));
+			},
+
+
+			hoverMoveHash () {
+				if (!this.hoverMove || !this.hoverMovePoint)
+					return null;
+
+				return `${this.hoverMove.hash}|${this.hoverMovePoint.x},${this.hoverMovePoint.y}`;
 			},
 		},
 
@@ -884,20 +897,21 @@
 				const game = new Chess(fen);
 				this.predictionBoard.position(fen);
 
-				msDelay(650).then(() => {
-					this.showPredictionBoard = true;
-					this.predictionPreparing = false;
-					document.body.classList.remove("preparing-predict");
-				});
+				await msDelay(200);
+				this.showPredictionBoard = true;
+				this.predictionPreparing = false;
+				document.body.classList.remove("preparing-predict");
+
+				await this.$nextTick();
 
 				for (const move of path) {
-					await msDelay(800);
-
 					if (!this.showPredictionBoard)
 						break;
 
 					game.move({from: move[0], to: move[1], promotion: move[2]});
 					this.predictionBoard.position(game.fen());
+
+					await msDelay(800);
 				}
 
 				this.hoverMove = null;
@@ -910,6 +924,12 @@
 					return;
 
 				this.showPredictionBoard = false;
+			},
+
+
+			onHoverMovePointChange (move, event) {
+				this.hoverMove = move;
+				this.hoverMovePoint = {x: event.offsetX, y: event.offsetY};
 			},
 		},
 
@@ -1085,16 +1105,15 @@
 			},
 
 
-			async hoverMove (value) {
+			async hoverMoveHash (value) {
 				if (value) {
-					//console.log("hoverMove:", value);
+					if (await mutexDelay("hoverMoveHash.change", 600)) {
+						if (this.predictionPreparing || this.showPredictionBoard)
+							return;
 
-					await msDelay(600);
-					if (this.predictionPreparing || this.showPredictionBoard)
-						return;
-
-					if (this.hoverMove && this.hoverMove.hash === value.hash)
-						this.showPrediction(this.game.fen(), this.hoverMove.pv);
+						if (this.hoverMove)
+							this.showPrediction(this.game.fen(), this.hoverMove.pv);
+					}
 				}
 			},
 		},

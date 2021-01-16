@@ -230,6 +230,19 @@
 	};
 
 
+	const winrateFromAnalyzationBest = (best, turn) => {
+		const reversion = turn === "w" ? 1 : -1;
+
+		let rate = 0;
+		if (Number.isFinite(best.scoreMate))
+			rate = reversion * Math.sign(best.scoreMate);
+		else
+			rate = reversion * Math.tanh(best.scoreCP / 400);
+
+		return rate;
+	};
+
+
 	const PGN_WIDGETS = [
 		{
 			domain: "Chesscom",
@@ -940,6 +953,19 @@
 				this.hoverMove = move;
 				this.hoverMovePoint = {x: event.offsetX, y: event.offsetY};
 			},
+
+
+			updateWinratesByAnalyzation (best, stepIndex) {
+				const oldRate = this.winRates[stepIndex + 1];
+				if (!oldRate || best.depth >= oldRate.depth) {
+					const rate = winrateFromAnalyzationBest(best, this.game.turn());
+
+					Vue.set(this.winRates, stepIndex + 1, {
+						depth: best.depth,
+						rate,
+					});
+				}
+			},
 		},
 
 
@@ -1031,22 +1057,7 @@
 						if (analyzation.fen === this.game.fen()) {
 							this.analyzation = analyzation;
 
-							const best = analyzation.best;
-							const oldRate = this.winRates[this.currentHistoryIndex + 1];
-							if (!oldRate || best.depth >= oldRate.depth) {
-								const reversion = this.game.turn() === "w" ? 1 : -1;
-
-								let rate = 0;
-								if (Number.isFinite(best.scoreMate))
-									rate = reversion * Math.sign(best.scoreMate);
-								else
-									rate = reversion * Math.tanh(best.scoreCP / 400);
-
-								Vue.set(this.winRates, this.currentHistoryIndex + 1, {
-									depth: best.depth,
-									rate,
-								});
-							}
+							this.updateWinratesByAnalyzation(analyzation.best, this.currentHistoryIndex);
 						}
 					});
 

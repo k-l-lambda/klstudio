@@ -79,6 +79,14 @@
 
 	const apps = [
 		{
+			name: "Chess Lab",
+			_title: "Chess Lab",
+			path: "/chess-lab",
+			cover: "chess-lab.png",
+			description: `A Chess analyzer app, inspired by <a href="https://github.com/SabakiHQ/Sabaki" target="_blank">Sabaki</a>,
+powered by <a href="https://github.com/oakmac/chessboardjs" target="_blank">chessboardjs</a>, <a href="https://github.com/jhlywa/chess.js" target="_blank">chess.js</a>, <a href="https://github.com/nmrugg/stockfish.js" target="_blank">stockfish.js</a>.`,
+		},
+		{
 			name: "Cube & Matrix",
 			_title: "Cube &amp; Matrix",
 			path: "/documents/dynamic-labeled-cube3",

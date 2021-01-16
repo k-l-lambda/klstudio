@@ -706,7 +706,7 @@
 				this.checkSquare = null;
 				if (this.game.in_check()) {
 					const pieces = Object.entries(this.board.position());
-					const item = pieces.find(([_, piece]) => piece === this.game.turn() + "K");
+					const item = pieces.find(([square, piece]) => square && piece === this.game.turn() + "K");
 					if (item)
 						this.checkSquare = item[0];
 				}

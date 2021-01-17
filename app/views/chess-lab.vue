@@ -934,6 +934,7 @@
 				document.body.classList.remove("preparing-predict");
 
 				await this.$nextTick();
+				await msDelay(100);
 
 				for (const move of path) {
 					if (!this.showPredictionBoard)

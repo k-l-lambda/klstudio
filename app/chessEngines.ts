@@ -28,6 +28,8 @@ interface EngineAgent {
 
 
 interface EnginePlayer {
+	movetime?: number;
+
 	terminate (): void;
 	on (name: string, handler: Function): void;
 
@@ -172,14 +174,18 @@ class WorkerAgent extends WorkerAgentBase {
 	}
 
 
-	async go (fen: string, {depth = null} = {}): Promise<SearchResult> {
+	async go (fen: string, {depth = null, movetime = null} = {}): Promise<SearchResult> {
 		this.buzy = true;
 
 		this.postMessage("position fen " + fen);
+
+		let options = "";
 		if (depth)
-			this.postMessage(`go depth ${depth}`);
-		else
-			this.postMessage("go");
+			options += ` depth ${depth}`;
+		if (Number.isFinite(movetime))
+			options += ` movetime ${movetime}`;
+
+		this.postMessage("go" + options);
 
 		const pvs: PVInfo[] = [];
 		this.infoHandler = info => pvs[info.multipv - 1] = {
@@ -378,12 +384,15 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 
 
 class WorkerPlayer extends WorkerAgent implements EnginePlayer {
+	movetime = null;
+
+
 	constructor (worker: Worker) {
 		super(worker);
 	}
 
 	async think (fen: string) {
-		const result = await super.go(fen);
+		const result = await super.go(fen, {movetime: this.movetime});
 
 		return result && result.bestMove;
 	}

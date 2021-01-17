@@ -21,6 +21,8 @@
 		<StoreInput v-show="false" v-model="chosenAnalyzer" localKey="chessLab.chosenAnalyzer" />
 		<StoreInput v-show="false" v-model="chosenWhitePlayer" sessionKey="chessLab.chosenWhitePlayer" />
 		<StoreInput v-show="false" v-model="chosenBlackPlayer" sessionKey="chessLab.chosenBlackPlayer" />
+		<StoreInput v-show="false" v-model="whitePlayerMoveTime" sessionKey="chessLab.whitePlayerMoveTime" />
+		<StoreInput v-show="false" v-model="blackPlayerMoveTime" sessionKey="chessLab.blackPlayerMoveTime" />
 		<main>
 			<div id="board" ref="board" @click="chosenSquare = null"></div>
 			<svg v-show="!editMode" class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">
@@ -92,6 +94,16 @@
 						<option :value="null">User</option>
 						<option v-for="name of enginePlayerList" :key="name">{{name}}</option>
 					</select>
+					<span v-if="chosenWhitePlayer">
+						<span>&#x1f551;</span><select v-model="whitePlayerMoveTime">
+							<option :value="null">NULL</option>
+							<option :value="1000">1s</option>
+							<option :value="3000">3s</option>
+							<option :value="5000">5s</option>
+							<option :value="10000">10s</option>
+							<option :value="30000">30s</option>
+						</select>
+					</span>
 				</p>
 				<p class="black">
 					<span class="icon"></span>
@@ -99,6 +111,16 @@
 						<option :value="null">User</option>
 						<option v-for="name of enginePlayerList" :key="name">{{name}}</option>
 					</select>
+					<span v-if="chosenBlackPlayer">
+						<span>&#x1f551;</span><select v-if="chosenBlackPlayer" v-model="blackPlayerMoveTime">
+							<option :value="null">NULL</option>
+							<option :value="1000">1s</option>
+							<option :value="3000">3s</option>
+							<option :value="5000">5s</option>
+							<option :value="10000">10s</option>
+							<option :value="30000">30s</option>
+						</select>
+					</span>
 				</p>
 			</section>
 			<section class="engine-logs">
@@ -122,7 +144,7 @@
 					@copy="onPgnBoxCopy"
 					@paste="onPgnBoxPaste"
 				/>
-				<button @click="downloadPGN" :disabled="!notation">&#x1f4be;</button>
+				<button @click="downloadPGN" :disabled="!notation" title="save PGN file">&#x1f4be;</button>
 				<span class="help">
 					<span class="icon" @click="showNotationTips = true" :class="{on: showNotationTips}">&#9432;</span>
 					<div class="tips embed-dialog" v-show="showNotationTips"
@@ -294,6 +316,8 @@
 				chosenAnalyzer: null,
 				chosenWhitePlayer: null,
 				chosenBlackPlayer: null,
+				whitePlayerMoveTime: null,
+				blackPlayerMoveTime: null,
 				analyzation: null,
 				winRates: null,
 				winrateChartHeight: 240,
@@ -1115,6 +1139,7 @@
 
 				if (value) {
 					this.whitePlayer = chessEngines.players[value]();
+					this.whitePlayer.movetime = this.whitePlayerMoveTime;
 					this.listenLogs(this.whitePlayer);
 				}
 			},
@@ -1128,8 +1153,21 @@
 
 				if (value) {
 					this.blackPlayer = chessEngines.players[value]();
+					this.blackPlayer.movetime = this.blackPlayerMoveTime;
 					this.listenLogs(this.blackPlayer);
 				}
+			},
+
+
+			whitePlayerMoveTime (value) {
+				if (this.whitePlayer)
+					this.whitePlayer.movetime = value;
+			},
+
+
+			blackPlayerMoveTime (value) {
+				if (this.blackPlayer)
+					this.blackPlayer.movetime = value;
 			},
 
 

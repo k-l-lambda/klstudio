@@ -555,14 +555,17 @@
 
 
 		methods: {
-			onResize () {
-				if (this.board) {
+			async onResize () {
+				if (this.board)
 					this.board.resize();
 
-					this.asideWidth = (this.$el.clientWidth - this.$refs.board.clientWidth) / 2;
+				this.asideWidth = (this.$el.clientWidth - this.$refs.board.clientWidth) / 2;
 
-					this.$nextTick(() => this.checkerSize = this.$refs.board.querySelector(".board-b72b1").clientWidth / 8);
-				}
+				await this.$nextTick();
+
+				const checker = this.$refs.board.querySelector(".board-b72b1");
+				if (checker)
+					this.checkerSize = checker.clientWidth / 8;
 
 				if (this.predictionBoard)
 					this.predictionBoard.resize();

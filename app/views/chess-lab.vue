@@ -21,6 +21,8 @@
 		<StoreInput v-show="false" v-model="chosenAnalyzer" localKey="chessLab.chosenAnalyzer" />
 		<StoreInput v-show="false" v-model="chosenWhitePlayer" sessionKey="chessLab.chosenWhitePlayer" />
 		<StoreInput v-show="false" v-model="chosenBlackPlayer" sessionKey="chessLab.chosenBlackPlayer" />
+		<StoreInput v-show="false" v-model="whitePlayerMoveTime" sessionKey="chessLab.whitePlayerMoveTime" />
+		<StoreInput v-show="false" v-model="blackPlayerMoveTime" sessionKey="chessLab.blackPlayerMoveTime" />
 		<main>
 			<div id="board" ref="board" @click="chosenSquare = null"></div>
 			<svg v-show="!editMode" class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">
@@ -92,6 +94,16 @@
 						<option :value="null">User</option>
 						<option v-for="name of enginePlayerList" :key="name">{{name}}</option>
 					</select>
+					<span v-if="chosenWhitePlayer">
+						<span>&#x1f551;</span><select v-model="whitePlayerMoveTime">
+							<option :value="null">NULL</option>
+							<option :value="1000">1s</option>
+							<option :value="3000">3s</option>
+							<option :value="5000">5s</option>
+							<option :value="10000">10s</option>
+							<option :value="30000">30s</option>
+						</select>
+					</span>
 				</p>
 				<p class="black">
 					<span class="icon"></span>
@@ -99,13 +111,23 @@
 						<option :value="null">User</option>
 						<option v-for="name of enginePlayerList" :key="name">{{name}}</option>
 					</select>
+					<span v-if="chosenBlackPlayer">
+						<span>&#x1f551;</span><select v-if="chosenBlackPlayer" v-model="blackPlayerMoveTime">
+							<option :value="null">NULL</option>
+							<option :value="1000">1s</option>
+							<option :value="3000">3s</option>
+							<option :value="5000">5s</option>
+							<option :value="10000">10s</option>
+							<option :value="30000">30s</option>
+						</select>
+					</span>
 				</p>
 			</section>
 			<section class="engine-logs">
 				<pre ref="engineLogs"></pre>
 			</section>
 			<section class="winrate" ref="winrate" v-if="winRates">
-				<Chart ref="winrateChart" type="Line" :sourceData="winrateChart" />
+				<Chart ref="winrateChart" type="Line" :sourceData="winrateChartData" />
 				<span class="white crown"></span>
 				<span class="black crown"></span>
 			</section>
@@ -122,7 +144,7 @@
 					@copy="onPgnBoxCopy"
 					@paste="onPgnBoxPaste"
 				/>
-				<button @click="downloadPGN" :disabled="!notation">&#x1f4be;</button>
+				<button @click="downloadPGN" :disabled="!notation" title="save PGN file">&#x1f4be;</button>
 				<span class="help">
 					<span class="icon" @click="showNotationTips = true" :class="{on: showNotationTips}">&#9432;</span>
 					<div class="tips embed-dialog" v-show="showNotationTips"
@@ -275,6 +297,8 @@
 
 
 		data () {
+			const winrateChartHeight = 240;
+
 			return {
 				editMode: false,
 				whiteOnTurn: true,
@@ -294,9 +318,11 @@
 				chosenAnalyzer: null,
 				chosenWhitePlayer: null,
 				chosenBlackPlayer: null,
+				whitePlayerMoveTime: null,
+				blackPlayerMoveTime: null,
 				analyzation: null,
 				winRates: null,
-				winrateChartHeight: 240,
+				winrateChartHeight,
 				gameResult: null,
 				PGN_WIDGETS,
 				showNotationTips: false,
@@ -308,6 +334,53 @@
 				showPredictionBoard: false,
 				hoverMove: null,
 				hoverMovePoint: null,
+				winrateChartData: {
+					height: `${winrateChartHeight}px`,
+					settings: {
+						dimension: ["step"],
+						metrics: ["rate"],
+						xAxisType: "value",
+						animation: false,
+					},
+					theme: {
+						line: {
+							smooth: false,
+						},
+						grid: {
+							left: 8,
+							top: 8,
+							right: 8,
+							bottom: 8,
+						},
+					},
+					legend: {
+						show: false,
+					},
+					yAxis: {
+						max: 1,
+						min: -1,
+						splitLine: {
+							show: false,
+						},
+						splitArea: {
+							show: true,
+							interval: 2,
+						},
+					},
+					data: {
+						columns: ["step", "rate"],
+						rows: [],
+					},
+					markLine: {
+						animation: false,
+						data: [
+							/*{
+								xAxis: this.currentHistoryIndex + 1,
+							},*/
+						],
+					},
+					animation: {animation: false},
+				},
 			};
 		},
 
@@ -376,7 +449,18 @@
 			},
 
 
-			winrateChart () {
+			winrateChartRows () {
+				if (!this.winRates)
+					return [];
+
+				return this.winRates
+					.map((item, step) => ({step, item}))
+					.filter(({item}) => item)
+					.map(({step, item}) => ({step: Number(step), rate: item.rate}));
+			},
+
+
+			/*winrateChart () {
 				const rows = this.winRates
 					.map((item, step) => ({step, item}))
 					.filter(({item}) => item)
@@ -429,7 +513,7 @@
 					},
 					animation: {animation: false},
 				};
-			},
+			},*/
 
 
 			promotionData () {
@@ -555,14 +639,17 @@
 
 
 		methods: {
-			onResize () {
-				if (this.board) {
+			async onResize () {
+				if (this.board)
 					this.board.resize();
 
-					this.asideWidth = (this.$el.clientWidth - this.$refs.board.clientWidth) / 2;
+				this.asideWidth = (this.$el.clientWidth - this.$refs.board.clientWidth) / 2;
 
-					this.$nextTick(() => this.checkerSize = this.$refs.board.querySelector(".board-b72b1").clientWidth / 8);
-				}
+				await this.$nextTick();
+
+				const checker = this.$refs.board.querySelector(".board-b72b1");
+				if (checker)
+					this.checkerSize = checker.clientWidth / 8;
 
 				if (this.predictionBoard)
 					this.predictionBoard.resize();
@@ -1112,6 +1199,7 @@
 
 				if (value) {
 					this.whitePlayer = chessEngines.players[value]();
+					this.whitePlayer.movetime = this.whitePlayerMoveTime;
 					this.listenLogs(this.whitePlayer);
 				}
 			},
@@ -1125,8 +1213,21 @@
 
 				if (value) {
 					this.blackPlayer = chessEngines.players[value]();
+					this.blackPlayer.movetime = this.blackPlayerMoveTime;
 					this.listenLogs(this.blackPlayer);
 				}
+			},
+
+
+			whitePlayerMoveTime (value) {
+				if (this.whitePlayer)
+					this.whitePlayer.movetime = value;
+			},
+
+
+			blackPlayerMoveTime (value) {
+				if (this.blackPlayer)
+					this.blackPlayer.movetime = value;
 			},
 
 
@@ -1172,6 +1273,27 @@
 							this.showPrediction(this.game.fen(), this.hoverMove.pv);
 					}
 				}
+			},
+
+
+			winrateChartHeight (value) {
+				this.winrateChartData.height = `${value}px`;
+			},
+
+
+			currentHistoryIndex (value) {
+				/*this.winrateChartData.markLine.data[0] = {
+					xAxis: value + 1,
+				};*/
+				Vue.set(this.winrateChartData.markLine.data, "0", {
+					xAxis: value + 1,
+				});
+			},
+
+
+			winrateChartRows (value) {
+				this.winrateChartData.data.rows = value;
+				//Vue.set(this.winrateChartData.data, "rows", value);
 			},
 		},
 	};

@@ -127,7 +127,7 @@
 				<pre ref="engineLogs"></pre>
 			</section>
 			<section class="winrate" ref="winrate" v-if="winRates">
-				<Chart ref="winrateChart" type="Line" :sourceData="winrateChart" />
+				<Chart ref="winrateChart" type="Line" :sourceData="winrateChartData" />
 				<span class="white crown"></span>
 				<span class="black crown"></span>
 			</section>
@@ -297,6 +297,8 @@
 
 
 		data () {
+			const winrateChartHeight = 240;
+
 			return {
 				editMode: false,
 				whiteOnTurn: true,
@@ -320,7 +322,7 @@
 				blackPlayerMoveTime: null,
 				analyzation: null,
 				winRates: null,
-				winrateChartHeight: 240,
+				winrateChartHeight,
 				gameResult: null,
 				PGN_WIDGETS,
 				showNotationTips: false,
@@ -332,6 +334,53 @@
 				showPredictionBoard: false,
 				hoverMove: null,
 				hoverMovePoint: null,
+				winrateChartData: {
+					height: `${winrateChartHeight}px`,
+					settings: {
+						dimension: ["step"],
+						metrics: ["rate"],
+						xAxisType: "value",
+						animation: false,
+					},
+					theme: {
+						line: {
+							smooth: false,
+						},
+						grid: {
+							left: 8,
+							top: 8,
+							right: 8,
+							bottom: 8,
+						},
+					},
+					legend: {
+						show: false,
+					},
+					yAxis: {
+						max: 1,
+						min: -1,
+						splitLine: {
+							show: false,
+						},
+						splitArea: {
+							show: true,
+							interval: 2,
+						},
+					},
+					data: {
+						columns: ["step", "rate"],
+						rows: [],
+					},
+					markLine: {
+						animation: false,
+						data: [
+							/*{
+								xAxis: this.currentHistoryIndex + 1,
+							},*/
+						],
+					},
+					animation: {animation: false},
+				},
 			};
 		},
 
@@ -400,7 +449,18 @@
 			},
 
 
-			winrateChart () {
+			winrateChartRows () {
+				if (!this.winRates)
+					return [];
+
+				return this.winRates
+					.map((item, step) => ({step, item}))
+					.filter(({item}) => item)
+					.map(({step, item}) => ({step: Number(step), rate: item.rate}));
+			},
+
+
+			/*winrateChart () {
 				const rows = this.winRates
 					.map((item, step) => ({step, item}))
 					.filter(({item}) => item)
@@ -453,7 +513,7 @@
 					},
 					animation: {animation: false},
 				};
-			},
+			},*/
 
 
 			promotionData () {
@@ -1213,6 +1273,27 @@
 							this.showPrediction(this.game.fen(), this.hoverMove.pv);
 					}
 				}
+			},
+
+
+			winrateChartHeight (value) {
+				this.winrateChartData.height = `${value}px`;
+			},
+
+
+			currentHistoryIndex (value) {
+				/*this.winrateChartData.markLine.data[0] = {
+					xAxis: value + 1,
+				};*/
+				Vue.set(this.winrateChartData.markLine.data, "0", {
+					xAxis: value + 1,
+				});
+			},
+
+
+			winrateChartRows (value) {
+				this.winrateChartData.data.rows = value;
+				//Vue.set(this.winrateChartData.data, "rows", value);
 			},
 		},
 	};

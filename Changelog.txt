@@ -16,6 +16,8 @@ TODO:
 
 2021.1.17	K.L.	<k.l.lambda@gmail.com>
 
+	+	chess-lab.vue: fixed winrate panel flicker problem.
+
 	+	chess-lab.vue: engine player move time option added.
 
 	+	chess-lab.vue: fixed promotion problem.

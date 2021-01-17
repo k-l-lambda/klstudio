@@ -471,10 +471,12 @@
 
 				const moves = this.game.moves({verbose: true}).filter(move => move.from === this.chosenSquare);
 
-				return moves.map(move => ({
-					name: move.to,
-					pos: coordinateXY(move.to),
-				}));
+				return moves
+					.filter((move, i) => !moves.slice(0, i).find(m => m.to === move.to))	// remove repeated squares
+					.map(move => ({
+						name: move.to,
+						pos: coordinateXY(move.to),
+					}));
 			},
 
 
@@ -617,8 +619,12 @@
 						to: this.promotionPending.to,
 						promotion: notation,
 					});
+					this.promotionPending = null;
+
 					this.updateStatus();
 					this.syncBoard();
+
+					this.$nextTick(() => this.runPlayer());
 				}
 			},
 
@@ -928,6 +934,7 @@
 				document.body.classList.remove("preparing-predict");
 
 				await this.$nextTick();
+				await msDelay(100);
 
 				for (const move of path) {
 					if (!this.showPredictionBoard)

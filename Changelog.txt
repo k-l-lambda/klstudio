@@ -17,6 +17,8 @@ TODO:
 
 2021.1.18	K.L.	<k.l.lambda@gmail.com>
 
+	+	chess-lab.vue: method of playHistory added.
+
 	+	chess-lab.vue: full mode added.
 
 	+	chess-lab.vue: refined styles for vertical viewport.

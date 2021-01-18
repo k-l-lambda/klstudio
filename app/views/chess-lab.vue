@@ -1052,6 +1052,14 @@
 
 				console.log("History evaluation done.");
 			},
+
+
+			async playHistory (interval = 600) {
+				while (this.currentHistoryIndex < this.history.length - 1) {
+					this.redoMove();
+					await msDelay(interval);
+				}
+			},
 		},
 
 

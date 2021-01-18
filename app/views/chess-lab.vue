@@ -4,6 +4,7 @@
 			'edit-mode': editMode,
 			'play-mode': playMode,
 			'drag-hover': drageHover,
+			'full-mode': fullMode,
 		}"
 		v-resize="onResize"
 		:style="{
@@ -179,6 +180,7 @@
 			<CheckButton class="turn" v-model="whiteOnTurn" :disabled="playMode" :title="`${whiteOnTurn ? 'white' : 'black'} is on turn`" />
 			<button @click="flipOrientation">&#x1f503;</button>
 			<CheckButton class="edit" content="&#x1F58A;" v-model="editMode" />
+			<CheckButton class="fullscreen" content="&#x26F6;" v-model="fullMode" />
 		</footer>
 	</div>
 </template>
@@ -301,6 +303,7 @@
 
 			return {
 				editMode: false,
+				fullMode: false,
 				whiteOnTurn: true,
 				orientationFlipped: false,
 				setupPosition: null,
@@ -1255,6 +1258,11 @@
 				this.winrateChartData.data.rows = value;
 				//Vue.set(this.winrateChartData.data, "rows", value);
 			},
+
+
+			fullMode () {
+				this.$nextTick(this.onResize.bind(this));
+			},
 		},
 	};
 </script>
@@ -1279,6 +1287,12 @@
 		{
 			height: calc(100vh - 112vw) !important;
 		}
+	}
+
+	.chess-lab.full-mode main
+	{
+		max-width: calc(min(100vw, 100vh) - 1px);
+		max-height: calc(100vh - 1px);
 	}
 </style>
 
@@ -1306,6 +1320,14 @@
 		.board-b72b1
 		{
 			outline: 4px solid #7fa650;
+		}
+	}
+
+	.full-mode
+	{
+		.spare-pieces-7492f
+		{
+			height: 0;
 		}
 	}
 
@@ -1533,6 +1555,19 @@
 				margin: 0 .2em;
 				vertical-align: middle;
 				font-size: inherit;
+			}
+
+			.fullscreen
+			{
+				position: absolute;
+				left: -2em;
+				bottom: .4em;
+				opacity: 0;
+
+				&:hover
+				{
+					opacity: 1;
+				}
 			}
 		}
 
@@ -1930,6 +1965,20 @@
 				{
 					margin: 1px;
 				}
+			}
+		}
+
+		&.full-mode
+		{
+			aside
+			{
+				visibility: hidden;
+			}
+
+			footer
+			{
+				width: 0;
+				padding: 0;
 			}
 		}
 	}

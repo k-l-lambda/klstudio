@@ -17,6 +17,8 @@ TODO:
 
 2021.1.18	K.L.	<k.l.lambda@gmail.com>
 
+	+	chess-lab.vue: refined styles for vertical viewport.
+
 	+	chess-lab.vue: player running status added.
 
 

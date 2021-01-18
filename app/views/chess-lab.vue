@@ -584,7 +584,8 @@
 				if (this.board)
 					this.board.resize();
 
-				this.asideWidth = (this.$el.clientWidth - this.$refs.board.clientWidth) / 2;
+				this.asideWidth = this.$el.clientWidth > this.$refs.board.clientWidth ?
+					(this.$el.clientWidth - this.$refs.board.clientWidth) / 2 : this.$el.clientWidth / 2;
 
 				await this.$nextTick();
 
@@ -1271,6 +1272,14 @@
 	{
 		font-size: min(30px, 4vh);
 	}
+
+	@media (max-aspect-ratio: 4/5)
+	{
+		aside
+		{
+			height: calc(100vh - 112vw) !important;
+		}
+	}
 </style>
 
 <style lang="scss">
@@ -1381,11 +1390,13 @@
 		font-family: Segoe UI, "Helvetica Neue", Helvetica, Arial, sans-serif;
 		background-color: #312e2b;
 		color: #b7b7b7;
+		height: 100%;
 
 		main
 		{
 			position: relative;
 			margin: 0 auto;
+			height: 100%;
 
 			#board
 			{
@@ -1529,9 +1540,10 @@
 		{
 			position: absolute;
 			width: var(--aside-width);
-			top: 0;
+			bottom: 0;
 			height: 100%;
 			box-sizing: border-box;
+			overflow: hidden;
 		}
 
 		select
@@ -1886,6 +1898,37 @@
 				&:hover:not([disabled])
 				{
 					background-color: $button-hover-color;
+				}
+			}
+		}
+
+		@media (max-aspect-ratio: 4/5)
+		{
+			.logo-placeholder
+			{
+				display: none !important;
+			}
+
+			aside
+			{
+				font-size: 60%;
+			}
+
+			&.edit-mode
+			{
+				aside
+				{
+					display: none !important;
+				}
+			}
+
+			footer
+			{
+				padding: 2px;
+
+				button
+				{
+					margin: 1px;
 				}
 			}
 		}

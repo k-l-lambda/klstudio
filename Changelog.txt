@@ -14,6 +14,11 @@ TODO:
 
 
 
+2021.1.18	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: player running status added.
+
+
 2021.1.17	K.L.	<k.l.lambda@gmail.com>
 
 	+	chess-lab.vue: fixed winrate panel flicker problem.

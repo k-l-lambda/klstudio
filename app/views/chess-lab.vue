@@ -87,7 +87,7 @@
 				<CheckButton v-if="chosenAnalyzer" v-model="showArrowMarks" title="show arrows on board" content="&#x21e7;" />
 			</section>
 			<section class="engine players">
-				<h3>Players</h3> <button @click="runPlayer">&#x25b6;</button>
+				<h3>Players</h3> <button @click="togglePlayer">{{playerIsRunning ? "&#x23f8;" : "&#x25b6;"}}</button>
 				<p class="white">
 					<span class="icon"></span>
 					<select v-model="chosenWhitePlayer">
@@ -320,6 +320,7 @@
 				chosenBlackPlayer: null,
 				whitePlayerMoveTime: null,
 				blackPlayerMoveTime: null,
+				playerIsRunning: false,
 				analyzation: null,
 				winRates: null,
 				winrateChartHeight,
@@ -907,29 +908,44 @@
 
 
 			async runPlayer () {
-				if (this.game.game_over())
-					return;
-
-				let move = null;
-				if (this.whiteOnTurn && this.whitePlayer)
-					move = await this.whitePlayer.think(this.game.fen());
-				else if (!this.whiteOnTurn && this.blackPlayer)
-					move = await this.blackPlayer.think(this.game.fen());
-
-				if (move) {
-					if (this.game.move({
-						from: move[0],
-						to: move[1],
-						promotion: move[2],
-					})) {
-						this.syncBoard();
-						this.updateStatus();
-
-						msDelay(200).then(() => this.runPlayer());
+				if (!this.game.game_over()) {
+					let move = null;
+					if (this.whiteOnTurn && this.whitePlayer) {
+						this.playerIsRunning = true;
+						move = await this.whitePlayer.think(this.game.fen());
 					}
-					else
-						console.warn("Invalid move from agent:", move);
+					else if (!this.whiteOnTurn && this.blackPlayer) {
+						this.playerIsRunning = true;
+						move = await this.blackPlayer.think(this.game.fen());
+					}
+
+					if (move) {
+						if (this.game.move({
+							from: move[0],
+							to: move[1],
+							promotion: move[2],
+						})) {
+							this.syncBoard();
+							this.updateStatus();
+
+							msDelay(200).then(() => this.playerIsRunning && this.runPlayer());
+
+							return;
+						}
+						else
+							console.warn("Invalid move from agent:", move);
+					}
 				}
+
+				this.playerIsRunning = false;
+			},
+
+
+			togglePlayer () {
+				if (!this.playerIsRunning)
+					this.runPlayer();
+				else
+					this.playerIsRunning = false;
 			},
 
 

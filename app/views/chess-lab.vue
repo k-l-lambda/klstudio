@@ -4,6 +4,7 @@
 			'edit-mode': editMode,
 			'play-mode': playMode,
 			'drag-hover': drageHover,
+			'full-mode': fullMode,
 		}"
 		v-resize="onResize"
 		:style="{
@@ -87,7 +88,7 @@
 				<CheckButton v-if="chosenAnalyzer" v-model="showArrowMarks" title="show arrows on board" content="&#x21e7;" />
 			</section>
 			<section class="engine players">
-				<h3>Players</h3> <button @click="runPlayer">&#x25b6;</button>
+				<h3>Players</h3> <button @click="togglePlayer">{{playerIsRunning ? "&#x23f8;" : "&#x25b6;"}}</button>
 				<p class="white">
 					<span class="icon"></span>
 					<select v-model="chosenWhitePlayer">
@@ -179,6 +180,7 @@
 			<CheckButton class="turn" v-model="whiteOnTurn" :disabled="playMode" :title="`${whiteOnTurn ? 'white' : 'black'} is on turn`" />
 			<button @click="flipOrientation">&#x1f503;</button>
 			<CheckButton class="edit" content="&#x1F58A;" v-model="editMode" />
+			<CheckButton class="fullscreen" content="&#x26F6;" v-model="fullMode" />
 		</footer>
 	</div>
 </template>
@@ -301,6 +303,7 @@
 
 			return {
 				editMode: false,
+				fullMode: false,
 				whiteOnTurn: true,
 				orientationFlipped: false,
 				setupPosition: null,
@@ -320,6 +323,7 @@
 				chosenBlackPlayer: null,
 				whitePlayerMoveTime: null,
 				blackPlayerMoveTime: null,
+				playerIsRunning: false,
 				analyzation: null,
 				winRates: null,
 				winrateChartHeight,
@@ -340,7 +344,7 @@
 						dimension: ["step"],
 						metrics: ["rate"],
 						xAxisType: "value",
-						animation: false,
+						//animation: true,
 					},
 					theme: {
 						line: {
@@ -373,13 +377,9 @@
 					},
 					markLine: {
 						animation: false,
-						data: [
-							/*{
-								xAxis: this.currentHistoryIndex + 1,
-							},*/
-						],
+						data: [],
 					},
-					animation: {animation: false},
+					animation: {animation: true},
 				},
 			};
 		},
@@ -458,62 +458,6 @@
 					.filter(({item}) => item)
 					.map(({step, item}) => ({step: Number(step), rate: item.rate}));
 			},
-
-
-			/*winrateChart () {
-				const rows = this.winRates
-					.map((item, step) => ({step, item}))
-					.filter(({item}) => item)
-					.map(({step, item}) => ({step: Number(step), rate: item.rate}));
-
-				return {
-					height: `${this.winrateChartHeight}px`,
-					settings: {
-						dimension: ["step"],
-						metrics: ["rate"],
-						xAxisType: "value",
-						animation: false,
-					},
-					theme: {
-						line: {
-							smooth: false,
-						},
-						grid: {
-							left: 8,
-							top: 8,
-							right: 8,
-							bottom: 8,
-						},
-					},
-					legend: {
-						show: false,
-					},
-					yAxis: {
-						max: 1,
-						min: -1,
-						splitLine: {
-							show: false,
-						},
-						splitArea: {
-							show: true,
-							interval: 2,
-						},
-					},
-					data: {
-						columns: ["step", "rate"],
-						rows,
-					},
-					markLine: {
-						animation: false,
-						data: [
-							{
-								xAxis: this.currentHistoryIndex + 1,
-							},
-						],
-					},
-					animation: {animation: false},
-				};
-			},*/
 
 
 			promotionData () {
@@ -643,7 +587,8 @@
 				if (this.board)
 					this.board.resize();
 
-				this.asideWidth = (this.$el.clientWidth - this.$refs.board.clientWidth) / 2;
+				this.asideWidth = this.$el.clientWidth > this.$refs.board.clientWidth ?
+					(this.$el.clientWidth - this.$refs.board.clientWidth) / 2 : this.$el.clientWidth / 2;
 
 				await this.$nextTick();
 
@@ -869,17 +814,20 @@
 			},
 
 
-			async onDropFiles () {
+			async onDropFiles (event) {
 				this.drageHover = false;
 
 				const file = event.dataTransfer.files[0];
 				switch (file.type) {
+				case "application/vnd.chess-pgn":
 				case "text/plain":
 				case "":
 					const text = await file.readAs("Text");
 					this.loadNotation(text);
 
 					break;
+				default:
+					console.debug("Unsupported drop file type:", file.type);
 				}
 			},
 
@@ -964,29 +912,44 @@
 
 
 			async runPlayer () {
-				if (this.game.game_over())
-					return;
-
-				let move = null;
-				if (this.whiteOnTurn && this.whitePlayer)
-					move = await this.whitePlayer.think(this.game.fen());
-				else if (!this.whiteOnTurn && this.blackPlayer)
-					move = await this.blackPlayer.think(this.game.fen());
-
-				if (move) {
-					if (this.game.move({
-						from: move[0],
-						to: move[1],
-						promotion: move[2],
-					})) {
-						this.syncBoard();
-						this.updateStatus();
-
-						msDelay(200).then(() => this.runPlayer());
+				if (!this.game.game_over()) {
+					let move = null;
+					if (this.whiteOnTurn && this.whitePlayer) {
+						this.playerIsRunning = true;
+						move = await this.whitePlayer.think(this.game.fen());
 					}
-					else
-						console.warn("Invalid move from agent:", move);
+					else if (!this.whiteOnTurn && this.blackPlayer) {
+						this.playerIsRunning = true;
+						move = await this.blackPlayer.think(this.game.fen());
+					}
+
+					if (move) {
+						if (this.game.move({
+							from: move[0],
+							to: move[1],
+							promotion: move[2],
+						})) {
+							this.syncBoard();
+							this.updateStatus();
+
+							msDelay(200).then(() => this.playerIsRunning && this.runPlayer());
+
+							return;
+						}
+						else
+							console.warn("Invalid move from agent:", move);
+					}
 				}
+
+				this.playerIsRunning = false;
+			},
+
+
+			togglePlayer () {
+				if (!this.playerIsRunning)
+					this.runPlayer();
+				else
+					this.playerIsRunning = false;
 			},
 
 
@@ -1088,6 +1051,14 @@
 				}
 
 				console.log("History evaluation done.");
+			},
+
+
+			async playHistory (interval = 600) {
+				while (this.currentHistoryIndex < this.history.length - 1) {
+					this.redoMove();
+					await msDelay(interval);
+				}
 			},
 		},
 
@@ -1295,6 +1266,11 @@
 				this.winrateChartData.data.rows = value;
 				//Vue.set(this.winrateChartData.data, "rows", value);
 			},
+
+
+			fullMode () {
+				this.$nextTick(this.onResize.bind(this));
+			},
 		},
 	};
 </script>
@@ -1312,6 +1288,39 @@
 	{
 		font-size: min(30px, 4vh);
 	}
+
+	@media (max-aspect-ratio: 4/5)
+	{
+		aside
+		{
+			height: calc(100vh - 112vw) !important;
+		}
+	}
+
+	.chess-lab.full-mode main
+	{
+		max-width: calc(min(100vw, 100vh) - 1px);
+		max-height: calc(100vh - 1px);
+	}
+
+	.chess-lab.full-mode main .marks
+	{
+		top: 2px !important;
+	}
+
+	@media (max-aspect-ratio: 1/1)
+	{
+		.chess-lab.full-mode main
+		{
+			padding-top: calc(50vh - 50vw);
+		}
+
+		.chess-lab.full-mode main .marks
+		{
+			top: calc(50vh - 50vw + 2px) !important;
+		}
+	}
+
 </style>
 
 <style lang="scss">
@@ -1338,6 +1347,14 @@
 		.board-b72b1
 		{
 			outline: 4px solid #7fa650;
+		}
+	}
+
+	.full-mode
+	{
+		.spare-pieces-7492f
+		{
+			height: 0;
 		}
 	}
 
@@ -1422,11 +1439,13 @@
 		font-family: Segoe UI, "Helvetica Neue", Helvetica, Arial, sans-serif;
 		background-color: #312e2b;
 		color: #b7b7b7;
+		height: 100%;
 
 		main
 		{
 			position: relative;
 			margin: 0 auto;
+			height: 100%;
 
 			#board
 			{
@@ -1564,15 +1583,29 @@
 				vertical-align: middle;
 				font-size: inherit;
 			}
+
+			.fullscreen
+			{
+				position: absolute;
+				left: -2em;
+				bottom: .4em;
+				opacity: 0;
+
+				&:hover
+				{
+					opacity: 1;
+				}
+			}
 		}
 
 		aside
 		{
 			position: absolute;
 			width: var(--aside-width);
-			top: 0;
+			bottom: 0;
 			height: 100%;
 			box-sizing: border-box;
+			overflow: hidden;
 		}
 
 		select
@@ -1928,6 +1961,51 @@
 				{
 					background-color: $button-hover-color;
 				}
+			}
+		}
+
+		@media (max-aspect-ratio: 4/5)
+		{
+			.logo-placeholder
+			{
+				display: none !important;
+			}
+
+			aside
+			{
+				font-size: 60%;
+			}
+
+			&.edit-mode
+			{
+				aside
+				{
+					display: none !important;
+				}
+			}
+
+			footer
+			{
+				padding: 2px;
+
+				button
+				{
+					margin: 1px;
+				}
+			}
+		}
+
+		&.full-mode
+		{
+			aside
+			{
+				visibility: hidden;
+			}
+
+			footer
+			{
+				width: 0;
+				padding: 0;
 			}
 		}
 	}

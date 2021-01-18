@@ -456,62 +456,6 @@
 			},
 
 
-			/*winrateChart () {
-				const rows = this.winRates
-					.map((item, step) => ({step, item}))
-					.filter(({item}) => item)
-					.map(({step, item}) => ({step: Number(step), rate: item.rate}));
-
-				return {
-					height: `${this.winrateChartHeight}px`,
-					settings: {
-						dimension: ["step"],
-						metrics: ["rate"],
-						xAxisType: "value",
-						animation: false,
-					},
-					theme: {
-						line: {
-							smooth: false,
-						},
-						grid: {
-							left: 8,
-							top: 8,
-							right: 8,
-							bottom: 8,
-						},
-					},
-					legend: {
-						show: false,
-					},
-					yAxis: {
-						max: 1,
-						min: -1,
-						splitLine: {
-							show: false,
-						},
-						splitArea: {
-							show: true,
-							interval: 2,
-						},
-					},
-					data: {
-						columns: ["step", "rate"],
-						rows,
-					},
-					markLine: {
-						animation: false,
-						data: [
-							{
-								xAxis: this.currentHistoryIndex + 1,
-							},
-						],
-					},
-					animation: {animation: false},
-				};
-			},*/
-
-
 			promotionData () {
 				if (!this.promotionPending)
 					return null;
@@ -865,17 +809,20 @@
 			},
 
 
-			async onDropFiles () {
+			async onDropFiles (event) {
 				this.drageHover = false;
 
 				const file = event.dataTransfer.files[0];
 				switch (file.type) {
+				case "application/vnd.chess-pgn":
 				case "text/plain":
 				case "":
 					const text = await file.readAs("Text");
 					this.loadNotation(text);
 
 					break;
+				default:
+					console.debug("Unsupported drop file type:", file.type);
 				}
 			},
 

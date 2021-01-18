@@ -340,7 +340,7 @@
 						dimension: ["step"],
 						metrics: ["rate"],
 						xAxisType: "value",
-						animation: false,
+						//animation: true,
 					},
 					theme: {
 						line: {
@@ -373,13 +373,9 @@
 					},
 					markLine: {
 						animation: false,
-						data: [
-							/*{
-								xAxis: this.currentHistoryIndex + 1,
-							},*/
-						],
+						data: [],
 					},
-					animation: {animation: false},
+					animation: {animation: true},
 				},
 			};
 		},

@@ -1294,6 +1294,25 @@
 		max-width: calc(min(100vw, 100vh) - 1px);
 		max-height: calc(100vh - 1px);
 	}
+
+	.chess-lab.full-mode main .marks
+	{
+		top: 2px !important;
+	}
+
+	@media (max-aspect-ratio: 1/1)
+	{
+		.chess-lab.full-mode main
+		{
+			padding-top: calc(50vh - 50vw);
+		}
+
+		.chess-lab.full-mode main .marks
+		{
+			top: calc(50vh - 50vw + 2px) !important;
+		}
+	}
+
 </style>
 
 <style lang="scss">

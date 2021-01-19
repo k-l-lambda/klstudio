@@ -25,7 +25,10 @@
 		<StoreInput v-show="false" v-model="whitePlayerMoveTime" sessionKey="chessLab.whitePlayerMoveTime" />
 		<StoreInput v-show="false" v-model="blackPlayerMoveTime" sessionKey="chessLab.blackPlayerMoveTime" />
 		<main>
-			<div id="board" ref="board" @click="chosenSquare = null"></div>
+			<div id="board" ref="board"
+				@click="chosenSquare = null"
+				@touchmove.prevent="() => null"
+			></div>
 			<svg v-show="!editMode" class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">
 				<g transform="translate(0, 800) scale(1, -1)">
 					<g :transform="orientationFlipped ? 'rotate(180, 400, 400)' : null">
@@ -979,8 +982,12 @@
 				this.predictionBoard.position(fen);
 
 				await msDelay(200);
-				this.showPredictionBoard = true;
 				this.predictionPreparing = false;
+
+				if (!this.hoverMove)
+					return;
+
+				this.showPredictionBoard = true;
 				document.body.classList.remove("preparing-predict");
 
 				await this.$nextTick();
@@ -1297,6 +1304,14 @@
 		}
 	}
 
+	@media (pointer: none), (pointer: coarse)
+	{
+		body > main
+		{
+			height: 100vh !important;
+		}
+	}
+
 	.chess-lab.full-mode main
 	{
 		max-width: calc(min(100vw, 100vh) - 1px);
@@ -1440,6 +1455,7 @@
 		background-color: #312e2b;
 		color: #b7b7b7;
 		height: 100%;
+		overflow: hidden;
 
 		main
 		{
@@ -2006,6 +2022,11 @@
 			{
 				width: 0;
 				padding: 0;
+			}
+
+			#prediction-board
+			{
+				top: calc(50vh - 50vw);
 			}
 		}
 	}

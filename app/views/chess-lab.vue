@@ -1451,6 +1451,7 @@
 		background-color: #312e2b;
 		color: #b7b7b7;
 		height: 100%;
+		overflow: hidden;
 
 		main
 		{

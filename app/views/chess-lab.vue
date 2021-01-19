@@ -982,8 +982,12 @@
 				this.predictionBoard.position(fen);
 
 				await msDelay(200);
-				this.showPredictionBoard = true;
 				this.predictionPreparing = false;
+
+				if (!this.hoverMove)
+					return;
+
+				this.showPredictionBoard = true;
 				document.body.classList.remove("preparing-predict");
 
 				await this.$nextTick();

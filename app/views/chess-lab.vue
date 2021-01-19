@@ -25,7 +25,10 @@
 		<StoreInput v-show="false" v-model="whitePlayerMoveTime" sessionKey="chessLab.whitePlayerMoveTime" />
 		<StoreInput v-show="false" v-model="blackPlayerMoveTime" sessionKey="chessLab.blackPlayerMoveTime" />
 		<main>
-			<div id="board" ref="board" @click="chosenSquare = null" @touchmove.prevent="() => null"></div>
+			<div id="board" ref="board"
+				@click="chosenSquare = null"
+				@touchmove.prevent="() => null"
+			></div>
 			<svg v-show="!editMode" class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">
 				<g transform="translate(0, 800) scale(1, -1)">
 					<g :transform="orientationFlipped ? 'rotate(180, 400, 400)' : null">
@@ -2014,6 +2017,11 @@
 			{
 				width: 0;
 				padding: 0;
+			}
+
+			#prediction-board
+			{
+				top: calc(50vh - 50vw);
 			}
 		}
 	}

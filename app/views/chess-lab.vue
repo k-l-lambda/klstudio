@@ -1457,6 +1457,11 @@
 		height: 100%;
 		overflow: hidden;
 
+		button
+		{
+			cursor: pointer;
+		}
+
 		main
 		{
 			position: relative;
@@ -1923,6 +1928,7 @@
 			//height: 1.4em;
 			line-height: 140%;
 			background-size: contain;
+			background-position: center;
 
 			&::before
 			{

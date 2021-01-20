@@ -642,6 +642,8 @@
 				if (checker)
 					this.checkerSize = checker.clientWidth / 8;
 
+				await this.$nextTick();
+
 				if (this.predictionBoard)
 					this.predictionBoard.resize();
 

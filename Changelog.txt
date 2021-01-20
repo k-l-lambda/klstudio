@@ -16,6 +16,11 @@ TODO:
 
 
 
+2021.1.20	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: share panel added.
+
+
 2021.1.18	K.L.	<k.l.lambda@gmail.com>
 
 	+	chess-lab.vue: method of playHistory added.

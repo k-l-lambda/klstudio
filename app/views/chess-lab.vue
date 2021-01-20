@@ -149,19 +149,31 @@
 					@paste="onPgnBoxPaste"
 				/>
 				<button @click="downloadPGN" :disabled="!notation" title="save PGN file">&#x1f4be;</button>
-				<span class="help">
+				<section class="share">
+					<span class="icon" @click="showSharePanel = true;showNotationTips = false" :class="{on: showSharePanel}">&#xf1e0;</span>
+					<div class="panel embed-dialog" v-if="showSharePanel"
+						@mouseleave="showSharePanel = false"
+					>
+						<p class="comment">Share this URL to others:</p>
+						<p>
+							<a class="link" :class="{activated: gameLinkCopied}" :href="gameLink" title="link to this game" target="_blank">{{gameLink}}</a>
+							<button title="copy the link" @click="copyGameLink">&#x2398;</button>
+						</p>
+					</div>
+				</section>
+				<section class="help">
 					<span class="icon" @click="showNotationTips = true" :class="{on: showNotationTips}">&#9432;</span>
 					<div class="tips embed-dialog" v-show="showNotationTips"
 						@mouseleave="showNotationTips = false"
 					>
-						<p>Drag this widget link into your bookmark bar<wbr/> to copy notation in third-party websites.</p>
+						<p class="comment">Drag this widget link into your bookmark bar<wbr/> to copy notation in third-party websites.</p>
 						<ul>
 							<li v-for="widget of PGN_WIDGETS" :key="widget.domain">
 								<a :href="widget.script">{{widget.domain}}.copyNotation</a>
 							</li>
 						</ul>
 					</div>
-				</span>
+				</section>
 			</div>
 			<div class="move-list">
 				<table>
@@ -333,6 +345,7 @@
 				gameResult: null,
 				PGN_WIDGETS,
 				showNotationTips: false,
+				showSharePanel: false,
 				showArrowMarks: true,
 				lastMove: null,
 				checkSquare: null,
@@ -384,6 +397,7 @@
 					},
 					animation: {animation: true},
 				},
+				gameLinkCopied: false,
 			};
 		},
 
@@ -516,6 +530,11 @@
 					return null;
 
 				return `${this.hoverMove.hash}|${this.hoverMovePoint.x},${this.hoverMovePoint.y}`;
+			},
+
+
+			gameLink () {
+				return location.origin + location.pathname + "#/chess-lab?notation=" + encodeURIComponent(this.notation);
 			},
 		},
 
@@ -1067,6 +1086,12 @@
 					await msDelay(interval);
 				}
 			},
+
+
+			copyGameLink () {
+				navigator.clipboard.writeText(this.gameLink);
+				this.gameLinkCopied = true;
+			},
 		},
 
 
@@ -1277,6 +1302,11 @@
 
 			fullMode () {
 				this.$nextTick(this.onResize.bind(this));
+			},
+
+
+			showSharePanel () {
+				this.gameLinkCopied = false;
 			},
 		},
 	};
@@ -1626,7 +1656,6 @@
 			bottom: 0;
 			height: 100%;
 			box-sizing: border-box;
-			overflow: hidden;
 		}
 
 		select
@@ -1785,6 +1814,17 @@
 			z-index: 100;
 			border-radius: 4px;
 			box-shadow: 0px 8px 20px #000;
+
+			p
+			{
+				margin: .4em;
+			}
+
+			.comment
+			{
+				font-size: 14px;
+				color: #777;
+			}
 		}
 
 		.notation
@@ -1793,6 +1833,24 @@
 			padding: 1em;
 			display: flex;
 			flex-direction: row;
+
+			section
+			{
+				display: inline-block;
+				flex: 0 0 auto;
+				position: relative;
+				margin: 0 .4em;
+
+				.icon
+				{
+					cursor: pointer;
+
+					&.on
+					{
+						color: #cfc;
+					}
+				}
+			}
 
 			.pgn-box
 			{
@@ -1829,31 +1887,45 @@
 				margin: 0 .2em;
 			}
 
-			.help
+			.share
 			{
-				flex: 0 0 auto;
-				position: relative;
-
-				.icon
+				.panel
 				{
-					cursor: pointer;
+					right: 0;
 
-					&.on
+					p
 					{
-						color: #cfc;
+						white-space: nowrap;
+					}
+
+					button
+					{
+						margin: .2em;
+					}
+
+					.link
+					{
+						color: inherit;
+						display: inline-block;
+						max-width: 20em;
+						overflow: hidden;
+						font-size: 9px;
+
+						&.activated
+						{
+							color: $button-active-hover-color;
+						}
 					}
 				}
+			}
 
+			.help
+			{
 				.tips
 				{
 					top: 100%;
 					right: 0;
 					white-space: nowrap;
-
-					p
-					{
-						margin: .4em;
-					}
 
 					ul
 					{

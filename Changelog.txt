@@ -18,6 +18,8 @@ TODO:
 
 2021.1.20	K.L.	<k.l.lambda@gmail.com>
 
+	+	chess-lab.vue: location hash parsing added.
+
 	+	chess-lab.vue: share panel added.
 
 

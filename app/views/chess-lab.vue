@@ -207,6 +207,7 @@
 	import {debounce} from "lodash";
 	import color from "color";
 	import Vue from "vue";
+	import url from "url";
 
 	import {msDelay, mutexDelay} from "../delay";
 	import {downloadURL} from "../utils";
@@ -534,7 +535,19 @@
 
 
 			gameLink () {
-				return location.origin + location.pathname + "#/chess-lab?notation=" + encodeURIComponent(this.notation);
+				let link = location.origin + location.pathname + "#/chess-lab?";
+
+				const queries = [];
+
+				if (this.notation)
+					queries.push("notation=" + encodeURIComponent(this.notation));
+
+				if (this.currentHistoryIndex < this.history.length - 1)
+					queries.push("step=" + this.currentHistoryIndex.toString());
+
+				link += queries.join("&");
+
+				return link;
 			},
 		},
 
@@ -592,6 +605,11 @@
 				pieceTheme: "chess/pieces/alpha/{piece}.png",
 			});
 
+			const hashData = this.parseLocationHash();
+
+			if (hashData.notation)
+				this.notation = hashData.notation;
+
 			if (this.notation) {
 				const pgn = this.notation;
 				this.editMode = false;
@@ -599,6 +617,9 @@
 				await this.$nextTick();
 				this.loadNotation(pgn);
 			}
+
+			if (hashData.step)
+				this.seekHistory(parseInt(hashData.step));
 
 			this.onResize();
 		},
@@ -1091,6 +1112,15 @@
 			copyGameLink () {
 				navigator.clipboard.writeText(this.gameLink);
 				this.gameLinkCopied = true;
+			},
+
+
+			parseLocationHash () {
+				const hash = location.hash.substr(1);
+				const hashurl = url.parse(hash, true);
+				//console.log("hashurl:", hashurl);
+
+				return hashurl.query;
 			},
 		},
 

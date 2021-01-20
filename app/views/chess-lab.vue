@@ -149,19 +149,32 @@
 					@paste="onPgnBoxPaste"
 				/>
 				<button @click="downloadPGN" :disabled="!notation" title="save PGN file">&#x1f4be;</button>
-				<span class="help">
-					<span class="icon" @click="showNotationTips = true" :class="{on: showNotationTips}">&#9432;</span>
+				<section class="share">
+					<span class="icon" @click="showSharePanel = !showSharePanel; showNotationTips = false" :class="{on: showSharePanel}">&#xf1e0;</span>
+					<div class="panel embed-dialog" v-if="showSharePanel"
+						@mouseleave="showSharePanel = false"
+					>
+						<p class="comment">Share this URL to others:</p>
+						<p>
+							<a class="link" :class="{activated: gameLinkCopied}" :href="gameLink" title="link to this game" target="_blank">{{gameLink}}</a>
+							<button title="copy the link" @click="copyGameLink">&#x2398;</button>
+						</p>
+						<QRCode :text="gameLink" />
+					</div>
+				</section>
+				<section class="help">
+					<span class="icon" @click="showNotationTips = !showNotationTips" :class="{on: showNotationTips}">&#9432;</span>
 					<div class="tips embed-dialog" v-show="showNotationTips"
 						@mouseleave="showNotationTips = false"
 					>
-						<p>Drag this widget link into your bookmark bar<wbr/> to copy notation in third-party websites.</p>
+						<p class="comment">Drag this widget link into your bookmark bar<wbr/> to copy notation in third-party websites.</p>
 						<ul>
 							<li v-for="widget of PGN_WIDGETS" :key="widget.domain">
 								<a :href="widget.script">{{widget.domain}}.copyNotation</a>
 							</li>
 						</ul>
 					</div>
-				</span>
+				</section>
 			</div>
 			<div class="move-list">
 				<table>
@@ -195,6 +208,7 @@
 	import {debounce} from "lodash";
 	import color from "color";
 	import Vue from "vue";
+	import url from "url";
 
 	import {msDelay, mutexDelay} from "../delay";
 	import {downloadURL} from "../utils";
@@ -206,6 +220,7 @@
 	import StoreInput from "../components/store-input.vue";
 	import BoolStoreInput from "../components/bool-store-input.vue";
 	import Chart from "../components/chart.vue";
+	import QRCode from "../components/qrcode.vue";
 
 
 
@@ -298,6 +313,7 @@
 			StoreInput,
 			BoolStoreInput,
 			Chart,
+			QRCode,
 		},
 
 
@@ -333,6 +349,7 @@
 				gameResult: null,
 				PGN_WIDGETS,
 				showNotationTips: false,
+				showSharePanel: false,
 				showArrowMarks: true,
 				lastMove: null,
 				checkSquare: null,
@@ -384,6 +401,7 @@
 					},
 					animation: {animation: true},
 				},
+				gameLinkCopied: false,
 			};
 		},
 
@@ -517,6 +535,23 @@
 
 				return `${this.hoverMove.hash}|${this.hoverMovePoint.x},${this.hoverMovePoint.y}`;
 			},
+
+
+			gameLink () {
+				let link = location.origin + location.pathname + "#/chess-lab?";
+
+				const queries = [];
+
+				if (this.notation)
+					queries.push("notation=" + encodeURIComponent(this.notation));
+
+				if (this.currentHistoryIndex < this.history.length - 1)
+					queries.push("step=" + this.currentHistoryIndex.toString());
+
+				link += queries.join("&");
+
+				return link;
+			},
 		},
 
 
@@ -573,6 +608,11 @@
 				pieceTheme: "chess/pieces/alpha/{piece}.png",
 			});
 
+			const hashData = this.parseLocationHash();
+
+			if (hashData.notation)
+				this.notation = hashData.notation;
+
 			if (this.notation) {
 				const pgn = this.notation;
 				this.editMode = false;
@@ -580,6 +620,9 @@
 				await this.$nextTick();
 				this.loadNotation(pgn);
 			}
+
+			if (hashData.step)
+				this.seekHistory(parseInt(hashData.step));
 
 			this.onResize();
 		},
@@ -598,6 +641,8 @@
 				const checker = this.$refs.board.querySelector(".board-b72b1");
 				if (checker)
 					this.checkerSize = checker.clientWidth / 8;
+
+				await this.$nextTick();
 
 				if (this.predictionBoard)
 					this.predictionBoard.resize();
@@ -1067,6 +1112,21 @@
 					await msDelay(interval);
 				}
 			},
+
+
+			copyGameLink () {
+				navigator.clipboard.writeText(this.gameLink);
+				this.gameLinkCopied = true;
+			},
+
+
+			parseLocationHash () {
+				const hash = location.hash.substr(1);
+				const hashurl = url.parse(hash, true);
+				//console.log("hashurl:", hashurl);
+
+				return hashurl.query;
+			},
 		},
 
 
@@ -1278,6 +1338,11 @@
 			fullMode () {
 				this.$nextTick(this.onResize.bind(this));
 			},
+
+
+			showSharePanel () {
+				this.gameLinkCopied = false;
+			},
 		},
 	};
 </script>
@@ -1457,6 +1522,11 @@
 		height: 100%;
 		overflow: hidden;
 
+		button
+		{
+			cursor: pointer;
+		}
+
 		main
 		{
 			position: relative;
@@ -1621,7 +1691,6 @@
 			bottom: 0;
 			height: 100%;
 			box-sizing: border-box;
-			overflow: hidden;
 		}
 
 		select
@@ -1780,6 +1849,17 @@
 			z-index: 100;
 			border-radius: 4px;
 			box-shadow: 0px 8px 20px #000;
+
+			p
+			{
+				margin: .4em;
+			}
+
+			.comment
+			{
+				font-size: 14px;
+				color: #777;
+			}
 		}
 
 		.notation
@@ -1788,6 +1868,24 @@
 			padding: 1em;
 			display: flex;
 			flex-direction: row;
+
+			section
+			{
+				display: inline-block;
+				flex: 0 0 auto;
+				position: relative;
+				margin: 0 .4em;
+
+				.icon
+				{
+					cursor: pointer;
+
+					&.on
+					{
+						color: #cfc;
+					}
+				}
+			}
 
 			.pgn-box
 			{
@@ -1824,31 +1922,45 @@
 				margin: 0 .2em;
 			}
 
-			.help
+			.share
 			{
-				flex: 0 0 auto;
-				position: relative;
-
-				.icon
+				.panel
 				{
-					cursor: pointer;
+					right: 0;
 
-					&.on
+					p
 					{
-						color: #cfc;
+						white-space: nowrap;
+					}
+
+					button
+					{
+						margin: .2em;
+					}
+
+					.link
+					{
+						color: inherit;
+						display: inline-block;
+						max-width: 20em;
+						overflow: hidden;
+						font-size: 9px;
+
+						&.activated
+						{
+							color: $button-active-hover-color;
+						}
 					}
 				}
+			}
 
+			.help
+			{
 				.tips
 				{
 					top: 100%;
 					right: 0;
 					white-space: nowrap;
-
-					p
-					{
-						margin: .4em;
-					}
 
 					ul
 					{
@@ -1923,6 +2035,7 @@
 			//height: 1.4em;
 			line-height: 140%;
 			background-size: contain;
+			background-position: center;
 
 			&::before
 			{

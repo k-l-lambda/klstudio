@@ -159,6 +159,7 @@
 							<a class="link" :class="{activated: gameLinkCopied}" :href="gameLink" title="link to this game" target="_blank">{{gameLink}}</a>
 							<button title="copy the link" @click="copyGameLink">&#x2398;</button>
 						</p>
+						<QRCode :text="gameLink" />
 					</div>
 				</section>
 				<section class="help">
@@ -219,6 +220,7 @@
 	import StoreInput from "../components/store-input.vue";
 	import BoolStoreInput from "../components/bool-store-input.vue";
 	import Chart from "../components/chart.vue";
+	import QRCode from "../components/qrcode.vue";
 
 
 
@@ -311,6 +313,7 @@
 			StoreInput,
 			BoolStoreInput,
 			Chart,
+			QRCode,
 		},
 
 

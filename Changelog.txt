@@ -1,7 +1,6 @@
 
 TODO:
 	chess-lab:
-		game share panel with QR code
 		winrate click locating
 		save engine name in win rate items
 	cube3-multiplication: twist cube individually by user
@@ -17,6 +16,8 @@ TODO:
 
 
 2021.1.20	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: QR code in share panel added.
 
 	+	chess-lab.vue: location hash parsing added.
 

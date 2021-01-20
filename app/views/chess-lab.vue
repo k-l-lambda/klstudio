@@ -150,7 +150,7 @@
 				/>
 				<button @click="downloadPGN" :disabled="!notation" title="save PGN file">&#x1f4be;</button>
 				<section class="share">
-					<span class="icon" @click="showSharePanel = true;showNotationTips = false" :class="{on: showSharePanel}">&#xf1e0;</span>
+					<span class="icon" @click="showSharePanel = !showSharePanel; showNotationTips = false" :class="{on: showSharePanel}">&#xf1e0;</span>
 					<div class="panel embed-dialog" v-if="showSharePanel"
 						@mouseleave="showSharePanel = false"
 					>
@@ -163,7 +163,7 @@
 					</div>
 				</section>
 				<section class="help">
-					<span class="icon" @click="showNotationTips = true" :class="{on: showNotationTips}">&#9432;</span>
+					<span class="icon" @click="showNotationTips = !showNotationTips" :class="{on: showNotationTips}">&#9432;</span>
 					<div class="tips embed-dialog" v-show="showNotationTips"
 						@mouseleave="showNotationTips = false"
 					>

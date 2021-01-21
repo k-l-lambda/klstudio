@@ -34,7 +34,7 @@
 					<g :transform="orientationFlipped ? 'rotate(180, 400, 400)' : null">
 						<g v-if="showArrowMarks" class="arrows">
 							<polygon v-for="move of noticableMoves" :key="move.hash" class="move"
-								:class="{best: move.best, hover: (hoverMove && hoverMove.hash) === move.hash}"
+								:class="{best: move.best, hover: (hoverMove && hoverMove.hash) === move.hash, marked: move.marked}"
 								:transform="`translate(${move.arrow.x}, ${move.arrow.y}) rotate(${move.arrow.angle})`"
 								:points="[].concat(...move.arrow.points).join(' ')"
 								:fill="move.arrow.fill"
@@ -51,6 +51,7 @@
 							<g v-for="square of targetSquares" :key="square.name"
 								:transform="`translate(${(square.pos.x + 0.5) * 100}, ${(square.pos.y + 0.5) * 100})`"
 								@click.stop="targetMove(square.name)"
+								@contextmenu.prevent="targetMark(square.name)"
 							>
 								<rect :x="-50" :y="-50" :width="100" :height="100" />
 								<circle :r="16" />
@@ -266,7 +267,7 @@
 			[+TIP_SIZE * 0.7, length - TIP_SIZE], [+WIDTH / 2, length - TIP_SIZE], [+WIDTH / 2, ROOT],
 		];
 
-		const fill = color.hsv([60 + 60 * Math.tanh(value / 8), 100, 80]).alpha(weight * .9 + .1).toString();
+		const fill = Number.isFinite(value) ? color.hsv([60 + 60 * Math.tanh(value / 8), 100, 80]).alpha(weight * .9 + .1).toString() : "#777a";
 
 		return {x, y, angle, points, fill};
 	};
@@ -405,6 +406,7 @@
 					},
 				},
 				gameLinkCopied: false,
+				markMove: null,
 			};
 		},
 
@@ -457,6 +459,7 @@
 					item.valueExp = Math.exp(item.value * 3);
 					item.hash = item.move.filter(Boolean).join("");
 					item.best = i === 0;
+					item.marked = this.markMove && item.hash === this.markMove;
 				});
 
 				items.reverse();
@@ -465,7 +468,7 @@
 				//console.log("expsum:", expsum);
 				items.forEach(item => item.weight = item.valueExp / expsum);
 
-				const noticableItems = items.filter((item, i) => item.weight > 1 / items.length || i < 3);
+				const noticableItems = items.filter((item, i) => item.weight > 1 / items.length || i < 3 || item.marked);
 
 				items.forEach(item => item.arrow = moveToArrow(item.move[0], item.move[1], item.value, item.weight));
 
@@ -670,8 +673,10 @@
 
 				const movable = !!((this.game.turn() === "w") ^ /^b/.test(piece));
 
-				if (movable)
+				if (movable) {
 					this.chosenSquare = this.chosenSquare === source ? null : source;
+					this.markMove = null;
+				}
 
 				return movable;
 			},
@@ -744,6 +749,11 @@
 			},
 
 
+			targetMark (to) {
+				this.markMove = [this.chosenSquare, to].join("");
+			},
+
+
 			flipOrientation () {
 				this.orientationFlipped = !this.orientationFlipped;
 			},
@@ -811,6 +821,7 @@
 				}
 
 				this.chosenSquare = null;
+				this.markMove = null;
 			},
 
 
@@ -1158,6 +1169,7 @@
 					this.lastMove = null;
 					this.checkSquare = null;
 					this.chosenSquare = null;
+					this.markMove = null;
 					this.promotionPending = null;
 				}
 
@@ -1628,9 +1640,15 @@
 							stroke-width: 5px;
 						}
 
-						&.hover
+						&.hover, &.marked.hover
 						{
 							stroke: #4fa2f0;
+							stroke-width: 8px;
+						}
+
+						&.marked
+						{
+							stroke: #a84ff0;
 							stroke-width: 8px;
 						}
 					}

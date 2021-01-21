@@ -19,6 +19,8 @@ TODO:
 
 2021.1.21	K.L.	<k.l.lambda@gmail.com>
 
+	+	chess-lab.vue: marking move by right button added.
+
 	+	chess-lab.vue: winrate panel click locating added.
 
 	+	chess-lab.vue: replace emoji characters by icon font.

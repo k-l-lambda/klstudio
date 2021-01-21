@@ -28,6 +28,7 @@
 			<div id="board" ref="board"
 				@click="chosenSquare = null"
 				@touchmove.prevent="() => null"
+				@contextmenu.prevent="() => null"
 			></div>
 			<svg v-show="!editMode" class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">
 				<g transform="translate(0, 800) scale(1, -1)">
@@ -80,6 +81,7 @@
 			</div>
 			<div id="prediction-board" ref="predictionBoard" v-show="showPredictionBoard"
 				@mousemove="onPredictionBlur"
+				@contextmenu.prevent="() => null"
 			></div>
 		</main>
 		<aside class="left-sider">
@@ -614,6 +616,8 @@
 				pieceTheme: "chess/pieces/alpha/{piece}.png",
 			});
 
+			document.querySelectorAll(".piece-417db").forEach(piece => piece.oncontextmenu = event => event.preventDefault());
+
 			const hashData = this.parseLocationHash();
 
 			if (hashData.notation)
@@ -673,10 +677,8 @@
 
 				const movable = !!((this.game.turn() === "w") ^ /^b/.test(piece));
 
-				if (movable) {
+				if (movable)
 					this.chosenSquare = this.chosenSquare === source ? null : source;
-					this.markMove = null;
-				}
 
 				return movable;
 			},
@@ -821,7 +823,6 @@
 				}
 
 				this.chosenSquare = null;
-				this.markMove = null;
 			},
 
 
@@ -1151,6 +1152,15 @@
 						this.seekHistory(x - 1);
 				}
 			},
+
+
+			/*onBoardContextMenu () {
+				const square = document.querySelector(".square-55d63:hover");
+				console.log("square:", square);
+
+				//if (square)
+				//	this.chosenSquare = square.dataset.square;
+			},*/
 		},
 
 
@@ -1323,6 +1333,8 @@
 				document.querySelectorAll(".square-55d63.chosen").forEach(elem => elem.classList.remove("chosen"));
 				if (value)
 					document.querySelector(`.square-${value}`).classList.add("chosen");
+
+				this.markMove = null;
 			},
 
 

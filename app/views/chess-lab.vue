@@ -112,7 +112,7 @@
 						</select>
 					</span>
 				</p>
-				<p class="black" :class="{on: playerIsRunning && blackOnTurn}">
+				<p class="black" :class="{on: blackOnTurn}">
 					<span class="icon"></span>
 					<select v-model="chosenBlackPlayer">
 						<option :value="null">User</option>

@@ -83,7 +83,7 @@
 			_title: "Chess Lab",
 			path: "/chess-lab",
 			cover: "chess-lab.png",
-			description: `<p>A Chess analyzer app, AI game analyzation, playing with AI, board editing.</p>
+			description: `<p>A Chess analyzer app, AI game analyzation, playing with AI, position editing.</p>
 <p>Inspired by <a href="https://github.com/SabakiHQ/Sabaki" target="_blank">Sabaki</a>,
 powered by <a href="https://github.com/oakmac/chessboardjs" target="_blank">chessboardjs</a>, <a href="https://github.com/jhlywa/chess.js" target="_blank">chess.js</a>, <a href="https://github.com/nmrugg/stockfish.js" target="_blank">stockfish.js</a>.</p>`,
 		},

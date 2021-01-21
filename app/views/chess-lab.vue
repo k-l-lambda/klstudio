@@ -28,13 +28,14 @@
 			<div id="board" ref="board"
 				@click="chosenSquare = null"
 				@touchmove.prevent="() => null"
+				@contextmenu.prevent="() => null"
 			></div>
 			<svg v-show="!editMode" class="marks" viewBox="0 0 800 800" :width="checkerSize * 8" :height="checkerSize * 8">
 				<g transform="translate(0, 800) scale(1, -1)">
 					<g :transform="orientationFlipped ? 'rotate(180, 400, 400)' : null">
 						<g v-if="showArrowMarks" class="arrows">
 							<polygon v-for="move of noticableMoves" :key="move.hash" class="move"
-								:class="{best: move.best, hover: (hoverMove && hoverMove.hash) === move.hash}"
+								:class="{best: move.best, hover: (hoverMove && hoverMove.hash) === move.hash, marked: move.marked}"
 								:transform="`translate(${move.arrow.x}, ${move.arrow.y}) rotate(${move.arrow.angle})`"
 								:points="[].concat(...move.arrow.points).join(' ')"
 								:fill="move.arrow.fill"
@@ -51,6 +52,7 @@
 							<g v-for="square of targetSquares" :key="square.name"
 								:transform="`translate(${(square.pos.x + 0.5) * 100}, ${(square.pos.y + 0.5) * 100})`"
 								@click.stop="targetMove(square.name)"
+								@contextmenu.prevent="targetMark(square.name)"
 							>
 								<rect :x="-50" :y="-50" :width="100" :height="100" />
 								<circle :r="16" />
@@ -79,6 +81,7 @@
 			</div>
 			<div id="prediction-board" ref="predictionBoard" v-show="showPredictionBoard"
 				@mousemove="onPredictionBlur"
+				@contextmenu.prevent="() => null"
 			></div>
 		</main>
 		<aside class="left-sider">
@@ -91,15 +94,15 @@
 				<CheckButton v-if="chosenAnalyzer" v-model="showArrowMarks" title="show arrows on board" content="&#x21e7;" />
 			</section>
 			<section class="engine players">
-				<h3>Players</h3> <button @click="togglePlayer">{{playerIsRunning ? "&#x23f8;" : "&#x25b6;"}}</button>
-				<p class="white">
+				<h3>Players</h3> <button :class="{on: playerIsRunning}" @click="togglePlayer"><i>{{playerIsRunning ? "&#xf04c;" : "&#xf04b;"}}</i></button>
+				<p class="white" :class="{on: whiteOnTurn}">
 					<span class="icon"></span>
 					<select v-model="chosenWhitePlayer">
 						<option :value="null">User</option>
 						<option v-for="name of enginePlayerList" :key="name">{{name}}</option>
 					</select>
 					<span v-if="chosenWhitePlayer">
-						<span>&#x1f551;</span><select v-model="whitePlayerMoveTime">
+						<i>&#xf017;</i><select v-model="whitePlayerMoveTime">
 							<option :value="null">NULL</option>
 							<option :value="1000">1s</option>
 							<option :value="3000">3s</option>
@@ -109,14 +112,14 @@
 						</select>
 					</span>
 				</p>
-				<p class="black">
+				<p class="black" :class="{on: playerIsRunning && blackOnTurn}">
 					<span class="icon"></span>
 					<select v-model="chosenBlackPlayer">
 						<option :value="null">User</option>
 						<option v-for="name of enginePlayerList" :key="name">{{name}}</option>
 					</select>
 					<span v-if="chosenBlackPlayer">
-						<span>&#x1f551;</span><select v-if="chosenBlackPlayer" v-model="blackPlayerMoveTime">
+						<i>&#xf017;</i><select v-if="chosenBlackPlayer" v-model="blackPlayerMoveTime">
 							<option :value="null">NULL</option>
 							<option :value="1000">1s</option>
 							<option :value="3000">3s</option>
@@ -148,22 +151,22 @@
 					@copy="onPgnBoxCopy"
 					@paste="onPgnBoxPaste"
 				/>
-				<button @click="downloadPGN" :disabled="!notation" title="save PGN file">&#x1f4be;</button>
+				<button @click="downloadPGN" :disabled="!notation" title="save PGN file"><i>&#xf0c7;</i></button>
 				<section class="share">
-					<span class="icon" @click="showSharePanel = !showSharePanel; showNotationTips = false" :class="{on: showSharePanel}">&#xf1e0;</span>
+					<span class="icon" @click="showSharePanel = !showSharePanel; showNotationTips = false" :class="{on: showSharePanel}"><i>&#xf1e0;</i></span>
 					<div class="panel embed-dialog" v-if="showSharePanel"
 						@mouseleave="showSharePanel = false"
 					>
 						<p class="comment">Share this URL to others:</p>
 						<p>
 							<a class="link" :class="{activated: gameLinkCopied}" :href="gameLink" title="link to this game" target="_blank">{{gameLink}}</a>
-							<button title="copy the link" @click="copyGameLink">&#x2398;</button>
+							<button title="copy the link" @click="copyGameLink"><i>&#xf0c5;</i></button>
 						</p>
 						<QRCode :text="gameLink" />
 					</div>
 				</section>
 				<section class="help">
-					<span class="icon" @click="showNotationTips = !showNotationTips" :class="{on: showNotationTips}">&#9432;</span>
+					<span class="icon" @click="showNotationTips = !showNotationTips" :class="{on: showNotationTips}"><i>&#xf059;</i></span>
 					<div class="tips embed-dialog" v-show="showNotationTips"
 						@mouseleave="showNotationTips = false"
 					>
@@ -189,14 +192,14 @@
 			</div>
 		</aside>
 		<footer>
-			<button v-if="playMode" @click="undoMove">&#x2b10;</button>
-			<button v-if="playMode" @click="redoMove">&#x2b0e;</button>
-			<button v-if="editMode" @click="clearBoard">&#x1f5d1;</button>
-			<button v-if="editMode" @click="startPosition">&#x1f3e0;</button>
+			<button v-if="playMode" @click="undoMove"><i>&#xf0e2;</i></button>
+			<button v-if="playMode" @click="redoMove"><i>&#xf01e;</i></button>
+			<button v-if="editMode" @click="clearBoard"><i>&#xf2ed;</i></button>
+			<button v-if="editMode" @click="startPosition"><i>&#xf015;</i></button>
 			<CheckButton class="turn" v-model="whiteOnTurn" :disabled="playMode" :title="`${whiteOnTurn ? 'white' : 'black'} is on turn`" />
-			<button @click="flipOrientation">&#x1f503;</button>
-			<CheckButton class="edit" content="&#x1F58A;" v-model="editMode" />
-			<CheckButton class="fullscreen" content="&#x26F6;" v-model="fullMode" />
+			<button @click="flipOrientation" title="flip board"><i>&#xf079;</i></button>
+			<CheckButton class="edit" content="<i>&#xf044;</i>" v-model="editMode" title="edit position" />
+			<CheckButton class="fullscreen" content="<i>&#xf065;</i>" v-model="fullMode" />
 		</footer>
 	</div>
 </template>
@@ -266,7 +269,7 @@
 			[+TIP_SIZE * 0.7, length - TIP_SIZE], [+WIDTH / 2, length - TIP_SIZE], [+WIDTH / 2, ROOT],
 		];
 
-		const fill = color.hsv([60 + 60 * Math.tanh(value / 8), 100, 80]).alpha(weight * .9 + .1).toString();
+		const fill = Number.isFinite(value) ? color.hsv([60 + 60 * Math.tanh(value / 8), 100, 80]).alpha(weight * .9 + .1).toString() : "#777a";
 
 		return {x, y, angle, points, fill};
 	};
@@ -400,8 +403,12 @@
 						data: [],
 					},
 					animation: {animation: true},
+					events: {
+						click: this.onChartClick.bind(this),
+					},
 				},
 				gameLinkCopied: false,
+				markMove: null,
 			};
 		},
 
@@ -454,6 +461,7 @@
 					item.valueExp = Math.exp(item.value * 3);
 					item.hash = item.move.filter(Boolean).join("");
 					item.best = i === 0;
+					item.marked = this.markMove && item.hash === this.markMove;
 				});
 
 				items.reverse();
@@ -462,7 +470,7 @@
 				//console.log("expsum:", expsum);
 				items.forEach(item => item.weight = item.valueExp / expsum);
 
-				const noticableItems = items.filter((item, i) => item.weight > 1 / items.length || i < 3);
+				const noticableItems = items.filter((item, i) => item.weight > 1 / items.length || i < 3 || item.marked);
 
 				items.forEach(item => item.arrow = moveToArrow(item.move[0], item.move[1], item.value, item.weight));
 
@@ -608,6 +616,8 @@
 				pieceTheme: "chess/pieces/alpha/{piece}.png",
 			});
 
+			document.querySelectorAll(".piece-417db").forEach(piece => piece.oncontextmenu = event => event.preventDefault());
+
 			const hashData = this.parseLocationHash();
 
 			if (hashData.notation)
@@ -741,6 +751,11 @@
 			},
 
 
+			targetMark (to) {
+				this.markMove = [this.chosenSquare, to].join("");
+			},
+
+
 			flipOrientation () {
 				this.orientationFlipped = !this.orientationFlipped;
 			},
@@ -808,6 +823,7 @@
 				}
 
 				this.chosenSquare = null;
+				this.showPredictionBoard = false;
 			},
 
 
@@ -1127,6 +1143,25 @@
 
 				return hashurl.query;
 			},
+
+
+			onChartClick (event) {
+				//console.log("onChartClick:", x);
+				if (event.componentType === "series") {
+					const x = event.value[0];
+					if (x >= 0 && x <= this.history.length)
+						this.seekHistory(x - 1);
+				}
+			},
+
+
+			/*onBoardContextMenu () {
+				const square = document.querySelector(".square-55d63:hover");
+				console.log("square:", square);
+
+				//if (square)
+				//	this.chosenSquare = square.dataset.square;
+			},*/
 		},
 
 
@@ -1145,6 +1180,7 @@
 					this.lastMove = null;
 					this.checkSquare = null;
 					this.chosenSquare = null;
+					this.markMove = null;
 					this.promotionPending = null;
 				}
 
@@ -1298,6 +1334,8 @@
 				document.querySelectorAll(".square-55d63.chosen").forEach(elem => elem.classList.remove("chosen"));
 				if (value)
 					document.querySelector(`.square-${value}`).classList.add("chosen");
+
+				this.markMove = null;
 			},
 
 
@@ -1404,6 +1442,18 @@
 </style>
 
 <style lang="scss">
+	@import "../assets/fonts/icon-fas.css";
+
+
+	.chess-lab
+	{
+		i
+		{
+			font-family: "IconFas";
+			font-style: normal;
+		}
+	}
+
 	.notation-322f9
 	{
 		font-size: 4vh;
@@ -1603,9 +1653,15 @@
 							stroke-width: 5px;
 						}
 
-						&.hover
+						&.hover, &.marked.hover
 						{
 							stroke: #4fa2f0;
+							stroke-width: 8px;
+						}
+
+						&.marked
+						{
+							stroke: #a84ff0;
 							stroke-width: 8px;
 						}
 					}
@@ -1746,6 +1802,14 @@
 					{
 						margin-left: .6em;
 					}
+
+					&.on
+					{
+						.icon
+						{
+							background-color: $button-active-color;
+						}
+					}
 				}
 
 				.icon
@@ -1754,6 +1818,7 @@
 					width: 1.2em;
 					height: 1.2em;
 					background-size: contain;
+					border-radius: .3em;
 				}
 
 				.white .icon
@@ -1949,6 +2014,8 @@
 						&.activated
 						{
 							color: $button-active-hover-color;
+							text-shadow: 0 0 2px #fff4;
+							outline: 1px solid #cfc6;
 						}
 					}
 				}

@@ -1,8 +1,9 @@
 
 TODO:
 	chess-lab:
-		winrate click locating
+		move dragging
 		winrate hash map
+		game meta info editor
 		save engine name in win rate items
 	cube3-multiplication: twist cube individually by user
 	stylegan-mapping.vue
@@ -14,6 +15,15 @@ TODO:
 		test solveCubeBinary
 		invalid solution issue.
 
+
+
+2021.1.21	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: marking move by right button added.
+
+	+	chess-lab.vue: winrate panel click locating added.
+
+	+	chess-lab.vue: replace emoji characters by icon font.
 
 
 2021.1.20	K.L.	<k.l.lambda@gmail.com>

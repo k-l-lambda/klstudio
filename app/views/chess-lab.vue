@@ -99,7 +99,7 @@
 						<option v-for="name of enginePlayerList" :key="name">{{name}}</option>
 					</select>
 					<span v-if="chosenWhitePlayer">
-						<span>&#x1f551;</span><select v-model="whitePlayerMoveTime">
+						<i>&#xf017;</i><select v-model="whitePlayerMoveTime">
 							<option :value="null">NULL</option>
 							<option :value="1000">1s</option>
 							<option :value="3000">3s</option>
@@ -116,7 +116,7 @@
 						<option v-for="name of enginePlayerList" :key="name">{{name}}</option>
 					</select>
 					<span v-if="chosenBlackPlayer">
-						<span>&#x1f551;</span><select v-if="chosenBlackPlayer" v-model="blackPlayerMoveTime">
+						<i>&#xf017;</i><select v-if="chosenBlackPlayer" v-model="blackPlayerMoveTime">
 							<option :value="null">NULL</option>
 							<option :value="1000">1s</option>
 							<option :value="3000">3s</option>

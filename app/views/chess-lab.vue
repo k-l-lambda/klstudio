@@ -194,8 +194,8 @@
 			<button v-if="editMode" @click="clearBoard"><i>&#xf2ed;</i></button>
 			<button v-if="editMode" @click="startPosition"><i>&#xf015;</i></button>
 			<CheckButton class="turn" v-model="whiteOnTurn" :disabled="playMode" :title="`${whiteOnTurn ? 'white' : 'black'} is on turn`" />
-			<button @click="flipOrientation"><i>&#xf079;</i></button>
-			<CheckButton class="edit" content="<i>&#xf044;</i>" v-model="editMode" />
+			<button @click="flipOrientation" title="flip board"><i>&#xf079;</i></button>
+			<CheckButton class="edit" content="<i>&#xf044;</i>" v-model="editMode" title="edit position" />
 			<CheckButton class="fullscreen" content="<i>&#xf065;</i>" v-model="fullMode" />
 		</footer>
 	</div>

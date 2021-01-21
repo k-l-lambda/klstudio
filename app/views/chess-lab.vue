@@ -91,7 +91,7 @@
 				<CheckButton v-if="chosenAnalyzer" v-model="showArrowMarks" title="show arrows on board" content="&#x21e7;" />
 			</section>
 			<section class="engine players">
-				<h3>Players</h3> <button @click="togglePlayer">{{playerIsRunning ? "&#x23f8;" : "&#x25b6;"}}</button>
+				<h3>Players</h3> <button @click="togglePlayer"><i>{{playerIsRunning ? "&#xf04c;" : "&#xf04b;"}}</i></button>
 				<p class="white">
 					<span class="icon"></span>
 					<select v-model="chosenWhitePlayer">
@@ -148,22 +148,22 @@
 					@copy="onPgnBoxCopy"
 					@paste="onPgnBoxPaste"
 				/>
-				<button @click="downloadPGN" :disabled="!notation" title="save PGN file">&#x1f4be;</button>
+				<button @click="downloadPGN" :disabled="!notation" title="save PGN file"><i>&#xf0c7;</i></button>
 				<section class="share">
-					<span class="icon" @click="showSharePanel = !showSharePanel; showNotationTips = false" :class="{on: showSharePanel}">&#xf1e0;</span>
+					<span class="icon" @click="showSharePanel = !showSharePanel; showNotationTips = false" :class="{on: showSharePanel}"><i>&#xf1e0;</i></span>
 					<div class="panel embed-dialog" v-if="showSharePanel"
 						@mouseleave="showSharePanel = false"
 					>
 						<p class="comment">Share this URL to others:</p>
 						<p>
 							<a class="link" :class="{activated: gameLinkCopied}" :href="gameLink" title="link to this game" target="_blank">{{gameLink}}</a>
-							<button title="copy the link" @click="copyGameLink">&#x2398;</button>
+							<button title="copy the link" @click="copyGameLink"><i>&#xf0c5;</i></button>
 						</p>
 						<QRCode :text="gameLink" />
 					</div>
 				</section>
 				<section class="help">
-					<span class="icon" @click="showNotationTips = !showNotationTips" :class="{on: showNotationTips}">&#9432;</span>
+					<span class="icon" @click="showNotationTips = !showNotationTips" :class="{on: showNotationTips}"><i>&#xf059;</i></span>
 					<div class="tips embed-dialog" v-show="showNotationTips"
 						@mouseleave="showNotationTips = false"
 					>
@@ -189,14 +189,14 @@
 			</div>
 		</aside>
 		<footer>
-			<button v-if="playMode" @click="undoMove">&#x2b10;</button>
-			<button v-if="playMode" @click="redoMove">&#x2b0e;</button>
-			<button v-if="editMode" @click="clearBoard">&#x1f5d1;</button>
-			<button v-if="editMode" @click="startPosition">&#x1f3e0;</button>
+			<button v-if="playMode" @click="undoMove"><i>&#xf0e2;</i></button>
+			<button v-if="playMode" @click="redoMove"><i>&#xf01e;</i></button>
+			<button v-if="editMode" @click="clearBoard"><i>&#xf2ed;</i></button>
+			<button v-if="editMode" @click="startPosition"><i>&#xf015;</i></button>
 			<CheckButton class="turn" v-model="whiteOnTurn" :disabled="playMode" :title="`${whiteOnTurn ? 'white' : 'black'} is on turn`" />
-			<button @click="flipOrientation">&#x1f503;</button>
-			<CheckButton class="edit" content="&#x1F58A;" v-model="editMode" />
-			<CheckButton class="fullscreen" content="&#x26F6;" v-model="fullMode" />
+			<button @click="flipOrientation"><i>&#xf079;</i></button>
+			<CheckButton class="edit" content="<i>&#xf044;</i>" v-model="editMode" />
+			<CheckButton class="fullscreen" content="<i>&#xf065;</i>" v-model="fullMode" />
 		</footer>
 	</div>
 </template>
@@ -1404,6 +1404,18 @@
 </style>
 
 <style lang="scss">
+	@import "../assets/fonts/icon-fas.css";
+
+
+	.chess-lab
+	{
+		i
+		{
+			font-family: "IconFas";
+			font-style: normal;
+		}
+	}
+
 	.notation-322f9
 	{
 		font-size: 4vh;
@@ -1949,6 +1961,8 @@
 						&.activated
 						{
 							color: $button-active-hover-color;
+							text-shadow: 0 0 2px #fff4;
+							outline: 1px solid #cfc6;
 						}
 					}
 				}

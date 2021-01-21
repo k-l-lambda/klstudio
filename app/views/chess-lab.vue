@@ -400,6 +400,9 @@
 						data: [],
 					},
 					animation: {animation: true},
+					events: {
+						click: this.onChartClick.bind(this),
+					},
 				},
 				gameLinkCopied: false,
 			};
@@ -1126,6 +1129,16 @@
 				//console.log("hashurl:", hashurl);
 
 				return hashurl.query;
+			},
+
+
+			onChartClick (event) {
+				//console.log("onChartClick:", x);
+				if (event.componentType === "series") {
+					const x = event.value[0];
+					if (x >= 0 && x <= this.history.length)
+						this.seekHistory(x - 1);
+				}
 			},
 		},
 

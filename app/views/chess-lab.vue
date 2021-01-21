@@ -157,7 +157,7 @@
 					<div class="panel embed-dialog" v-if="showSharePanel"
 						@mouseleave="showSharePanel = false"
 					>
-						<p class="comment">Share this URL to others:</p>
+						<p class="comment">Share the URL of this game to others:</p>
 						<p>
 							<a class="link" :class="{activated: gameLinkCopied}" :href="gameLink" title="link to this game" target="_blank">{{gameLink}}</a>
 							<button title="copy the link" @click="copyGameLink"><i>&#xf0c5;</i></button>

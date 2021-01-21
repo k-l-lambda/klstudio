@@ -1,0 +1,2 @@
+(window["webpackJsonp"]=window["webpackJsonp"]||[]).push([["chunk-2d0ddd95"],{"82af":function(o,d,n){o.exports=n.p+"fonts/free-fa-solid-900.a156119d.woff2"}}]);
+//# sourceMappingURL=chunk-2d0ddd95.35fefd33.js.map

@@ -94,8 +94,8 @@
 				<CheckButton v-if="chosenAnalyzer" v-model="showArrowMarks" title="show arrows on board" content="&#x21e7;" />
 			</section>
 			<section class="engine players">
-				<h3>Players</h3> <button @click="togglePlayer"><i>{{playerIsRunning ? "&#xf04c;" : "&#xf04b;"}}</i></button>
-				<p class="white">
+				<h3>Players</h3> <button :class="{on: playerIsRunning}" @click="togglePlayer"><i>{{playerIsRunning ? "&#xf04c;" : "&#xf04b;"}}</i></button>
+				<p class="white" :class="{on: whiteOnTurn}">
 					<span class="icon"></span>
 					<select v-model="chosenWhitePlayer">
 						<option :value="null">User</option>
@@ -112,7 +112,7 @@
 						</select>
 					</span>
 				</p>
-				<p class="black">
+				<p class="black" :class="{on: playerIsRunning && blackOnTurn}">
 					<span class="icon"></span>
 					<select v-model="chosenBlackPlayer">
 						<option :value="null">User</option>
@@ -823,6 +823,7 @@
 				}
 
 				this.chosenSquare = null;
+				this.showPredictionBoard = false;
 			},
 
 
@@ -1801,6 +1802,14 @@
 					{
 						margin-left: .6em;
 					}
+
+					&.on
+					{
+						.icon
+						{
+							background-color: $button-active-color;
+						}
+					}
 				}
 
 				.icon
@@ -1809,6 +1818,7 @@
 					width: 1.2em;
 					height: 1.2em;
 					background-size: contain;
+					border-radius: .3em;
 				}
 
 				.white .icon

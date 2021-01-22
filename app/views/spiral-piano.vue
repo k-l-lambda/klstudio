@@ -394,7 +394,7 @@
 
 		created () {
 			if (MidiAudio.WebAudio.empty()) {
-				MidiAudio.loadPlugin({soundfontUrl: "/soundfont/", api: "webaudio"}).then(() => {
+				MidiAudio.loadPlugin({soundfontUrl: "./soundfont/", api: "webaudio"}).then(() => {
 					this.loading = false;
 					console.log("Soundfont loaded.");
 

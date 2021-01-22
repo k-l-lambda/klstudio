@@ -468,7 +468,7 @@
 
 				const expsum = items.reduce((sum, item) => sum + item.valueExp, 0);
 				//console.log("expsum:", expsum);
-				items.forEach(item => item.weight = item.valueExp / expsum);
+				items.forEach(item => item.weight = item.marked ? 1 : item.valueExp / expsum);
 
 				const noticableItems = items.filter((item, i) => item.weight > 1 / items.length || i < 3 || item.marked);
 
@@ -753,6 +753,7 @@
 
 			targetMark (to) {
 				this.markMove = [this.chosenSquare, to].join("");
+				this.chosenSquare = null;
 			},
 
 
@@ -1332,10 +1333,10 @@
 
 			chosenSquare (value) {
 				document.querySelectorAll(".square-55d63.chosen").forEach(elem => elem.classList.remove("chosen"));
-				if (value)
+				if (value) {
 					document.querySelector(`.square-${value}`).classList.add("chosen");
-
-				this.markMove = null;
+					this.markMove = null;
+				}
 			},
 
 

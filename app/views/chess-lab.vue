@@ -803,8 +803,12 @@
 					this.triggerAnalyzer();
 
 				this.gameResult = null;
-				if (this.game.game_over())
-					this.gameResult = this.game.in_draw() ? "draw" : (this.whiteOnTurn ? "black" : "white");
+				if (this.game.game_over()) {
+					msDelay(200).then(() => {
+						if (this.game.game_over())
+							this.gameResult = this.game.in_draw() ? "draw" : (this.whiteOnTurn ? "black" : "white");
+					});
+				}
 
 				const historyVerbose = this.game.history({verbose: true});
 				const lastMove = historyVerbose.length ? historyVerbose[historyVerbose.length - 1] : null;
@@ -1315,11 +1319,14 @@
 			},
 
 
-			lastMove (value) {
+			async lastMove (value) {
 				document.querySelectorAll(".square-55d63.last-move").forEach(elem => elem.classList.remove("last-move", "from", "to"));
 				if (value) {
-					document.querySelector(`.square-${value.from}`).classList.add("last-move", "from");
-					document.querySelector(`.square-${value.to}`).classList.add("last-move", "to");
+					await msDelay(200);
+					if (this.lastMove === value) {
+						document.querySelector(`.square-${value.from}`).classList.add("last-move", "from");
+						document.querySelector(`.square-${value.to}`).classList.add("last-move", "to");
+					}
 				}
 			},
 

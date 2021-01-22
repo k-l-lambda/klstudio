@@ -1,7 +1,7 @@
 
 TODO:
 	chess-lab:
-		move dragging
+		URL shortten options in share panel
 		winrate hash map
 		game meta info editor
 		save engine name in win rate items

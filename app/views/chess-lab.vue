@@ -803,8 +803,12 @@
 					this.triggerAnalyzer();
 
 				this.gameResult = null;
-				if (this.game.game_over())
-					this.gameResult = this.game.in_draw() ? "draw" : (this.whiteOnTurn ? "black" : "white");
+				if (this.game.game_over()) {
+					msDelay(200).then(() => {
+						if (this.game.game_over())
+							this.gameResult = this.game.in_draw() ? "draw" : (this.whiteOnTurn ? "black" : "white");
+					});
+				}
 
 				const historyVerbose = this.game.history({verbose: true});
 				const lastMove = historyVerbose.length ? historyVerbose[historyVerbose.length - 1] : null;

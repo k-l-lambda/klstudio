@@ -1315,11 +1315,14 @@
 			},
 
 
-			lastMove (value) {
+			async lastMove (value) {
 				document.querySelectorAll(".square-55d63.last-move").forEach(elem => elem.classList.remove("last-move", "from", "to"));
 				if (value) {
-					document.querySelector(`.square-${value.from}`).classList.add("last-move", "from");
-					document.querySelector(`.square-${value.to}`).classList.add("last-move", "to");
+					await msDelay(200);
+					if (this.lastMove === value) {
+						document.querySelector(`.square-${value.from}`).classList.add("last-move", "from");
+						document.querySelector(`.square-${value.to}`).classList.add("last-move", "to");
+					}
 				}
 			},
 

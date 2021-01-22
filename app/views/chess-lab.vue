@@ -1096,7 +1096,7 @@
 			},
 
 
-			async evaluateWinrateHistory (depth = 16) {
+			async evaluateWinrateHistory (depth = 18) {
 				const game = new Chess();
 				if (this.setupPosition)
 					game.load(this.setupPosition);

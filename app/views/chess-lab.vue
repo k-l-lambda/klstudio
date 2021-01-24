@@ -94,7 +94,9 @@
 				<CheckButton v-if="chosenAnalyzer" v-model="showArrowMarks" title="show arrows on board" content="&#x21e7;" />
 			</section>
 			<section class="engine players">
-				<h3>Players</h3> <button :class="{on: playerIsRunning}" @click="togglePlayer"><i>{{playerIsRunning ? "&#xf04c;" : "&#xf04b;"}}</i></button>
+				<h3>Players</h3> <button :class="{on: playerIsRunning}" @click="togglePlayer" :title="playButtonTips">
+					<i>{{playerIsRunning ? "&#xf04c;" : "&#xf04b;"}}</i>
+				</button>
 				<p class="white" :class="{on: whiteOnTurn}">
 					<span class="icon"></span>
 					<select v-model="chosenWhitePlayer">
@@ -559,6 +561,18 @@
 				link += queries.join("&");
 
 				return link;
+			},
+
+
+			playButtonTips () {
+				if (this.playerIsRunning)
+					return "Pause the player";
+				else {
+					if ((this.whiteOnTurn && this.chosenWhitePlayer) || (this.blackOnTurn && this.chosenBlackPlayer))
+						return "Run the player";
+					else
+						return `Select an agent player for ${this.whiteOnTurn ? "white" : "black"} first`;
+				}
 			},
 		},
 

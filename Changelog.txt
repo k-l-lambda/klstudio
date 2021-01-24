@@ -1,6 +1,7 @@
 
 TODO:
 	chess-lab:
+		move sound effect
 		URL shortten options in share panel
 		winrate hash map
 		game meta info editor
@@ -15,6 +16,11 @@ TODO:
 		test solveCubeBinary
 		invalid solution issue.
 
+
+
+2021.1.24	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: added playButtonTips.
 
 
 2021.1.21	K.L.	<k.l.lambda@gmail.com>

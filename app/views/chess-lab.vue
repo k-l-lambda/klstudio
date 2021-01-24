@@ -207,6 +207,7 @@
 			<CheckButton class="edit" content="<i>&#xf044;</i>" v-model="editMode" title="edit position" />
 			<CheckButton class="fullscreen" content="<i>&#xf065;</i>" v-model="fullMode" />
 		</footer>
+		<audio ref="audioTa" :src="audioTa" />
 	</div>
 </template>
 
@@ -230,6 +231,8 @@
 	import BoolStoreInput from "../components/bool-store-input.vue";
 	import Chart from "../components/chart.vue";
 	import QRCode from "../components/qrcode.vue";
+
+	import audioTa from "../assets/chess/wood-ta.mp3";
 
 
 
@@ -415,6 +418,7 @@
 				},
 				gameLinkCopied: false,
 				markMove: null,
+				audioTa,
 			};
 		},
 
@@ -846,6 +850,7 @@
 				}
 
 				this.chosenSquare = null;
+				this.markMove = null;
 				this.showPredictionBoard = false;
 			},
 
@@ -1397,13 +1402,13 @@
 			},
 
 
-			currentHistoryIndex (value) {
-				/*this.winrateChartData.markLine.data[0] = {
-					xAxis: value + 1,
-				};*/
+			currentHistoryIndex (value, oldValue) {
 				Vue.set(this.winrateChartData.markLine.data, "0", {
 					xAxis: value + 1,
 				});
+
+				if (value > oldValue)
+					this.$refs.audioTa.play();
 			},
 
 

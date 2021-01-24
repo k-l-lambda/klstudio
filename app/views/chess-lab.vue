@@ -94,8 +94,12 @@
 				<CheckButton v-if="chosenAnalyzer" v-model="showArrowMarks" title="show arrows on board" content="&#x21e7;" />
 			</section>
 			<section class="engine players">
-				<h3>Players</h3> <button :class="{on: playerIsRunning}" @click="togglePlayer" :title="playButtonTips">
+				<h3>Players</h3>
+				<button :class="{on: playerIsRunning}" @click="togglePlayer" :title="playButtonTips">
 					<i>{{playerIsRunning ? "&#xf04c;" : "&#xf04b;"}}</i>
+				</button>
+				<button @click="newGame" title="start a new game">
+					+ new
 				</button>
 				<p class="white" :class="{on: whiteOnTurn}">
 					<span class="icon"></span>
@@ -1033,6 +1037,20 @@
 					this.runPlayer();
 				else
 					this.playerIsRunning = false;
+			},
+
+
+			async newGame () {
+				if (this.game && !this.game.game_over() && this.history.length > 5) {
+					if (!confirm("Start a new game?"))
+						return;
+				}
+
+				this.editMode = true;
+				await this.$nextTick();
+
+				this.startPosition();
+				this.editMode = false;
 			},
 
 

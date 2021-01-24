@@ -1622,6 +1622,11 @@
 			cursor: pointer;
 		}
 
+		button, .icon
+		{
+			font-size: 14px;
+		}
+
 		main
 		{
 			position: relative;

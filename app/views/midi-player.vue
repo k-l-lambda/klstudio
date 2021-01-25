@@ -1,13 +1,16 @@
 <template>
 	<div class="midi-player"
-		:class="{hover: dragHover}"
+		:class="{hover: dragHover, empty: !player}"
 		v-resize="onResize"
 		@dragover.prevent="dragHover = true"
 		@dragleave="dragHover = false"
 		@drop.prevent="onDrop"
 	>
 		<header>
-			<button @click="togglePlayer" :disabled="!player"><i v-if="player">{{player.isPlaying ? "&#xf04c;" : "&#xf04b;"}}</i></button>
+			<StoreInput v-show="false" v-model="source" localKey="midiPlayer.source" />
+			<StoreInput v-show="false" v-model="name" localKey="midiPlayer.name" />
+			<span v-if="name" v-text="name"></span>
+			<button v-if="player" @click="togglePlayer"><i v-if="player">{{player.isPlaying ? "&#xf04c;" : "&#xf04b;"}}</i></button>
 			<ProgressBar v-if="player && player.notation" :cursor.sync="cursorTime" :duration="player.notation.endTime" />
 		</header>
 		<main>
@@ -21,6 +24,24 @@
 	import {MidiRoll, MIDI, MidiPlayer, MidiAudio} from "@k-l-lambda/web-widgets";
 
 	import ProgressBar from "../components/progress-bar.vue";
+	import StoreInput from "../components/store-input.vue";
+
+
+
+	const encodeBuffer = buffer => {
+		const arr = new Uint8Array(buffer);
+		const str = [...arr].map(char => String.fromCharCode(char)).join("");
+
+		return btoa(str);
+	};
+
+
+	const decodeBuffer = code => {
+		const str = atob(code);
+		const arr = str.split("").map(char => char.charCodeAt(0));
+
+		return new Uint8Array(arr).buffer;
+	};
 
 
 
@@ -36,6 +57,7 @@
 		components: {
 			MidiRoll,
 			ProgressBar,
+			StoreInput,
 		},
 
 
@@ -45,6 +67,7 @@
 				player: null,
 				viewTimeScale: 4e-3,
 				name: null,
+				source: null,
 				windowSize: {
 					width: 800,
 					height: 800,
@@ -92,6 +115,12 @@
 		},
 
 
+		mounted () {
+			if (this.source)
+				this.loadMidiBuffer(decodeBuffer(this.source));
+		},
+
+
 		beforeDestroy () {
 			if (this.player)
 				this.player.pause();
@@ -114,14 +143,21 @@
 					fr.readAsArrayBuffer(file);
 				});
 
+				this.name = file.name;
+
+				this.loadMidiBuffer(buffer);
+			},
+
+
+			async loadMidiBuffer (buffer) {
 				if (this.player) {
 					this.player.dispose();
 					this.player = null;
 				}
 
-				const midi = MIDI.parseMidiData(buffer);
+				this.source = encodeBuffer(buffer);
 
-				this.name = file.name;
+				const midi = MIDI.parseMidiData(buffer);
 
 				this.player = new MidiPlayer(midi, {
 					onMidi: (data, timestamp) => this.onMidi(data, timestamp),
@@ -135,7 +171,6 @@
 				const file = event.dataTransfer.files[0];
 				if (file && ["audio/midi", "audio/mid"].includes(file.type)) 
 					this.loadMidiFile(file);
-				
 			},
 
 
@@ -173,9 +208,23 @@
 	@import "../assets/fonts/icon-fas.css";
 
 
+	.midi-player
+	{
+		font-family: Verdana, Arial, Helvetica, sans-serif;
+	}
+
 	.midi-player.hover
 	{
 		background: #dfd;
+	}
+
+	.midi-player.empty
+	{
+		header::before
+		{
+			content: "DROP MIDI FILE HERE";
+			color: #0002;
+		}
 	}
 
 	header

@@ -208,6 +208,8 @@
 			<CheckButton class="fullscreen" content="<i>&#xf065;</i>" v-model="fullMode" />
 		</footer>
 		<audio ref="audioTa" :src="audioTa" />
+		<audio ref="audioUnsheathed" :src="audioUnsheathed" />
+		<audio ref="audioDong" :src="audioDong" />
 	</div>
 </template>
 
@@ -232,7 +234,9 @@
 	import Chart from "../components/chart.vue";
 	import QRCode from "../components/qrcode.vue";
 
-	import audioTa from "../assets/chess/wood-ta.mp3";
+	import audioTa from "../assets/chess/concrete-ta.mp3";
+	import audioDong from "../assets/chess/wood-ta.mp3";
+	import audioUnsheathed from "../assets/chess/unsheathed.mp3";
 
 
 
@@ -419,6 +423,8 @@
 				gameLinkCopied: false,
 				markMove: null,
 				audioTa,
+				audioDong,
+				audioUnsheathed,
 			};
 		},
 
@@ -581,6 +587,11 @@
 					else
 						return `Select an agent player for ${this.whiteOnTurn ? "white" : "black"} first`;
 				}
+			},
+
+
+			currentMove () {
+				return this.history[this.currentHistoryIndex];
 			},
 		},
 
@@ -888,6 +899,7 @@
 				}
 
 				this.syncBoard();
+				this.updateStatus();
 			},
 
 
@@ -1407,8 +1419,15 @@
 					xAxis: value + 1,
 				});
 
-				if (value > oldValue)
-					this.$refs.audioTa.play();
+				if (value > oldValue && this.currentMove) {
+					if (/x/.test(this.currentMove))
+						this.$refs.audioDong.play();
+					else
+						this.$refs.audioTa.play();
+
+					if (/[+#]$/.test(this.currentMove))
+						this.$refs.audioUnsheathed.play();
+				}
 			},
 
 

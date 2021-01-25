@@ -8,6 +8,7 @@
 	>
 		<header>
 			<button @click="togglePlayer" :disabled="!player"><i v-if="player">{{player.isPlaying ? "&#xf04c;" : "&#xf04b;"}}</i></button>
+			<ProgressBar v-if="player" :cursor.sync="player.progressTime" :duration="player.notations.endTime" @turnCursor="turnCursor" />
 		</header>
 		<main>
 			<MidiRoll :player="player" :timeScale="viewTimeScale" :height="400" :width="windowSize.width" />
@@ -18,6 +19,8 @@
 <script>
 	import resize from "vue-resize-directive";
 	import {MidiRoll, MIDI, MidiPlayer, MidiAudio} from "@k-l-lambda/web-widgets";
+
+	import ProgressBar from "../components/progress-bar.vue";
 
 
 
@@ -32,6 +35,7 @@
 
 		components: {
 			MidiRoll,
+			ProgressBar,
 		},
 
 
@@ -142,11 +146,17 @@
 						this.player.play();
 				}
 			},
+
+
+			turnCursor (time) {
+				if (this.player)
+					this.player.turnCursor(time);
+			},
 		},
 	};
 </script>
 
-<style type="text/scss" scoped>
+<style lang="scss" scoped>
 	@import "../assets/fonts/icon-fas.css";
 
 
@@ -159,6 +169,20 @@
 	{
 		padding: 1em;
 		text-align: center;
+		font-size: 20px;
+
+		& > *
+		{
+			margin: 0 1em;
+			font-size: inherit;
+			vertical-align: middle;
+		}
+
+		.progress-bar
+		{
+			width: 8em;
+			height: 1.4em;
+		}
 	}
 
 	i

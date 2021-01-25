@@ -20,6 +20,8 @@ TODO:
 
 2021.1.25	K.L.	<k.l.lambda@gmail.com>
 
+	+	chessCompactNotation.ts: PGN headers added.
+
 	+	midi-player.vue: MIDI data storage added.
 
 	+	midi-player.vue: added progress bar.

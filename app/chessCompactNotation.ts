@@ -20,6 +20,10 @@ interface MoveCode {
 };
 
 
+const PGN_TAIL_FIX = " 1/2-1/2";
+const BODY_SPLITTER = "\n\n";
+
+
 const sortedMoves = (game: Chess): Move[] => {
 	const moves = game.moves({verbose: true});
 	moves.forEach(move => move.key = `${move.from}${move.to}${move.promotion || ""}`);
@@ -103,6 +107,10 @@ const compressPGN = (pgn: string): string => {
 
 	const base64 = btoa(bytes.map(byte => String.fromCharCode(byte)).join(""));
 
+	const parts = pgn.split(BODY_SPLITTER);
+	if (parts.length > 1)
+		return [parts[0], base64].join(BODY_SPLITTER);
+
 	return base64;
 };
 
@@ -110,10 +118,25 @@ const compressPGN = (pgn: string): string => {
 const decompressToPGN = (code: string): string => {
 	const game = new Chess();
 
-	const moveBytes = atob(code).split("").map(byte => byte.charCodeAt(0));
+	//let setup = false;
+	let base64 = code;
+	const parts = code.split(BODY_SPLITTER);
+	if (parts.length > 1) {
+		const startPGN = parts[0] + BODY_SPLITTER + PGN_TAIL_FIX;
+		game.load_pgn(startPGN);
+
+		//setup = true;
+		base64 = parts[1];
+	}
+
+	const moveBytes = atob(base64).split("").map(byte => byte.charCodeAt(0));
 	parseMoveCodes(game, moveBytes);
 
-	return game.pgn();
+	const pgn = game.pgn();
+	//if (setup)
+	//	pgn = pgn.replace(PGN_TAIL_FIX, "");
+
+	return pgn;
 };
 
 

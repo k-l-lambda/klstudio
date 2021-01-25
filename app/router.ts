@@ -151,6 +151,11 @@ export const routes = [
 		name: "Chess Lab",
 		component: () => import(/* webpackChunkName: "chess-lab", */ "./views/chess-lab.vue"),
 	},
+	{
+		path: "/midi-player",
+		name: "MIDI Player",
+		component: () => import(/* webpackChunkName: "midi-player", */ "./views/midi-player.vue"),
+	},
 ];
 
 

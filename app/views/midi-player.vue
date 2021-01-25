@@ -8,7 +8,7 @@
 	>
 		<header>
 			<button @click="togglePlayer" :disabled="!player"><i v-if="player">{{player.isPlaying ? "&#xf04c;" : "&#xf04b;"}}</i></button>
-			<ProgressBar v-if="player" :cursor.sync="player.progressTime" :duration="player.notations.endTime" @turnCursor="turnCursor" />
+			<ProgressBar v-if="player && player.notation" :cursor.sync="cursorTime" :duration="player.notation.endTime" />
 		</header>
 		<main>
 			<MidiRoll :player="player" :timeScale="viewTimeScale" :height="400" :width="windowSize.width" />
@@ -53,6 +53,20 @@
 		},
 
 
+		computed: {
+			cursorTime: {
+				get () {
+					return this.player && this.player.progressTime;
+				},
+
+				set (value) {
+					if (this.player)
+						this.player.turnCursor(value);
+				},
+			},
+		},
+
+
 		created () {
 			if (MidiAudio.WebAudio.empty())
 				MidiAudio.loadPlugin({soundfontUrl: "./soundfont/", api: "webaudio"}).then(() => console.log("Soundfont loaded."));
@@ -75,6 +89,12 @@
 				if (handled)
 					event.preventDefault();
 			});
+		},
+
+
+		beforeDestroy () {
+			if (this.player)
+				this.player.pause();
 		},
 
 
@@ -106,7 +126,6 @@
 				this.player = new MidiPlayer(midi, {
 					onMidi: (data, timestamp) => this.onMidi(data, timestamp),
 				});
-				//console.log("notations:", this.notations);
 			},
 
 
@@ -145,12 +164,6 @@
 					else
 						this.player.play();
 				}
-			},
-
-
-			turnCursor (time) {
-				if (this.player)
-					this.player.turnCursor(time);
 			},
 		},
 	};

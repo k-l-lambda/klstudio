@@ -20,6 +20,10 @@ TODO:
 
 2021.1.25	K.L.	<k.l.lambda@gmail.com>
 
+	+	chess-lab.vue: refined notation hash string by compact notation.
+
+	+	chessCompactNotation.ts: PGN headers added.
+
 	+	midi-player.vue: MIDI data storage added.
 
 	+	midi-player.vue: added progress bar.

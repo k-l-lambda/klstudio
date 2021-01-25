@@ -209,6 +209,7 @@
 		</footer>
 		<audio ref="audioTa" :src="audioTa" />
 		<audio ref="audioUnsheathed" :src="audioUnsheathed" />
+		<audio ref="audioDong" :src="audioDong" />
 	</div>
 </template>
 
@@ -234,6 +235,7 @@
 	import QRCode from "../components/qrcode.vue";
 
 	import audioTa from "../assets/chess/concrete-ta.mp3";
+	import audioDong from "../assets/chess/wood-ta.mp3";
 	import audioUnsheathed from "../assets/chess/unsheathed.mp3";
 
 
@@ -421,6 +423,7 @@
 				gameLinkCopied: false,
 				markMove: null,
 				audioTa,
+				audioDong,
 				audioUnsheathed,
 			};
 		},
@@ -886,7 +889,6 @@
 			seekHistory (index) {
 				while (this.currentHistoryIndex > index) {
 					this.game.undo();
-					this.syncBoard();
 					this.updateStatus();
 				}
 
@@ -897,6 +899,7 @@
 				}
 
 				this.syncBoard();
+				this.updateStatus();
 			},
 
 
@@ -1416,9 +1419,13 @@
 					xAxis: value + 1,
 				});
 
-				if (value > oldValue) {
-					this.$refs.audioTa.play();
-					if (this.currentMove && /[+#]$/.test(this.currentMove))
+				if (value > oldValue && this.currentMove) {
+					if (/x/.test(this.currentMove))
+						this.$refs.audioDong.play();
+					else
+						this.$refs.audioTa.play();
+
+					if (/[+#]$/.test(this.currentMove))
 						this.$refs.audioUnsheathed.play();
 				}
 			},

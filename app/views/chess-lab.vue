@@ -225,6 +225,7 @@
 	import {msDelay, mutexDelay} from "../delay";
 	import {downloadURL} from "../utils";
 	import * as chessEngines from "../chessEngines";
+	import * as chessCompactNotation from "../chessCompactNotation";
 
 	import QuitCleaner from "../mixins/quit-cleaner";
 
@@ -566,8 +567,16 @@
 
 				const queries = [];
 
-				if (this.notation)
-					queries.push("notation=" + encodeURIComponent(this.notation));
+				if (this.notation) {
+					const code = chessCompactNotation.compressPGN(this.notation);
+					//console.log("code:", code);
+					//const pgn2 = chessCompactNotation.decompressToPGN(code);
+					//console.log("pgn2:", pgn2);
+					// TODO:
+
+					//queries.push("notation=" + encodeURIComponent(this.notation));
+					queries.push("n=" + encodeURIComponent(code));
+				}
 
 				if (this.currentHistoryIndex < this.history.length - 1)
 					queries.push("step=" + this.currentHistoryIndex.toString());
@@ -652,6 +661,9 @@
 			document.querySelectorAll(".piece-417db").forEach(piece => piece.oncontextmenu = event => event.preventDefault());
 
 			const hashData = this.parseLocationHash();
+
+			if (hashData.n)
+				this.notation = chessCompactNotation.decompressToPGN(hashData.n);
 
 			if (hashData.notation)
 				this.notation = hashData.notation;
@@ -2061,6 +2073,7 @@
 				.panel
 				{
 					right: 0;
+					text-align: center;
 
 					p
 					{

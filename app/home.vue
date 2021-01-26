@@ -198,8 +198,7 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 				else if (this.narrowScreen)
 					this.devoting = true;
 
-				const app = apps.find(app => app.path === to.path);
-				document.title = app ? `K.L. Studio - ${app.name}` : "K.L. Studio";
+				document.title = to.name ? `${to.name} - K.L. Studio` : "K.L. Studio";
 			},
 		},
 	};

@@ -75,7 +75,7 @@ export const routes = [
 	},
 	{
 		path: "/documents/dynamic-labeled-cube3",
-		name: "Dynamic Labeled Cube3",
+		name: "Cube & Matrix",
 		component: () => import(/* webpackChunkName: "dynamic-labeled-cube3" */ "./views/dynamic-labeled-cube3.vue"),
 	},
 	{

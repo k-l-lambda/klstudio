@@ -258,10 +258,10 @@
 	};
 
 
-	const coordinateXY = name => ({
+	const coordinateXY = name => name && {
 		x: name[0].charCodeAt(0) - "a".charCodeAt(0),
 		y: Number(name[1]) - 1,
-	});
+	};
 
 
 	const moveToArrow = (from, to, value, weight) => {
@@ -344,6 +344,7 @@
 				orientationFlipped: false,
 				setupPosition: null,
 				history: [],
+				fens: [],
 				asideWidth: 200,
 				checkerSize: 100,
 				notation: null,
@@ -361,7 +362,7 @@
 				blackPlayerMoveTime: null,
 				playerIsRunning: false,
 				analyzation: null,
-				winRates: null,
+				winRateDict: {},
 				winrateChartHeight,
 				gameResult: null,
 				PGN_WIDGETS,
@@ -543,7 +544,7 @@
 				if (!this.chosenSquare || !this.game)
 					return [];
 
-				const moves = this.game.moves({verbose: true}).filter(move => move.from === this.chosenSquare);
+				const moves = this.game.moves({verbose: true}).filter(move => move.from === this.chosenSquare && move.to);
 
 				return moves
 					.filter((move, i) => !moves.slice(0, i).find(m => m.to === move.to))	// remove repeated squares
@@ -601,6 +602,16 @@
 
 			currentMove () {
 				return this.history[this.currentHistoryIndex];
+			},
+
+
+			winRates () {
+				const rates = this.fens.map(fen => this.winRateDict[fen]).filter(Boolean);
+
+				if (!this.analyzer && !rates.length)
+					return null;
+
+				return rates;
 			},
 		},
 
@@ -829,6 +840,23 @@
 			},
 
 
+			updateFens () {
+				this.fens = [];
+
+				const game = new Chess();
+				game.load_pgn(this.notation);
+
+				let step = game.history().length;
+				while (true) {
+					this.fens[step] = game.fen();
+					--step;
+
+					if (!game.undo())
+						break;
+				}
+			},
+
+
 			updateStatus () {
 				this.whiteOnTurn = this.game.turn() === "w";
 
@@ -839,6 +867,8 @@
 				if (!historyContains(this.history, history)) {
 					this.history = history;
 					this.notation = this.game.pgn();
+
+					this.updateFens();
 				}
 
 				this.currentMoveIndex = Math.ceil(history.length / 2);
@@ -972,8 +1002,6 @@
 
 				this.pgnBoxInputActivated = true;
 
-				this.winRates = this.analyzer ? [] : null;
-
 				if (this.analyzer)
 					this.evaluateWinrateHistory();
 			},
@@ -1018,8 +1046,6 @@
 
 					if (this.analyzer)
 						this.analyzer.newGame();
-
-					this.winRates = this.analyzer ? [] : null;;
 				}
 
 				this.syncBoard();
@@ -1150,11 +1176,14 @@
 
 
 			updateWinratesByAnalyzation (best, stepIndex) {
-				const oldRate = this.winRates[stepIndex];
+				const fen = this.fens[stepIndex];
+				console.assert(fen, "the current fen is null:", this.fens, stepIndex);
+
+				const oldRate = this.winRateDict[fen];
 				if (!oldRate || best.depth >= oldRate.depth) {
 					const rate = winrateFromAnalyzationBest(best, stepIndex % 2 ? "b" : "w");
 
-					Vue.set(this.winRates, stepIndex, {
+					Vue.set(this.winRateDict, fen, {
 						depth: best.depth,
 						rate,
 					});
@@ -1261,7 +1290,6 @@
 					else {
 						this.setupPosition = fen;
 						this.history = [];
-						this.winRates = this.analyzer ? [] : null;;
 						this.updateStatus();
 
 						if (this.analyzer)
@@ -1323,8 +1351,6 @@
 							this.updateWinratesByAnalyzation(analyzation.best, this.currentHistoryIndex + 1);
 						}
 					});
-
-					this.winRates = this.winRates || [];
 
 					this.triggerAnalyzer();
 				}

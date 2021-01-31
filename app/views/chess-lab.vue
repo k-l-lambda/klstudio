@@ -258,10 +258,10 @@
 	};
 
 
-	const coordinateXY = name => ({
+	const coordinateXY = name => name && {
 		x: name[0].charCodeAt(0) - "a".charCodeAt(0),
 		y: Number(name[1]) - 1,
-	});
+	};
 
 
 	const moveToArrow = (from, to, value, weight) => {
@@ -344,6 +344,7 @@
 				orientationFlipped: false,
 				setupPosition: null,
 				history: [],
+				fens: [],
 				asideWidth: 200,
 				checkerSize: 100,
 				notation: null,
@@ -543,7 +544,7 @@
 				if (!this.chosenSquare || !this.game)
 					return [];
 
-				const moves = this.game.moves({verbose: true}).filter(move => move.from === this.chosenSquare);
+				const moves = this.game.moves({verbose: true}).filter(move => move.from === this.chosenSquare && move.to);
 
 				return moves
 					.filter((move, i) => !moves.slice(0, i).find(m => m.to === move.to))	// remove repeated squares
@@ -829,6 +830,23 @@
 			},
 
 
+			updateFens () {
+				this.fens = [];
+
+				const game = new Chess();
+				game.load_pgn(this.notation);
+
+				let step = game.history().length - 1;
+				while (true) {
+					this.fens[step] = game.fen();
+					--step;
+
+					if (!game.undo())
+						break;
+				}
+			},
+
+
 			updateStatus () {
 				this.whiteOnTurn = this.game.turn() === "w";
 
@@ -839,6 +857,8 @@
 				if (!historyContains(this.history, history)) {
 					this.history = history;
 					this.notation = this.game.pgn();
+
+					this.updateFens();
 				}
 
 				this.currentMoveIndex = Math.ceil(history.length / 2);

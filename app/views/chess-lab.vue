@@ -362,7 +362,7 @@
 				blackPlayerMoveTime: null,
 				playerIsRunning: false,
 				analyzation: null,
-				winRates: null,
+				winRateDict: {},
 				winrateChartHeight,
 				gameResult: null,
 				PGN_WIDGETS,
@@ -603,6 +603,16 @@
 			currentMove () {
 				return this.history[this.currentHistoryIndex];
 			},
+
+
+			winRates () {
+				const rates = this.fens.map(fen => this.winRateDict[fen]).filter(Boolean);
+
+				if (!this.analyzer && !rates.length)
+					return null;
+
+				return rates;
+			},
 		},
 
 
@@ -836,7 +846,7 @@
 				const game = new Chess();
 				game.load_pgn(this.notation);
 
-				let step = game.history().length - 1;
+				let step = game.history().length;
 				while (true) {
 					this.fens[step] = game.fen();
 					--step;
@@ -992,8 +1002,6 @@
 
 				this.pgnBoxInputActivated = true;
 
-				this.winRates = this.analyzer ? [] : null;
-
 				if (this.analyzer)
 					this.evaluateWinrateHistory();
 			},
@@ -1038,8 +1046,6 @@
 
 					if (this.analyzer)
 						this.analyzer.newGame();
-
-					this.winRates = this.analyzer ? [] : null;;
 				}
 
 				this.syncBoard();
@@ -1170,11 +1176,14 @@
 
 
 			updateWinratesByAnalyzation (best, stepIndex) {
-				const oldRate = this.winRates[stepIndex];
+				const fen = this.fens[stepIndex];
+				console.assert(fen, "the current fen is null:", this.fens, stepIndex);
+
+				const oldRate = this.winRateDict[fen];
 				if (!oldRate || best.depth >= oldRate.depth) {
 					const rate = winrateFromAnalyzationBest(best, stepIndex % 2 ? "b" : "w");
 
-					Vue.set(this.winRates, stepIndex, {
+					Vue.set(this.winRateDict, fen, {
 						depth: best.depth,
 						rate,
 					});
@@ -1281,7 +1290,6 @@
 					else {
 						this.setupPosition = fen;
 						this.history = [];
-						this.winRates = this.analyzer ? [] : null;;
 						this.updateStatus();
 
 						if (this.analyzer)
@@ -1343,8 +1351,6 @@
 							this.updateWinratesByAnalyzation(analyzation.best, this.currentHistoryIndex + 1);
 						}
 					});
-
-					this.winRates = this.winRates || [];
 
 					this.triggerAnalyzer();
 				}

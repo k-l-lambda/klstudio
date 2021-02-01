@@ -16,6 +16,11 @@ TODO:
 
 
 
+2021.2.1	K.L.	<k.l.lambda@gmail.com>
+
+	+	tools/chess.Dict.ts created.
+
+
 2021.1.31	K.L.	<k.l.lambda@gmail.com>
 
 	+	chess-lab.vue: winRateDict added.

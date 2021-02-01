@@ -27,7 +27,7 @@ interface EngineAgent {
 };
 
 
-interface EnginePlayer {
+export interface EnginePlayer {
 	movetime?: number;
 
 	terminate (): void;
@@ -37,7 +37,7 @@ interface EnginePlayer {
 };
 
 
-interface EngineAnalyzer extends EngineAgent {
+export interface EngineAnalyzer extends EngineAgent {
 	analyze (fen: string): void;
 	evaluateFinite (fen: string, depth: number): Promise<PVInfo>;
 	newGame(): Promise<void>;
@@ -65,6 +65,14 @@ interface AnalyzationBranch {
 };
 
 
+interface Worker {
+	onmessage: (event: any) => void;
+
+	postMessage (message: string): void;
+	terminate (): void;
+};
+
+
 const msDelay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 
@@ -77,9 +85,10 @@ abstract class WorkerAgentBase extends EventEmitter implements EngineAgent {
 
 		this.worker = worker;
 		this.worker.onmessage = event => {
-			this.log(`< ${event.data}`);
+			const data = event.data || event;
+			this.log(`< ${data}`);
 
-			this.onMessage(event.data);
+			this.onMessage(data);
 		};
 	}
 
@@ -114,7 +123,7 @@ const MATE_VALUE = 100;
 const parseMove = (move: string): MoveTuple => move.match(/([a-h][1-8])([a-h][1-8])([qrbn])?/).slice(1) as MoveTuple;
 
 
-class WorkerAgent extends WorkerAgentBase {
+export class WorkerAgent extends WorkerAgentBase {
 	evalHandler: (result: EvalResult) => void;
 	bestMoveHandler: (move: MoveTuple) => void;
 	infoHandler: (dict: {[key: string]: any}) => void;
@@ -293,7 +302,7 @@ class WorkerAgent extends WorkerAgentBase {
 };
 
 
-class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
+export class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 	thinkers: WorkerAgent[];
 	analyzingIndex: number = 0;
 
@@ -386,7 +395,7 @@ class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 };
 
 
-class WorkerPlayer extends WorkerAgent implements EnginePlayer {
+export class WorkerPlayer extends WorkerAgent implements EnginePlayer {
 	movetime = null;
 
 
@@ -402,7 +411,7 @@ class WorkerPlayer extends WorkerAgent implements EnginePlayer {
 };
 
 
-class RandomPlayer implements EnginePlayer {
+export class RandomPlayer implements EnginePlayer {
 	terminate () {}
 	on () {}
 
@@ -417,24 +426,4 @@ class RandomPlayer implements EnginePlayer {
 
 		return null;
 	}
-};
-
-
-
-export const analyzers: {[key: string]: () => EngineAnalyzer} = {
-	Stockfish () {
-		return new WorkerAnalyzer(() => new Worker("chess/engines/stockfish.js"));
-	},
-};
-
-
-export const players: {[key: string]: () => EnginePlayer} = {
-	Stockfish () {
-		return new WorkerPlayer(new Worker("chess/engines/stockfish.js"));
-	},
-
-
-	Random () {
-		return new RandomPlayer();
-	},
 };

@@ -1,6 +1,7 @@
 
 TODO:
 	chess-lab:
+		open game book
 		game meta info editor
 		save engine name in win rate items
 	cube3-multiplication: twist cube individually by user

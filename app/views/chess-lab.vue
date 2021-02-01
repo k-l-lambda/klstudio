@@ -224,7 +224,7 @@
 
 	import {msDelay, mutexDelay} from "../delay";
 	import {downloadURL} from "../utils";
-	import * as chessEngines from "../chessEngines";
+	import * as chessEngines from "../../inc/chessEngines";
 	import * as chessCompactNotation from "../chessCompactNotation";
 
 	import QuitCleaner from "../mixins/quit-cleaner";

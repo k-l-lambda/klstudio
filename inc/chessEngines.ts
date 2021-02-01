@@ -1,8 +1,8 @@
 
 import {EventEmitter} from "events";
-import Chess from "chess.js";
+import {Chess} from "chess.js";
 
-import {msDelay} from "./delay";
+//import {msDelay} from "../app/delay";
 
 
 
@@ -63,6 +63,9 @@ interface AnalyzationBranch {
 	pv?: MoveTuple[];
 	bmc?: number;
 };
+
+
+const msDelay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 
 abstract class WorkerAgentBase extends EventEmitter implements EngineAgent {

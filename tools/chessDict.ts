@@ -50,21 +50,11 @@ const analyzeFEN = async (fen: string): Promise<Analyzation> => {
 };
 
 
-const main = async () => {
-	console.log("main.");
-	await new Promise(resolve => setTimeout(resolve, 10000));
-	//console.log("argv:", argv);
+const genStep = async (source?: Analyzation[]): Promise<Analyzation[]> => {
 	let fens = null;
-	let outputFilename = "0.yaml";
+	const outputFilename = "0.yaml";
 
-	const sourceFile = argv._[0];
-	if (sourceFile) {
-		const index = Number((sourceFile.match(/\d+/) || [0])[0]);
-		outputFilename = `${index + 1}.yaml`;
-
-		const sourceText = await fs.promises.readFile(sourceFile);
-		const source = YAML.parse(sourceText.toString());
-
+	if (source) {
 		fens = [].concat(...source.map(item => {
 			const game = new Chess(item.fen);
 			const bestScore = item.branches[0].score;
@@ -101,6 +91,33 @@ const main = async () => {
 	//console.log("results:", outputFilename, results);
 
 	await fs.promises.writeFile(path.resolve("./tools/chess-book/", outputFilename), YAML.stringify(results));
+
+	return results;
+};
+
+
+const main = async () => {
+	let source = null;
+	let step = 0;
+
+	const inputFile = argv._[0];
+	if (inputFile) {
+		const index = Number((inputFile.match(/\d+/) || [0])[0]);
+		step = index + 1;
+
+		const sourceText = await fs.promises.readFile(inputFile);
+		source = YAML.parse(sourceText.toString());
+	}
+
+	const untilStep = Number(argv.untilStep || step);
+	while (step <= untilStep) {
+		const result = await genStep(source);
+
+		await fs.promises.writeFile(path.resolve("./tools/chess-book/", `${step}.yaml`), YAML.stringify(result));
+
+		source = result;
+		++step;
+	}
 };
 
 main();

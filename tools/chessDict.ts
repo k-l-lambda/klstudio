@@ -52,7 +52,6 @@ const analyzeFEN = async (fen: string): Promise<Analyzation> => {
 
 const genStep = async (source?: Analyzation[]): Promise<Analyzation[]> => {
 	let fens = null;
-	const outputFilename = "0.yaml";
 
 	if (source) {
 		fens = [].concat(...source.map(item => {
@@ -88,9 +87,6 @@ const genStep = async (source?: Analyzation[]): Promise<Analyzation[]> => {
 		const analyzation = await analyzeFEN(fen);
 		results.push(analyzation);
 	}
-	//console.log("results:", outputFilename, results);
-
-	await fs.promises.writeFile(path.resolve("./tools/chess-book/", outputFilename), YAML.stringify(results));
 
 	return results;
 };
@@ -112,7 +108,6 @@ const main = async () => {
 	const untilStep = Number(argv.untilStep || step);
 	while (step <= untilStep) {
 		const result = await genStep(source);
-
 		await fs.promises.writeFile(path.resolve("./tools/chess-book/", `${step}.yaml`), YAML.stringify(result));
 
 		source = result;

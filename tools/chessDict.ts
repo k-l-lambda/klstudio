@@ -29,15 +29,13 @@ const scoreWidth = argv.scoreWidth || 70;
 const agent = new WorkerAgent(require("stockfish")());
 agent.setOptions({MultiPV: multiPV});
 
-agent.on("log", data => {
-	console.log("Agent:", data);
-});
+/*agent.on("log", data => {
+	console.debug("Agent:", data);
+});*/
 
 
 const analyzeFEN = async (fen: string): Promise<Analyzation> => {
-	//console.log("analyzeFEN:", fen);
 	const result = await agent.go(fen, {depth});
-	//console.log("result:", result);
 
 	return {
 		fen,
@@ -84,6 +82,8 @@ const genStep = async (source?: Analyzation[]): Promise<Analyzation[]> => {
 
 	const results = [];
 	for (const fen of fens) {
+		process.stdout.write(`fen: ${results.length} / ${fens.length}\r`);
+
 		const analyzation = await analyzeFEN(fen);
 		results.push(analyzation);
 	}
@@ -107,6 +107,8 @@ const main = async () => {
 
 	const untilStep = Number(argv.untilStep || step);
 	while (step <= untilStep) {
+		console.log("\nStep:", step, "/", untilStep);
+
 		const result = await genStep(source);
 		await fs.promises.writeFile(path.resolve("./tools/chess-book/", `${step}.yaml`), YAML.stringify(result));
 

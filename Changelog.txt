@@ -21,7 +21,7 @@ TODO:
 	+	chessDict.ts: parameter of untilStep added.
 
 	*!	chessDict use case:
-			yarn ts-dev ./tools/chessDict.ts --depth=26 --untilStep=6
+			yarn ts-dev ./tools/chessDict.ts --depth=26 --untilStep=5 --scoreWidth=40
 
 
 2021.2.1	K.L.	<k.l.lambda@gmail.com>

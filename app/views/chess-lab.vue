@@ -311,6 +311,7 @@
 	];
 
 
+	const LIBRARY_DEFAULT_DEPTH = 26;
 	const analyzationLibrary = {};
 
 
@@ -1224,7 +1225,7 @@
 						const fen = game.fen();
 						let best = null;
 						if (analyzationLibrary[fen])
-							best = analyzationLibrary[fen].branches[0];
+							best = analyzationLibrary[fen].best;
 						else
 							best = await this.analyzer.evaluateFinite(fen, depth);
 						if (best)
@@ -1288,6 +1289,8 @@
 				const records = YAML.parse(text);
 				//console.log("analyzation library:", records);
 				records.forEach(record => {
+					const bestBranch = record.branches[0];
+
 					analyzationLibrary[record.fen] = analyzationLibrary[record.fen] || {
 						fen: record.fen,
 						branches: record.branches.map(branch => ({
@@ -1295,6 +1298,11 @@
 							pv: branch.pv.split(" ").map(parseMove),
 							value: winrateFromAnalyzationBest({scoreCP: branch.score}, this.whiteOnTurn ? "w" : "b"),
 						})),
+						best: {
+							move: parseMove(bestBranch.move),
+							scoreCP: bestBranch.score,
+							depth: bestBranch.depth || LIBRARY_DEFAULT_DEPTH,
+						},
 					};
 				});
 

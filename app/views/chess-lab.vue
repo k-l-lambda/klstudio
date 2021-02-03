@@ -635,6 +635,8 @@
 
 			this.game = new Chess();
 
+			this.fens = [this.game.fen()];
+
 			const keyDownHandler = () => {
 				switch (event.code) {
 				case "ArrowLeft":
@@ -700,9 +702,6 @@
 
 			if (hashData.step)
 				this.seekHistory(parseInt(hashData.step));
-
-			if (!this.fens.length)
-				this.updateFens();
 
 			this.onResize();
 		},
@@ -1040,7 +1039,7 @@
 
 						if (analyzationLibrary[fen]) {
 							this.analyzation = analyzationLibrary[fen];
-							this.updateWinratesByAnalyzation(this.analyzation.branches[0], this.currentHistoryIndex + 1);
+							this.updateWinratesByAnalyzation(this.analyzation.best, this.currentHistoryIndex + 1);
 						}
 						else
 							this.analyzer.analyze(fen);
@@ -1298,7 +1297,7 @@
 						branches: record.branches.map(branch => ({
 							move: parseMove(branch.move),
 							pv: branch.pv.split(" ").map(parseMove),
-							value: winrateFromAnalyzationBest({scoreCP: branch.score}, this.whiteOnTurn ? "w" : "b"),
+							value: branch.score * 0.01,
 						})),
 						best: {
 							move: parseMove(bestBranch.move),

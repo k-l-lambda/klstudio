@@ -694,6 +694,9 @@
 			if (hashData.step)
 				this.seekHistory(parseInt(hashData.step));
 
+			if (!this.fens.length)
+				this.updateFens();
+
 			this.onResize();
 		},
 
@@ -848,7 +851,8 @@
 				this.fens = [];
 
 				const game = new Chess();
-				game.load_pgn(this.notation);
+				if (this.notation)
+					game.load_pgn(this.notation);
 
 				let step = game.history().length;
 				while (true) {

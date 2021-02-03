@@ -1290,7 +1290,7 @@
 					};
 				});
 
-				console.debug("analyzation library loaded:", url);
+				console.debug("analyzation library loaded:", url, records.length);
 			},
 		},
 

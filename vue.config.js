@@ -36,6 +36,12 @@ module.exports = {
 			.use("url-loader")
 			.loader("url-loader");
 
+		config.module
+			.rule("text-url")
+			.test(/\.(yaml)$/)
+			.use("url-loader")
+			.loader("url-loader");
+
 		// ignore third-party packed js
 		config.module
 			.rule("js")

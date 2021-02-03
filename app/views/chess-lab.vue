@@ -659,6 +659,8 @@
 			this.triggerAnalyzer = debounce(this.doTriggerAnalyzer.bind(this), 600);
 
 			this.appendCleaner(() => this.analyzer && this.analyzer.terminate());
+
+			this.loadOpenGame();
 		},
 
 
@@ -1306,7 +1308,13 @@
 					};
 				});
 
-				console.debug("analyzation library loaded:", url, records.length);
+				console.debug("analyzation library loaded:", records.length);
+			},
+
+
+			async loadOpenGame () {
+				const {default: openGame3} = await import("../assets/chess/open-games-3.yaml");
+				this.loadAnalyzationLibrary(openGame3);
 			},
 		},
 

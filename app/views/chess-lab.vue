@@ -221,6 +221,7 @@
 	import color from "color";
 	import Vue from "vue";
 	import url from "url";
+	import * as YAML from "yaml";
 
 	import {msDelay, mutexDelay} from "../delay";
 	import {downloadURL} from "../utils";
@@ -308,6 +309,10 @@
 			script: "javascript:navigator.clipboard.writeText([...document.querySelectorAll(\"vertical-move-list .move\")].map((move, i) => `${i+1}. ${move.querySelector(\".white\").textContent} ${move.querySelector(\".black\") ? move.querySelector(\".black\").textContent : ''}`).join(\" \"));alert('Chess notation text copied.');",
 		},
 	];
+
+
+	const LIBRARY_DEFAULT_DEPTH = 26;
+	const analyzationLibrary = {};
 
 
 
@@ -640,6 +645,10 @@
 					this.redoMove();
 
 					break;
+				case "Home":
+					this.seekHistory(-1);
+
+					break;
 				//default:
 				//	console.debug("key code:", event.code);
 				}
@@ -650,6 +659,8 @@
 			this.triggerAnalyzer = debounce(this.doTriggerAnalyzer.bind(this), 600);
 
 			this.appendCleaner(() => this.analyzer && this.analyzer.terminate());
+
+			this.loadOpenGame();
 		},
 
 
@@ -689,6 +700,9 @@
 
 			if (hashData.step)
 				this.seekHistory(parseInt(hashData.step));
+
+			if (!this.fens.length)
+				this.updateFens();
 
 			this.onResize();
 		},
@@ -844,7 +858,8 @@
 				this.fens = [];
 
 				const game = new Chess();
-				game.load_pgn(this.notation);
+				if (this.notation)
+					game.load_pgn(this.notation);
 
 				let step = game.history().length;
 				while (true) {
@@ -1020,8 +1035,16 @@
 				if (this.analyzer) {
 					if (this.game.game_over())
 						this.analyzer.analyzeStop();
-					else
-						this.analyzer.analyze(this.game.fen());
+					else {
+						const fen = this.game.fen();
+
+						if (analyzationLibrary[fen]) {
+							this.analyzation = analyzationLibrary[fen];
+							this.updateWinratesByAnalyzation(this.analyzation.branches[0], this.currentHistoryIndex + 1);
+						}
+						else
+							this.analyzer.analyze(fen);
+					}
 				}
 			},
 
@@ -1201,7 +1224,12 @@
 						break;
 
 					if (!this.winRates[step] || this.winRates[step].depth < depth) {
-						const best = await this.analyzer.evaluateFinite(game.fen(), depth);
+						const fen = game.fen();
+						let best = null;
+						if (analyzationLibrary[fen])
+							best = analyzationLibrary[fen].best;
+						else
+							best = await this.analyzer.evaluateFinite(fen, depth);
 						if (best)
 							this.updateWinratesByAnalyzation(best, step);
 					}
@@ -1250,13 +1278,44 @@
 			},
 
 
-			/*onBoardContextMenu () {
-				const square = document.querySelector(".square-55d63:hover");
-				console.log("square:", square);
+			async loadAnalyzationLibrary (url) {
+				const response = await fetch(url);
+				if (!response.ok) {
+					console.warn("analyzation library fetch failed:", response.statusText);
+					return;
+				}
 
-				//if (square)
-				//	this.chosenSquare = square.dataset.square;
-			},*/
+				const parseMove = move => [move.substr(0, 2), move.substr(2, 4), move.length > 4 ? move.substr(4) : undefined];
+
+				const text = await response.text();
+				const records = YAML.parse(text);
+				//console.log("analyzation library:", records);
+				records.forEach(record => {
+					const bestBranch = record.branches[0];
+
+					analyzationLibrary[record.fen] = analyzationLibrary[record.fen] || {
+						fen: record.fen,
+						branches: record.branches.map(branch => ({
+							move: parseMove(branch.move),
+							pv: branch.pv.split(" ").map(parseMove),
+							value: winrateFromAnalyzationBest({scoreCP: branch.score}, this.whiteOnTurn ? "w" : "b"),
+						})),
+						best: {
+							move: parseMove(bestBranch.move),
+							scoreCP: bestBranch.score,
+							depth: bestBranch.depth || LIBRARY_DEFAULT_DEPTH,
+						},
+					};
+				});
+
+				console.debug("analyzation library loaded:", records.length);
+			},
+
+
+			async loadOpenGame () {
+				const {default: openGame3} = await import("../assets/chess/open-games-3.yaml");
+				this.loadAnalyzationLibrary(openGame3);
+			},
 		},
 
 

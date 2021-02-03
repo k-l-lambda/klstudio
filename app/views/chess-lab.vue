@@ -479,7 +479,7 @@
 					return [];
 
 				// softmax values
-				const items = this.analyzation.branches.map(item => ({...item}));
+				const items = this.analyzation.branches.map(item => ({...item})).filter(item => Number.isFinite(item.value));
 				items.forEach((item, i) => {
 					item.valueExp = Math.exp(item.value * 3);
 					item.hash = item.move.filter(Boolean).join("");

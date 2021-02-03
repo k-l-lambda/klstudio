@@ -644,6 +644,10 @@
 					this.redoMove();
 
 					break;
+				case "Home":
+					this.seekHistory(-1);
+
+					break;
 				//default:
 				//	console.debug("key code:", event.code);
 				}

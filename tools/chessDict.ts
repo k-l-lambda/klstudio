@@ -75,6 +75,9 @@ const genStep = async (source?: Analyzation[]): Promise<Analyzation[]> => {
 
 			return fens;
 		}));
+
+		// remove repeating
+		fens = Array.from(new Set(fens));
 	}
 	else
 		// use start position as default source

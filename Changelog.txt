@@ -16,11 +16,16 @@ TODO:
 
 
 
+2021.2.3	K.L.	<k.l.lambda@gmail.com>
+
+	+	chess-lab.vue: analyzation library loading added.
+
+
 2021.2.2	K.L.	<k.l.lambda@gmail.com>
 
 	+	chessDict.ts: parameter of untilStep added.
 
-	*!	chessDict use case:
+	*	chessDict use case:
 			yarn ts-dev ./tools/chessDict.ts --depth=26 --untilStep=5 --scoreWidth=40
 
 

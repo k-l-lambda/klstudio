@@ -221,6 +221,7 @@
 	import color from "color";
 	import Vue from "vue";
 	import url from "url";
+	import * as YAML from "yaml";
 
 	import {msDelay, mutexDelay} from "../delay";
 	import {downloadURL} from "../utils";
@@ -308,6 +309,9 @@
 			script: "javascript:navigator.clipboard.writeText([...document.querySelectorAll(\"vertical-move-list .move\")].map((move, i) => `${i+1}. ${move.querySelector(\".white\").textContent} ${move.querySelector(\".black\") ? move.querySelector(\".black\").textContent : ''}`).join(\" \"));alert('Chess notation text copied.');",
 		},
 	];
+
+
+	const analyzationLibrary = {};
 
 
 
@@ -1020,8 +1024,16 @@
 				if (this.analyzer) {
 					if (this.game.game_over())
 						this.analyzer.analyzeStop();
-					else
-						this.analyzer.analyze(this.game.fen());
+					else {
+						const fen = this.game.fen();
+
+						if (analyzationLibrary[fen]) {
+							this.analyzation = analyzationLibrary[fen];
+							this.updateWinratesByAnalyzation(this.analyzation.branches[0], this.currentHistoryIndex + 1);
+						}
+						else
+							this.analyzer.analyze(fen);
+					}
 				}
 			},
 
@@ -1201,7 +1213,12 @@
 						break;
 
 					if (!this.winRates[step] || this.winRates[step].depth < depth) {
-						const best = await this.analyzer.evaluateFinite(game.fen(), depth);
+						const fen = game.fen();
+						let best = null;
+						if (analyzationLibrary[fen])
+							best = analyzationLibrary[fen].branches[0];
+						else
+							best = await this.analyzer.evaluateFinite(fen, depth);
 						if (best)
 							this.updateWinratesByAnalyzation(best, step);
 					}
@@ -1250,13 +1267,31 @@
 			},
 
 
-			/*onBoardContextMenu () {
-				const square = document.querySelector(".square-55d63:hover");
-				console.log("square:", square);
+			async loadAnalyzationLibrary (url) {
+				const response = await fetch(url);
+				if (!response.ok) {
+					console.warn("analyzation library fetch failed:", response.statusText);
+					return;
+				}
 
-				//if (square)
-				//	this.chosenSquare = square.dataset.square;
-			},*/
+				const parseMove = move => [move.substr(0, 2), move.substr(2, 4), move.length > 4 ? move.substr(4) : undefined];
+
+				const text = await response.text();
+				const records = YAML.parse(text);
+				//console.log("analyzation library:", records);
+				records.forEach(record => {
+					analyzationLibrary[record.fen] = analyzationLibrary[record.fen] || {
+						fen: record.fen,
+						branches: record.branches.map(branch => ({
+							move: parseMove(branch.move),
+							pv: branch.pv.split(" ").map(parseMove),
+							value: winrateFromAnalyzationBest({scoreCP: branch.score}, this.whiteOnTurn ? "w" : "b"),
+						})),
+					};
+				});
+
+				console.debug("analyzation library loaded:", url);
+			},
 		},
 
 

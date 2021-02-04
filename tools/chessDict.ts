@@ -29,9 +29,11 @@ const scoreWidth = argv.scoreWidth || 70;
 const agent = new WorkerAgent(require("stockfish")());
 agent.setOptions({MultiPV: multiPV});
 
-/*agent.on("log", data => {
-	console.debug("Agent:", data);
-});*/
+if (argv.showEngineLog) {
+	agent.on("log", data => {
+		console.debug("Agent:", data);
+	});
+}
 
 
 const analyzeFEN = async (fen: string): Promise<Analyzation> => {

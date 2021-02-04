@@ -106,6 +106,23 @@ const main = async () => {
 
 		const sourceText = await fs.promises.readFile(inputFile);
 		source = YAML.parse(sourceText.toString());
+
+		if (argv.deduplicate) {
+			const fenSet = new Set();
+			const result = [];
+
+			source.forEach(item => {
+				if (!fenSet.has(item.fen)) {
+					result.push(item);
+					fenSet.add(item.fen);
+				}
+			});
+
+			await fs.promises.writeFile(inputFile, YAML.stringify(result));
+			console.log("Deduplication done:", source.length, "->", result.length);
+
+			return;
+		}
 	}
 
 	const untilStep = Number(argv.untilStep || step);

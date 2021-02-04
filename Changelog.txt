@@ -15,6 +15,11 @@ TODO:
 
 
 
+2021.2.4	K.L.	<k.l.lambda@gmail.com>
+
+	+	chessDict.ts: command argument of deduplicate added.
+
+
 2021.2.3	K.L.	<k.l.lambda@gmail.com>
 
 	+	chess-lab.vue: loadOpenGame added.

@@ -1494,8 +1494,11 @@
 
 			async hoverMoveHash (value) {
 				if (value) {
+					if (document.querySelector(".piece-417db:hover"))
+						return;
+
 					if (await mutexDelay("hoverMoveHash.change", 600)) {
-						if (this.predictionPreparing || this.showPredictionBoard)
+						if (this.predictionPreparing || this.showPredictionBoard || document.querySelector(".piece-417db:hover"))
 							return;
 
 						if (this.hoverMove)

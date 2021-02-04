@@ -48,7 +48,7 @@ const analyzeFEN = async (fen: string): Promise<Analyzation> => {
 };
 
 
-const genStep = async (source?: Analyzation[]): Promise<Analyzation[]> => {
+const genStep = async (source?: Analyzation[], {onSegment = null} = {}): Promise<Analyzation[]> => {
 	let fens = null;
 
 	if (source) {
@@ -89,6 +89,9 @@ const genStep = async (source?: Analyzation[]): Promise<Analyzation[]> => {
 
 		const analyzation = await analyzeFEN(fen);
 		results.push(analyzation);
+
+		if (results.length % 10 === 0 && onSegment)
+			onSegment(results);
 	}
 
 	return results;
@@ -129,7 +132,9 @@ const main = async () => {
 	while (step <= untilStep) {
 		console.log("\nStep:", step, "/", untilStep);
 
-		const result = await genStep(source);
+		const result = await genStep(source, {
+			onSegment: results => fs.promises.writeFile(path.resolve("./tools/chess-book/", `${step}.temp.yaml`), YAML.stringify(results)),
+		});
 		await fs.promises.writeFile(path.resolve("./tools/chess-book/", `${step}.yaml`), YAML.stringify(result));
 
 		source = result;

@@ -17,6 +17,8 @@ TODO:
 
 2021.2.4	K.L.	<k.l.lambda@gmail.com>
 
+	+	chessDict.ts: save temporary results.
+
 	+	chessDict.ts: command argument of deduplicate added.
 
 

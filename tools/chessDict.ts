@@ -29,9 +29,11 @@ const scoreWidth = argv.scoreWidth || 70;
 const agent = new WorkerAgent(require("stockfish")());
 agent.setOptions({MultiPV: multiPV});
 
-/*agent.on("log", data => {
-	console.debug("Agent:", data);
-});*/
+if (argv.showEngineLog) {
+	agent.on("log", data => {
+		console.debug("Agent:", data);
+	});
+}
 
 
 const analyzeFEN = async (fen: string): Promise<Analyzation> => {
@@ -48,7 +50,28 @@ const analyzeFEN = async (fen: string): Promise<Analyzation> => {
 };
 
 
-const genStep = async (source?: Analyzation[]): Promise<Analyzation[]> => {
+const runTask = async (fens: string[], {results = [], onCheckPoint = null} = {}): Promise<Analyzation[]> => {
+	const totalLength = fens.length + results.length;
+
+	for (const fen of fens) {
+		process.stdout.write(`fen: ${results.length} / ${totalLength}\r`);
+
+		const analyzation = await analyzeFEN(fen);
+		results.push(analyzation);
+
+		if (results.length % 10 === 0 && onCheckPoint) {
+			onCheckPoint({
+				results,
+				fens: fens.slice(results.length),
+			});
+		}
+	}
+
+	return results;
+};
+
+
+const genStep = async (source?: Analyzation[], {onCheckPoint = null} = {}): Promise<Analyzation[]> => {
 	let fens = null;
 
 	if (source) {
@@ -83,21 +106,14 @@ const genStep = async (source?: Analyzation[]): Promise<Analyzation[]> => {
 		// use start position as default source
 		fens = [new Chess().fen()];
 
-	const results = [];
-	for (const fen of fens) {
-		process.stdout.write(`fen: ${results.length} / ${fens.length}\r`);
-
-		const analyzation = await analyzeFEN(fen);
-		results.push(analyzation);
-	}
-
-	return results;
+	return runTask(fens, {onCheckPoint, results: []});
 };
 
 
 const main = async () => {
 	let source = null;
 	let step = 0;
+	let task = null;
 
 	const inputFile = argv._[0];
 	if (inputFile) {
@@ -106,15 +122,40 @@ const main = async () => {
 
 		const sourceText = await fs.promises.readFile(inputFile);
 		source = YAML.parse(sourceText.toString());
+
+		if (argv.deduplicate) {
+			const fenSet = new Set();
+			const result = [];
+
+			source.forEach(item => {
+				if (!fenSet.has(item.fen)) {
+					result.push(item);
+					fenSet.add(item.fen);
+				}
+			});
+
+			await fs.promises.writeFile(inputFile, YAML.stringify(result));
+			console.log("Deduplication done:", source.length, "->", result.length);
+
+			return;
+		}
 	}
+	else if (argv.task) {
+		step = Number((argv.task.match(/\d+/) || [0])[0]);
+		const buffer = await fs.promises.readFile(argv.task);
+		task = YAML.parse(buffer.toString());
+	}
+
+	const onCheckPoint = data => fs.promises.writeFile(path.resolve("./tools/chess-book/", `${step}.temp.yaml`), YAML.stringify(data));
 
 	const untilStep = Number(argv.untilStep || step);
 	while (step <= untilStep) {
 		console.log("\nStep:", step, "/", untilStep);
 
-		const result = await genStep(source);
+		const result = await (task ? runTask(task.fens, {results: task.results, onCheckPoint}) : genStep(source, {onCheckPoint}));
 		await fs.promises.writeFile(path.resolve("./tools/chess-book/", `${step}.yaml`), YAML.stringify(result));
 
+		task = null;
 		source = result;
 		++step;
 	}

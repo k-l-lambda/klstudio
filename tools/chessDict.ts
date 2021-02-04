@@ -50,7 +50,28 @@ const analyzeFEN = async (fen: string): Promise<Analyzation> => {
 };
 
 
-const genStep = async (source?: Analyzation[], {onSegment = null} = {}): Promise<Analyzation[]> => {
+const runTask = async (fens: string[], {results = [], onCheckPoint = null} = {}): Promise<Analyzation[]> => {
+	const totalLength = fens.length + results.length;
+
+	for (const fen of fens) {
+		process.stdout.write(`fen: ${results.length} / ${totalLength}\r`);
+
+		const analyzation = await analyzeFEN(fen);
+		results.push(analyzation);
+
+		if (results.length % 10 === 0 && onCheckPoint) {
+			onCheckPoint({
+				results,
+				fens: fens.slice(results.length),
+			});
+		}
+	}
+
+	return results;
+};
+
+
+const genStep = async (source?: Analyzation[], {onCheckPoint = null} = {}): Promise<Analyzation[]> => {
 	let fens = null;
 
 	if (source) {
@@ -85,24 +106,14 @@ const genStep = async (source?: Analyzation[], {onSegment = null} = {}): Promise
 		// use start position as default source
 		fens = [new Chess().fen()];
 
-	const results = [];
-	for (const fen of fens) {
-		process.stdout.write(`fen: ${results.length} / ${fens.length}\r`);
-
-		const analyzation = await analyzeFEN(fen);
-		results.push(analyzation);
-
-		if (results.length % 10 === 0 && onSegment)
-			onSegment(results);
-	}
-
-	return results;
+	return runTask(fens, {onCheckPoint, results: []});
 };
 
 
 const main = async () => {
 	let source = null;
 	let step = 0;
+	let task = null;
 
 	const inputFile = argv._[0];
 	if (inputFile) {
@@ -129,16 +140,22 @@ const main = async () => {
 			return;
 		}
 	}
+	else if (argv.task) {
+		step = Number((argv.task.match(/\d+/) || [0])[0]);
+		const buffer = await fs.promises.readFile(argv.task);
+		task = YAML.parse(buffer.toString());
+	}
+
+	const onCheckPoint = data => fs.promises.writeFile(path.resolve("./tools/chess-book/", `${step}.temp.yaml`), YAML.stringify(data));
 
 	const untilStep = Number(argv.untilStep || step);
 	while (step <= untilStep) {
 		console.log("\nStep:", step, "/", untilStep);
 
-		const result = await genStep(source, {
-			onSegment: results => fs.promises.writeFile(path.resolve("./tools/chess-book/", `${step}.temp.yaml`), YAML.stringify(results)),
-		});
+		const result = await (task ? runTask(task.fens, {results: task.results, onCheckPoint}) : genStep(source, {onCheckPoint}));
 		await fs.promises.writeFile(path.resolve("./tools/chess-book/", `${step}.yaml`), YAML.stringify(result));
 
+		task = null;
 		source = result;
 		++step;
 	}

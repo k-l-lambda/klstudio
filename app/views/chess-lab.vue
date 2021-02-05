@@ -1313,7 +1313,10 @@
 
 			async loadOpenGame () {
 				const {default: openGame3} = await import("../assets/chess/open-games-3.yaml");
-				this.loadAnalyzationLibrary(openGame3);
+				await this.loadAnalyzationLibrary(openGame3);
+
+				const {default: openGame4} = await import("../assets/chess/open-games-4.yaml");
+				await this.loadAnalyzationLibrary(openGame4);
 			},
 		},
 

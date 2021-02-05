@@ -611,7 +611,7 @@
 
 
 			winRates () {
-				const rates = this.fens.map(fen => this.winRateDict[fen]).filter(Boolean);
+				const rates = this.fens.map(fen => this.winRateDict[fen]);
 
 				if (!this.analyzer && !rates.length)
 					return null;

@@ -1583,8 +1583,13 @@
 
 	.chess-lab.full-mode main
 	{
-		max-width: calc(min(100vw, 100vh) - 1px);
-		max-height: calc(100vh - 1px);
+		max-width: min(100vw, 100vh);
+		max-height: 100vh;
+	}
+
+	.chess-lab.full-mode #board
+	{
+		transform: translate(2px, 2px);
 	}
 
 	.chess-lab.full-mode main .marks

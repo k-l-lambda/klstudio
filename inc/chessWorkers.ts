@@ -1,8 +1,6 @@
 
 import {EventEmitter} from "events";
-import {Chess} from "chess.js";
-
-//import {msDelay} from "../app/delay";
+import Chess from "chess.js";
 
 
 

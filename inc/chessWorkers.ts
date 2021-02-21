@@ -305,7 +305,7 @@ export class WorkerAnalyzer extends WorkerAgent implements EngineAnalyzer {
 	analyzingIndex: number = 0;
 
 
-	constructor (workerFactory: () => Worker, {thinkerCount = 3, multiPV = 20} = {}) {
+	constructor (workerFactory: () => Worker, {thinkerCount = 3, multiPV = 40} = {}) {
 		super(workerFactory());
 
 		this.thinkers = Array(thinkerCount).fill(null).map(() => new WorkerAgent(workerFactory()));

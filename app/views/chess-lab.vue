@@ -265,7 +265,7 @@
 	};
 
 
-	const moveToArrow = (from, to, value, weight) => {
+	const moveToArrow = (from, to, value, weight, opaque) => {
 		const fromXY = coordinateXY(from);
 		const toXY = coordinateXY(to);
 		const vector = {x: toXY.x - fromXY.x, y: toXY.y - fromXY.y};
@@ -284,7 +284,7 @@
 			[+TIP_SIZE * 0.7, length - TIP_SIZE], [+WIDTH / 2, length - TIP_SIZE], [+WIDTH / 2, ROOT],
 		];
 
-		const fill = Number.isFinite(value) ? color.hsv([60 + 60 * Math.tanh(value / 8), 100, 80]).alpha(weight * .9 + .1).toString() : "#777a";
+		const fill = Number.isFinite(value) ? color.hsv([60 + 60 * Math.tanh(value / 8), 100, 80]).alpha(opaque ? 1 : (weight * .9 + .1)).toString() : "#777a";
 
 		return {x, y, angle, points, fill};
 	};
@@ -484,10 +484,10 @@
 					item.valueExp = Math.exp(item.value * 3);
 					item.hash = item.move.filter(Boolean).join("");
 					item.best = i === 0;
-					item.marked = this.markMove && item.hash === this.markMove;
+					item.marked = this.markMove && item.hash === this.markMove || item.move[0] === this.chosenSquare;
 				});
 
-				items.reverse();
+				//items.reverse();
 
 				const expsum = items.reduce((sum, item) => sum + item.valueExp, 0);
 				//console.log("expsum:", expsum);
@@ -495,7 +495,7 @@
 
 				const noticableItems = items.filter((item, i) => item.weight > 1 / items.length || i < 3 || item.marked);
 
-				items.forEach(item => item.arrow = moveToArrow(item.move[0], item.move[1], item.value, item.weight));
+				items.forEach(item => item.arrow = moveToArrow(item.move[0], item.move[1], item.value, item.weight, item.marked));
 
 				return noticableItems;
 			},
@@ -546,7 +546,7 @@
 
 
 			targetSquares () {
-				if (!this.chosenSquare || !this.game)
+				if (!this.chosenSquare || !this.game || (this.analyzer && this.showArrowMarks))
 					return [];
 
 				const moves = this.game.moves({verbose: true}).filter(move => move.from === this.chosenSquare && move.to);
@@ -1837,8 +1837,8 @@
 
 						&.marked
 						{
-							stroke: #a84ff0;
-							stroke-width: 8px;
+							stroke: #a84ff0aa;
+							stroke-width: 3px;
 						}
 					}
 				}

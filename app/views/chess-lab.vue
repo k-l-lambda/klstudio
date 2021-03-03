@@ -662,7 +662,7 @@
 
 			this.appendCleaner(() => this.analyzer && this.analyzer.terminate());
 
-			this.loadOpenGame();
+			this.waitForLoadingComplete().then(() => this.loadOpenGame());
 		},
 
 
@@ -768,6 +768,14 @@
 
 				if (this.editMode)
 					this.editDirty = true;
+			},
+
+
+			waitForLoadingComplete () {
+				if (document.readyState === "complete")
+					return Promise.resolve();
+
+				return new Promise(resolve => window.onload = resolve);
 			},
 
 

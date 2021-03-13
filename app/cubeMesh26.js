@@ -1,6 +1,8 @@
 
 import * as THREE from "three";
 
+import {Geometry, Face3} from "./threeCompat";
+
 
 
 const positions = [
@@ -57,7 +59,7 @@ const normals = [
 
 
 
-const geometries = Array(3 ** 3).fill().map(() => new THREE.Geometry());
+const geometries = Array(3 ** 3).fill().map(() => new Geometry());
 geometries.forEach((geometry) => {
 	geometry.vertices = positions;
 	geometry.faces = [].concat(...Array(6).fill().map((_, i) => ({
@@ -65,8 +67,8 @@ geometries.forEach((geometry) => {
 		normal: normals[i],
 		materialIndex: 0,
 	})).map(data => [
-		new THREE.Face3(data.i4, data.i4 + 1, data.i4 + 2, data.normal, undefined, data.materialIndex),
-		new THREE.Face3(data.i4, data.i4 + 2, data.i4 + 3, data.normal, undefined, data.materialIndex),
+		new Face3(data.i4, data.i4 + 1, data.i4 + 2, data.normal, undefined, data.materialIndex),
+		new Face3(data.i4, data.i4 + 2, data.i4 + 3, data.normal, undefined, data.materialIndex),
 	]));
 
 	geometry.faceVertexUvs = [
@@ -84,7 +86,7 @@ export function createCube3Meshes (materials) {
 	return geometries.map((geometry, i) => {
 		const material = i === 13 ? NULL_MATERIAL : (i > 13 ? materials[i - 1] : materials[i]);
 
-		return new THREE.Mesh(geometry, material);
+		return new THREE.Mesh(geometry.toBufferGeometry(), material);
 	});
 };
 

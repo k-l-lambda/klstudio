@@ -4,23 +4,28 @@ import * as THREE from "three";
 
 
 class Face3 {
-	i1: number;
-	i2: number;
-	i3: number;
+	a: number;
+	b: number;
+	c: number;
 	normal: THREE.Vector3;
 	color: THREE.Color;
 	materialIndex: number;
+	uvs: THREE.Vector2[];
 
 
-	constructor (i1: number, i2: number, i3: number, normal: THREE.Vector3, color: THREE.Color, materialIndex: number) {
-		Object.assign(this, {i1, i2, i3, normal, color, materialIndex});
+	constructor (a: number, b: number, c: number, normal: THREE.Vector3, color: THREE.Color, materialIndex: number) {
+		Object.assign(this, {a, b, c, normal, color, materialIndex});
 	}
 };
+
+
+const cc = <T>(a: T[][]): T[] => [].concat(...a);
 
 
 class Geometry {
 	vertices: THREE.Vector3[];
 	faces: Face3[];
+	faceVertexUvs: THREE.Vector2[][][];
 
 
 	toBufferGeometry (): THREE.BufferGeometry {
@@ -31,15 +36,33 @@ class Geometry {
 		if (!face0)
 			return null;
 
+		//console.log("faceVertexUvs:", this.faceVertexUvs);
+		if (this.faceVertexUvs) {
+			const uvs = cc(this.faceVertexUvs);
+			this.faces.forEach((face, i) => face.uvs = uvs[i]);
+		}
+
 		const indexedFaces = Array(this.vertices.length).fill(null);
 		this.faces.forEach(face => {
-			indexedFaces[face.i1] = face;
-			indexedFaces[face.i2] = face;
-			indexedFaces[face.i3] = face;
+			indexedFaces[face.a] = {
+				normal: face.normal,
+				color: face.color,
+				uv: face.uvs && face.uvs[0],
+			};
+			indexedFaces[face.b] = {
+				normal: face.normal,
+				color: face.color,
+				uv: face.uvs && face.uvs[1],
+			};
+			indexedFaces[face.c] = {
+				normal: face.normal,
+				color: face.color,
+				uv: face.uvs && face.uvs[2],
+			};
 		});
 
 		const bgeo = new THREE.BufferGeometry();
-		bgeo.setIndex([].concat(...this.faces.map(face => [face.i1, face.i2, face.i3])));
+		bgeo.setIndex([].concat(...this.faces.map(face => [face.a, face.b, face.c])));
 		bgeo.addAttribute( "position", new THREE.Float32BufferAttribute( [].concat(...this.vertices.map(pos => [pos.x, pos.y, pos.z])), 3 ) );
 
 		if (face0.normal) {
@@ -50,6 +73,11 @@ class Geometry {
 		if (face0.color) {
 			bgeo.addAttribute( "color", new THREE.Float32BufferAttribute( [].concat(...indexedFaces
 				.map(face => [face.color.r, face.color.g, face.color.b])), 3 ) );
+		}
+
+		if (face0.uvs) {
+			bgeo.addAttribute( "uv", new THREE.Float32BufferAttribute( [].concat(...indexedFaces
+				.map(face => cc([face.uv.x, face.uv.y]))), 2 ) );
 		}
 
 		let startIndex = 0;

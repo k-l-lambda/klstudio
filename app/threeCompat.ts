@@ -63,20 +63,20 @@ class Geometry {
 
 		const bgeo = new THREE.BufferGeometry();
 		bgeo.setIndex([].concat(...this.faces.map(face => [face.a, face.b, face.c])));
-		bgeo.addAttribute( "position", new THREE.Float32BufferAttribute( [].concat(...this.vertices.map(pos => [pos.x, pos.y, pos.z])), 3 ) );
+		bgeo.setAttribute( "position", new THREE.Float32BufferAttribute( [].concat(...this.vertices.map(pos => [pos.x, pos.y, pos.z])), 3 ) );
 
 		if (face0.normal) {
 			const buffer = [].concat(...indexedFaces.map(face => face.normal));
-			bgeo.addAttribute( "normal", new THREE.Float32BufferAttribute( buffer, 3 ) );
+			bgeo.setAttribute( "normal", new THREE.Float32BufferAttribute( buffer, 3 ) );
 		}
 
 		if (face0.color) {
-			bgeo.addAttribute( "color", new THREE.Float32BufferAttribute( [].concat(...indexedFaces
+			bgeo.setAttribute( "color", new THREE.Float32BufferAttribute( [].concat(...indexedFaces
 				.map(face => [face.color.r, face.color.g, face.color.b])), 3 ) );
 		}
 
 		if (face0.uvs) {
-			bgeo.addAttribute( "uv", new THREE.Float32BufferAttribute( [].concat(...indexedFaces
+			bgeo.setAttribute( "uv", new THREE.Float32BufferAttribute( [].concat(...indexedFaces
 				.map(face => cc([face.uv.x, face.uv.y]))), 2 ) );
 		}
 

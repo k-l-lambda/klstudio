@@ -53,7 +53,8 @@
 
 				await msDelay(1000);
 
-				this.randomFlip();
+				if (this.$refs.cube1)
+					this.randomFlip();
 			}
 		},
 

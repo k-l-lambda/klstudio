@@ -2,6 +2,8 @@
 import * as math from "mathjs";
 import * as THREE from "three";
 
+import {Geometry, Face3} from "./threeCompat";
+
 
 
 const positions = [
@@ -48,7 +50,7 @@ const normals = [
 
 
 
-const geometries = Array(3 ** 3).fill().map(() => new THREE.Geometry());
+const geometries = Array(3 ** 3).fill().map(() => new Geometry());
 geometries.forEach((geometry, u) => {
 	const pos = [u % 3 - 1, Math.floor(u / 3) % 3 - 1, Math.floor(u / 9) - 1];
 
@@ -58,8 +60,8 @@ geometries.forEach((geometry, u) => {
 		normal: normals[i],
 		materialIndex: math.dot(normals[i], pos) > 0 ? i : 6,
 	})).map(data => [
-		new THREE.Face3(data.i4, data.i4 + 1, data.i4 + 2, data.normal, undefined, data.materialIndex),
-		new THREE.Face3(data.i4, data.i4 + 2, data.i4 + 3, data.normal, undefined, data.materialIndex),
+		new Face3(data.i4, data.i4 + 1, data.i4 + 2, data.normal, undefined, data.materialIndex),
+		new Face3(data.i4, data.i4 + 2, data.i4 + 3, data.normal, undefined, data.materialIndex),
 	]));
 });
 
@@ -67,7 +69,7 @@ geometries.forEach((geometry, u) => {
 export function createCube3Meshes (materials) {
 	console.assert(materials.length === 7, "invalid materials:", materials);
 
-	return geometries.map(geometry => new THREE.Mesh(geometry, materials));
+	return geometries.map(geometry => new THREE.Mesh(geometry.toBufferGeometry(), materials));
 };
 
 

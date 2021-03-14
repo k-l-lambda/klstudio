@@ -1319,12 +1319,17 @@
 			},
 
 
-			async loadOpenGame () {
-				const {default: openGame3} = await import("../assets/chess/open-games-3.yaml");
-				await this.loadAnalyzationLibrary(openGame3);
+			async loadYAML (url) {
+				const text = await (await fetch(url)).text();
 
-				const {default: openGame4} = await import("../assets/chess/open-games-4.yaml");
-				await this.loadAnalyzationLibrary(openGame4);
+				return YAML.parse(text);
+			},
+
+
+			async loadOpenGame () {
+				await this.loadAnalyzationLibrary("chess/open-games/3.yaml");
+				await this.loadAnalyzationLibrary("chess/open-games/4.yaml");
+				await this.loadAnalyzationLibrary("chess/open-games/5.yaml");
 			},
 		},
 

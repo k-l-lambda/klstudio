@@ -223,9 +223,9 @@ const createGeometries = ({segemnts = 18, sphericity = 0.48, chamferRadius = 0.2
 	return units.map(unit => {
 		const geometry = new THREE.BufferGeometry();
 		geometry.setIndex(unit.indices);
-		geometry.addAttribute( "position", new THREE.Float32BufferAttribute( [].concat(...unit.vertices.map(v => [v.Pos.x, v.Pos.y, v.Pos.z])), 3 ) );
-		geometry.addAttribute( "normal", new THREE.Float32BufferAttribute( [].concat(...unit.vertices.map(v => [v.Normal.x, v.Normal.y, v.Normal.z])), 3 ) );
-		geometry.addAttribute( "uv", new THREE.Float32BufferAttribute( [].concat(...unit.vertices.map(v => [v.TCoords.x, v.TCoords.y])), 2 ) );
+		geometry.setAttribute( "position", new THREE.Float32BufferAttribute( [].concat(...unit.vertices.map(v => [v.Pos.x, v.Pos.y, v.Pos.z])), 3 ) );
+		geometry.setAttribute( "normal", new THREE.Float32BufferAttribute( [].concat(...unit.vertices.map(v => [v.Normal.x, v.Normal.y, v.Normal.z])), 3 ) );
+		geometry.setAttribute( "uv", new THREE.Float32BufferAttribute( [].concat(...unit.vertices.map(v => [v.TCoords.x, v.TCoords.y])), 2 ) );
 
 		geometry.addGroup(0, unit.indices.length, 0);
 

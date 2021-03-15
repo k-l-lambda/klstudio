@@ -146,7 +146,16 @@ const main = async () => {
 		task = YAML.parse(buffer.toString());
 	}
 
-	const onCheckPoint = data => fs.promises.writeFile(path.resolve("./tools/chess-book/", `${step}.temp.yaml`), YAML.stringify(data));
+	const onCheckPoint = async data => {
+		const tempPath = path.resolve("./tools/chess-book/", `${step}.temp.yaml`);
+		const tempBakPath = path.resolve("./tools/chess-book/", `${step}.temp.bak.yaml`);
+		if (fs.existsSync(tempPath)) {
+			if (fs.existsSync(tempBakPath))
+				fs.unlinkSync(tempBakPath);
+			await fs.promises.rename(tempPath, tempBakPath);
+		}
+		fs.promises.writeFile(tempPath, YAML.stringify(data));
+	};
 
 	const untilStep = Number(argv.untilStep || step);
 	while (step <= untilStep) {

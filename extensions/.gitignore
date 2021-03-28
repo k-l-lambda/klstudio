@@ -7,3 +7,4 @@ HoverZoom/*
 HoverZoom/plugins/*
 !HoverZoom/plugins/feedly.js
 !HoverZoom/plugins/yande.js
+!HoverZoom/plugins/xiugirls.js

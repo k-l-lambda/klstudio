@@ -2,6 +2,11 @@
 TODO:
 
 
+*	2021.3.28
+
+	+	imgPicker/contentScripts.js: xsnvTraverse added.
+
+
 *	2021.1.16
 
 	+	vanilla.js created.

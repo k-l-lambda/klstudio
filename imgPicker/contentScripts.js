@@ -166,6 +166,44 @@ const listenHzDownloads = async (page, callbacks) => {
 };
 
 
+const xsnvTraverse = async (page, callbacks) => {
+	let next = false;
+	while (true) {
+		const {url, end} = await page.evaluate(next => new Promise(resolve => {
+			console.log("XBrowser.xsnvTraverse.");
+
+			const imageCount = document.querySelectorAll(".swl-item").length;
+			const pick = () => {
+				const end = window.album_img_current_index >= imageCount;
+				resolve({
+					url: bigImg.src,
+					end,
+				});
+			};
+
+			if (next)
+				window.SetImgIndex(window.album_img_current_index + 1);
+
+			const bigImg = document.querySelector("#bigImg");
+			if (!next && bigImg.complete)
+				pick();
+			else
+				bigImg.onload = pick;
+		}), next);
+		next = true;
+
+		callbacks.pickImage(url).then(result => {
+			page.evaluate(showLog, result);
+		});
+
+		if (end)
+			break;
+
+		await new Promise(resolve => setTimeout(resolve, 800));
+	}
+};
+
+
 
 export default {
 	"xsnvshen\\.com\\/album\\/new\\/": (page, callbacks) => {
@@ -174,6 +212,15 @@ export default {
 		page.evaluate(mountLog);
 
 		listenHzDownloads(page, callbacks);
+	},
+
+
+	"xsnvshen\\.com\\/album\\/\\d+": (page, callbacks) => {
+		console.log("xsnvshen.new album content script loaded.");
+
+		page.evaluate(mountLog);
+
+		xsnvTraverse(page, callbacks);
 	},
 
 

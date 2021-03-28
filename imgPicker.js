@@ -76,7 +76,7 @@ const listenPage = page => {
 	});
 
 	page.on("load", () => {
-		//console.log("page load:", page.url());
+		console.debug("page load:", page.url());
 
 		for (const pattern in contentScripts) {
 			if (new RegExp(pattern).test(page.url())) {

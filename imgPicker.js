@@ -41,7 +41,7 @@ const listenPage = page => {
 
 		const response = responseDict.get(url);
 		if (!response) {
-			console.warn("response not cached for", url, responseDict);
+			console.warn("response not cached for", url);
 			return;
 		}
 

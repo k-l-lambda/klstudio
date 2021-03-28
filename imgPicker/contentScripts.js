@@ -54,6 +54,9 @@ const showLog = result => {
 };
 
 
+const msDelay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+
 const mountGallery = selector => {
 	const imgs = document.querySelectorAll(selector);
 	const urls = [...imgs].map(img => img.src);
@@ -187,8 +190,18 @@ const xsnvTraverse = async (page, callbacks) => {
 			const bigImg = document.querySelector("#bigImg");
 			if (!next && bigImg.complete)
 				pick();
-			else
+			else {
 				bigImg.onload = pick;
+				bigImg.onerror = () => {
+					const src = bigImg.src;
+					bigImg.src = "";
+
+					setTimeout(() => {
+						bigImg.src = src;
+						console.debug("reload:", src);
+					}, 200);
+				};
+			}
 		}), next);
 		next = true;
 
@@ -199,8 +212,10 @@ const xsnvTraverse = async (page, callbacks) => {
 		if (end)
 			break;
 
-		await new Promise(resolve => setTimeout(resolve, 800));
+		msDelay(800);
 	}
+
+	page.close();
 };
 
 

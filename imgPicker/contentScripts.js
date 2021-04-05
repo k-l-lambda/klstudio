@@ -175,6 +175,12 @@ const xsnvTraverse = async (page, callbacks) => {
 		const {url, end} = await page.evaluate(next => new Promise(resolve => {
 			console.log("XBrowser.xsnvTraverse.");
 
+			// timeout if long waiting
+			const timeoutHandle = setTimeout(() => {
+				console.debug("image loading timeout:", window.album_img_current_index);
+				resolve({timeout: true, end: window.album_img_current_index >= imageCount});
+			}, 15e+3);
+
 			const imageCount = document.querySelectorAll(".swl-item").length;
 			const pick = () => {
 				const end = window.album_img_current_index >= imageCount;
@@ -182,6 +188,8 @@ const xsnvTraverse = async (page, callbacks) => {
 					url: bigImg.src,
 					end,
 				});
+
+				clearTimeout(timeoutHandle);
 			};
 
 			if (next)
@@ -205,14 +213,15 @@ const xsnvTraverse = async (page, callbacks) => {
 		}), next);
 		next = true;
 
-		callbacks.pickImage(url).then(result => {
-			page.evaluate(showLog, result);
-		});
+		if (url)
+			callbacks.pickImage(url).then(result => {
+				page.evaluate(showLog, result);
+			});
 
 		if (end)
 			break;
 
-		msDelay(800);
+		await msDelay(800);
 	}
 
 	page.close();

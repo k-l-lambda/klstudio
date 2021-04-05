@@ -179,7 +179,7 @@ const xsnvTraverse = async (page, callbacks) => {
 			const timeoutHandle = setTimeout(() => {
 				console.debug("image loading timeout:", window.album_img_current_index);
 				resolve({timeout: true, end: window.album_img_current_index >= imageCount});
-			}, 15e+3);
+			}, 20e+3);
 
 			const imageCount = document.querySelectorAll(".swl-item").length;
 			const pick = () => {

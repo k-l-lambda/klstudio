@@ -1330,6 +1330,8 @@
 				await this.loadAnalyzationLibrary("chess/open-games/3.yaml");
 				await this.loadAnalyzationLibrary("chess/open-games/4.yaml");
 				await this.loadAnalyzationLibrary("chess/open-games/5.yaml");
+				await this.loadAnalyzationLibrary("chess/open-games/6.yaml");
+				await this.loadAnalyzationLibrary("chess/open-games/7.yaml");
 			},
 		},
 

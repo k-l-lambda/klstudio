@@ -92,6 +92,7 @@
 					<option v-for="name of engineAnalyzerList" :key="name">{{name}}</option>
 				</select>
 				<CheckButton v-if="chosenAnalyzer" v-model="showArrowMarks" title="show arrows on board" content="&#x21e7;" />
+				<button v-if="chosenAnalyzer && !openGameLoaded" @click="loadOpenGame">&#x1f56e;</button>
 			</section>
 			<section class="engine players">
 				<h3>Players</h3>
@@ -432,6 +433,7 @@
 				audioTa,
 				audioDong,
 				audioUnsheathed,
+				openGameLoaded: false,
 			};
 		},
 
@@ -662,7 +664,7 @@
 
 			this.appendCleaner(() => this.analyzer && this.analyzer.terminate());
 
-			this.waitForLoadingComplete().then(() => this.loadOpenGame());
+			//this.waitForLoadingComplete().then(() => this.loadOpenGame());
 		},
 
 
@@ -1327,9 +1329,13 @@
 
 
 			async loadOpenGame () {
+				this.openGameLoaded = true;
+
 				await this.loadAnalyzationLibrary("chess/open-games/3.yaml");
 				await this.loadAnalyzationLibrary("chess/open-games/4.yaml");
 				await this.loadAnalyzationLibrary("chess/open-games/5.yaml");
+				await this.loadAnalyzationLibrary("chess/open-games/6.yaml");
+				await this.loadAnalyzationLibrary("chess/open-games/7.yaml");
 			},
 		},
 

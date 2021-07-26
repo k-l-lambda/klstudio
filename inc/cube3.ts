@@ -16,15 +16,10 @@ import * as cubeAlgebra from "./cube-algebra";
 
 
 type Vector3 = [number, number, number];
-type Matrix33 = [Vector3, Vector3, Vector3]
-
-declare namespace math {
-	interface Matrix {}
-	//let matrix: (data: Matrix33) => Matrix;
-}
+type Matrix33 = [Vector3, Vector3, Vector3];
 
 
-const unitaryMatrices: math.Matrix[/*10*/] = [
+const unitaryMatrices: Matrix33[/*10*/] = [
 	// 1
 	[
 		[1, 0, 0],
@@ -85,13 +80,13 @@ const unitaryMatrices: math.Matrix[/*10*/] = [
 		[0, -1, 0],
 		[0, 0, 1],
 	],
-].map(a => math.matrix(a));
+];//.map(a => math.matrix(a));
 
-const mirrorMatrix = math.matrix([
+const mirrorMatrix: Matrix33 = [
 	[-1, 0, 0],
 	[0, -1, 0],
 	[0, 0, -1],
-]);
+];
 
 
 const unitaryItems = [
@@ -100,16 +95,16 @@ const unitaryItems = [
 	cubeAlgebra.I_, cubeAlgebra.J_, cubeAlgebra.K_,
 	cubeAlgebra.I2, cubeAlgebra.J2, cubeAlgebra.K2,
 ];
-const dualRotations: math.Matrix[/*14*/] = cubeAlgebra.NORMAL_ORIENTATIONS.slice(10).map(o => o.items).map(
+const dualRotations: Matrix33[/*14*/] = cubeAlgebra.NORMAL_ORIENTATIONS.slice(10).map(o => o.items).map(
 	([i1, i2]) => math.multiply(
 		unitaryMatrices[unitaryItems.indexOf(i1)],
 		unitaryMatrices[unitaryItems.indexOf(i2)]));
 
 
-const normalRotationMatrices: math.Matrix[/*24*/] = unitaryMatrices.concat(dualRotations);
-const mirrorRotationMatrices: math.Matrix[/*24*/] = normalRotationMatrices.map(mat => math.multiply(mirrorMatrix, mat));
+const normalRotationMatrices: Matrix33[/*24*/] = unitaryMatrices.concat(dualRotations);
+const mirrorRotationMatrices: Matrix33[/*24*/] = normalRotationMatrices.map(mat => math.multiply(mirrorMatrix, mat));
 
-const rotationMatrices: math.Matrix[/*48*/] = normalRotationMatrices.concat(mirrorRotationMatrices);
+const rotationMatrices: Matrix33[/*48*/] = normalRotationMatrices.concat(mirrorRotationMatrices);
 
 
 const hashPoint = (point: Vector3): string => point.map(v => "-0+"[v + 1]).join("");
@@ -117,7 +112,7 @@ const points: Vector3[/*27*/] = Array(3 ** 3).fill(null).map((_, i) => [i % 3 - 
 const pointHashes: string[/*27*/] = points.map(hashPoint);
 
 
-const pointRotationTable: number[/*48*/][/*27*/] = points.map(point => rotationMatrices.map(matrix => pointHashes.indexOf(hashPoint(math.multiply(point, matrix)._data))));
+const pointRotationTable: number[/*48*/][/*27*/] = points.map(point => rotationMatrices.map(matrix => pointHashes.indexOf(hashPoint(math.multiply(point, matrix)))));
 
 
 const pointIndices: number[/*27*/] = [...Array(3 ** 3).keys()];

@@ -8,7 +8,7 @@
 		"serve": "vue-cli-service serve",
 		"build": "vue-cli-service build",
 		"lint": "vue-cli-service lint",
-		"start": "node main.ts",
+		"start": "ts-node --project ./tsconfig.node.json main.ts",
 		"dev": "cross-env NODE_ENV=development ts-node-dev --project ./tsconfig.node.json main.ts",
 		"dev:inspect": "cross-env NODE_ENV=development ts-node-dev --project ./tsconfig.node.json --inspect main.ts",
 		"ts-dev": "cross-env NODE_OPTIONS='--max-old-space-size=4096' ts-node-dev --project ./tsconfig.node.json --",

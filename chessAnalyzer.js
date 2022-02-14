@@ -74,7 +74,11 @@ const mountAnalyzer = ({analyzerURL}) => {
 			listenMoveList(list);
 		}
 
-		const moves = [...document.querySelectorAll("vertical-move-list .node")].map(node => node.textContent);
+		const moves = [...document.querySelectorAll("vertical-move-list .node")].map(node => {
+			const icon = node.querySelector(".icon-font-chess");
+			const prefix = icon ? icon.dataset.figurine : "";
+			return prefix + node.textContent;
+		});
 		//console.assert(frame.contentWindow.$view, "null $view:", frame, frame && frame.contentWindow);
 		if (frame.contentWindow.$view)
 			frame.contentWindow.$view.setHistory(moves);

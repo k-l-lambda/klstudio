@@ -2,6 +2,11 @@
 TODO:
 
 
+*	2022.2.14
+
+	+	chessAnalyzer.js: fixed moves reading.
+
+
 *	2021.3.28
 
 	+	imgPicker/contentScripts.js: xsnvTraverse added.

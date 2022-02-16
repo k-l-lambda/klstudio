@@ -34,7 +34,7 @@
 
 
 		created () {
-			if (process.env.NODE_ENV === "development") {
+			if (process.env.NODE_ENV === "development" || process.env.VUE_APP_DORME) {
 				window.$main = this;
 
 				Object.defineProperty(window, "$view", {

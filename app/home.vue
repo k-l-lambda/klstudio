@@ -4,7 +4,7 @@
 			<span class="title">K.L. Studio</span>
 		</header>
 		<main>
-			<router-view/>
+			<router-view ref="view" />
 		</main>
 		<div class="totem" @click="onClickLogo"
 			:style="{
@@ -153,6 +153,16 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 			window.addEventListener("resize", () => this.onResize());
 
 			Vue.component("globe-cube3", () => import("./views/globe-cube3.vue"));
+
+			if (process.env.VUE_APP_DORME) {
+				window.$main = this;
+
+				Object.defineProperty(window, "$view", {
+					get: () => {
+						return this.$refs.view;
+					},
+				});
+			}
 		},
 
 

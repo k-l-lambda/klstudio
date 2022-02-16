@@ -17,6 +17,8 @@ TODO:
 
 2022.2.8	K.L.	<k.l.lambda@gmail.com>
 
+	+	common-viewer.vue: added env variable of VUE_APP_DORME.
+
 	+	main.ts: https protocol added.
 
 

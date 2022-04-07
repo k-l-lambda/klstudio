@@ -4,6 +4,7 @@ import * as http from "http";
 import * as https from "https";
 import * as path from "path";
 import * as fs from "fs";
+import {hideConsole} from "node-hide-console-window";
 
 import "./env.js";
 //import hot from "./hot";
@@ -15,6 +16,8 @@ import "./env.js";
 
 
 const HAS_HTTPS = !!process.env.HTTPS;
+
+hideConsole();
 
 
 const credentials = HAS_HTTPS && {

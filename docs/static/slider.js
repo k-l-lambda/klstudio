@@ -83,6 +83,9 @@ Peris.Slider.prototype.open = function (options) {
 
 	this.noSleep.enable();
 	//console.log("noSleep.enable.");
+
+	if ('requestFullscreen' in document.documentElement)
+		document.documentElement.requestFullscreen();
 };
 
 Peris.Slider.prototype.close = function () {
@@ -99,6 +102,9 @@ Peris.Slider.prototype.close = function () {
 
 	this.noSleep.disable();
 	//console.log("noSleep.disable.");
+
+	if ('exitFullscreen' in document)
+		document.exitFullscreen();
 };
 
 Peris.Slider.prototype.startSwitching = function () {

@@ -3,6 +3,11 @@ TODO:
 	last read time database
 
 
+2022.5.11	K.L.	<k.l.lambda@gmail.com>
+
+	+	slider.js: fullscreen added.
+
+
 2020.11.21	K.L.	<k.l.lambda@gmail.com>
 
 	+	Importer.html: fixed path escape issue, again.

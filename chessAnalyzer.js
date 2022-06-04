@@ -132,7 +132,7 @@ const listenPage = page => {
 
 	//page.setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36");
 
-	page.on("load", () => {
+	page.once("load", () => {
 		//console.log("page load:", page.url());
 
 		page.evaluate(mountAnalyzer, {analyzerURL: process.env.ANALYZER_URL});

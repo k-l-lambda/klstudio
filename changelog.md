@@ -2,6 +2,11 @@
 TODO:
 
 
+*	2022.6.4
+
+	+	imgPicker.js: refined page load event by domcontentloaded.
+
+
 *	2022.2.14
 
 	+	chessAnalyzer.js: fixed moves reading.

@@ -228,23 +228,38 @@ const xsnvTraverse = async (page, callbacks) => {
 };
 
 
+const fixCoDomain = page => page.on("request", request => {
+	const url = request.url();
+	if (/\.co\//.test(url)) {
+		request.continue({url: url.replace(/\.co\//, ".com/")});
+		console.log("request override:", url);
+	}
+});
+
+
 
 export default {
-	"xsnvshen\\.com\\/album\\/new\\/": (page, callbacks) => {
+	"xsnvshen\\.com\\/album\\/new\\/": async (page, callbacks) => {
 		console.log("xsnvshen.new content script loaded.");
 
 		page.evaluate(mountLog);
 
 		listenHzDownloads(page, callbacks);
+
+		await page.setRequestInterception(true);
+		fixCoDomain(page);
 	},
 
 
-	"xsnvshen\\.com\\/album\\/\\d+": (page, callbacks) => {
+	"xsnvshen\\.com\\/album\\/\\d+": async (page, callbacks) => {
 		console.log("xsnvshen.new album content script loaded.");
 
 		page.evaluate(mountLog);
 
 		xsnvTraverse(page, callbacks);
+
+		await page.setRequestInterception(true);
+		fixCoDomain(page);
 	},
 
 

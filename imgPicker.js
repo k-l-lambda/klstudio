@@ -75,8 +75,12 @@ const listenPage = page => {
 		}
 	});
 
-	page.on("load", () => {
+	/*page.once("load", () => {
 		console.debug("page load:", page.url());
+	})*/
+
+	page.once("domcontentloaded", () => {
+		console.debug("page loaded:", page.url());
 
 		for (const pattern in contentScripts) {
 			if (new RegExp(pattern).test(page.url())) {

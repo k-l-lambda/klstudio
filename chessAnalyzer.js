@@ -11,9 +11,15 @@ const mountAnalyzer = ({analyzerURL}) => {
 	const styleSheet = document.createElement("style")
 	styleSheet.type = "text/css"
 	styleSheet.innerText = `
+		html
+		{
+			overflow: hidden;
+		}
+
 		body
 		{
 			outline: 2px solid orange;
+			margin: 2px;
 		}
 
 		.analyzer-frame

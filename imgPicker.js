@@ -107,7 +107,8 @@ const main = async () => {
 		args: [
 			"--disable-web-security",
 			`--disable-extensions-except=${pathToExtension}`,
-			`--load-extension=${pathToExtension}`
+			`--load-extension=${pathToExtension}`,
+			"--disable-background-timer-throttling",
 		],
 	});
 	browser.on("targetcreated", async target => {

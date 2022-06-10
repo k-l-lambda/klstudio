@@ -234,6 +234,8 @@ const fixCoDomain = page => page.on("request", request => {
 		request.continue({url: url.replace(/\.co\//, ".com/")});
 		console.log("request override:", url);
 	}
+	else
+		request.continue();
 });
 
 
@@ -246,8 +248,8 @@ export default {
 
 		listenHzDownloads(page, callbacks);
 
-		await page.setRequestInterception(true);
-		fixCoDomain(page);
+		//await page.setRequestInterception(true);
+		//fixCoDomain(page);
 	},
 
 
@@ -258,8 +260,8 @@ export default {
 
 		xsnvTraverse(page, callbacks);
 
-		await page.setRequestInterception(true);
-		fixCoDomain(page);
+		//await page.setRequestInterception(true);
+		//fixCoDomain(page);
 	},
 
 

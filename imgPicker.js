@@ -79,7 +79,11 @@ const listenPage = page => {
 		console.debug("page load:", page.url());
 	})*/
 
-	page.once("domcontentloaded", () => {
+	Promise.race([
+		new Promise(resolve => page.once("domcontentloaded", resolve)),
+		new Promise(resolve => page.on("load", resolve)),
+		new Promise(resolve => setTimeout(resolve, 5e+3)),
+	]).then(() => {
 		console.debug("page loaded:", page.url());
 
 		for (const pattern in contentScripts) {

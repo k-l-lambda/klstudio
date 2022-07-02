@@ -2,6 +2,11 @@
 TODO:
 
 
+*	2022.7.2
+
+	+	imgPicker.js: refined page loading wait.
+
+
 *	2022.6.4
 
 	+	imgPicker.js: refined page load event by domcontentloaded.

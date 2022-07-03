@@ -178,4 +178,9 @@ const main = async () => {
 };
 
 
+process.on('uncaughtException', err => {
+	console.warn('Caught exception:', err);
+});
+
+
 main();

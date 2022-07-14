@@ -35,6 +35,10 @@ const mountLog = () => {
 		}
 	`;
 	document.head.appendChild(styleSheet);
+
+	const bigImg = document.querySelector("#bigImg");
+	bigImg.style.minHeight = "unset";
+	bigImg.style.maxWidth = "unset";
 };
 
 

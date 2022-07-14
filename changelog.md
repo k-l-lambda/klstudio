@@ -2,6 +2,11 @@
 TODO:
 
 
+*	2022.7.14
+
+	+	imgPicker.js: added bigImg style patch.
+
+
 *	2022.7.2
 
 	+	imgPicker.js: refined page loading wait.

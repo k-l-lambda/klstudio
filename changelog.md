@@ -2,6 +2,11 @@
 TODO:
 
 
+*	2022.8.5
+
+	+	chessAnalyzer.js: fixed icon-font reading bug.
+
+
 *	2022.7.14
 
 	+	imgPicker.js: added bigImg style patch.

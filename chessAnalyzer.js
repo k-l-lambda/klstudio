@@ -81,9 +81,10 @@ const mountAnalyzer = ({analyzerURL}) => {
 		}
 
 		const moves = [...document.querySelectorAll("vertical-move-list .node")].map(node => {
-			const icon = node.querySelector(".icon-font-chess");
-			const prefix = icon ? icon.dataset.figurine : "";
-			return prefix + node.textContent;
+			const icons = node.querySelectorAll(".icon-font-chess");
+			[...icons].forEach(icon => icon.dataset.figurine && (icon.textContent = icon.dataset.figurine));
+
+			return node.textContent;
 		});
 		//console.assert(frame.contentWindow.$view, "null $view:", frame, frame && frame.contentWindow);
 		if (frame.contentWindow.$view)

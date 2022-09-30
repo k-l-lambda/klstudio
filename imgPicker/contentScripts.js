@@ -252,9 +252,13 @@ const addDownloadLinks = async (page, imgSelector) => {
 			a.click();
 		};
 
+		document.querySelectorAll("a").forEach(a => a.onclick = e => e.stopPropagation());
+
 		const imgs = document.querySelectorAll(imgSelector);
 		imgs.forEach(img => {
-			img.onclick = () => {
+			img.onclick = e => {
+				e.stopPropagation();
+
 				const dir = location.pathname.split("/").filter(Boolean).pop();
 				const filename = dir + "_" + img.src.match(/\/([^\/]+)$/)[1];
 				fetch(img.src).then(res => res.blob()).then(blob => downloadURL(URL.createObjectURL(blob), filename));

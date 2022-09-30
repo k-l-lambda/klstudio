@@ -2,6 +2,11 @@
 TODO:
 
 
+*	2022.9.30
+
+	+	imgPicker/contentScripts.js: added addDownloadLinks.
+
+
 *	2022.8.5
 
 	+	chessAnalyzer.js: fixed icon-font reading bug.

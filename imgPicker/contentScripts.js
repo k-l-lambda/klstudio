@@ -243,6 +243,28 @@ const fixCoDomain = page => page.on("request", request => {
 });
 
 
+const addDownloadLinks = async (page, imgSelector) => {
+	await page.evaluate(imgSelector => {
+		const downloadURL = (url, filename) => {
+			const a = document.createElement("a");
+			a.setAttribute("download", filename);
+			a.href = url;
+			a.click();
+		};
+
+		const imgs = document.querySelectorAll(imgSelector);
+		imgs.forEach(img => {
+			img.onclick = () => {
+				const dir = location.pathname.split("/").filter(Boolean).pop();
+				const filename = dir + "_" + img.src.match(/\/([^\/]+)$/)[1];
+				fetch(img.src).then(res => res.blob()).then(blob => downloadURL(URL.createObjectURL(blob), filename));
+				//downloadURL(img.src, filename);
+			};
+		});
+	}, imgSelector);
+};
+
+
 
 export default {
 	"xsnvshen\\.com\\/album\\/new\\/": async (page, callbacks) => {
@@ -370,5 +392,10 @@ export default {
 	"yande\\.re": async (page, callbacks) => {
 		page.evaluate(mountLog);
 		listenHzDownloads(page, callbacks);
+	},
+
+
+	"netlify\\.app": async (page, callbacks) => {
+		addDownloadLinks(page, "#images img");
 	},
 };

@@ -6,7 +6,7 @@ import {EnginePlayer, EngineAnalyzer, WorkerAnalyzer, WorkerPlayer, RandomPlayer
 
 export const analyzers: {[key: string]: () => EngineAnalyzer} = {
 	Stockfish () {
-		return new WorkerAnalyzer(() => new Worker("chess/engines/stockfish.js"));
+		return new WorkerAnalyzer(() => new Worker("chess/engines/stockfish.js"), {multiPV: 24});
 	},
 };
 

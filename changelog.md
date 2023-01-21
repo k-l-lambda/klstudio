@@ -2,6 +2,11 @@
 TODO:
 
 
+*	2023.1.21
+
+	+	imgPicker/contentScripts.js: added handler for 248m.
+
+
 *	2022.9.30
 
 	+	imgPicker/contentScripts.js: added addDownloadLinks.

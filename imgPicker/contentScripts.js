@@ -269,6 +269,33 @@ const addDownloadLinks = async (page, imgSelector) => {
 };
 
 
+const handle248m = async (page, callbacks) => {
+	// wait for img loading
+	while (true) {
+		if (await page.evaluate(() => [...document.querySelectorAll("#content img")].length > 0))
+			break;
+		//console.log('handle248m page not ready.');
+		await msDelay(800);
+	}
+	//console.log('handle248m page ready.');
+
+	while (true) {
+		const url = await page.evaluate(() => new Promise(resolve => {
+			//console.debug('handle248m.');
+	
+			[...document.querySelectorAll("#content img")].forEach(img => {
+				img.onclick = () => resolve(img.src);
+			});
+		}));
+
+		//console.log("248m onclick:", url);
+		callbacks.pickImage(url).then(result => {
+			page.evaluate(showLog, result);
+		});
+	}
+};
+
+
 
 export default {
 	"xsnvshen\\.com\\/album\\/new\\/": async (page, callbacks) => {
@@ -401,5 +428,14 @@ export default {
 
 	"netlify\\.app": async (page, callbacks) => {
 		addDownloadLinks(page, "#images img");
+	},
+
+
+	"248m\\.cc": async (page, callbacks) => {
+		console.log("248m.cc album content script loaded.");
+
+		page.evaluate(mountLog);
+
+		handle248m(page, callbacks);
 	},
 };

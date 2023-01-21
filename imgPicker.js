@@ -18,10 +18,16 @@ const imageMIMETypes = [
 
 const urlToFilename = url => {
 	const segments = decodeURIComponent(url).split(",").pop().split("/");
-	const fileName = segments.slice(Math.max(1, segments.length - 2), segments.length)
-		.join("_").replace(/[?=<>&";()|*:\\]/g, "").split("").reverse().slice(0, 120).reverse().join("");
 
-	return fileName;
+	if (/248m\.cc/.test(url)) {
+		return segments.at(-1).replace(/\.jpg_[.\w]+/, '.jpg');
+	}
+	else {
+		const fileName = segments.slice(Math.max(1, segments.length - 2), segments.length)
+			.join("_").replace(/[?=<>&";()|*:\\]/g, "").split("").reverse().slice(0, 120).reverse().join("");
+
+		return fileName;
+	}
 };
 
 
@@ -69,7 +75,7 @@ const listenPage = page => {
 		const type = response.headers()["content-type"];
 		//const type = response.request().resourceType();
 		//console.log("response:", type);
-		if (imageMIMETypes.includes(type)) {
+		if (imageMIMETypes.includes(type) || url.endsWith(".jpg_gzip.aspx")) {
 			responseDict.set(url, response);
 			console.log("image cached:", url);
 		}

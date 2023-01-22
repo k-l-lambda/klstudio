@@ -435,7 +435,12 @@ export default {
 		console.log("248m.cc album content script loaded.");
 
 		page.evaluate(mountLog);
-
 		handle248m(page, callbacks);
+
+		page.on("load", () => {
+			//console.log("248 reload******************");
+			page.evaluate(mountLog);
+			handle248m(page, callbacks);
+		});
 	},
 };

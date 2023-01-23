@@ -1,7 +1,7 @@
 
 const mountLog = () => {
 	const log = document.createElement("div");
-	log.innerHTML = `<div id="xbrowser-logs"></div>`;
+	log.innerHTML = `<div id="xbrowser-logs">(ready)</div>`;
 
 	document.body.appendChild(log);
 

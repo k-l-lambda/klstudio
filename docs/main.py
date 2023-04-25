@@ -44,8 +44,11 @@ class DirectoryHandle:
 
 class UploadHandle:
 	def POST (self):
+		web.header('Access-Control-Allow-Origin', '*')
+		web.header('Access-Control-Allow-Credentials', 'true')
+
 		input = web.input(file={})
-		if not 'file' in input:
+		if not 'file' in input.file:
 			return Serializer.save({'result': 'no file field'})
 
 		filepath = os.path.join(config.data_root, input.file.filename)

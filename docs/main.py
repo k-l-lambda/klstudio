@@ -42,7 +42,27 @@ class DirectoryHandle:
 		return Serializer.save({'dirs': dirs, 'files': files})
 
 
+class UploadHandle:
+	def POST (self):
+		input = web.input(file={})
+		if not 'file' in input:
+			return Serializer.save({'result': 'no file field'})
+
+		filepath = os.path.join(config.data_root, input.file.filename)
+		if os.path.exists(filepath):
+			return Serializer.save({'result': 'path conflicted', 'filename': input.file.filename})
+
+		fout = open(filepath, 'wb')
+		fout.write(input.file.file.read())
+		fout.close()
+
+		logging.info('file uploaded: %s', filepath)
+
+		return Serializer.save({'result': 'ok', 'filename': input.file.filename})
+
+
 application = web.application((
 	'/',								'HomeHandle',
 	'/dir',								'DirectoryHandle',
+	'/upload',							'UploadHandle',
 	), globals()).wsgifunc()

@@ -48,12 +48,16 @@ class UploadHandle:
 		web.header('Access-Control-Allow-Credentials', 'true')
 
 		input = web.input(file={})
-		if not 'file' in input.file:
+		if not hasattr(input.file, 'file'):
 			return Serializer.save({'result': 'no file field'})
 
 		filepath = os.path.join(config.data_root, input.file.filename)
 		if os.path.exists(filepath):
 			return Serializer.save({'result': 'path conflicted', 'filename': input.file.filename})
+
+		dirname = os.path.dirname(filepath)
+		if not os.path.exists(dirname):
+			os.makedirs(dirname)
 
 		fout = open(filepath, 'wb')
 		fout.write(input.file.file.read())

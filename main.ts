@@ -1,6 +1,10 @@
 
 import * as express from "express";
 import * as http from "http";
+import * as https from "https";
+import * as path from "path";
+import * as fs from "fs";
+import {hideConsole} from "node-hide-console-window";
 
 import "./env.js";
 //import hot from "./hot";
@@ -8,7 +12,18 @@ import "./env.js";
 
 
 
-const development = process.env.NODE_ENV === "development";
+//const development = process.env.NODE_ENV === "development";
+
+
+const HAS_HTTPS = !!process.env.HTTPS;
+
+hideConsole();
+
+
+const credentials = HAS_HTTPS && {
+	key: fs.readFileSync(path.resolve("./certificates/key.pem"), "utf8"),
+	cert: fs.readFileSync(path.resolve("./certificates/cert.pem"), "utf8"),
+};
 
 
 /*const simpleTemplate = (script, { title = "", preDoc = "" } = {}) => `
@@ -50,8 +65,17 @@ else {
 
 
 const httpServer = http.createServer(app);
+const httpsServer = HAS_HTTPS && https.createServer(credentials, app);
 
 const port = Number(process.env.PORT);
-httpServer.listen(port, process.env.HOST, () => {
-	console.log("K.L. Studio server online:", `http://${process.env.HOST}:${port}`);
-});
+
+if (HAS_HTTPS) {
+	httpsServer.listen(port, process.env.HOST, () => {
+		console.log("K.L. Studio server online:", `https://${process.env.HOST}:${port}`);
+	});
+}
+else {
+	httpServer.listen(port, process.env.HOST, () => {
+		console.log("K.L. Studio server online:", `http://${process.env.HOST}:${port}`);
+	});
+}

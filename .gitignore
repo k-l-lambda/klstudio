@@ -13,3 +13,4 @@ docs/**/*.js.map
 docs/inner
 
 public/mlmodels/*
+/certificates/

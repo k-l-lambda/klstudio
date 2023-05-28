@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Art Styles - Artists</title>
+		<style>
+			html
+			{
+				font-family: sans-serif;
+			}
+
+			body
+			{
+				margin: 0;
+			}
+
+			tbody
+			{
+				background-repeat: no-repeat;
+				background-position: right top;
+				background-size: 800px;
+				border-collapse: collapse;
+			}
+
+			td
+			{
+				width: 80px;
+				height: 106.6666667px;
+				cursor: pointer;
+			}
+
+			td:hover
+			{
+				background-color: #faa4;
+			}
+
+			thead th
+			{
+				font-weight: normal;
+			}
+
+			tbody th
+			{
+				text-align: right;
+				padding: 0 .4em;
+				width: 9em;
+			}
+		</style>
+	</head>
+	<body>
+		<script>
+			const ARTISTS_LIST = ["akihiko_yoshida","alexis_ren","alphonse_mucha","anna_dittmann","annie_leibovitz","asher_brown_dur","atey_ghailan","ayami_kojima","bastien_lecouffe_deharme","beatrix_potter","bernie_wrightson","chiaroscuro","contre_jour","craig_mullins","daniel_f_gerhartz","darek_zabrocki","diego_gisbert_llorens","eddie_mendoza","gediminas_pranckevicius","gerald_brom","gil_elvgren","greg_rutkowski","hayao_miyazaki","ian_mcque","ilya_kuvshinov","irakli_nadar","ivan_shishkin","j_scott_campbell","james_gurney","james_jean","jean_baptiste_monge","jeremy_lipk","jesper_ejsing","jim_lee","johan_grenier","john_romita","jon_foster","jordan_grimmer","karol_bak","katsuya_terada","kentaro_miura","kim_jung_gi","krenz_cushart","laurie_greasley","lois_van_baarle","luis_royo","magali_villeneuve","makoto_shinkai","marc_adamus","marc_simonetti","marcus_larsson","michaeld","miho_hirano","miyazaki","moebius","naoto_hattori","nausicaa","nicholas_delort","nick_gindraux","nick_knight","noah_bradley","norman_rockwell","peter_mohrbacher","reas_gursky","renato_muccillo","rob_rey","roberto_ferri","romm_rgb","ross_tran","russ_mills","ryan_church","sakimichan","scott_campbell","sofie_snoeck","steve_argyle","thomas_kinkade","tom_bagshaw","tran_nguyen","tsutomu_nihei","vibrant_colours","victoria_justice","windswept","winslow_homer","y_jurgens","yoji_shinkawa"];
+
+			for (let i = 0; i < ARTISTS_LIST.length; i += 10) {
+				const table = document.createElement("table");
+				table.setAttribute("cellspacing", 0);
+				table.setAttribute("cellpadding", 0);
+
+				const tbody = document.createElement("tbody");
+				tbody.style.backgroundImage = `url(./thumb/artists-combine-${i}.webp)`;
+				table.appendChild(tbody);
+				const keys = ARTISTS_LIST.slice(i, i + 10);
+				keys.forEach(key => {
+					const tr = document.createElement("tr");
+					tr.dataset.key = key;
+
+					const name = key.replace(/_/g, " ").replace(/\S+/g, word => word[0].toUpperCase() + word.substring(1));
+					const th = document.createElement("th");
+					th.innerText = name;
+					tr.appendChild(th);
+
+					for (let ii = 0; ii < 10; ++ii)
+						tr.appendChild(document.createElement("td"));
+
+					tbody.appendChild(tr);
+				});
+
+				document.body.appendChild(table);
+			}
+		</script>
+		<script src="./table-links.js"></script>
+	</body>
+</html>

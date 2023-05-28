@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<title>Art Styles - Genres</title>
 		<style>
-			table
+			html
+			{
+				font-family: sans-serif;
+			}
+
+			tbody
 			{
 				background-image: url(./thumb/genre-800.jpg);
 				background-repeat: no-repeat;
@@ -12,11 +18,22 @@
 
 			td
 			{
-				width: 800px;
-				height: 104.6666667px;
+				width: 80px;
+				height: 106.6666667px;
+				cursor: pointer;
 			}
 
-			th
+			td:hover
+			{
+				background-color: #faa4;
+			}
+
+			thead th
+			{
+				font-weight: normal;
+			}
+
+			tbody th
 			{
 				text-align: right;
 				padding: 0 .4em;
@@ -24,33 +41,49 @@
 		</style>
 	</head>
 	<body>
-		<table>
+		<table cellspacing="0" cellpadding="0">
+			<thead>
+				<tr>
+					<th></th>
+					<th>girl portrait</th>
+					<th>man portrait</th>
+					<th>woman fullbody</th>
+					<th>robot</th>
+					<th>landscape</th>
+					<th>city</th>
+					<th>indoor</th>
+					<th>flowers</th>
+					<th>desserts</th>
+					<th>super civilization</th>
+				</tr>
+			</thead>
 			<tbody>
 				<tr data-key="vanilla">
 					<th>Vanilla</th>
-					<td></td>
+					<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
 				</tr>
 				<tr data-key="photo">
 					<th>Photorealism</th>
-					<td></td>
+					<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
 				</tr>
 				<tr data-key="classicism">
 					<th>Classicism</th>
-					<td></td>
+					<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
 				</tr>
 				<tr data-key="impression">
 					<th>Impressionism</th>
-					<td></td>
+					<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
 				</tr>
 				<tr data-key="surreal">
 					<th>Surrealism</th>
-					<td></td>
+					<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
 				</tr>
 				<tr data-key="future">
 					<th>Futurism</th>
-					<td></td>
+					<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
 				</tr>
 			</tbody>
 		</table>
+		<script src="./table-links.js"></script>
 	</body>
 </html>

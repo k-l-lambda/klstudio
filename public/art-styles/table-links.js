@@ -15,22 +15,22 @@
 		return new Promise(resolve => canvas.toBlob(resolve, "webp"));
 	};
 
+	const initBanner = key => new Promise(async resolve => {
+		const res = await fetch(`./full/${key}.webp`);
+		const blob = await res.blob();
+		const img = document.createElement("img");
+		img.onload = () => resolve(img);
+		img.src = URL.createObjectURL(blob);
+	});
+
 	const tables = document.querySelectorAll("table");
 	tables.forEach(table => {
 		const trs = table.querySelectorAll("tbody tr");
 		trs.forEach(tr => {
 			const key = tr.dataset.key;
-
 			tr.onmouseenter = () => {
-				if (!banners[key]) {
-					banners[key] = new Promise(async resolve => {
-						const res = await fetch(`./full/${key}.webp`);
-						const blob = await res.blob();
-						const img = document.createElement("img");
-						img.onload = () => resolve(img);
-						img.src = URL.createObjectURL(blob);
-					});
-				}
+				if (!banners[key])
+					banners[key] = initBanner(key);
 			};
 
 			const tds = tr.querySelectorAll("td");
@@ -38,6 +38,8 @@
 				const linkKey = `${key}_${i}`;
 				td.onclick = async () => {
 					if (!fullLinks[linkKey]) {
+						if (!banners[key])
+							banners[key] = initBanner(key);
 						await banners[key].then(async img => {
 							const blob = await cropImg(img, CELL_WIDTH * i, 0, CELL_WIDTH, CELL_HEIGHT);
 							fullLinks[linkKey] = URL.createObjectURL(blob);

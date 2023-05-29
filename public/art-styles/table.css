@@ -1,0 +1,45 @@
+
+html
+{
+	font-family: sans-serif;
+}
+
+body
+{
+	margin: 0;
+	overflow: auto;
+}
+
+tbody
+{
+	background-size: 800px;
+	background-repeat: no-repeat;
+	background-position: right top;
+	border-collapse: collapse;
+}
+
+td
+{
+	width: 80px;
+	min-width: 80px;
+	height: 106.6666667px;
+	cursor: pointer;
+}
+
+td:hover
+{
+	background-color: #faa4;
+}
+
+thead th
+{
+	font-weight: normal;
+}
+
+tbody th
+{
+	text-align: right;
+	padding: 0 .4em;
+	width: 9em;
+	min-width: 9em;
+}

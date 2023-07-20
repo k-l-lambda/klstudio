@@ -431,7 +431,7 @@ export default {
 	},
 
 
-	"248m\\.cc": async (page, callbacks) => {
+	"248m\\.cc|248w\\.co|248\\.one": async (page, callbacks) => {
 		console.log("248m.cc album content script loaded.");
 
 		page.evaluate(mountLog);

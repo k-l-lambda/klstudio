@@ -19,7 +19,7 @@ const imageMIMETypes = [
 const urlToFilename = url => {
 	const segments = decodeURIComponent(url).split(",").pop().split("/");
 
-	if (/248m\.cc/.test(url)) {
+	if (/248\w?\./.test(url)) {
 		return segments.at(-1).replace(/\.jpg_[.\w]+/, '.jpg');
 	}
 	else {

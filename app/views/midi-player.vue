@@ -158,6 +158,7 @@
 				this.source = encodeBuffer(buffer);
 
 				const midi = MIDI.parseMidiData(buffer);
+				console.log("midi:", midi);
 
 				this.player = new MidiPlayer(midi, {
 					onMidi: (data, timestamp) => this.onMidi(data, timestamp),

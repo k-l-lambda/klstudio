@@ -9,6 +9,7 @@ const main = async () => {
 		"HoverZoom",
 		"Proxy-SwitchySharp",
 		"Stylus",
+		"ScreenRecorder",
 	].map(dir => path.join(process.cwd(), "extensions/", dir)).join(",");
 
 	const browser = await puppeteer.launch({

@@ -69,7 +69,7 @@ const mountAnalyzer = ({analyzerURL}) => {
 	};
 
 	const syncGame = () => {
-		const list = document.querySelector("vertical-move-list");
+		const list = document.querySelector("vertical-move-list") || document.querySelector("wc-vertical-move-list");
 		if (!list) {
 			console.debug("No move list found, sync game cancelled.");
 			return;
@@ -80,7 +80,7 @@ const mountAnalyzer = ({analyzerURL}) => {
 			listenMoveList(list);
 		}
 
-		const moves = [...document.querySelectorAll("vertical-move-list .node")].map(node => {
+		const moves = [...list.querySelectorAll(".node")].map(node => {
 			const icons = node.querySelectorAll(".icon-font-chess");
 			[...icons].forEach(icon => icon.dataset.figurine && (icon.textContent = icon.dataset.figurine));
 
@@ -118,7 +118,7 @@ const mountAnalyzer = ({analyzerURL}) => {
 
 	const waitToListen = async () => {
 		while (!moveList) {
-			moveList = document.querySelector("vertical-move-list");
+			moveList = document.querySelector("vertical-move-list") || document.querySelector("wc-vertical-move-list");
 			if (moveList) {
 				listenMoveList(moveList);
 

@@ -2,6 +2,11 @@
 TODO:
 
 
+*	2023.10.3
+
+	+	koolearn.js created.
+
+
 *	2023.1.21
 
 	+	imgPicker/contentScripts.js: added handler for 248m.

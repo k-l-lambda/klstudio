@@ -34,6 +34,8 @@ const listenPage = async page => {
 					c && (console.log("close"), c.click());
 					const f = document.querySelector(".p-close-app i");
 					f && (console.log("fold"), f.click());
+					const p = document.querySelector("div[class^='playkoolearn']");
+					p && p.style.display == "block" && (console.log("play"), p.click());
 				}, 10e+3);
 			});
 		});

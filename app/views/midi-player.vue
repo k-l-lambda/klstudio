@@ -183,6 +183,7 @@
 						fr.onload = () => resolve(fr.result);
 						fr.readAsText(file);
 					});
+					this.name = file.name;
 					const midi = JSON.parse(text);
 					this.updatePlayer(midi);
 				}

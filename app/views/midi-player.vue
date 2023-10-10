@@ -158,6 +158,11 @@
 				this.source = encodeBuffer(buffer);
 
 				const midi = MIDI.parseMidiData(buffer);
+				this.updatePlayer(midi);
+			},
+
+
+			updatePlayer (midi) {
 				console.log("midi:", midi);
 
 				this.player = new MidiPlayer(midi, {
@@ -166,12 +171,21 @@
 			},
 
 
-			onDrop () {
+			async onDrop (event) {
 				this.dragHover = false;
 
 				const file = event.dataTransfer.files[0];
 				if (file && ["audio/midi", "audio/mid"].includes(file.type)) 
 					this.loadMidiFile(file);
+				else if (file && file.type === "application/json") {
+					const text = await new Promise(resolve => {
+						const fr = new FileReader();
+						fr.onload = () => resolve(fr.result);
+						fr.readAsText(file);
+					});
+					const midi = JSON.parse(text);
+					this.updatePlayer(midi);
+				}
 			},
 
 

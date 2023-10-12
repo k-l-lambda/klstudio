@@ -4,7 +4,7 @@ import * as http from "http";
 import * as https from "https";
 import * as path from "path";
 import * as fs from "fs";
-import {hideConsole} from "node-hide-console-window";
+//import {hideConsole} from "node-hide-console-window";
 
 import "./env.js";
 //import hot from "./hot";
@@ -17,13 +17,13 @@ import "./env.js";
 
 const HAS_HTTPS = !!process.env.HTTPS;
 
-hideConsole();
+//hideConsole();
 
 
-const credentials = HAS_HTTPS && {
+const credentials = HAS_HTTPS ? {
 	key: fs.readFileSync(path.resolve("./certificates/key.pem"), "utf8"),
 	cert: fs.readFileSync(path.resolve("./certificates/cert.pem"), "utf8"),
-};
+} : null;
 
 
 /*const simpleTemplate = (script, { title = "", preDoc = "" } = {}) => `
@@ -65,12 +65,12 @@ else {
 
 
 const httpServer = http.createServer(app);
-const httpsServer = HAS_HTTPS && https.createServer(credentials, app);
+const httpsServer = HAS_HTTPS ? https.createServer(credentials!, app) : null;
 
 const port = Number(process.env.PORT);
 
 if (HAS_HTTPS) {
-	httpsServer.listen(port, process.env.HOST, () => {
+	httpsServer!.listen(port, process.env.HOST, () => {
 		console.log("K.L. Studio server online:", `https://${process.env.HOST}:${port}`);
 	});
 }

@@ -6,7 +6,6 @@
 			'drag-hover': drageHover,
 			'full-mode': fullMode,
 		}"
-		@mouseenter="onResize"
 		v-resize="onResize"
 		:style="{
 			'--aside-width': `${asideWidth}px`,

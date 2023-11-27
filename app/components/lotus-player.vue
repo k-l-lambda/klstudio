@@ -25,6 +25,8 @@
 	import * as lotus from "@k-l-lambda/lotus";
 	import {MidiAudio} from "@k-l-lambda/music-widgets";
 
+	import {animationDelay} from "../delay";
+
 
 
 	export default {
@@ -56,6 +58,13 @@
 				svgHashTable: null,
 				scheduler: null,
 			};
+		},
+
+
+		computed: {
+			isPlaying () {
+				return this.midiPlayer && this.midiPlayer.isPlaying;
+			},
 		},
 
 
@@ -140,6 +149,11 @@
 
 		watch: {
 			source: "loadSheet",
+
+
+			isPlaying (value) {
+				this.$emit("update:isPlaying", value);
+			},
 		},
 	};
 </script>

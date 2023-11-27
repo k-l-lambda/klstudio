@@ -36,6 +36,7 @@
 	"devDependencies": {
 		"@chrisoakman/chessboardjs": "^1.0.0",
 		"@k-l-lambda/web-widgets": "^0.3.27",
+		"@k-l-lambda/lotus": "^0.8.37",
 		"@tensorflow/tfjs": "^1.2.6",
 		"@types/events": "^3.0.0",
 		"@typescript-eslint/eslint-plugin": "^2.24.0",

@@ -160,7 +160,7 @@
 <script>
 	import resize from "vue-resize-directive";
 
-	import {MidiAudio, MidiPlayer, MIDI} from "@k-l-lambda/web-widgets";
+	import {MidiAudio, MidiPlayer, MIDI} from "@k-l-lambda/music-widgets";
 	import "../utils.js";
 
 	import MidiDevices from "../components/midi-devices.vue";

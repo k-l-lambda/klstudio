@@ -5,6 +5,7 @@
 			:showCursor="showCursor"
 			:enablePointer="showCursor"
 			:noteHighlight="showCursor"
+			:bakingSheet="baking"
 		/>
 	</div>
 </template>
@@ -34,7 +35,8 @@
 		data () {
 			return {
 				score: null,
-				showCursor: true,
+				showCursor: false,
+				baking: false,
 			};
 		},
 
@@ -61,10 +63,12 @@
 				const hashurl = url.parse(hash, true);
 				//console.log("hashurl:", hashurl);
 
+				this.showCursor = !!hashurl.query.showCursor;
+				this.baking = !!hashurl.query.baking;
+
 				const source = hashurl.pathname;
 				const res = await fetch(source);
 				this.score = await res.text();
-				console.log("score:", this.score);
 			},
 
 

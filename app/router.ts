@@ -156,6 +156,11 @@ export const routes = [
 		name: "MIDI Player",
 		component: () => import(/* webpackChunkName: "midi-player", */ "./views/midi-player.vue"),
 	},
+	{
+		path: "/lotus",
+		name: "Lotus Player",
+		component: () => import(/* webpackChunkName: "lotus", */ "./views/lotus.vue"),
+	},
 ];
 
 

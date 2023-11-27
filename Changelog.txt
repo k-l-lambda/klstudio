@@ -15,6 +15,11 @@ TODO:
 
 
 
+2023.11.27	K.L.	<k.l.lambda@gmail.com>
+
+	+	App entry of lotus created.
+
+
 2023.10.10	K.L.	<k.l.lambda@gmail.com>
 
 	+	midi-player.vue: json file dropping added.

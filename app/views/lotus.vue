@@ -97,7 +97,7 @@
 				await this.$nextTick();
 				const cursor = this.$refs.player.$el.querySelector(".cursor");
 				if (cursor)
-					cursor.parentElement.scrollIntoView({behavior: "smooth", block: systemIndex ? "start" : "end"});
+					cursor.parentElement.scrollIntoView({behavior: "smooth", block: systemIndex ? "center" : "end"});
 			},
 
 

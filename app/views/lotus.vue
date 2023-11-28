@@ -1,13 +1,16 @@
 <template>
 	<div v-resize="onResize" class="lotus">
-		<LotusPlayer ref="player"
-			:source="score"
-			:showCursor="showCursor"
-			:enablePointer="true"
-			:noteHighlight="true"
-			:bakingSheet="baking"
-			:isPlaying.sync="isPlaying"
-		/>
+		<main>
+			<LotusPlayer ref="player"
+				:source="score"
+				:showCursor="showCursor"
+				:enablePointer="true"
+				:noteHighlight="true"
+				:bakingSheet="baking"
+				:isPlaying.sync="isPlaying"
+				@cursorSystemShift="onSystemShift"
+			/>
+		</main>
 		<div class="controls" v-show="controls">
 			<button @click="resetCursor">&#x23EE;</button>
 			<button @click="togglePlayer">{{isPlaying ? "&#x23f8;" : "&#x23f5;"}}</button>
@@ -90,6 +93,13 @@
 			},
 
 
+			onSystemShift () {
+				const cursor = this.$refs.player.$el.querySelector(".cursor");
+				if (cursor)
+					cursor.scrollIntoView({behavior: "smooth"});
+			},
+
+
 			getRouterPath () {
 				const [path] = location.hash.match(/^#\/[^#]*/) || [];
 
@@ -118,6 +128,13 @@
 	{
 		width: 100%;
 		height: 100%;
+
+		main
+		{
+			width: 100%;
+			height: 100%;
+			overflow: auto;
+		}
 
 		.controls
 		{

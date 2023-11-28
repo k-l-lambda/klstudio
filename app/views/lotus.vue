@@ -93,10 +93,10 @@
 			},
 
 
-			onSystemShift () {
+			onSystemShift (systemIndex) {
 				const cursor = this.$refs.player.$el.querySelector(".cursor");
 				if (cursor)
-					cursor.scrollIntoView({behavior: "smooth"});
+					cursor.scrollIntoView({behavior: "smooth", block: systemIndex ? "start" : "end"});
 			},
 
 

@@ -16,8 +16,8 @@
 			:watermark="null"
 			@midi="onMidi"
 			@pointerClick="onPointerClick"
-			@cursorPageShift="$emit('cursorPageShift')"
-			@cursorSystemShift="$emit('cursorSystemShift')"
+			@cursorPageShift="$emit('cursorPageShift', $event)"
+			@cursorSystemShift="$emit('cursorSystemShift', $event)"
 		/>
 		<canvas v-show="false" ref="canvas" />
 	</div>

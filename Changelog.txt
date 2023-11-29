@@ -15,6 +15,11 @@ TODO:
 
 
 
+2023.11.28	K.L.	<k.l.lambda@gmail.com>
+
+	+	lotus.vue: auto scrolling added.
+
+
 2023.11.27	K.L.	<k.l.lambda@gmail.com>
 
 	+	App entry of lotus created.

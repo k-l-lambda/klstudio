@@ -16,6 +16,8 @@
 			:watermark="null"
 			@midi="onMidi"
 			@pointerClick="onPointerClick"
+			@cursorPageShift="$emit('cursorPageShift', $event)"
+			@cursorSystemShift="$emit('cursorSystemShift', $event)"
 		/>
 		<canvas v-show="false" ref="canvas" />
 	</div>
@@ -24,6 +26,8 @@
 <script>
 	import * as lotus from "@k-l-lambda/lotus";
 	import {MidiAudio} from "@k-l-lambda/music-widgets";
+
+	import {animationDelay} from "../delay";
 
 
 
@@ -56,6 +60,13 @@
 				svgHashTable: null,
 				scheduler: null,
 			};
+		},
+
+
+		computed: {
+			isPlaying () {
+				return this.midiPlayer && this.midiPlayer.isPlaying;
+			},
 		},
 
 
@@ -140,6 +151,11 @@
 
 		watch: {
 			source: "loadSheet",
+
+
+			isPlaying (value) {
+				this.$emit("update:isPlaying", value);
+			},
 		},
 	};
 </script>

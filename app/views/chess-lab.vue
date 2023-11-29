@@ -12,6 +12,7 @@
 			'--checker-size': `${checkerSize}px`,
 			'--board-size': `${checkerSize * 8 + 4}px`,
 		}"
+		@mouseenter="onResizeLazy"
 		@dragover.prevent="drageHover = true"
 		@dragleave="drageHover = false"
 		@drop.prevent="onDropFiles"
@@ -732,6 +733,11 @@
 
 				if (this.$refs.winrate)
 					this.winrateChartHeight = this.$refs.winrate.clientHeight;
+			},
+
+
+			onResizeLazy () {
+				debounce(this.onResize.bind(this), 1e+3)();
 			},
 
 
@@ -1783,6 +1789,8 @@
 				height: 100%;
 				width: 100%;
 				background-color: #fff1;
+				min-width: 100px;
+				min-height: 100px;
 			}
 
 			#prediction-board

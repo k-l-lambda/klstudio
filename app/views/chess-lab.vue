@@ -221,7 +221,7 @@
 	import sha1 from "sha1";
 	import {debounce} from "lodash";
 	import color from "color";
-	import Vue from "vue";
+    import {reactive} from "vue";
 	import url from "url";
 	import * as YAML from "yaml";
 
@@ -1221,10 +1221,10 @@
 				if (!oldRate || best.depth >= oldRate.depth) {
 					const rate = winrateFromAnalyzationBest(best, stepIndex % 2 ? "b" : "w");
 
-					Vue.set(this.winRateDict, fen, {
-						depth: best.depth,
-						rate,
-					});
+                    this.$set ? this.$set(this.winRateDict, fen, {
+                        depth: best.depth,
+                        rate,
+                    }) : (this.winRateDict[fen] = {depth: best.depth, rate});
 				}
 			},
 
@@ -1542,9 +1542,9 @@
 
 
 			currentHistoryIndex (value, oldValue) {
-				Vue.set(this.winrateChartData.markLine.data, "0", {
-					xAxis: value + 1,
-				});
+                this.$set ? this.$set(this.winrateChartData.markLine.data, "0", {
+                    xAxis: value + 1,
+                }) : (this.winrateChartData.markLine.data["0"] = {xAxis: value + 1});
 
 				if (value > oldValue && this.currentMove) {
 					if (/x/.test(this.currentMove))

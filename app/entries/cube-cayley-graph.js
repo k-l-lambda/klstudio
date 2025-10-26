@@ -1,14 +1,13 @@
 
-import Vue from "vue";
+import {createApp} from "vue";
 
 import App from "../cube-cayley-graph.vue";
 import Wrapper from "../app-wrapper.vue";
 
 
 
-Vue.component("Content", App);
+const app = createApp(Wrapper);
+app.component("Content", App);
 
 
-new Vue({
-	render: h => h(Wrapper),
-}).$mount("body");
+app.mount("body");

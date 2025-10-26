@@ -22,7 +22,7 @@
 					:class="{focus: app.focus}"
 					@click="onClickApp(app)"
 				>
-					<router-link class="cover" :to="app.focus ? '/' : app.path" @click.native.stop="">
+                    <router-link class="cover" :to="app.focus ? '/' : app.path" @click.stop="">
 						<img :src="app.coverURL" />
 					</router-link>
 					<div class="description">
@@ -43,7 +43,7 @@
 </template>
 
 <script>
-	import Vue from "vue";
+    import {defineAsyncComponent, getCurrentInstance} from "vue";
 
 	import {animationDelay} from "./delay";
 
@@ -145,25 +145,24 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 			if (process.env.NODE_ENV === "development")
 				window.$main = this;
 
-			apps.forEach(async app => {
-				const {default: url} = await import(`./assets/app-covers/${app.cover}`);
-				app.coverURL = url;
-			});
+            apps.forEach(async app => {
+                const {default: url} = await import(`./assets/app-covers/${app.cover}`);
+                app.coverURL = url;
+            });
 
-			window.addEventListener("resize", () => this.onResize());
+            window.addEventListener("resize", () => this.onResize());
 
-			Vue.component("globe-cube3", () => import("./views/globe-cube3.vue"));
+            this.$options.components = this.$options.components || {};
+            this.$options.components["globe-cube3"] = defineAsyncComponent(() => import("./views/globe-cube3.vue"));
 
 			if (process.env.VUE_APP_DORME) {
 				window.$main = this;
 
 				Object.defineProperty(window, "$view", {
-					get: () => {
-						return this.$refs.view;
-					},
-				});
-			}
-		},
+                    get: () => this.$refs.view,
+                });
+            }
+        },
 
 
 		mounted () {

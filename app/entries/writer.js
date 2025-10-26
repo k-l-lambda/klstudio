@@ -1,10 +1,8 @@
 
-import Vue from "vue";
+import {createApp} from "vue";
 
 import App from "../writer.vue";
 
 
 
-new Vue({
-	render: h => h(App),
-}).$mount("body");
+createApp(App).mount("body");

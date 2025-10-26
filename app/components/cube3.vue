@@ -102,9 +102,9 @@
 		},
 
 
-		beforeDestroy () {
-			this.rendererActive = false;
-		},
+        beforeUnmount () {
+            this.rendererActive = false;
+        },
 
 
 		methods: {

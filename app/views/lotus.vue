@@ -22,7 +22,7 @@
 <script>
 	import url from "url";
 	import resize from "vue-resize-directive";
-	import {MidiAudio} from "@k-l-lambda/web-widgets";
+	import {MidiAudio} from "@k-l-lambda/music-widgets";
 
 	import LotusPlayer from "../components/lotus-player.vue";
 	import CheckButton from "../components/check-button.vue";

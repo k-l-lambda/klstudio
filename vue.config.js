@@ -14,6 +14,10 @@ module.exports = {
 			alias: {
 				vue: "@vue/compat",
 				"vue-resize-directive": path.resolve(__dirname, "app/compat/vue-resize-directive.js"),
+				"@k-l-lambda/lotus$": path.resolve(__dirname, "node_modules/@k-l-lambda/lotus/index.browser.ts"),
+			},
+			fallback: {
+				url: require.resolve("url/"),
 			},
 		},
 	},

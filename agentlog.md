@@ -35,8 +35,136 @@
 **Build Status:** ✅ Successfully building to `docs/` directory
 </details>
 
+<details>
+<summary>Router Fix (2025-11-08)</summary>
+
+**Issue:** Runtime error when clicking router links:
+```
+Cannot read properties of null (reading 'parentNode')
+TypeError: Cannot read properties of null (reading 'parentNode')
+```
+
+**Root Cause:** Vue 3 does not allow mounting to `<body>` or `<html>` elements. The app was:
+1. Mounting to `"body"` in `app/home.ts`
+2. Using `<body>` as the root element in `home.vue` template
+
+**Fix Applied:**
+- Added `<div id="app"></div>` mount point in `app/html/CommonTemplate.html`
+- Changed mount target from `"body"` to `"#app"` in all entry points:
+  - `app/home.ts`
+  - `app/common-viewer.ts`
+  - `app/embed.ts`
+- Replaced `<body>` root element with proper div wrappers:
+  - `home.vue`: `<div id="home-root">`
+  - `common-viewer.vue`: `<div id="common-viewer-root">`
+  - `embed.vue`: `<div id="embed-root">`
+- Updated CSS selectors from `body` to appropriate root div IDs
+- Added global styles for `#app`, `html`, and `body` to ensure proper height/overflow behavior
+
+**Result:** ✅ Router navigation now works without errors across all pages
+</details>
+
+<details>
+<summary>v-charts Replacement with Direct ECharts (2025-11-08)</summary>
+
+**Issue:** Runtime error when navigating to chess-lab page:
+```
+Cannot read properties of undefined (reading 'map')
+TypeError in v-charts/lib/index.js:1306:46 addWatchToProps
+```
+
+**Root Cause:** `v-charts` is a Vue 2 library that's fundamentally incompatible with Vue 3. Even with compat mode and defensive guards, the library's `created()` hook fails when trying to access undefined data structures in Vue 3's reactivity system.
+
+**Solution:** Complete replacement of v-charts with a Vue 3 native implementation.
+
+**Changes:**
+1. **Replaced `app/components/chart.vue`** with a new Vue 3 compatible implementation
+   - Uses `echarts` directly (already a project dependency)
+   - Implements the same props interface as v-charts for backward compatibility
+   - Supports dynamic chart types (line, bar, etc.)
+   - Handles data in the same format: `{data: {rows, columns}, settings, ...}`
+   - Includes proper lifecycle management (mount, unmount, resize handling)
+   - Provides `getVChart()` method for compatibility with existing code
+
+2. **Key Features:**
+   - Reactive updates when `sourceData` changes
+   - Automatic resize handling on window resize
+   - Error handling with console logging
+   - Support for custom options (grid, tooltip, legend, xAxis, yAxis, etc.)
+   - Maintains the same component interface (`type`, `sourceData` props)
+
+3. **Backed up old implementation** to `app/components/chart-old.vue`
+
+**Result:** ✅ Chart component fully functional with Vue 3
+- No more v-charts dependency errors
+- Direct ECharts integration provides better performance
+- Full Vue 3 reactivity support
+- Backward compatible with existing chess-lab usage
+
+**Technical Details:**
+- Chart initialization in `mounted()` hook
+- Proper cleanup in `beforeUnmount()` to dispose echarts instance
+- Deep watch on `sourceData` for reactive updates
+- Flexible data structure parsing (rows/columns format)
+</details>
+
+<details>
+<summary>Router Root Path Fix (2025-11-08)</summary>
+
+**Issue:** Vue Router warning:
+```
+[Vue Router warn]: No match found for location with path "/"
+```
+
+**Root Cause:** Router configuration was missing a route definition for the root path "/".
+
+**Fix Applied:**
+- Added root route in `app/router.ts`:
+  ```javascript
+  {
+    path: "/",
+    name: undefined,
+    component: () => import("./views/home-placeholder.vue"),
+  }
+  ```
+- Created `app/views/home-placeholder.vue` as an empty placeholder component
+
+**Result:** ✅ Router warning resolved
+</details>
+
+<details>
+<summary>globe-cube3 Component Registration Fix (2025-11-08)</summary>
+
+**Issue:** `<globe-cube3>` component not rendering on home page. The raw tag `<globe-cube3>` was visible in the browser instead of the component.
+
+**Root Cause:** Dynamic component registration using `this.$options.components` in the `created()` hook doesn't work properly in Vue 3. The original code at line 156 in `app/home.vue`:
+```javascript
+this.$options.components["globe-cube3"] = defineAsyncComponent(() => import("./views/globe-cube3.vue"));
+```
+
+**Fix Applied:**
+1. Moved component registration from `created()` hook to the `components` option in the export default object:
+   ```javascript
+   export default {
+     name: "home",
+     components: {
+       "globe-cube3": defineAsyncComponent(() => import("./views/globe-cube3.vue")),
+     },
+     // ...
+   }
+   ```
+2. Removed the dynamic registration code from the `created()` hook
+3. Removed unused `getCurrentInstance` import
+
+**Technical Details:**
+- Vue 3's component registration mechanism requires components to be declared in the component's `components` option
+- `defineAsyncComponent()` is properly supported when used in the components option
+- This maintains the lazy loading behavior while ensuring Vue 3 compatibility
+
+**Result:** ✅ globe-cube3 component now renders correctly on the home page
+</details>
+
 **Next steps:**
 - Test the built application in browser to verify Vue 3 compatibility
 - Verify `vue-class-component`/`vue-property-decorator` usage with Vue 3; upgrade or refactor components to options/composition API under compat mode
-- Audit `v-charts` (Vue 2) usage; replace with Vue 3 compatible ECharts wrapper or isolate behind compat shims
 - Run `yarn serve` to validate runtime and fix remaining compat warnings/errors

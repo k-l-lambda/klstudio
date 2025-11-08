@@ -1,5 +1,5 @@
 <template>
-	<body :class="{root: atRoot, docking: !atRoot && !devoting, devoting}">
+	<div id="home-root" :class="{root: atRoot, docking: !atRoot && !devoting, devoting}">
 		<header>
 			<span class="title">K.L. Studio</span>
 		</header>
@@ -39,11 +39,11 @@
 			<div class="fold" v-show="!atRoot" @click="devoting = true"></div>
 		</aside>
 		<router-link id="logo" to="/"></router-link>
-	</body>
+	</div>
 </template>
 
 <script>
-    import {defineAsyncComponent, getCurrentInstance} from "vue";
+    import {defineAsyncComponent} from "vue";
 
 	import {animationDelay} from "./delay";
 
@@ -118,6 +118,9 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 	export default {
 		name: "home",
 
+		components: {
+			"globe-cube3": defineAsyncComponent(() => import("./views/globe-cube3.vue")),
+		},
 
 		data () {
 			return {
@@ -151,9 +154,6 @@ This is a music visualization program based on the <em><a href="https://en.wikip
             });
 
             window.addEventListener("resize", () => this.onResize());
-
-            this.$options.components = this.$options.components || {};
-            this.$options.components["globe-cube3"] = defineAsyncComponent(() => import("./views/globe-cube3.vue"));
 
 			if (process.env.VUE_APP_DORME) {
 				window.$main = this;
@@ -214,10 +214,19 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 </script>
 
 <style lang="scss">
-	html
+	html, body
 	{
+		margin: 0;
+		padding: 0;
+		height: 100vh;
 		overflow: hidden;
 		font-family: Verdana, Arial, Helvetica, sans-serif;
+	}
+
+	#app
+	{
+		height: 100%;
+		overflow: hidden;
 	}
 
 	aside .description em a
@@ -243,10 +252,12 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 	$narrowTotemHeight: 80vw;
 
 
-	body
+	#home-root
 	{
 		margin: 0;
 		overflow: hidden;
+		height: 100%;
+		position: relative;
 	}
 
 	#logo

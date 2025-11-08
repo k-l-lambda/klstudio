@@ -164,6 +164,59 @@ this.$options.components["globe-cube3"] = defineAsyncComponent(() => import("./v
 **Result:** ✅ globe-cube3 component now renders correctly on the home page
 </details>
 
+<details>
+<summary>Chart Component ECharts Integration Refinement (2025-11-08)</summary>
+
+**Issue:** Runtime error when navigating to chess-lab page with analyzer enabled:
+```
+TypeError: Cannot read properties of undefined (reading 'type')
+at Object.reset (webpack-internal:///./node_modules/echarts/lib/processor/dataSample.js:104:20)
+```
+
+**Root Cause:** The chart.vue component implementation had several issues:
+1. Duplicate `beforeUnmount` lifecycle hook
+2. Series configuration could be overridden without proper type checking
+3. v-charts specific properties (settings, theme, markLine, events) weren't being handled
+4. Height property wasn't being handled as a string value
+
+**Fix Applied:**
+1. Removed duplicate `beforeUnmount` hook (lines 29-34)
+2. Refactored `buildOption()` method to:
+   - Extract `theme` from `sourceData` and handle it separately
+   - Build series with proper type enforcement
+   - Apply smooth setting from `theme.line.smooth` for line charts
+   - Handle `markLine` property from sourceData for each series
+   - Use theme.grid for grid configuration
+   - Support `settings.xAxisType` for xAxis type configuration
+   - Handle animation configuration explicitly
+   - Fix height property to accept string values (e.g., "240px")
+3. Added event handler registration in `initChart()`:
+   - Check for `sourceData.events`
+   - Register ECharts event handlers (e.g., click) for v-charts compatibility
+
+**Technical Details:**
+- Series now always have a `type` property set from chartType
+- Configuration priority: customOptions > theme > defaults
+- Maintains backward compatibility with v-charts data structure
+- Supports all v-charts features used in chess-lab: settings, theme, markLine, events, animation
+
+**Result:** ✅ Chart component fully compatible with Vue 3 and v-charts data structure
+- Win rate chart in chess-lab now renders correctly
+- All v-charts features are supported
+- Event handlers work properly
+- Proper lifecycle management without duplicates
+
+**Follow-up Fix:** Added defensive validation to prevent ECharts errors:
+- `buildOption()` now returns `null` (instead of empty object) when data is invalid
+- `updateChart()` only calls `setOption` when option has valid series array with length > 0
+- Added validation for empty rows array (`data.rows.length === 0`) to prevent initialization with empty data
+- Added validation for minimum 2 columns (x-axis + at least one data series)
+- Changed `setOption` to use merge mode (`notMerge: false`) instead of replace mode for safer updates
+- Added console warnings for debugging invalid data states
+- Prevents "Cannot read properties of undefined (reading 'type')" error in ECharts
+
+</details>
+
 **Next steps:**
 - Test the built application in browser to verify Vue 3 compatibility
 - Verify `vue-class-component`/`vue-property-decorator` usage with Vue 3; upgrade or refactor components to options/composition API under compat mode

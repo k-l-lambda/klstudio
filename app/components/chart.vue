@@ -26,19 +26,19 @@
 			this.initChart();
 		},
 
-		beforeUnmount () {
-			if (this.chartInstance) {
-				this.chartInstance.dispose();
-				this.chartInstance = null;
-			}
-		},
-
 		methods: {
 			initChart () {
 				if (!this.$refs.chartContainer) return;
 
 				this.chartInstance = echarts.init(this.$refs.chartContainer);
 				this.updateChart();
+
+				// Register events if provided
+				if (this.sourceData.events) {
+					Object.keys(this.sourceData.events).forEach(eventName => {
+						this.chartInstance.on(eventName, this.sourceData.events[eventName]);
+					});
+				}
 
 				// Handle window resize
 				window.addEventListener("resize", this.handleResize);
@@ -55,7 +55,11 @@
 
 				try {
 					const option = this.buildOption();
-					this.chartInstance.setOption(option, true);
+					// Only update if we have a valid option with series
+					if (option && option.series && option.series.length > 0) {
+						// Use notMerge: false (merge mode) to avoid breaking ECharts internal state
+						this.chartInstance.setOption(option, false);
+					}
 				}
 				catch (error) {
 					console.error("Chart update error:", error);
@@ -63,10 +67,11 @@
 			},
 
 			buildOption () {
-				const {data, settings = {}, type, ...customOptions} = this.sourceData;
+				const {data, settings = {}, type, theme = {}, ...customOptions} = this.sourceData;
 
-				if (!data || !data.rows || !data.columns) {
-					return {};
+				if (!data || !data.rows || !data.columns || data.columns.length < 2 || data.rows.length === 0) {
+					console.warn("Chart: Invalid or empty data", data);
+					return null;
 				}
 
 				const chartType = (type || this.type || "line").toLowerCase();
@@ -80,31 +85,58 @@
 
 				// Each subsequent column is a series
 				for (let i = 1; i < columns.length; i++) {
-					series.push({
+					const seriesData = {
 						name: columns[i],
-						type: chartType,
+						type: chartType,  // Always ensure type is set
 						data: rows.map(row => row[i]),
-						smooth: chartType === "line",
-					});
+					};
+
+					// Apply smooth setting from theme if available
+					if (chartType === "line") {
+						seriesData.smooth = theme.line?.smooth !== undefined ? theme.line.smooth : true;
+					}
+
+					// Apply markLine if present
+					if (this.sourceData.markLine) {
+						seriesData.markLine = this.sourceData.markLine;
+					}
+
+					series.push(seriesData);
 				}
 
+				// Ensure we have at least one series
+				if (series.length === 0) {
+					console.warn("Chart: No series data to display");
+					return null;
+				}
+
+				// Build grid from theme or customOptions
+				const grid = customOptions.grid || theme.grid || {
+					left: "3%",
+					right: "4%",
+					bottom: "3%",
+					containLabel: true,
+				};
+
+				// Build xAxis configuration
+				const xAxisConfig = customOptions.xAxis || {
+					type: settings.xAxisType || "category",
+					data: xAxisData,
+					boundaryGap: chartType !== "line",
+				};
+
+				// Build yAxis configuration
+				const yAxisConfig = customOptions.yAxis || {
+					type: "value",
+				};
+
+				// Build the option object
 				const option = {
-					grid: customOptions.grid || {
-						left: "3%",
-						right: "4%",
-						bottom: "3%",
-						containLabel: true,
-					},
-					xAxis: customOptions.xAxis || {
-						type: "category",
-						data: xAxisData,
-						boundaryGap: chartType !== "line",
-					},
-					yAxis: customOptions.yAxis || {
-						type: "value",
-					},
-					series: customOptions.series || series,
-					tooltip: customOptions.tooltip || {
+					grid,
+					xAxis: xAxisConfig,
+					yAxis: yAxisConfig,
+					series,
+					tooltip: customOptions.tooltip !== undefined ? customOptions.tooltip : {
 						trigger: "axis",
 						axisPointer: {
 							type: chartType === "line" ? "line" : "shadow",
@@ -114,7 +146,7 @@
 						data: columns.slice(1),
 						...customOptions.legend,
 					} : undefined,
-					...customOptions,
+					animation: customOptions.animation !== undefined ? customOptions.animation : true,
 				};
 
 				// Apply width and height if specified
@@ -122,7 +154,7 @@
 					this.$refs.chartContainer.style.width = `${this.sourceData.width}px`;
 				}
 				if (this.sourceData.height) {
-					this.$refs.chartContainer.style.height = `${this.sourceData.height}px`;
+					this.$refs.chartContainer.style.height = this.sourceData.height;
 				}
 
 				return option;

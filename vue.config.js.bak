@@ -51,18 +51,16 @@ module.exports = {
 		config.plugins.delete("fork-ts-checker");
 		config.plugins.delete("progress");
 
-		// binary file loader
+		// binary file loader - use webpack 5 asset modules
 		config.module
 			.rule("raw-binary")
 			.test(/\.(dat|gltf)$/)
-			.use("url-loader")
-			.loader("url-loader");
+			.type("asset/resource");
 
 		config.module
 			.rule("text-url")
 			.test(/\.(yaml)$/)
-			.use("url-loader")
-			.loader("url-loader");
+			.type("asset/resource");
 
 		// ignore third-party packed js
 		config.module

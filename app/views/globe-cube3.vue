@@ -120,7 +120,7 @@
 				this.cubeMaterial.normalMap = await this.loadTexture("earth/earth_normal.jpg");
 				this.cubeMaterial.needsUpdate = true;
 
-				const skyTexturePaths = (await Promise.all(cubeTextureNames.map(name => import(`../assets/skybox-space/${name}.jpg`)))).map(({default: path}) => path);
+				const skyTexturePaths = cubeTextureNames.map(name => new URL(`../assets/skybox-space/${name}.jpg`, import.meta.url).href);
 				const skyTexture = new THREE.CubeTextureLoader().load(skyTexturePaths);
 				this.cubeMaterial.envMap = skyTexture;
 				this.cubeMaterial.needsUpdate = true;
@@ -143,7 +143,7 @@
 
 
 			async loadTexture (assetPath) {
-				const {default: path} = await import(`../assets/${assetPath}`);
+				const path = new URL(`../assets/${assetPath}`, import.meta.url).href;
 				return new Promise(resolve => this.textureLoader.load(path, texture => resolve(texture)));
 			},
 		},

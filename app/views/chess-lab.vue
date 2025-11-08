@@ -217,7 +217,7 @@
 
 <script>
 	import resize from "vue-resize-directive";
-	import Chess from "chess.js";
+	import {Chess} from "chess.js";
 	import sha1 from "sha1";
 	import {debounce} from "lodash";
 	import color from "color";

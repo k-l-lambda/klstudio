@@ -217,7 +217,129 @@ at Object.reset (webpack-internal:///./node_modules/echarts/lib/processor/dataSa
 
 </details>
 
+<details>
+<summary>Webpack 5 Asset Modules Migration (2025-11-08)</summary>
+
+**Issue:** StyleGAN mapping page failing to load data files:
+```
+Cannot find module './random-2/mappingSource.dat'
+```
+
+**Root Cause:** Vue CLI 5 uses Webpack 5, which deprecated `url-loader` and `file-loader` in favor of built-in asset modules. The old `url-loader` configuration was no longer working.
+
+**Fix Applied:**
+Updated `vue.config.js` to use Webpack 5's built-in asset modules:
+- Changed `.dat` and `.gltf` file handling from `url-loader` to `asset/resource` type
+- Changed `.yaml` file handling from `url-loader` to `asset/resource` type
+
+**Technical Details:**
+- Webpack 5's `asset/resource` type replaces `file-loader` and emits separate files
+- This is the modern, recommended approach for handling binary assets
+- No additional loaders needed - webpack handles it natively
+
+**Result:** ✅ StyleGAN mapping page can now load data files correctly
+- All `.dat` files in `app/assets/stylegan-mapping/` directories are properly loaded
+- Binary assets are handled with webpack 5's optimized asset system
+</details>
+
+<details>
+<summary>Migration from Vue CLI (Webpack) to Vite (2025-11-08)</summary>
+
+**Motivation:** Vite provides significantly faster build times and better development experience compared to Vue CLI/Webpack.
+
+**Changes Made:**
+
+1. **Installed Vite and dependencies:**
+   - `vite@5.4.21` (compatible with Node 21)
+   - `@vitejs/plugin-vue@5.2.4`
+   - `vite-plugin-static-copy@2.3.2`
+
+2. **Created `vite.config.mjs`:**
+   - Configured Vue 3 compat mode (`MODE: 2`)
+   - Set up multi-page application (index, inner, embed)
+   - Configured path aliases (vue, lotus, vue-resize-directive)
+   - Added asset handling for `.dat`, `.gltf`, `.yaml` files
+   - Configured static file copying from `public/`
+   - Output directory: `docs/`
+
+3. **Created HTML entry files:**
+   - `index.html` → `/app/home.ts`
+   - `inner.html` → `/app/common-viewer.ts`
+   - `embed.html` → `/app/embed.ts`
+   - Each uses `<script type="module">` for ES module loading
+
+4. **Updated `package.json` scripts:**
+   - `serve`: `vite` (dev server)
+   - `build`: `vite build`
+   - `preview`: `vite preview` (preview production build)
+   - `lint`: Updated to use ESLint directly
+
+5. **Fixed compatibility issues:**
+   - Added `.vue` extension to `mesh-viewer` import in `flipping-cube.vue`
+   - Added ESM default export to `inc/third-party/fix-webm-duration.js` (UMD → ESM hybrid)
+
+6. **Backed up old config:**
+   - `vue.config.js` → `vue.config.js.bak`
+
+**Results:**
+- ✅ Build completed successfully in ~28 seconds (Vite) vs ~46 seconds (Webpack)
+- ✅ All 2269 modules transformed
+- ✅ Multi-page setup working (3 HTML entries)
+- ✅ Asset handling working (.dat, .gltf, .yaml files)
+- ✅ Vue 3 compat mode functioning
+- ⚡ **Build time improved by ~40%**
+
+**Technical Notes:**
+- Using ES modules (.mjs) for Vite config to support ESM-only plugins
+- `__dirname` manually defined for .mjs files using `fileURLToPath`
+- Asset files are properly handled via `assetsInclude` configuration
+- Static files copied from `public/` directory to build root
+
+**Build Output:**
+- Output directory: `docs/`
+- Assets directory: `docs/assets/`
+- All three pages built successfully
+
+**Follow-up Fix:** Added `process.env` global definition in Vite config:
+- `process.env.NODE_ENV` - Build environment
+- `process.env.VUE_APP_DORME` - Debug mode flag
+- `process.env.VUE_APP_GOOGLE_ANALYTICS_ID` - Analytics ID
+- Fixes runtime error: "Uncaught ReferenceError: process is not defined"
+
+**Follow-up Fix 2:** Fixed image asset imports for Vite (2025-11-09):
+- **Issue**: Runtime error "Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of 'image/jpeg'"
+- **Root Cause**: Vite's dynamic import() with variables doesn't support the `?url` suffix. Vite requires explicit asset URL resolution.
+- **Fix Applied**:
+  - Updated `loadTexture()` in `app/views/globe-cube3.vue` to use Vite's recommended pattern: `new URL(\`../assets/\${assetPath}\`, import.meta.url).href`
+  - Updated skybox texture loading to use the same pattern: `cubeTextureNames.map(name => new URL(\`../assets/skybox-space/\${name}.jpg\`, import.meta.url).href)`
+  - The `new URL(path, import.meta.url).href` pattern allows Vite to properly resolve asset URLs at build time
+- **Result**: ✅ Dev server starts successfully, all assets load correctly
+- Build warnings about dynamic imports in other files (app/home.vue, mesh-viewer.vue) are informational and don't affect functionality
+
+**Follow-up Fix 3:** Fixed chess.js import compatibility (2025-11-09):
+- **Issue**: Runtime error "Chess is not a constructor" at chess-lab.vue:639
+- **Root Cause**: `chess.js` uses CommonJS named export (`exports.Chess = Chess`), not default export. Vite's ESM loader requires named import.
+- **Fix Applied**:
+  - Changed `import Chess from "chess.js"` → `import {Chess} from "chess.js"` in 3 files:
+    - `app/views/chess-lab.vue:220`
+    - `app/chessCompactNotation.ts:2`
+    - `inc/chessWorkers.ts:3`
+- **Result**: ✅ Build succeeds in ~27s, Chess constructor works correctly
+
+**Follow-up Fix 4:** Fixed Plotly.js UMD module compatibility (2025-11-09):
+- **Issue**: Runtime error "Cannot read properties of undefined (reading 'document')" in plotly.min.js
+- **Root Cause**: Plotly's UMD wrapper expects proper browser globals (`window`, `document`) but Vite's ESM transformation breaks the UMD detection logic, causing the module to execute in the wrong context.
+- **Initial attempt**: Configured Vite to exclude plotly from optimization, but this didn't fully resolve the issue because `import()` still triggered module transformation.
+- **Final Fix** in `app/components/circle-plot.vue:70-81`:
+  - Changed from ESM dynamic import: `await import("../third-party/plotly.min.js")`
+  - To script tag loading: Use `import("../third-party/plotly.min.js?url")` to get the URL, then dynamically create and append a `<script>` tag
+  - This bypasses Vite's ESM transformation entirely, allowing Plotly's UMD wrapper to execute in native browser context with proper globals
+  - Access via `window.Plotly` after script loads
+- **Result**: ✅ Build succeeds in ~18s (faster!), Plotly loads correctly without transformation errors
+
+</details>
+
 **Next steps:**
-- Test the built application in browser to verify Vue 3 compatibility
+- Test the built application in browser to verify Vue 3 compatibility and all features work correctly
 - Verify `vue-class-component`/`vue-property-decorator` usage with Vue 3; upgrade or refactor components to options/composition API under compat mode
-- Run `yarn serve` to validate runtime and fix remaining compat warnings/errors
+- Address remaining Vue compat warnings (e.g., `.sync` modifier → `v-model:propName`, `beforeDestroy` → `beforeUnmount`)

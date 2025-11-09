@@ -337,6 +337,26 @@ Updated `vue.config.js` to use Webpack 5's built-in asset modules:
   - Access via `window.Plotly` after script loads
 - **Result**: ✅ Build succeeds in ~18s (faster!), Plotly loads correctly without transformation errors
 
+**Feature Addition:** Development index page (2025-11-09):
+- **Created** `app/views/dev-index.vue`: Simple view that lists all available routes from the router
+- **Modified** `app/router.ts:166-172`: Added dev index route at `/` path, only in development mode (`process.env.NODE_ENV !== "production"`)
+- **Features**:
+  - Lists all routes with their names as clickable links
+  - Shows cleaned paths for parameterized routes (e.g., routes with `::config` or `::demoPath`)
+  - Filters to only show routes that have names defined
+  - No styling - minimal HTML structure
+- **Usage**: In development, navigate to `/` to see all available routes
+
+**Configuration Fix:** Environment variable loading in Vite (2025-11-09):
+- **Issue**: `PORT` and `HOST` environment variables from `.env` and `.env.local` were not being used by Vite dev server
+- **Root Cause**: Unlike Vue CLI, Vite doesn't automatically load `.env` files into `process.env` at config evaluation time. The hardcoded port `8080` was always used.
+- **Fix Applied** in `vite.config.mjs`:
+  - Changed from static config object to function config: `defineConfig(({mode}) => {...})`
+  - Import and use `loadEnv` from Vite to load environment variables
+  - Updated server config to use env variables: `host: env.HOST || "localhost"`, `port: parseInt(env.PORT) || 8080`, `https: !!env.HTTPS`
+  - Also updated `define` section to use `env.VUE_APP_DORME` and `env.VUE_APP_GOOGLE_ANALYTICS_ID` from loaded env instead of `process.env`
+- **Result**: ✅ Dev server now respects `PORT=8130` from `.env.local` and `HOST=127.0.0.1` from `.env`
+
 </details>
 
 **Next steps:**

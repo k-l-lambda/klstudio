@@ -368,6 +368,25 @@ Updated `vue.config.js` to use Webpack 5's built-in asset modules:
   - Applied to 2 occurrences (lines 22-27 and 84-89)
 - **Result**: ✅ Equal-temperament view renders correctly without undefined property errors
 
+**Bug Fix:** Lotus player trying to load HTML as JSON (2025-11-09):
+- **Issue**: Runtime error "Uncaught (in promise) SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON" at lotus-player.vue:87
+- **Root Cause**: When accessing `/lotus` route without a hash parameter specifying a score file, `hashurl.pathname` is empty or "/". The code then calls `fetch(source)` with an empty/root path, which causes Vite dev server to return `index.html` instead of a JSON file. This HTML is then passed to `lotus.ScoreBundle.fromJSON()` which tries to parse it as JSON.
+- **Fix Applied** in `app/views/lotus.vue:90-102`:
+  - Added validation: Only fetch if `source` is non-empty and not "/"
+  - Wrapped fetch in try-catch to handle errors gracefully
+  - Set `this.score = null` when no valid source is provided
+- **Result**: ✅ Lotus view loads without errors when accessed without a score parameter
+
+**Bug Fix:** Race condition with Plotly loading in circle-plot (2025-11-09):
+- **Issue**: Runtime error "Cannot read properties of undefined (reading 'restyle')" at circle-plot.vue:221
+- **Root Cause**: The `focusPointIndex` watcher tries to call `this.Plotly.restyle()` but `this.Plotly` is loaded asynchronously in the `created()` lifecycle hook using a script tag. If the `focusPointIndex` prop changes before Plotly finishes loading, the watcher executes with `this.Plotly` still being undefined.
+- **Fix Applied** in `app/components/circle-plot.vue:218`:
+  - Changed condition from: `if (this.normalPoints)`
+  - To: `if (this.normalPoints && this.Plotly)`
+  - Now checks that Plotly is loaded before attempting to use its methods
+- **Note**: The `loadData()` method already has proper async waiting for Plotly (lines 124-125), but the watcher needs the guard as well
+- **Result**: ✅ Circle plot component handles prop changes gracefully even before Plotly is fully loaded
+
 </details>
 
 **Next steps:**

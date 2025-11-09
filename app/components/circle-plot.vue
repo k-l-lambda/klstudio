@@ -215,7 +215,7 @@
 				if (on)
 					this.focusOnTime = Date.now();
 
-				if (this.normalPoints) {
+				if (this.normalPoints && this.Plotly) {
 					const indices = [...Array(this.normalPoints.length + 1).keys()];
 
 					this.Plotly.restyle(this.$refs.plot, {

@@ -357,6 +357,17 @@ Updated `vue.config.js` to use Webpack 5's built-in asset modules:
   - Also updated `define` section to use `env.VUE_APP_DORME` and `env.VUE_APP_GOOGLE_ANALYTICS_ID` from loaded env instead of `process.env`
 - **Result**: ✅ Dev server now respects `PORT=8130` from `.env.local` and `HOST=127.0.0.1` from `.env`
 
+**Bug Fix:** Vue 3 v-for/v-if priority incompatibility (2025-11-09):
+- **Issue**: Runtime error "Cannot read properties of undefined (reading 'name')" at equal-temperament.vue:83
+- **Root Cause**: In Vue 2, `v-for` has higher priority than `v-if`, but in Vue 3 this is reversed. Using both on same element like `<text v-for="step of steps" v-if="step.name">` causes `step` to be undefined when `v-if` evaluates first.
+- **Fix Applied** in `app/views/equal-temperament.vue`:
+  - Changed: `<text v-for="step of steps" v-if="step.name" ...>{{step.name}}</text>`
+  - To: `<template v-for="step of steps" :key="step.pitch"><text v-if="step.name" ...>{{step.name}}</text></template>`
+  - Wrapped with `<template>` element to separate `v-for` and `v-if` onto different DOM levels
+  - Added `:key` binding to template as required by Vue 3
+  - Applied to 2 occurrences (lines 22-27 and 84-89)
+- **Result**: ✅ Equal-temperament view renders correctly without undefined property errors
+
 </details>
 
 **Next steps:**

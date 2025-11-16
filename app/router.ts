@@ -159,6 +159,11 @@ export const routes = [
 		name: "Lotus Player",
 		component: () => import(/* webpackChunkName: "lotus", */ "./views/lotus.vue"),
 	},
+	{
+		path: "/magic-rod",
+		name: "Magic Rod",
+		component: () => import(/* webpackChunkName: "magic-rod", */ "./views/magic-rod.vue"),
+	},
 ];
 
 

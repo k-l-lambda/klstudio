@@ -408,3 +408,10 @@ Updated `vue.config.js` to use Webpack 5's built-in asset modules:
 - Test the built application in browser to verify Vue 3 compatibility and all features work correctly
 - Verify `vue-class-component`/`vue-property-decorator` usage with Vue 3; upgrade or refactor components to options/composition API under compat mode
 - Address remaining Vue compat warnings (e.g., `.sync` modifier → `v-model:propName`, `beforeDestroy` → `beforeUnmount`)
+
+
+## 2025/11/16
+
+> Let's develop a magic rod simulator.
+> The magic rod consists of a series of triangular segments that are connected end-to-end. Each segment is usually an isosceles triangle, which allows for a wide range of angles when the segments are connected.
+> Firstly, make a new page with 3D rendering by three.js, make the unit shape of magic rod: it's a triangular prism, its bottom shape is isosceles right triangle, edges are 1, 1, sqrt 2. And the height of prism is 1.

@@ -13,3 +13,5 @@ docs
 
 public/mlmodels/*
 /certificates/
+
+/third_party/

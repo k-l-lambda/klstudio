@@ -558,3 +558,287 @@ Future enhancements for the magic rod simulator:
 6. Add texture/color variations for segment identification
 
 </details>
+
+> Now make a code controlled magic rod.
+> Two adjacent units are connected by a hypotenuse.
+> Angle between 2 adjacent units has 4 status: 0 deg, 90 deg, 180 deg, 270 deg, in code they are named F, R, B, L.
+> Units' number is equal to code character length plus 1, for example, for empty string of code, there 1 block; when code is "FFF", there are 4 blocks in a line connected by right-angled side.
+> The code string is editable by user in a text field.
+
+<details>
+<summary>Code-Controlled Magic Rod Implementation (2025-11-16)</summary>
+
+### Objective
+Implement interactive code-based control system for magic rod configurations, allowing users to input F/R/B/L sequences to dynamically generate connected block chains with proper transformations.
+
+### Implementation
+
+**File Modified**: `app/views/magic-rod.vue`
+
+#### UI Controls Added
+
+**Template Changes** (lines 5-18):
+```vue
+<div class="controls">
+  <div class="input-group">
+    <label for="code-input">Code:</label>
+    <input
+      id="code-input"
+      type="text"
+      v-model="code"
+      placeholder="Enter F, R, B, L"
+      @input="onCodeChange"
+    />
+    <span class="unit-count">Units: {{unitCount}}</span>
+  </div>
+  <div v-if="validationError" class="error">{{validationError}}</div>
+</div>
+```
+
+**Features**:
+- Text input with uppercase auto-conversion
+- Real-time unit count display (computed property)
+- Validation error messages
+- Monospace font for code clarity
+
+#### Code Parser Function
+
+**parseCode()** (lines 192-219):
+```typescript
+parseCode (code: string): number[] | null {
+  const upperCode = code.toUpperCase();
+  const angles: number[] = [];
+
+  for (let i = 0; i < upperCode.length; i++) {
+    const char = upperCode[i];
+    switch (char) {
+      case "F": angles.push(0); break;
+      case "R": angles.push(Math.PI / 2); break;
+      case "B": angles.push(Math.PI); break;
+      case "L": angles.push(-Math.PI / 2); break;
+      default:
+        this.validationError = `Invalid character '${char}' at position ${i + 1}`;
+        return null;
+    }
+  }
+
+  this.validationError = "";
+  return angles;
+}
+```
+
+**Angle Mapping**:
+- F (Forward): 0° = 0 radians
+- R (Right): 90° = π/2 radians
+- B (Back): 180° = π radians
+- L (Left): 270° = -π/2 radians
+
+#### Initial Transformation Logic (Iterations)
+
+**First Attempt** - Custom rotation axes per angle type:
+- F: Translate along X, rotate 180° around X
+- R/B/L: Translate along Z, rotate around Z
+- **Issue**: Did not match reference implementation
+
+**Second Attempt** - Uniform initial rotation:
+- All blocks start with 45° rotation around Z
+- Cumulative transformations
+- **Issue**: Geometry mismatch with reference
+
+#### Learning from Reference Implementation
+
+**Analyzed**: `/home/camus/work/klstudio/third_party/MagicStick.cpp`
+
+**Key Discoveries**:
+
+1. **Block Geometry** (lines 153-173):
+   ```cpp
+   // sectionLength = 10, width = 14.2
+   // Bottom: rectangle from (+10, 0, -7.1) to (-10, 0, +7.1)
+   // Top apex: (0, 10, ±7.1)
+   // Shape: Isosceles triangle cross-section (NOT right-angled)
+   ```
+
+2. **Transformation Sequence** (lines 276-281):
+   ```cpp
+   node = node->createChildSceneNode();
+   node->rotate(Vector3(1, 1, 0).normalisedCopy(), angle);  // Rotate around (1,1,0)
+   node = node->createChildSceneNode();
+   node->setPosition(sectionLength, sectionLength, 0);       // Translate (10,10,0)
+   node->rotate(Vector3::UNIT_X, Radian(Math::PI));         // Rotate 180° around X
+   node->attachObject(ent);
+   ```
+
+#### Final Correct Implementation
+
+**Geometry Reconstruction** (lines 42-99):
+```typescript
+const createTriangularPrism = (): THREE.BufferGeometry => {
+  const sectionLength = 1.0;  // Normalized
+  const width = 1.42;          // Proportional to 14.2/10
+
+  // Vertices matching MagicStick.cpp
+  const v0 = [+sectionLength, 0, -width/2];  // Bottom right front
+  const v1 = [+sectionLength, 0, +width/2];  // Bottom right back
+  const v2 = [-sectionLength, 0, -width/2];  // Bottom left front
+  const v3 = [-sectionLength, 0, +width/2];  // Bottom left back
+  const v6 = [0, sectionLength, -width/2];   // Top apex front
+  const v7 = [0, sectionLength, +width/2];   // Top apex back
+
+  // Faces: bottom rectangle + 2 triangular sides + 2 trapezoidal sides
+  // ...
+}
+```
+
+**Transformation Logic** (lines 222-264):
+```typescript
+calculateUnitTransform (index: number, angles: number[]): THREE.Matrix4 {
+  const transform = new THREE.Matrix4();
+
+  // First block: identity (no transformation)
+  if (index === 0) return transform;
+
+  // For each subsequent block
+  for (let i = 0; i < index; i++) {
+    if (i < angles.length) {
+      const angle = angles[i];
+
+      // Step 1: Rotate around normalized (1, 1, 0) axis
+      const rotateAxis = new THREE.Vector3(1, 1, 0).normalize();
+      const rotation1 = new THREE.Matrix4().makeRotationAxis(rotateAxis, angle);
+      transform.multiply(rotation1);
+
+      // Step 2: Translate to (sectionLength, sectionLength, 0)
+      const translation = new THREE.Matrix4().makeTranslation(1, 1, 0);
+      transform.multiply(translation);
+
+      // Step 3: Rotate 180° around X axis
+      const rotation2 = new THREE.Matrix4().makeRotationX(Math.PI);
+      transform.multiply(rotation2);
+    }
+  }
+
+  return transform;
+}
+```
+
+**Why This Works**:
+- **Rotation Axis (1,1,0)**: Diagonal axis allows blocks to bend in the XY plane
+- **Translation (1,1,0)**: Moves along diagonal, maintaining connection at apex
+- **180° X Rotation**: Flips block upside-down, creating alternating orientation
+- **Cumulative**: Each transformation builds on previous, creating compound rotations
+
+#### Rod Generation System
+
+**generateRod()** (lines 250-308):
+- Clears previous prisms and disposes resources (geometry, materials)
+- Parses code string and validates
+- Creates shared geometry (reused by all units)
+- Generates each unit with:
+  - Rainbow color gradient (hue-based: `hue = (i / unitCount) * 360`)
+  - Phong material with specular highlights
+  - Transformation matrix applied via `mesh.applyMatrix4()`
+- Auto-adjusts camera distance based on rod length
+
+#### Reactive Updates
+
+**Data Properties**:
+- `code: string` - Current code input
+- `prisms: THREE.Mesh[]` - Array of all block meshes
+- `validationError: string` - Error message display
+
+**Computed Property**:
+```typescript
+unitCount (): number {
+  return this.code.length + 1;
+}
+```
+
+**Event Handler**:
+```typescript
+onCodeChange (): void {
+  this.generateRod();  // Regenerate on every input change
+}
+```
+
+### Technical Details
+
+**Connection Mechanics**:
+1. Blocks connect at apex (top vertex)
+2. First rotation determines bend direction (F/R/B/L)
+3. Translation moves to next connection point
+4. Final rotation flips for next block's orientation
+
+**Coordinate System**:
+- Y-up: Bottom face at Y=0, apex at Y=1
+- X-axis: ±1 (left-right extent)
+- Z-axis: ±0.71 (front-back width)
+
+**Vue 3 Reactivity Handling**:
+- All THREE.js objects wrapped in `markRaw()` to prevent reactive proxies
+- Prevents "read-only property" errors with THREE.js internal matrices
+
+### Debugging Journey
+
+**Issue 1**: Vue 3 proxy errors
+- **Error**: `'get' on proxy: property 'modelViewMatrix' is a read-only...`
+- **Fix**: Import and use `markRaw()` for all THREE.js objects
+
+**Issue 2**: Incorrect geometry
+- **Problem**: Used right-angled triangle prism initially
+- **Fix**: Studied C++ code, recreated isosceles triangle prism
+
+**Issue 3**: Wrong transformation sequence
+- **Problem**: Custom logic for F vs R/B/L didn't match reference
+- **Fix**: Unified transformation: rotate (1,1,0) → translate (1,1,0) → rotate X 180°
+
+**Issue 4**: First block positioning
+- **Problem**: Applied initial rotation to first block
+- **Fix**: First block uses identity matrix (no transformation)
+
+### Results
+
+- ✅ Code input with real-time validation
+- ✅ Dynamic rod generation (instant updates)
+- ✅ Correct geometry matching MagicStick.cpp
+- ✅ Proper transformation sequence for all angles
+- ✅ Rainbow color gradient for visual clarity
+- ✅ Unit count display
+- ✅ Auto-adjusting camera for different rod lengths
+- 🔗 **Access**: `http://127.0.0.1:8134/#/magic-rod`
+
+**Example Codes to Test**:
+- `""` (empty) → 1 block
+- `"F"` → 2 blocks in diagonal line
+- `"FFFF"` → 5 blocks extending diagonally
+- `"R"` → 2 blocks bent 90°
+- `"RRRR"` → 5 blocks forming closed square
+- `"FRBL"` → Complex 3D shape
+- `"LRLR"` → Zigzag pattern
+
+**Visual Features**:
+- Each block different color (hue rotation)
+- Phong shading with white specular highlights
+- Orbit controls for 360° viewing
+- Grid and axes for spatial reference
+- FPS counter for performance monitoring
+
+### Code Structure Improvements
+
+**TypeScript Enhancements**:
+- Full type annotations for all methods
+- Interface for Size type
+- Return type specifications
+- Proper type casting for DOM elements
+
+**Resource Management**:
+- Proper disposal of old geometries and materials
+- Array-based material handling
+- Memory leak prevention
+
+**Performance**:
+- Single shared geometry for all units
+- Efficient matrix multiplication
+- Minimal scene graph depth
+
+</details>

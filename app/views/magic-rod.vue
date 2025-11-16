@@ -317,15 +317,6 @@
 					this.scene.add(mesh);
 					this.prisms.push(mesh);
 				}
-
-				// Adjust camera position based on rod length
-				if (this.camera && unitCount > 1) {
-					const distance = Math.max(4, unitCount * 0.8);
-					this.camera.position.set(distance, distance, distance);
-					if (this.controls) {
-						this.controls.update();
-					}
-				}
 			},
 
 

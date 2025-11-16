@@ -124,7 +124,7 @@
 		text-shadow: 1px 1px 1px #000c;
 	}
 
-	.timer >>> sub
+	:deep(.timer sub)
 	{
 		opacity: 0.6;
 		vertical-align: middle;

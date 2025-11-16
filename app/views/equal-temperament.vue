@@ -19,10 +19,12 @@
 					/>
 				</g>
 				<g class="steps">
-					<text class="label" v-for="step of steps" v-if="step.name"
-						:class="{focus: focusPoints[0] && focusPoints[0].x == step.pitch, chosen: step.chosen}"
-						:x="step.pitch" :y="0.6"
-					>{{step.name}}</text>
+					<template v-for="step of steps" :key="step.pitch">
+						<text v-if="step.name" class="label"
+							:class="{focus: focusPoints[0] && focusPoints[0].x == step.pitch, chosen: step.chosen}"
+							:x="step.pitch" :y="0.6"
+						>{{step.name}}</text>
+					</template>
 				</g>
 				<g class="curve-points">
 					<g v-for="point of stepPoints"
@@ -80,10 +82,12 @@
 			>
 				<circle class="frame" :r="CLOCK_RADIUS" cx="0" cy="0" />
 				<g class="steps">
-					<text class="label" v-for="step of steps" v-if="step.name"
-						:class="{focus: focusPoints[0] && focusPoints[0].x == step.pitch, chosen: step.chosen}"
-						:x="pToCX(step.pitch, 1.08)" :y="pToCY(step.pitch, 1.08) + 14"
-					>{{step.name}}</text>
+					<template v-for="step of steps" :key="step.pitch">
+						<text v-if="step.name" class="label"
+							:class="{focus: focusPoints[0] && focusPoints[0].x == step.pitch, chosen: step.chosen}"
+							:x="pToCX(step.pitch, 1.08)" :y="pToCY(step.pitch, 1.08) + 14"
+						>{{step.name}}</text>
+					</template>
 				</g>
 				<g class="scales">
 					<g v-for="step of steps" :key="step.pitch" :class="{chosen: step.chosen}">

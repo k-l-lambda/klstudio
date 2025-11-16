@@ -8,7 +8,7 @@ type Position2 = {x: number, y: number};
 
 
 export default class Label3D {
-	graphNode: THREE.Object3D
+	graphNode: THREE.Object3D;
 	camera: THREE.Camera;
 
 	content: string;
@@ -44,4 +44,4 @@ export default class Label3D {
 		this._pos.x = (p.x + 1) / 2;
 		this._pos.y = (-p.y + 1) / 2;
 	}
-};
+}

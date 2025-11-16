@@ -12,7 +12,7 @@
 	import {MULTIPLICATION_TABLE, NORMAL_ORIENTATIONS} from "../../inc/cube-algebra";
 	import {animationDelay, msDelay} from "../delay.js";
 
-	import MeshViewer from "./mesh-viewer";
+	import MeshViewer from "./mesh-viewer.vue";
 
 
 

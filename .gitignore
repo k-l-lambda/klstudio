@@ -3,6 +3,7 @@ node_modules
 .vs
 static/bundles
 *.local
+*.local.*
 Footages
 yarn.lock
 package-lock.json

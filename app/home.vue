@@ -1,5 +1,5 @@
 <template>
-	<body :class="{root: atRoot, docking: !atRoot && !devoting, devoting}">
+	<div id="home-root" :class="{root: atRoot, docking: !atRoot && !devoting, devoting}">
 		<header>
 			<span class="title">K.L. Studio</span>
 		</header>
@@ -22,7 +22,7 @@
 					:class="{focus: app.focus}"
 					@click="onClickApp(app)"
 				>
-					<router-link class="cover" :to="app.focus ? '/' : app.path" @click.native.stop="">
+                    <router-link class="cover" :to="app.focus ? '/' : app.path" @click.stop="">
 						<img :src="app.coverURL" />
 					</router-link>
 					<div class="description">
@@ -39,11 +39,11 @@
 			<div class="fold" v-show="!atRoot" @click="devoting = true"></div>
 		</aside>
 		<router-link id="logo" to="/"></router-link>
-	</body>
+	</div>
 </template>
 
 <script>
-	import Vue from "vue";
+    import {defineAsyncComponent} from "vue";
 
 	import {animationDelay} from "./delay";
 
@@ -118,6 +118,9 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 	export default {
 		name: "home",
 
+		components: {
+			"globe-cube3": defineAsyncComponent(() => import("./views/globe-cube3.vue")),
+		},
 
 		data () {
 			return {
@@ -145,25 +148,21 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 			if (process.env.NODE_ENV === "development")
 				window.$main = this;
 
-			apps.forEach(async app => {
-				const {default: url} = await import(`./assets/app-covers/${app.cover}`);
-				app.coverURL = url;
-			});
+            apps.forEach(async app => {
+                const {default: url} = await import(`./assets/app-covers/${app.cover}`);
+                app.coverURL = url;
+            });
 
-			window.addEventListener("resize", () => this.onResize());
-
-			Vue.component("globe-cube3", () => import("./views/globe-cube3.vue"));
+            window.addEventListener("resize", () => this.onResize());
 
 			if (process.env.VUE_APP_DORME) {
 				window.$main = this;
 
 				Object.defineProperty(window, "$view", {
-					get: () => {
-						return this.$refs.view;
-					},
-				});
-			}
-		},
+                    get: () => this.$refs.view,
+                });
+            }
+        },
 
 
 		mounted () {
@@ -215,10 +214,19 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 </script>
 
 <style lang="scss">
-	html
+	html, body
 	{
+		margin: 0;
+		padding: 0;
+		height: 100vh;
 		overflow: hidden;
 		font-family: Verdana, Arial, Helvetica, sans-serif;
+	}
+
+	#app
+	{
+		height: 100%;
+		overflow: hidden;
 	}
 
 	aside .description em a
@@ -244,10 +252,12 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 	$narrowTotemHeight: 80vw;
 
 
-	body
+	#home-root
 	{
 		margin: 0;
 		overflow: hidden;
+		height: 100%;
+		position: relative;
 	}
 
 	#logo

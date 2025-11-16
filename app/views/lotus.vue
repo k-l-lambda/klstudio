@@ -22,7 +22,7 @@
 <script>
 	import url from "url";
 	import resize from "vue-resize-directive";
-	import {MidiAudio} from "@k-l-lambda/web-widgets";
+	import {MidiAudio} from "@k-l-lambda/music-widgets";
 
 	import LotusPlayer from "../components/lotus-player.vue";
 	import CheckButton from "../components/check-button.vue";
@@ -88,8 +88,18 @@
 				this.baking = !!hashurl.query.baking;
 
 				const source = hashurl.pathname;
-				const res = await fetch(source);
-				this.score = await res.text();
+				// Only fetch if there's a valid source path
+				if (source && source !== "/" && source !== "") {
+					try {
+						const res = await fetch(source);
+						this.score = await res.text();
+					} catch (error) {
+						console.error("Failed to load score:", error);
+						this.score = null;
+					}
+				} else {
+					this.score = null;
+				}
 			},
 
 

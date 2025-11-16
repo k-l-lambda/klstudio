@@ -485,3 +485,7 @@
         }
     };
 });
+
+
+export default (typeof module !== 'undefined' && module.exports) || window.ysFixWebmDuration;
+

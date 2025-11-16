@@ -21,7 +21,7 @@
 
 <script>
 	import resize from "vue-resize-directive";
-	import {MidiRoll, MIDI, MidiPlayer, MidiAudio} from "@k-l-lambda/web-widgets";
+	import {MidiRoll, MIDI, MidiPlayer, MidiAudio} from "@k-l-lambda/music-widgets";
 
 	import ProgressBar from "../components/progress-bar.vue";
 	import StoreInput from "../components/store-input.vue";

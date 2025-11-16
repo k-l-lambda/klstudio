@@ -1,6 +1,6 @@
 
-import Vue from "vue";
-import VueRouter from "vue-router";
+import {createApp} from "vue";
+import {createRouter, createWebHashHistory} from "vue-router";
 
 import App from "./embed.vue";
 
@@ -8,15 +8,15 @@ import {routes} from "./router";
 
 
 
-const router = new VueRouter({
-	routes: [
-		...routes,
-		{path: "/", redirect: "/globe-cube3"},
-	],
+const router = createRouter({
+    history: createWebHashHistory(),
+    routes: [
+        ...routes,
+        {path: "/", redirect: "/globe-cube3"},
+    ],
 });
 
 
-new Vue({
-	router,
-	render: h => h(App),
-}).$mount("body");
+createApp(App)
+	.use(router)
+	.mount("#app");

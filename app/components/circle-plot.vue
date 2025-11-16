@@ -67,7 +67,18 @@
 
 
 		async created () {
-			const {default: Plotly} = await import("../third-party/plotly.min.js") ;
+			const {default: plotlyUrl} = await import("../third-party/plotly.min.js?url");
+			// Load as script tag to avoid ESM transformation issues
+			if (!window.Plotly) {
+				await new Promise((resolve, reject) => {
+					const script = document.createElement('script');
+					script.src = plotlyUrl;
+					script.onload = resolve;
+					script.onerror = reject;
+					document.head.appendChild(script);
+				});
+			}
+			const Plotly = window.Plotly;
 			//console.log("Plotly:", Plotly);
 			this.Plotly = Plotly;
 			//console.assert(window.Plotly, "plotly is required.");
@@ -204,7 +215,7 @@
 				if (on)
 					this.focusOnTime = Date.now();
 
-				if (this.normalPoints) {
+				if (this.normalPoints && this.Plotly) {
 					const indices = [...Array(this.normalPoints.length + 1).keys()];
 
 					this.Plotly.restyle(this.$refs.plot, {

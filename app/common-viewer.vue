@@ -1,5 +1,5 @@
 <template>
-	<body>
+	<div id="common-viewer-root">
 		<main>
 			<router-view ref="view" />
 			<h1 v-if="home">K.L. Studio</h1>
@@ -10,7 +10,7 @@
 			</datalist>
 			<input type="text" list="route-list" v-model.lazy="routePath" />
 		</header>
-	</body>
+	</div>
 </template>
 
 <script>
@@ -67,19 +67,31 @@
 	};
 </script>
 
-<style scoped>
-	html
-	{
-		overflow: hidden;
-	}
-
-	body
+<style>
+	html, body
 	{
 		margin: 0;
+		padding: 0;
+		height: 100vh;
 		overflow: hidden;
 	}
 
-	body > main
+	#app
+	{
+		height: 100%;
+		overflow: hidden;
+	}
+</style>
+
+<style scoped>
+	#common-viewer-root
+	{
+		height: 100%;
+		overflow: hidden;
+		position: relative;
+	}
+
+	#common-viewer-root > main
 	{
 		height: 100vh;
 	}

@@ -1,7 +1,7 @@
 <template>
-	<body>
+	<div id="embed-root">
 		<router-view />
-	</body>
+	</div>
 </template>
 
 <script>
@@ -23,16 +23,26 @@
 	};
 </script>
 
-<style scoped>
-	html
+<style>
+	html, body
 	{
+		margin: 0;
+		padding: 0;
+		height: 100vh;
 		overflow: hidden;
 	}
 
-	body
+	#app
 	{
-		margin: 0;
+		height: 100%;
 		overflow: hidden;
-		height: 100vh;
+	}
+</style>
+
+<style scoped>
+	#embed-root
+	{
+		height: 100%;
+		overflow: hidden;
 	}
 </style>

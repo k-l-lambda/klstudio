@@ -25,11 +25,22 @@
 <script>
 	import url from "url";
 	import * as tf from "@tensorflow/tfjs";
-	import Vue from "vue";
-	import vueDebounce from "vue-debounce";
-
-
-	Vue.use(vueDebounce);
+    import {h} from "vue";
+    // Minimal v-debounce directive replacement for Vue 3
+    const vDebounce = {
+        mounted (el, binding, vnode) {
+            const wait = Number(binding.arg?.replace(/s$/, "")) || 0;
+            let timer = null;
+            const handler = binding.value;
+            el.__v_debounce__ = function (...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => handler.apply(vnode.ctx, args), wait * 1000);
+            };
+        },
+        beforeUnmount (el) {
+            if (el.__v_debounce__) delete el.__v_debounce__;
+        },
+    };
 
 
 	const isDevelopment = process.env.NODE_ENV === "development";
@@ -89,17 +100,17 @@
 		},
 
 
-		mounted () {
-			if (isDevelopment) {
-				window.__main = this;
-				window.tf = tf;
-			}
+        mounted () {
+            if (isDevelopment) {
+                window.__main = this;
+                window.tf = tf;
+            }
 
 			this.loadStatus();
 
 			if (this.theme)
 				this.loadTheme();
-		},
+        },
 
 
 		beforeDestroy () {
@@ -108,17 +119,17 @@
 		},
 
 
-		methods: {
-			loadStatus () {
-				const status = sessionStorage.writerStatus && JSON.parse(sessionStorage.writerStatus);
-				if (status)
-					this.sessionStatus = status;
-			},
+        methods: {
+            loadStatus () {
+                const status = sessionStorage.writerStatus && JSON.parse(sessionStorage.writerStatus);
+                if (status)
+                    this.sessionStatus = status;
+            },
 
 
 			saveStatus () {
 				sessionStorage.writerStatus = JSON.stringify(this.sessionStatus);
-			},
+        },
 
 
 			async loadTheme () {
@@ -211,15 +222,18 @@
 		},
 
 
-		watch: {
-			theme () {
-				location.search = this.theme;
-			},
+        directives: {
+            debounce: vDebounce,
+        },
+        watch: {
+            theme () {
+                location.search = this.theme;
+            },
 
 
 			temperature: "saveStatus",
-		},
-	};
+        },
+    };
 </script>
 
 <style>

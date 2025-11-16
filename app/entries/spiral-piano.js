@@ -1,14 +1,14 @@
 
-import Vue from "vue";
+import {createApp} from "vue";
 
 import App from "../spiral-piano.vue";
 import Wrapper from "../app-wrapper.vue";
 
 
 
-Vue.component("Content", App);
+// Vue 3: register Content as global component via app
 
 
-new Vue({
-	render: h => h(Wrapper),
-}).$mount("body");
+const app = createApp(Wrapper);
+app.component("Content", App);
+app.mount("body");

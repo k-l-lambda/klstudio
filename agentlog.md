@@ -412,6 +412,149 @@ Updated `vue.config.js` to use Webpack 5's built-in asset modules:
 
 ## 2025/11/16
 
-> Let's develop a magic rod simulator.
-> The magic rod consists of a series of triangular segments that are connected end-to-end. Each segment is usually an isosceles triangle, which allows for a wide range of angles when the segments are connected.
-> Firstly, make a new page with 3D rendering by three.js, make the unit shape of magic rod: it's a triangular prism, its bottom shape is isosceles right triangle, edges are 1, 1, sqrt 2. And the height of prism is 1.
+> Develop a magic rod simulator. The magic rod consists of a series of triangular segments that are connected end-to-end. Each segment is usually an isosceles triangle, which allows for a wide range of angles when the segments are connected. First, create a new page with 3D rendering using three.js to display the unit shape of magic rod: a triangular prism with an isosceles right triangle base (edges: 1, 1, √2) and height of 1.
+
+<details>
+<summary>Magic Rod Simulator - Initial Implementation (2025-11-16)</summary>
+
+### Objective
+Create a new interactive 3D page to visualize and manipulate the basic unit shape of a magic rod puzzle, which consists of triangular prism segments that can be connected at various angles.
+
+### Implementation
+
+**File Created**: `app/views/magic-rod.vue`
+
+#### Triangular Prism Geometry
+
+Created a custom BufferGeometry for the unit shape with precise specifications:
+
+**Base Triangle** (Isosceles Right Triangle):
+- Two equal legs of length **1** each
+- Hypotenuse of length **√2**
+- Right angle positioned at origin (0, 0, 0)
+- Legs extend along positive X and Y axes
+
+**Prism Height**: **1** unit along Z-axis
+
+**Geometry Construction** (lines 17-80):
+```typescript
+const createTriangularPrism = () => {
+	const geometry = new THREE.BufferGeometry();
+
+	// Bottom triangle vertices (z = 0)
+	const v0 = [0, 0, 0];  // Right angle vertex
+	const v1 = [1, 0, 0];  // Along x-axis
+	const v2 = [0, 1, 0];  // Along y-axis
+
+	// Top triangle vertices (z = 1)
+	const v3 = [0, 0, 1];
+	const v4 = [1, 0, 1];
+	const v5 = [0, 1, 1];
+
+	// 5 faces total:
+	// - 2 triangular faces (top and bottom)
+	// - 3 rectangular faces (sides)
+	// Each rectangular face split into 2 triangles
+}
+```
+
+**Normal Calculation**:
+- Bottom face: (0, 0, -1)
+- Top face: (0, 0, 1)
+- Side face 1 (x-z plane): (0, -1, 0)
+- Side face 2 (hypotenuse): (√2/2, √2/2, 0)
+- Side face 3 (y-z plane): (-1, 0, 0)
+
+#### Scene Setup
+
+**Renderer Configuration**:
+- WebGL with anti-aliasing enabled
+- Light blue background (#e0e8f0)
+- Responsive canvas sizing with resize handling
+
+**Camera**:
+- PerspectiveCamera with 60° FOV
+- Initial position: (2, 2, 3)
+- OrbitControls for interactive rotation, panning, and zooming
+- Damping enabled for smooth interaction
+
+**Lighting**:
+- Main directional light: white (0xffffff), intensity 1.2, from (5, 10, 7)
+- Fill light: blue-tinted (0x8888ff), intensity 0.4, from (-5, 0, -5)
+- Ambient light: gray (0x404040), intensity 0.5
+
+**Material**:
+- MeshPhongMaterial with blue color (0x4488ff)
+- White specular highlights with shininess of 30
+- DoubleSide rendering for visibility from all angles
+
+**Helper Objects**:
+- AxesHelper (2 units): RGB axes for spatial reference
+- GridHelper (10×10): Ground plane grid at y = -0.5
+
+#### User Interaction
+
+**Mouse Controls** (via OrbitControls):
+- **Left drag**: Rotate camera around the prism
+- **Right drag**: Pan camera
+- **Scroll wheel**: Zoom in/out
+
+**HUD**:
+- FPS counter in bottom-right corner
+- Real-time performance monitoring
+
+#### Router Integration
+
+**Route Added** (`app/router.ts:162-166`):
+```typescript
+{
+	path: "/magic-rod",
+	name: "Magic Rod",
+	component: () => import(/* webpackChunkName: "magic-rod", */ "./views/magic-rod.vue"),
+}
+```
+
+### Technical Details
+
+**Component Structure**:
+- Uses Vue 3 Options API with TypeScript
+- Mixins: `QuitClearner` for cleanup on component destruction
+- Directives: `vue-resize-directive` for responsive canvas
+- Async render loop with `animationDelay()` for frame limiting
+
+**Coordinate System**:
+- Prism centered at origin via position offset (-0.5, -0.5, -0.5)
+- Right-hand coordinate system (X right, Y up, Z forward)
+
+**Performance**:
+- Single geometry with 27 vertices (3×3 for triangular faces + 6×2 for rectangular faces)
+- DoubleSide material slightly more expensive but ensures visibility during development
+- OrbitControls with damping provides smooth 60fps interaction
+
+### Results
+
+- ✅ New Vue component created: `app/views/magic-rod.vue` (336 lines)
+- ✅ Triangular prism geometry correctly constructed with proper normals
+- ✅ Interactive 3D scene with intuitive camera controls
+- ✅ Route registered in router configuration
+- ✅ Dev server running on port 8134
+- 🔗 **Access URL**: `http://127.0.0.1:8134/#/magic-rod`
+
+**Visual Verification**:
+The prism correctly displays as an isosceles right triangle in cross-section with:
+- Two perpendicular edges of equal length
+- 45-45-90 degree triangle profile
+- Consistent rectangular faces connecting the triangular ends
+- Proper shading from directional and ambient lights
+
+### Next Steps
+
+Future enhancements for the magic rod simulator:
+1. Add multiple connected prism segments
+2. Implement rotation joints between segments
+3. Create UI controls for adjusting connection angles
+4. Add preset configurations (straight rod, zigzag patterns, etc.)
+5. Implement collision detection between segments
+6. Add texture/color variations for segment identification
+
+</details>

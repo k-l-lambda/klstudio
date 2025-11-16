@@ -9,7 +9,8 @@
 	</div>
 </template>
 
-<script>
+<script lang="ts">
+	import {markRaw} from "vue";
 	import resize from "vue-resize-directive";
 	import * as THREE from "three";
 	import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
@@ -18,22 +19,28 @@
 	import QuitClearner from "../mixins/quit-cleaner";
 
 
+	interface Size {
+		width: number;
+		height: number;
+	}
+
+
 	// Create triangular prism geometry
 	// Base: isosceles right triangle with legs of 1, hypotenuse of sqrt(2)
 	// Height: 1
-	const createTriangularPrism = () => {
+	const createTriangularPrism = (): THREE.BufferGeometry => {
 		const geometry = new THREE.BufferGeometry();
 
 		// Vertices for the triangular prism
 		// Bottom triangle (at z = 0): right angle at origin
-		const v0 = [0, 0, 0];      // Right angle vertex
-		const v1 = [1, 0, 0];      // Along x-axis
-		const v2 = [0, 1, 0];      // Along y-axis
+		const v0: number[] = [0, 0, 0];      // Right angle vertex
+		const v1: number[] = [1, 0, 0];      // Along x-axis
+		const v2: number[] = [0, 1, 0];      // Along y-axis
 
 		// Top triangle (at z = 1)
-		const v3 = [0, 0, 1];      // Right angle vertex
-		const v4 = [1, 0, 1];      // Along x-axis
-		const v5 = [0, 1, 1];      // Along y-axis
+		const v3: number[] = [0, 0, 1];      // Right angle vertex
+		const v4: number[] = [1, 0, 1];      // Along x-axis
+		const v5: number[] = [0, 1, 1];      // Along y-axis
 
 		const vertices = new Float32Array([
 			// Bottom triangle
@@ -92,27 +99,43 @@
 
 		props: {
 			showStatus: {
+				type: Boolean,
 				default: true,
 			},
 		},
 
 
-		data () {
+		data (): {
+			size: Size;
+			fps: number;
+			renderer?: THREE.WebGLRenderer;
+			camera?: THREE.PerspectiveCamera;
+			scene?: THREE.Scene;
+			controls?: OrbitControls;
+			prism?: THREE.Mesh;
+			rendererActive: boolean;
+		} {
 			return {
 				size: {width: 800, height: 600},
 				fps: 0,
+				renderer: undefined,
+				camera: undefined,
+				scene: undefined,
+				controls: undefined,
+				prism: undefined,
+				rendererActive: false,
 			};
 		},
 
 
-		mounted () {
+		mounted (): void {
 			this.initializeRenderer();
 			this.createScene();
 			this.render();
 		},
 
 
-		beforeDestroy () {
+		beforeUnmount (): void {
 			this.rendererActive = false;
 			if (this.controls) {
 				this.controls.dispose();
@@ -121,7 +144,7 @@
 
 
 		methods: {
-			onResize () {
+			onResize (): void {
 				this.size = {width: this.$el.clientWidth, height: this.$el.clientHeight};
 
 				if (this.camera) {
@@ -135,15 +158,17 @@
 			},
 
 
-			initializeRenderer () {
-				this.renderer = new THREE.WebGLRenderer({antialias: true, canvas: this.$refs.canvas});
+			initializeRenderer (): void {
+				const canvas = this.$refs.canvas as HTMLCanvasElement;
+
+				this.renderer = markRaw(new THREE.WebGLRenderer({antialias: true, canvas}));
 				this.renderer.setClearColor(new THREE.Color("#e0e8f0"), 1);
 				this.renderer.setSize(this.size.width, this.size.height, false);
 
-				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 0.1, 100);
+				this.camera = markRaw(new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 0.1, 100));
 				this.camera.position.set(2, 2, 3);
 
-				this.scene = new THREE.Scene();
+				this.scene = markRaw(new THREE.Scene());
 
 				// Main directional light
 				const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
@@ -159,7 +184,7 @@
 				this.scene.add(new THREE.AmbientLight(0x404040, 0.5));
 
 				// Orbit controls
-				this.controls = new OrbitControls(this.camera, this.$refs.canvas);
+				this.controls = markRaw(new OrbitControls(this.camera, canvas));
 				this.controls.enableDamping = true;
 				this.controls.dampingFactor = 0.05;
 
@@ -167,7 +192,9 @@
 			},
 
 
-			createScene () {
+			createScene (): void {
+				if (!this.scene) return;
+
 				// Create the triangular prism geometry
 				const geometry = createTriangularPrism();
 
@@ -180,7 +207,7 @@
 				});
 
 				// Create mesh
-				this.prism = new THREE.Mesh(geometry, material);
+				this.prism = markRaw(new THREE.Mesh(geometry, material));
 
 				// Center the prism
 				this.prism.position.set(-0.5, -0.5, -0.5);
@@ -198,7 +225,7 @@
 			},
 
 
-			async render () {
+			async render (): Promise<void> {
 				let lastTime = performance.now();
 				let lastSeconds = Math.floor(lastTime / 1000);
 				let frames = 0;
@@ -212,7 +239,9 @@
 					}
 
 					// Render scene
-					this.renderer.render(this.scene, this.camera);
+					if (this.renderer && this.scene && this.camera) {
+						this.renderer.render(this.scene, this.camera);
+					}
 
 					// Calculate FPS
 					frames++;

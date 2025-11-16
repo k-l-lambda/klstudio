@@ -113,8 +113,8 @@
         },
 
 
-		beforeDestroy () {
-			//console.log("beforeDestroy. 12");
+		beforeUnmount () {
+			//console.log("beforeUnmount. 12");
 			this.stopProducing();
 		},
 

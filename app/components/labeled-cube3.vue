@@ -168,7 +168,7 @@
 		},
 
 
-		beforeDestroy () {
+		beforeUnmount () {
 			this.rendererActive = false;
 		},
 

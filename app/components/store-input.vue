@@ -1,7 +1,8 @@
 <template>
 	<input
 		:type="type"
-		v-model.lazy="innerValue"
+		:value="modelValue"
+		@input="onInput"
 		:style="styleObj"
 		:placeholder="placeholder"
 		:min="range && range.min"
@@ -14,6 +15,9 @@
 	export default {
 		name: "store-input",
 
+		compatConfig: {
+			COMPONENT_V_MODEL: false,
+		},
 
 		props: {
 			type: {
@@ -21,7 +25,7 @@
 				default: "text",
 			},
 
-			value: {
+			modelValue: {
 				validator () {
 					return true;
 				},
@@ -38,46 +42,42 @@
 		},
 
 
-		computed: {
-			innerValue: {
-				get () {
-					return this.value;
-				},
-
-				set (value) {
-					this.$emit("input", value);
-				},
-			},
-		},
-
-
 		created () {
 			this.load();
 		},
 
 
 		methods: {
-			load () {
-				if (this.localKey && localStorage[`storeInput-${this.localKey}`])
-					this.innerValue = JSON.parse(localStorage[`storeInput-${this.localKey}`]);
+			onInput (event) {
+				const value = event.target.value;
+				this.$emit("update:modelValue", value);
+			},
 
-				if (this.sessionKey && sessionStorage[`storeInput-${this.sessionKey}`])
-					this.innerValue = JSON.parse(sessionStorage[`storeInput-${this.sessionKey}`]);
+			load () {
+				if (this.localKey && localStorage[`storeInput-${this.localKey}`]) {
+					const value = JSON.parse(localStorage[`storeInput-${this.localKey}`]);
+					this.$emit("update:modelValue", value);
+				}
+
+				if (this.sessionKey && sessionStorage[`storeInput-${this.sessionKey}`]) {
+					const value = JSON.parse(sessionStorage[`storeInput-${this.sessionKey}`]);
+					this.$emit("update:modelValue", value);
+				}
 			},
 
 
 			save () {
 				if (this.localKey)
-					localStorage[`storeInput-${this.localKey}`] = JSON.stringify(this.value);
+					localStorage[`storeInput-${this.localKey}`] = JSON.stringify(this.modelValue);
 
 				if (this.sessionKey)
-					sessionStorage[`storeInput-${this.sessionKey}`] = JSON.stringify(this.value);
+					sessionStorage[`storeInput-${this.sessionKey}`] = JSON.stringify(this.modelValue);
 			},
 		},
 
 
 		watch: {
-			value: "save",
+			modelValue: "save",
 		},
 	};
 </script>

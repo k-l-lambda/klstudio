@@ -5,12 +5,12 @@
 			<div class="controls">
 				<div class="input-group">
 					<label for="code-input">Code:</label>
-					<input
+					<StoreInput
 						id="code-input"
 						type="text"
 						v-model="code"
 						placeholder="Enter F, R, B, L"
-						@input="onCodeChange"
+						localKey="magic-rod-code"
 					/>
 					<span class="unit-count">Units: {{unitCount}}</span>
 				</div>
@@ -31,6 +31,7 @@
 
 	import {animationDelay} from "../delay";
 	import QuitClearner from "../mixins/quit-cleaner";
+	import StoreInput from "../components/store-input.vue";
 
 
 	interface Size {
@@ -108,6 +109,9 @@
 			resize,
 		},
 
+		components: {
+			StoreInput,
+		},
 
 		mixins: [
 			QuitClearner,
@@ -186,11 +190,6 @@
 			},
 
 
-			onCodeChange (): void {
-				this.generateRod();
-			},
-
-
 			// Parse code string and validate
 			parseCode (code: string): number[] | null {
 				const upperCode = code.toUpperCase();
@@ -234,33 +233,20 @@
 				// Calculate cumulative transformation
 				// Each connection: rotate around (1,1,0) by angle, then translate (1,1,0), then rotate 180° around X
 				for (let i = 0; i < index; i++) {
-					if (i < angles.length) {
-						const angle = angles[i];
+					const angle = i < angles.length ? angles[i] : 0;
 
-						// Step 1: Rotate around normalized (1, 1, 0) axis by the angle
-						const rotateAxis = new THREE.Vector3(1, 1, 0).normalize();
-						const rotation1 = new THREE.Matrix4().makeRotationAxis(rotateAxis, angle);
-						transform.multiply(rotation1);
+					// Step 1: Rotate around normalized (1, 1, 0) axis by the angle
+					const rotateAxis = new THREE.Vector3(1, 1, 0).normalize();
+					const rotation1 = new THREE.Matrix4().makeRotationAxis(rotateAxis, angle);
+					transform.multiply(rotation1);
 
-						// Step 2: Translate to (sectionLength, sectionLength, 0)
-						const translation = new THREE.Matrix4().makeTranslation(1, 1, 0);
-						transform.multiply(translation);
+					// Step 2: Translate to (sectionLength, sectionLength, 0)
+					const translation = new THREE.Matrix4().makeTranslation(1, 1, 0);
+					transform.multiply(translation);
 
-						// Step 3: Rotate 180° around X axis
-						const rotation2 = new THREE.Matrix4().makeRotationX(Math.PI);
-						transform.multiply(rotation2);
-					} else {
-						// No more angles, still need to position this block
-						const rotateAxis = new THREE.Vector3(1, 1, 0).normalize();
-						const rotation1 = new THREE.Matrix4().makeRotationAxis(rotateAxis, 0);
-						transform.multiply(rotation1);
-
-						const translation = new THREE.Matrix4().makeTranslation(1, 1, 0);
-						transform.multiply(translation);
-
-						const rotation2 = new THREE.Matrix4().makeRotationX(Math.PI);
-						transform.multiply(rotation2);
-					}
+					// Step 3: Rotate 180° around X axis
+					const rotation2 = new THREE.Matrix4().makeRotationX(Math.PI);
+					transform.multiply(rotation2);
 				}
 
 				return transform;
@@ -296,13 +282,13 @@
 				// Create each unit
 				for (let i = 0; i < unitCount; i++) {
 					// Create material with different color for each unit
-					const hue = (i / unitCount) * 360;
+					const hue = i * 90;
 					const color = new THREE.Color().setHSL(hue / 360, 0.7, 0.5);
 
 					const material = new THREE.MeshPhongMaterial({
 						color: color,
-						specular: 0xffffff,
-						shininess: 30,
+						specular: 0x111111,
+						shininess: 150,
 						side: THREE.DoubleSide,
 					});
 
@@ -400,6 +386,10 @@
 					}
 				}
 			},
+		},
+
+		watch: {
+			code: "generateRod",
 		},
 	};
 </script>

@@ -5,7 +5,7 @@
 			:doc="sheetDocument"
 			:midiNotation="midiNotation"
 			:pitchContextGroup="pitchContextGroup"
-			:midiPlayer.sync="midiPlayer"
+			:midiPlayer="midiPlayer" @update:midiPlayer="midiPlayer = $event"
 			:showCursor="showCursor"
 			:showMark="enablePointer"
 			:enablePointer="enablePointer"
@@ -47,6 +47,7 @@
 			enablePointer: Boolean,
 			noteHighlight: Boolean,
 			bakingSheet: Boolean,
+			isPlaying: Boolean,
 		},
 
 
@@ -64,7 +65,7 @@
 
 
 		computed: {
-			isPlaying () {
+			isPlayingComputed () {
 				return this.midiPlayer && this.midiPlayer.isPlaying;
 			},
 		},
@@ -153,7 +154,7 @@
 			source: "loadSheet",
 
 
-			isPlaying (value) {
+			isPlayingComputed (value) {
 				this.$emit("update:isPlaying", value);
 			},
 		},

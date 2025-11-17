@@ -108,29 +108,34 @@
 		const v7_back = offsetToward(v7, centerBack);
 
 		// Intersection vertices (where 3+ ridges meet)
-		// These are the average of the offset positions from each adjacent face
+		// Interpolate between the average of offset positions and original vertex
 		const avg = (...verts: number[][]) => {
 			const sum = verts.reduce((acc, v) => [acc[0]+v[0], acc[1]+v[1], acc[2]+v[2]], [0, 0, 0]);
 			return [sum[0]/verts.length, sum[1]/verts.length, sum[2]/verts.length];
 		};
+		const interpolate = (a: number[], b: number[], t: number) => [
+			a[0] * t + b[0] * (1 - t),
+			a[1] * t + b[1] * (1 - t),
+			a[2] * t + b[2] * (1 - t),
+		];
 
 		// v0 corner: Bottom, Right, Front
-		const v0_corner = avg(v0_bot, v0_right, v0_front);
+		const v0_corner = interpolate(avg(v0_bot, v0_right, v0_front), v0, 0.6);
 
 		// v1 corner: Bottom, Right, Back
-		const v1_corner = avg(v1_bot, v1_right, v1_back);
+		const v1_corner = interpolate(avg(v1_bot, v1_right, v1_back), v1, 0.6);
 
 		// v2 corner: Bottom, Left, Front
-		const v2_corner = avg(v2_bot, v2_left, v2_front);
+		const v2_corner = interpolate(avg(v2_bot, v2_left, v2_front), v2, 0.6);
 
 		// v3 corner: Bottom, Left, Back
-		const v3_corner = avg(v3_bot, v3_left, v3_back);
+		const v3_corner = interpolate(avg(v3_bot, v3_left, v3_back), v3, 0.6);
 
 		// v6 apex: Right, Left, Front
-		const v6_corner = avg(v6_right, v6_left, v6_front);
+		const v6_corner = interpolate(avg(v6_right, v6_left, v6_front), v6, 0.6);
 
 		// v7 apex: Right, Left, Back
-		const v7_corner = avg(v7_right, v7_left, v7_back);
+		const v7_corner = interpolate(avg(v7_right, v7_left, v7_back), v7, 0.6);
 
 		const vertices: number[] = [];
 
@@ -165,7 +170,7 @@
 
 			// Trapezoid 2: 2 triangles
 			vertices.push(...e2a, ...c2, ...e2b);
-			vertices.push(...e2b, ...c1, ...c2);
+			vertices.push(...e2a, ...c1, ...c2);
 		};
 
 		// Hexagonal chamfer strips (9 edges)

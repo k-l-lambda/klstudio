@@ -39,7 +39,7 @@
  },
  "devDependencies": {
   "@chrisoakman/chessboardjs": "^1.0.0",
-  "@k-l-lambda/lotus": "1.0.2",
+  "@k-l-lambda/lotus": "1.0.3",
   "@k-l-lambda/music-widgets": "1.0.1",
   "@tensorflow/tfjs": "^1.2.6",
   "@types/events": "^3.0.0",

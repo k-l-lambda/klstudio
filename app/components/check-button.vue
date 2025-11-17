@@ -1,5 +1,5 @@
 <template>
-	<button :class="`check-button ${classes} ${value ? 'on' : 'off'}`" v-html="content" @click="onClick" :disabled="disabled"></button>
+	<button :class="`check-button ${classes} ${modelValue ? 'on' : 'off'}`" v-html="content" @click="onClick" :disabled="disabled"></button>
 </template>
 
 <script>
@@ -7,9 +7,12 @@
 	export default {
 		name: "check-button",
 
+		compatConfig: {
+			COMPONENT_V_MODEL: false,
+		},
 
 		props: {
-			value: Boolean,
+			modelValue: Boolean,
 			classes: {
 				type: String,
 				default: "",
@@ -21,7 +24,7 @@
 
 		methods: {
 			onClick () {
-				this.$emit("input", !this.value);
+				this.$emit("update:modelValue", !this.modelValue);
 			},
 		},
 	};

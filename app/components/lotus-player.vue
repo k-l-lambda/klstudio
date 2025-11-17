@@ -5,7 +5,7 @@
 			:doc="sheetDocument"
 			:midiNotation="midiNotation"
 			:pitchContextGroup="pitchContextGroup"
-			:midiPlayer.sync="midiPlayer"
+			:midiPlayer="midiPlayer" @update:midiPlayer="midiPlayer = $event"
 			:showCursor="showCursor"
 			:showMark="enablePointer"
 			:enablePointer="enablePointer"
@@ -25,6 +25,7 @@
 
 <script>
 	import * as lotus from "@k-l-lambda/lotus";
+	import "@k-l-lambda/lotus/lib.browser/style.css";
 	import {MidiAudio} from "@k-l-lambda/music-widgets";
 
 	import {animationDelay} from "../delay";
@@ -47,6 +48,7 @@
 			enablePointer: Boolean,
 			noteHighlight: Boolean,
 			bakingSheet: Boolean,
+			isPlaying: Boolean,
 		},
 
 
@@ -64,7 +66,7 @@
 
 
 		computed: {
-			isPlaying () {
+			isPlayingComputed () {
 				return this.midiPlayer && this.midiPlayer.isPlaying;
 			},
 		},
@@ -153,7 +155,7 @@
 			source: "loadSheet",
 
 
-			isPlaying (value) {
+			isPlayingComputed (value) {
 				this.$emit("update:isPlaying", value);
 			},
 		},

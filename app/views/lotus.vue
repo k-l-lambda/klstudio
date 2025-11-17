@@ -7,7 +7,7 @@
 				:enablePointer="true"
 				:noteHighlight="true"
 				:bakingSheet="baking"
-				:isPlaying.sync="isPlaying"
+				v-model:isPlaying="isPlaying"
 				@cursorSystemShift="onSystemShift"
 			/>
 		</main>

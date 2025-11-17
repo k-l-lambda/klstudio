@@ -25,6 +25,7 @@
 
 <script>
 	import * as lotus from "@k-l-lambda/lotus";
+	import "@k-l-lambda/lotus/lib.browser/style.css";
 	import {MidiAudio} from "@k-l-lambda/music-widgets";
 
 	import {animationDelay} from "../delay";

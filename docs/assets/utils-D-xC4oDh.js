@@ -1,0 +1,1 @@
+typeof File=="function"&&(File.prototype.readAs=function(t){return new Promise(o=>{const e=new FileReader;e.onload=()=>o(e.result),e[`readAs${t}`](this)})});const n=(t,o)=>{const e=document.createElement("a");e.setAttribute("download",o),e.href=t,e.click()};export{n as d};

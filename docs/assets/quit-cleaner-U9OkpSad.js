@@ -1,0 +1,1 @@
+const t={created(){this.quitCleaner=new Promise(e=>this.quitClear=e)},methods:{async appendCleaner(e){await Promise.race([this.quitCleaner,"pending"])!=="pending"?e():this.quitCleaner=this.quitCleaner.then(e)}},beforeDestroy(){this.quitClear()}};export{t as Q};

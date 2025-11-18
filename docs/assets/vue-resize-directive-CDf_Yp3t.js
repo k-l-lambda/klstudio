@@ -1,0 +1,1 @@
+const o={mounted(e,r){const s=r.value,_=new ResizeObserver(()=>s());_.observe(e),e.__v_resize_observer__=_},beforeUnmount(e){e.__v_resize_observer__&&e.__v_resize_observer__.disconnect(),delete e.__v_resize_observer__}};export{o as r};

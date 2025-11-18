@@ -1,0 +1,1 @@
+const m=e=>new Promise(t=>setTimeout(t,e));function a(){return new Promise(e=>requestAnimationFrame(e))}const o={};function i(e,t){const n={};return o[e]=n,new Promise(s=>setTimeout(()=>s(o[e]===n),t))}export{a,i as b,m};

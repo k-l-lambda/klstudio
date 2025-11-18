@@ -207,9 +207,9 @@
 						//const obj = await new Promise(resolve => new THREE.ObjectLoader().parse(prototype, resolve));
 						let obj = null;
 						if (/\.(glb|gltf)$/.test(entity.prototype))
-							obj = await this.loadByGltfLoader(await import(`../assets/${entity.prototype}`));
+							obj = await this.loadByGltfLoader(await import(/* @vite-ignore */ `../assets/${entity.prototype}`));
 						else
-							obj = await this.loadByObjectLoader(await import(`../assets/${entity.prototype}.json`));
+							obj = await this.loadByObjectLoader(await import(/* @vite-ignore */ `../assets/${entity.prototype}.json`));
 						node1.add(obj);
 
 						if (entity.name)

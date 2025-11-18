@@ -206,8 +206,10 @@
 
 
 		data () {
+			const config = this.config.replace(/^[:]+/, "");
+
 			return {
-				param: configs[this.config],
+				param: configs[config],
 			};
 		},
 	};

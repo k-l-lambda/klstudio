@@ -206,10 +206,16 @@
 						//const {default: prototype} = await import(`../assets/${entity.prototype}.json`);
 						//const obj = await new Promise(resolve => new THREE.ObjectLoader().parse(prototype, resolve));
 						let obj = null;
-						if (/\.(glb|gltf)$/.test(entity.prototype))
-							obj = await this.loadByGltfLoader(await import(`../assets/${entity.prototype}`));
-						else
-							obj = await this.loadByObjectLoader(await import(`../assets/${entity.prototype}.json`));
+						if (/\.(glb|gltf)$/.test(entity.prototype)) {
+							const assetUrl = new URL(`../assets/${entity.prototype}`, import.meta.url).href;
+							obj = await this.loadByGltfLoader({default: assetUrl});
+						}
+						else {
+							const jsonUrl = new URL(`../assets/${entity.prototype}.json`, import.meta.url).href;
+							const response = await fetch(jsonUrl);
+							const jsonData = await response.json();
+							obj = await this.loadByObjectLoader({default: jsonData});
+						}
 						node1.add(obj);
 
 						if (entity.name)

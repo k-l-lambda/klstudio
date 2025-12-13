@@ -14,6 +14,7 @@
 
 <script>
 	import * as THREE from "three";
+	import {markRaw} from "vue";
 
 	import {animationDelay} from "../delay";
 	import CubeObject from "../cubeObject";
@@ -86,13 +87,13 @@
 
 			this.initializeRenderer();
 
-			this.cube = new CubeObject({materials: this.material, onChange: algebra => this.onChange(algebra), meshSchema: this.meshSchema});
+			this.cube = markRaw(new CubeObject({materials: this.material, onChange: algebra => this.onChange(algebra), meshSchema: this.meshSchema}));
 			this.scene.add(this.cube.graph);
 			//console.log("this.cube:", this.cube);
 
 			this.$emit("cubeCreated", this.cube);
 
-			this.raycaster = new THREE.Raycaster();
+			this.raycaster = markRaw(new THREE.Raycaster());
 
 			this.holdingAxis = null;
 
@@ -109,16 +110,17 @@
 
 		methods: {
 			initializeRenderer () {
-				this.renderer = new THREE.WebGLRenderer({antialias: true, canvas: this.$refs.canvas, alpha: true});
+				// Use markRaw to prevent Vue from making Three.js objects reactive
+				this.renderer = markRaw(new THREE.WebGLRenderer({antialias: true, canvas: this.$refs.canvas, alpha: true}));
 				this.renderer.setClearColor(new THREE.Color("black"), 0);
 				this.renderer.setSize(this.size.width, this.size.height, false);
 
 				//this.camera = new THREE.OrthographicCamera(-0.5, 0.5, this.ratio / 2, this.ratio / -2, 0, 100);
-				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 3, 12);
+				this.camera = markRaw(new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 3, 12));
 				this.camera.position.set(0, 0, 6.4);
 				this.camera.lookAt(0, 0, 0);
 
-				this.scene = new THREE.Scene();
+				this.scene = markRaw(new THREE.Scene());
 			},
 
 

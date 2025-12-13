@@ -111,7 +111,7 @@
 		methods: {
 			initializeRenderer () {
 				// Use markRaw to prevent Vue from making Three.js objects reactive
-				this.renderer = markRaw(new THREE.WebGLRenderer({antialias: true, canvas: this.$refs.canvas, alpha: true}));
+				this.renderer = markRaw(new THREE.WebGLRenderer({antialias: true, canvas: this.$refs.canvas, alpha: true, premultipliedAlpha: false}));
 				this.renderer.setClearColor(new THREE.Color("black"), 0);
 				this.renderer.setSize(this.size.width, this.size.height, false);
 

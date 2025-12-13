@@ -193,8 +193,8 @@
 				this.cubeHighlightMaterial.emissive = new THREE.Color("#35ac7e");
 				this.cubeHighlightMaterial.emissiveIntensity = 0.3;
 
-				// === Post-Processing Setup ===
-				this.setupPostProcessing(cube3);
+				// === Post-Processing Setup (disabled for transparency) ===
+				// this.setupPostProcessing(cube3);
 			},
 
 

@@ -5,7 +5,7 @@ static/bundles
 *.local
 *.local.*
 Footages
-yarn.lock
+#yarn.lock
 package-lock.json
 *.log
 *.sln

@@ -97,6 +97,9 @@
 
 			this.holdingAxis = null;
 
+			// Inertia for rotation
+			this.rotationVelocity = {x: 0, y: 0};
+
 			this.$emit("sceneInitialized", this);
 
 			this.render();
@@ -130,8 +133,19 @@
 				let frames = 0;
 				let stuck = 0;
 
+				const DAMPING = 0.92;  // Inertia damping factor (lower = more friction)
+				const MIN_VELOCITY = 0.0001;  // Stop threshold
+
 				while (this.rendererActive) {
 					this.$emit("beforeRender", this);
+
+					// Always apply inertia rotation
+					if (this.cube && (Math.abs(this.rotationVelocity.x) > MIN_VELOCITY || Math.abs(this.rotationVelocity.y) > MIN_VELOCITY)) {
+						this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.rotationVelocity.x);
+						this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), this.rotationVelocity.y);
+						this.rotationVelocity.x *= DAMPING;
+						this.rotationVelocity.y *= DAMPING;
+					}
 
 					this.renderer.render(this.scene, this.camera);
 
@@ -200,8 +214,9 @@
 						switch (event.buttons) {
 						case 1:
 						case 4:
-							this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 1e-2);
-							this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), event.movementY * 1e-2);
+							// Add to velocity instead of direct rotation (inertia handles rotation)
+							this.rotationVelocity.x += event.movementX * 1e-3;
+							this.rotationVelocity.y += event.movementY * 1e-3;
 
 							break;
 						case 0:

@@ -1,5 +1,5 @@
 <template>
-	<div v-resize="onResize" class="globe-cube3">
+	<div v-resize="onResize" class="globe-cube3" @mousemove="onMouseMove" @mouseleave="onMouseLeave">
 		<Cube3 ref="cube3"
 			class="viewer"
 			:size="size"
@@ -41,7 +41,7 @@
 		color: "#1a2a3a",      // Slightly brighter for land visibility
 		metalness: 0.85,       // High metalness for reflection
 		roughness: 0.08,       // Very smooth for clear env reflections
-		envMapIntensity: 2.0,  // Strong environment reflection
+		envMapIntensity: 6.0,  // Strong environment reflection
 	};
 
 	// Hover material config - bright realistic Earth with land/ocean differentiation
@@ -136,6 +136,9 @@
 				cubeMaterial,
 				cubeHighlightMaterial,
 				composer: null,
+				// Mouse parallax effect
+				mousePosition: {x: 0, y: 0},
+				targetMousePosition: {x: 0, y: 0},
 			};
 		},
 
@@ -157,6 +160,21 @@
 			onFps (data) {
 				//console.log("fps:", data);
 				this.fps = data.fps;
+			},
+
+
+			onMouseMove (event) {
+				// Normalize mouse position to -1 to 1
+				const rect = this.$el.getBoundingClientRect();
+				this.targetMousePosition.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+				this.targetMousePosition.y = ((event.clientY - rect.top) / rect.height) * 2 - 1;
+			},
+
+
+			onMouseLeave () {
+				// Return to center when mouse leaves
+				this.targetMousePosition.x = 0;
+				this.targetMousePosition.y = 0;
 			},
 
 
@@ -188,6 +206,7 @@
 				// Configure default material (dark mysterious)
 				this.cubeMaterial.normalMap = normalMap;
 				this.cubeMaterial.envMap = skyTexture;
+				this.cubeMaterial.metalnessMap = specularMap;
 				this.cubeMaterial.needsUpdate = true;
 
 				// Add Fresnel rim light effect to default material
@@ -254,6 +273,19 @@
 
 			onBeforeRender (cube3) {
 				cube3.scene.rotation.set(0, Date.now() * 40e-6, 0);
+
+				// Mouse parallax effect - smooth lerp towards target
+				const PARALLAX_STRENGTH = 0.15;  // How much the camera moves
+				const LERP_FACTOR = 0.05;  // Smoothing factor
+				this.mousePosition.x += (this.targetMousePosition.x - this.mousePosition.x) * LERP_FACTOR;
+				this.mousePosition.y += (this.targetMousePosition.y - this.mousePosition.y) * LERP_FACTOR;
+
+				// Apply subtle camera offset based on mouse position
+				const baseZ = 4.5;
+				cube3.camera.position.x = this.mousePosition.x * PARALLAX_STRENGTH;
+				cube3.camera.position.y = -this.mousePosition.y * PARALLAX_STRENGTH;
+				cube3.camera.position.z = baseZ;
+				cube3.camera.lookAt(0, 0, 0);
 
 				if (this.sensorVelocity) {
 					cube3.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), this.sensorVelocity[0] * SENSOR_SENSITIVITY * 0.1);

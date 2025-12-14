@@ -20,9 +20,13 @@ jobs:
         with:
           node-version: '21.7.1'
           cache: 'yarn'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@k-l-lambda'
 
       - name: Install dependencies
         run: yarn install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure Git
         run: |

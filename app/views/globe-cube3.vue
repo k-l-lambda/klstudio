@@ -44,6 +44,14 @@
 		envMapIntensity: 2.0,  // Strong environment reflection
 	};
 
+	// Hover material config - bright realistic Earth with land/ocean differentiation
+	const hoverMaterialConfig = {
+		color: "#4a7ab0",      // Bright blue-green tone
+		metalness: 0.5,        // Base metalness (adjusted by metalnessMap)
+		roughness: 0.7,        // Base roughness (will be 0 for ocean via inverted map)
+		envMapIntensity: 1.2,  // Moderate environment reflection
+	};
+
 	// Vignette shader for cinematic effect
 	const VignetteShader = {
 		uniforms: {
@@ -118,14 +126,15 @@
 			// markRaw prevents Vue from making Three.js objects reactive (causes Proxy conflicts)
 			const cubeMaterial = markRaw(new THREE.MeshStandardMaterial(materialConfig));
 
-			// Note: onBeforeCompile is set in onSceneInitialized after textures load
+			// Independent hover material with land/ocean differentiation
+			const cubeHighlightMaterial = markRaw(new THREE.MeshStandardMaterial(hoverMaterialConfig));
 
 			return {
 				size: undefined,
 				fps: null,
 				code: null,
 				cubeMaterial,
-				cubeHighlightMaterial: cubeMaterial,
+				cubeHighlightMaterial,
 				composer: null,
 			};
 		},
@@ -168,18 +177,20 @@
 
 				this.textureLoader = markRaw(new THREE.TextureLoader());
 
-				// Normal map for surface detail
+				// Load textures
 				const normalMap = await this.loadTexture("earth/earth_normal.jpg");
-				this.cubeMaterial.normalMap = normalMap;
-				this.cubeMaterial.needsUpdate = true;
+				const specularMap = await this.loadTexture("earth/earth_specular.jpg");
 
-				// Environment map for reflections (original feature)
+				// Environment map for reflections
 				const skyTexturePaths = cubeTextureNames.map(name => new URL(`../assets/skybox-space/${name}.jpg`, import.meta.url).href);
 				const skyTexture = new THREE.CubeTextureLoader().load(skyTexturePaths);
+
+				// Configure default material (dark mysterious)
+				this.cubeMaterial.normalMap = normalMap;
 				this.cubeMaterial.envMap = skyTexture;
 				this.cubeMaterial.needsUpdate = true;
 
-				// Add Fresnel rim light effect
+				// Add Fresnel rim light effect to default material
 				this.cubeMaterial.onBeforeCompile = (shader) => {
 					shader.fragmentShader = shader.fragmentShader.replace(
 						"#include <output_fragment>",
@@ -188,10 +199,18 @@
 					);
 				};
 
-				// Update highlight material
-				this.cubeHighlightMaterial = markRaw(this.cubeMaterial.clone());
-				this.cubeHighlightMaterial.emissive = new THREE.Color("#35ac7e");
-				this.cubeHighlightMaterial.emissiveIntensity = 0.3;
+				// Configure hover material (bright realistic Earth)
+				// Use specularMap as metalnessMap to differentiate land/ocean:
+				// ocean(white) = high metalness (reflective), land(dark) = low metalness (diffuse)
+				// Create inverted roughnessMap: ocean=smooth, land=rough (no specular)
+				this.cubeHighlightMaterial.normalMap = normalMap;
+				this.cubeHighlightMaterial.envMap = skyTexture;
+				this.cubeHighlightMaterial.metalnessMap = specularMap;
+
+				// Invert specular map for roughnessMap using canvas
+				const invertedRoughnessMap = await this.createInvertedTexture(specularMap);
+				this.cubeHighlightMaterial.roughnessMap = invertedRoughnessMap;
+				this.cubeHighlightMaterial.needsUpdate = true;
 
 				// === Post-Processing Setup (disabled for transparency) ===
 				// this.setupPostProcessing(cube3);
@@ -255,6 +274,30 @@
 			async loadTexture (assetPath) {
 				const path = new URL(`../assets/${assetPath}`, import.meta.url).href;
 				return new Promise(resolve => this.textureLoader.load(path, texture => resolve(texture)));
+			},
+
+
+			// Create inverted texture for roughnessMap (ocean=dark=smooth, land=bright=rough)
+			async createInvertedTexture (sourceTexture) {
+				const image = sourceTexture.image;
+				const canvas = document.createElement("canvas");
+				canvas.width = image.width;
+				canvas.height = image.height;
+				const ctx = canvas.getContext("2d");
+				ctx.drawImage(image, 0, 0);
+				const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+				const data = imageData.data;
+				// Invert RGB values
+				for (let i = 0; i < data.length; i += 4) {
+					data[i] = 255 - data[i];       // R
+					data[i + 1] = 255 - data[i + 1]; // G
+					data[i + 2] = 255 - data[i + 2]; // B
+					// Alpha stays the same
+				}
+				ctx.putImageData(imageData, 0, 0);
+				const invertedTexture = new THREE.CanvasTexture(canvas);
+				invertedTexture.colorSpace = sourceTexture.colorSpace;
+				return markRaw(invertedTexture);
 			},
 		},
 

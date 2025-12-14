@@ -1,0 +1,44 @@
+name: Merge develop and Build
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  merge-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '21.7.1'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge develop into master
+        run: |
+          git checkout master
+          git merge origin/develop -m "Merge remote-tracking branch 'origin/develop'"
+
+      - name: Build
+        run: yarn build
+
+      - name: Commit and push
+        run: |
+          git add docs/
+          git commit -m "updated dist files." || echo "No changes to commit"
+          git push origin master

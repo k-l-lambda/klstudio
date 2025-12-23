@@ -404,6 +404,62 @@ Updated `vue.config.js` to use Webpack 5's built-in asset modules:
 
 </details>
 
+
+## 2025/12/23
+
+
+<details>
+<summary>GitHub Pages Deployment Fix - Dynamic Image Imports (2025-12-23)</summary>
+
+**Issue:** When deployed to GitHub Pages at `/studio/` path, app cover images failed to load on the home page.
+
+**Root Cause Analysis:**
+- Original code in `app/home.vue` used dynamic imports with template strings:
+  ```javascript
+  await import(`./assets/app-covers/${this.cover}`)
+  ```
+- This pattern cannot be statically analyzed by Vite during build time
+- Build output:
+  - Source: `app/assets/app-covers/chess-lab.png`
+  - Built: `docs/assets/chess-lab-DbVYFQKW.png` (with hash, **no `app-covers/` subdirectory**)
+  - Runtime attempted: `./assets/app-covers/chess-lab.png` ❌ (path doesn't exist)
+- Even with `base: "./"`configuration, the dynamic import path remained incorrect because Vite couldn't transform it
+
+**Fix Applied in `app/home.vue`:**
+1. **Replaced dynamic imports with Vite's glob import** (line 52-53):
+   ```javascript
+   const coverImages = import.meta.glob('./assets/app-covers/*', {eager: true, import: 'default'});
+   ```
+   - This tells Vite to import all files matching the pattern at build time
+   - `eager: true` loads them immediately instead of lazy loading
+   - `import: 'default'` extracts the default export (the asset URL)
+
+2. **Updated `App.load()` method** (line 66-70):
+   ```javascript
+   async load () {
+       const imagePath = `./assets/app-covers/${this.cover}`;
+       this.coverURL = coverImages[imagePath];
+   }
+   ```
+   - Now looks up the preloaded image from the `coverImages` object
+   - Vite transforms this correctly during build, mapping to actual hashed filenames
+
+3. **Removed duplicate image loading code** (line 151-164):
+   - Deleted redundant `apps.forEach()` loop in `created()` hook that was trying to load images again
+
+**Technical Details:**
+- Vite's `import.meta.glob()` generates a mapping at build time of all matched files
+- Each file path is transformed to its final hashed name in the build output
+- The glob pattern is analyzed statically, so Vite knows exactly which files to include
+- Works correctly with both `base: "./"` (relative) and `base: "/studio/"` (absolute) configurations
+
+**Result:** ✅ App cover images now load correctly when deployed to any path (root or subdirectory)
+- No changes needed to `vite.config.mjs` base path setting
+- Compatible with GitHub Pages deployment at `/studio/`
+- Maintains relative path benefits for flexible deployment
+
+</details>
+
 **Next steps:**
 - Test the built application in browser to verify Vue 3 compatibility and all features work correctly
 - Verify `vue-class-component`/`vue-property-decorator` usage with Vue 3; upgrade or refactor components to options/composition API under compat mode

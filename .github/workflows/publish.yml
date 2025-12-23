@@ -43,6 +43,7 @@ jobs:
         run: yarn build
         env:
           NODE_ENV: production
+          VITE_BASE_PATH: /klstudio/
           VUE_APP_GOOGLE_ANALYTICS_ID: ${{ secrets.VUE_APP_GOOGLE_ANALYTICS_ID || '' }}
 
       - name: Commit and push

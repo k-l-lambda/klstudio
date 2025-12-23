@@ -14,6 +14,7 @@
 
 <script>
 	import * as THREE from "three";
+	import {markRaw} from "vue";
 
 	import {animationDelay} from "../delay";
 	import CubeObject from "../cubeObject";
@@ -86,15 +87,18 @@
 
 			this.initializeRenderer();
 
-			this.cube = new CubeObject({materials: this.material, onChange: algebra => this.onChange(algebra), meshSchema: this.meshSchema});
+			this.cube = markRaw(new CubeObject({materials: this.material, onChange: algebra => this.onChange(algebra), meshSchema: this.meshSchema}));
 			this.scene.add(this.cube.graph);
 			//console.log("this.cube:", this.cube);
 
 			this.$emit("cubeCreated", this.cube);
 
-			this.raycaster = new THREE.Raycaster();
+			this.raycaster = markRaw(new THREE.Raycaster());
 
 			this.holdingAxis = null;
+
+			// Inertia for rotation
+			this.rotationVelocity = {x: 0, y: 0};
 
 			this.$emit("sceneInitialized", this);
 
@@ -109,16 +113,17 @@
 
 		methods: {
 			initializeRenderer () {
-				this.renderer = new THREE.WebGLRenderer({antialias: true, canvas: this.$refs.canvas, alpha: true});
+				// Use markRaw to prevent Vue from making Three.js objects reactive
+				this.renderer = markRaw(new THREE.WebGLRenderer({antialias: true, canvas: this.$refs.canvas, alpha: true, premultipliedAlpha: false}));
 				this.renderer.setClearColor(new THREE.Color("black"), 0);
 				this.renderer.setSize(this.size.width, this.size.height, false);
 
 				//this.camera = new THREE.OrthographicCamera(-0.5, 0.5, this.ratio / 2, this.ratio / -2, 0, 100);
-				this.camera = new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 3, 12);
+				this.camera = markRaw(new THREE.PerspectiveCamera(60, this.size.width / this.size.height, 3, 12));
 				this.camera.position.set(0, 0, 6.4);
 				this.camera.lookAt(0, 0, 0);
 
-				this.scene = new THREE.Scene();
+				this.scene = markRaw(new THREE.Scene());
 			},
 
 
@@ -128,8 +133,19 @@
 				let frames = 0;
 				let stuck = 0;
 
+				const DAMPING = 0.92;  // Inertia damping factor (lower = more friction)
+				const MIN_VELOCITY = 0.0001;  // Stop threshold
+
 				while (this.rendererActive) {
 					this.$emit("beforeRender", this);
+
+					// Always apply inertia rotation
+					if (this.cube && (Math.abs(this.rotationVelocity.x) > MIN_VELOCITY || Math.abs(this.rotationVelocity.y) > MIN_VELOCITY)) {
+						this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.rotationVelocity.x);
+						this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), this.rotationVelocity.y);
+						this.rotationVelocity.x *= DAMPING;
+						this.rotationVelocity.y *= DAMPING;
+					}
 
 					this.renderer.render(this.scene, this.camera);
 
@@ -198,8 +214,9 @@
 						switch (event.buttons) {
 						case 1:
 						case 4:
-							this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 1e-2);
-							this.cube.graph.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), event.movementY * 1e-2);
+							// Add to velocity instead of direct rotation (inertia handles rotation)
+							this.rotationVelocity.x += event.movementX * 1e-3;
+							this.rotationVelocity.y += event.movementY * 1e-3;
 
 							break;
 						case 0:

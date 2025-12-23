@@ -1,0 +1,53 @@
+name: Merge develop and Build
+# a change to trigger this workflow
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  merge-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '21.7.1'
+          cache: 'yarn'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@k-l-lambda'
+
+      - name: Install dependencies
+        run: yarn install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge develop into master
+        run: |
+          git checkout master
+          git merge origin/develop -m "Merge remote-tracking branch 'origin/develop'"
+
+      - name: Build
+        run: yarn build
+        env:
+          NODE_ENV: production
+          VITE_BASE_PATH: /klstudio/
+          VUE_APP_GOOGLE_ANALYTICS_ID: ${{ secrets.VUE_APP_GOOGLE_ANALYTICS_ID || '' }}
+
+      - name: Commit and push
+        run: |
+          git add docs/
+          git commit -m "updated dist files." || echo "No changes to commit"
+          git push origin master

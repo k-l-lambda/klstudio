@@ -49,6 +49,9 @@
 
 
 
+	// Import all cover images using Vite's glob import
+	const coverImages = import.meta.glob('./assets/app-covers/*', {eager: true, import: 'default'});
+
 	class App {
 		constructor (router, fields) {
 			this.router = router;
@@ -61,8 +64,9 @@
 
 
 		async load () {
-			const {default: url} = await import(`./assets/app-covers/${this.cover}`);
-			this.coverURL = url;
+			// Use the preloaded cover images
+			const imagePath = `./assets/app-covers/${this.cover}`;
+			this.coverURL = coverImages[imagePath];
 		}
 
 
@@ -148,21 +152,16 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 			if (process.env.NODE_ENV === "development")
 				window.$main = this;
 
-            apps.forEach(async app => {
-                const {default: url} = await import(`./assets/app-covers/${app.cover}`);
-                app.coverURL = url;
-            });
-
-            window.addEventListener("resize", () => this.onResize());
+			window.addEventListener("resize", () => this.onResize());
 
 			if (process.env.VUE_APP_DORME) {
 				window.$main = this;
 
 				Object.defineProperty(window, "$view", {
-                    get: () => this.$refs.view,
-                });
-            }
-        },
+					get: () => this.$refs.view,
+				});
+			}
+		},
 
 
 		mounted () {

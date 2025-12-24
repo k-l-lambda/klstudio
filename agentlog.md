@@ -460,6 +460,54 @@ Updated `vue.config.js` to use Webpack 5's built-in asset modules:
 
 </details>
 
+<details>
+<summary>GitHub Pages Deployment Fix - Jekyll and Dynamic Imports (2025-12-23)</summary>
+
+**Issue:** Two 404 errors when deployed to GitHub Pages at `/klstudio/` path:
+1. `_commonjsHelpers-DM6icglO.js net::ERR_ABORTED 404`
+2. `Failed to fetch dynamically imported module: globe-cube3-xdm44WXH.js`
+
+**Root Cause Analysis:**
+
+**Problem 1: Jekyll ignoring underscore files** (PRIMARY ISSUE)
+- GitHub Pages uses Jekyll by default
+- Jekyll ignores files and directories starting with underscore `_`
+- The `_commonjsHelpers-DM6icglO.js` file was being skipped during Jekyll processing
+- File existed in git but returned 404 from GitHub Pages
+
+**Problem 2: Dynamic imports using relative paths**
+- Vite's `base` config doesn't affect dynamically generated import paths in built JS chunks
+- Built code contained: `import("./chess-lab-xxx.js")` instead of `import("/klstudio/assets/chess-lab-xxx.js")`
+
+**Fixes Applied:**
+
+1. **Added .nojekyll file** (`public/.nojekyll`):
+   - Empty file that tells GitHub Pages to skip Jekyll processing
+   - Allows files starting with underscore to be served correctly
+   - This was the key fix for the 404 errors
+
+2. **Added VITE_BASE_PATH environment variable** (`.github/workflows/publish.yml`):
+   ```yaml
+   env:
+     VITE_BASE_PATH: /klstudio/
+   ```
+
+3. **Created rewriteDynamicImports plugin** (`vite.config.mjs`):
+   - Rewrites dynamic import paths from relative (`./`) to absolute (`/klstudio/assets/`)
+   - Handles `import("./xxx")`, `from"./xxx"`, and `import"./xxx"` patterns
+
+4. **Added experimental.renderBuiltUrl** (`vite.config.mjs`):
+   - Ensures asset URLs use the correct base path during build
+
+**Note:** Some intermediate attempts at fixing dynamic imports caused canvas rendering issues (silent failures without errors). The current configuration in the repo is the correct working version.
+
+**Result:** ✅ All assets load correctly on GitHub Pages at `/klstudio/` path
+- Underscore-prefixed files are served properly (via `.nojekyll`)
+- Dynamic module imports work correctly
+- Site fully functional at https://k-l-lambda.github.io/klstudio/
+
+</details>
+
 **Next steps:**
 - Test the built application in browser to verify Vue 3 compatibility and all features work correctly
 - Verify `vue-class-component`/`vue-property-decorator` usage with Vue 3; upgrade or refactor components to options/composition API under compat mode

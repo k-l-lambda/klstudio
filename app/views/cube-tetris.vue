@@ -18,7 +18,16 @@
 				</div>
 			</div>
 
-			<div class="controls-hint">
+			<div class="mode-panel">
+				<button
+					:class="['mode-btn', {active: aiMode}]"
+					@click="toggleAiMode"
+				>
+					{{ aiMode ? 'AI Playing' : 'AI Demo' }}
+				</button>
+			</div>
+
+			<div v-if="!aiMode" class="controls-hint">
 				<div class="hint-section">
 					<strong>Move</strong>
 					<span>W/A/S/D or Arrows</span>
@@ -59,6 +68,7 @@
 	import {markRaw} from "vue";
 	import {TetrisGame} from "../cubeTetris/TetrisGame";
 	import {TetrisRenderer} from "../cubeTetris/TetrisRenderer";
+	import {AiController} from "../cubeTetris/AiController";
 	import {KEY_BINDINGS} from "../cubeTetris/constants";
 
 
@@ -70,6 +80,8 @@
 			return {
 				game: null,
 				renderer: null,
+				aiController: null,
+				aiMode: true,  // Start in AI demo mode
 				state: {
 					score: 0,
 					level: 1,
@@ -107,23 +119,43 @@
 				// Create renderer (use markRaw to prevent Vue reactivity proxy issues with Three.js)
 				this.renderer = markRaw(new TetrisRenderer(this.$refs.canvas));
 
+				// Create AI controller
+				this.aiController = markRaw(new AiController(this.game));
+
 				// Listen to game events
 				this.game.on("scoreChanged", () => this.updateState());
-				this.game.on("pieceSpawned", () => this.updateVisuals());
+				this.game.on("pieceSpawned", () => {
+					this.updateVisuals();
+					this.aiController.onPieceSpawned();
+				});
 				this.game.on("pieceMoved", () => this.updateVisuals());
 				this.game.on("pieceRotated", () => this.updateVisuals());
 				this.game.on("pieceLocked", () => this.updateVisuals());
 				this.game.on("layersCleared", () => this.updateVisuals());
-				this.game.on("gameOver", () => this.updateState());
+				this.game.on("gameOver", () => {
+					this.updateState();
+					// Auto restart in AI mode after delay
+					if (this.aiMode) {
+						setTimeout(() => {
+							if (this.aiMode && this.game) {
+								this.restart();
+							}
+						}, 2000);
+					}
+				});
 
 				// Start game
 				this.game.start();
 				this.updateState();
 				this.updateVisuals();
 
+				// Enable AI mode by default
+				this.setAiMode(true);
+
 				// Start render loop
 				this.renderer.startAnimationLoop((time) => {
 					this.game.update(time);
+					this.aiController.update(time);
 				});
 			},
 
@@ -146,10 +178,41 @@
 			},
 
 
+			toggleAiMode() {
+				this.setAiMode(!this.aiMode);
+			},
+
+
+			setAiMode(enabled) {
+				this.aiMode = enabled;
+				if (this.aiController) {
+					this.aiController.setEnabled(enabled);
+					this.aiController.setMoveDelay(enabled ? 80 : 100);
+				}
+				if (this.renderer) {
+					this.renderer.setAutoRotate(enabled, 0.2);
+				}
+				// Focus container when switching to manual mode
+				if (!enabled) {
+					this.$refs.container.focus();
+				}
+			},
+
+
 			onKeyDown(event) {
 				if (!this.game) return;
 
+				// Allow pause in any mode
 				const code = event.code;
+				if (KEY_BINDINGS.pause.includes(code)) {
+					event.preventDefault();
+					this.game.togglePause();
+					this.updateState();
+					return;
+				}
+
+				// Skip other controls if AI mode is active
+				if (this.aiMode) return;
 
 				// Check key bindings
 				if (KEY_BINDINGS.moveLeft.includes(code)) {
@@ -185,10 +248,6 @@
 				} else if (KEY_BINDINGS.rotateZNeg.includes(code)) {
 					event.preventDefault();
 					this.game.rotatePiece("z", -1);
-				} else if (KEY_BINDINGS.pause.includes(code)) {
-					event.preventDefault();
-					this.game.togglePause();
-					this.updateState();
 				} else if (KEY_BINDINGS.restart.includes(code)) {
 					event.preventDefault();
 					this.restart();
@@ -212,7 +271,9 @@
 				this.game.start();
 				this.updateState();
 				this.updateVisuals();
-				this.$refs.container.focus();
+				if (!this.aiMode) {
+					this.$refs.container.focus();
+				}
 			},
 
 
@@ -222,6 +283,7 @@
 					this.renderer = null;
 				}
 				this.game = null;
+				this.aiController = null;
 			},
 		},
 	};
@@ -234,7 +296,7 @@
 		height: 100%;
 		outline: none;
 		overflow: hidden;
-		background: #111122;
+		background: #0a0a18;
 	}
 
 	canvas {
@@ -277,6 +339,34 @@
 			.value {
 				font-weight: bold;
 				font-size: 1.2em;
+			}
+		}
+	}
+
+	.mode-panel {
+		margin-bottom: 1rem;
+		pointer-events: auto;
+
+		.mode-btn {
+			background: rgba(60, 60, 100, 0.8);
+			color: #aaa;
+			border: 1px solid #446;
+			padding: 0.5rem 1rem;
+			font-size: 0.85rem;
+			border-radius: 4px;
+			cursor: pointer;
+			font-family: inherit;
+			transition: all 0.2s ease;
+
+			&:hover {
+				background: rgba(80, 80, 120, 0.9);
+				color: #fff;
+			}
+
+			&.active {
+				background: rgba(60, 100, 60, 0.8);
+				border-color: #4a6;
+				color: #8f8;
 			}
 		}
 	}

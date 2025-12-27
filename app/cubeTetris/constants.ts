@@ -34,127 +34,28 @@ export const PIECE_COLORS: Record<string, string> = {
 
 
 /**
- * Piece definitions based on original Tetris.scene
- * Coordinates are relative to piece center (0,0,0)
+ * 8 Standard Tetromino Piece Definitions from original CubeTetris
+ * Based on AiController.lua s_BrickLattices
+ * All pieces have exactly 4 cubes
+ * Coordinates are relative to piece origin (0,0,0)
  */
 export const PIECE_DEFINITIONS: PieceDefinition[] = [
-	// 1 block
-	{
-		name: "Brick1_0",
-		color: PIECE_COLORS.white,
-		blocks: [
-			{x: 0, y: 0, z: 0},
-		],
-	},
-
-	// 2 blocks - I-2
-	{
-		name: "Brick2_0",
-		color: PIECE_COLORS.black,
-		blocks: [
-			{x: 0, y: 0, z: 0},
-			{x: 1, y: 0, z: 0},
-		],
-	},
-
-	// 3 blocks - I-3
-	{
-		name: "Brick3_0",
-		color: PIECE_COLORS.red,
-		blocks: [
-			{x: 0, y: 0, z: 0},
-			{x: 1, y: 0, z: 0},
-			{x: 2, y: 0, z: 0},
-		],
-	},
-
-	// 3 blocks - L-3
-	{
-		name: "Brick3_1",
-		color: PIECE_COLORS.green,
-		blocks: [
-			{x: 0, y: 0, z: 0},
-			{x: 1, y: 0, z: 0},
-			{x: 0, y: 0, z: 1},
-		],
-	},
-
-	// 4 blocks - I-4
+	// Brick4_0: I-piece (4 blocks vertical along Y axis)
 	{
 		name: "Brick4_0",
 		color: PIECE_COLORS.red,
 		blocks: [
 			{x: 0, y: 0, z: 0},
-			{x: 1, y: 0, z: 0},
-			{x: 2, y: 0, z: 0},
-			{x: 3, y: 0, z: 0},
+			{x: 0, y: 1, z: 0},
+			{x: 0, y: 2, z: 0},
+			{x: 0, y: 3, z: 0},
 		],
 	},
 
-	// 4 blocks - L-4
+	// Brick4_1: L-piece (vertical stem with foot)
 	{
 		name: "Brick4_1",
 		color: PIECE_COLORS.pink,
-		blocks: [
-			{x: 0, y: 0, z: 0},
-			{x: 1, y: 0, z: 0},
-			{x: 2, y: 0, z: 0},
-			{x: 0, y: 0, z: 1},
-		],
-	},
-
-	// 4 blocks - J-4
-	{
-		name: "Brick4_2",
-		color: PIECE_COLORS.brown,
-		blocks: [
-			{x: 0, y: 0, z: 0},
-			{x: 1, y: 0, z: 0},
-			{x: 2, y: 0, z: 0},
-			{x: 2, y: 0, z: 1},
-		],
-	},
-
-	// 4 blocks - O (2x2)
-	{
-		name: "Brick4_3",
-		color: PIECE_COLORS.blue,
-		blocks: [
-			{x: 0, y: 0, z: 0},
-			{x: 1, y: 0, z: 0},
-			{x: 0, y: 0, z: 1},
-			{x: 1, y: 0, z: 1},
-		],
-	},
-
-	// 4 blocks - S-4
-	{
-		name: "Brick4_4",
-		color: PIECE_COLORS.green,
-		blocks: [
-			{x: 0, y: 0, z: 0},
-			{x: 1, y: 0, z: 0},
-			{x: 1, y: 0, z: 1},
-			{x: 2, y: 0, z: 1},
-		],
-	},
-
-	// 4 blocks - 3D corner
-	{
-		name: "Brick4_5",
-		color: PIECE_COLORS.purple,
-		blocks: [
-			{x: 0, y: 0, z: 0},
-			{x: 1, y: 0, z: 0},
-			{x: 0, y: 0, z: 1},
-			{x: 0, y: 1, z: 0},
-		],
-	},
-
-	// 4 blocks - 3D-L
-	{
-		name: "Brick4_6",
-		color: PIECE_COLORS.yellow,
 		blocks: [
 			{x: 0, y: 0, z: 0},
 			{x: 1, y: 0, z: 0},
@@ -163,10 +64,34 @@ export const PIECE_DEFINITIONS: PieceDefinition[] = [
 		],
 	},
 
-	// 4 blocks - 3D-S
+	// Brick4_2: T-piece (vertical stem with branch)
 	{
-		name: "Brick4_7",
-		color: PIECE_COLORS.cyan,
+		name: "Brick4_2",
+		color: PIECE_COLORS.brown,
+		blocks: [
+			{x: 0, y: 0, z: 0},
+			{x: 0, y: 1, z: 0},
+			{x: 1, y: 1, z: 0},
+			{x: 0, y: 2, z: 0},
+		],
+	},
+
+	// Brick4_3: O-piece (2x2 square in XY plane)
+	{
+		name: "Brick4_3",
+		color: PIECE_COLORS.blue,
+		blocks: [
+			{x: 0, y: 0, z: 0},
+			{x: 1, y: 0, z: 0},
+			{x: 0, y: 1, z: 0},
+			{x: 1, y: 1, z: 0},
+		],
+	},
+
+	// Brick4_4: S-piece (staircase in XY plane)
+	{
+		name: "Brick4_4",
+		color: PIECE_COLORS.green,
 		blocks: [
 			{x: 0, y: 0, z: 0},
 			{x: 1, y: 0, z: 0},
@@ -175,43 +100,39 @@ export const PIECE_DEFINITIONS: PieceDefinition[] = [
 		],
 	},
 
-	// 4 blocks - T
+	// Brick4_5: 3D corner piece (extends into Z axis)
 	{
-		name: "Brick4_8",
+		name: "Brick4_5",
 		color: PIECE_COLORS.purple,
 		blocks: [
 			{x: 0, y: 0, z: 0},
-			{x: 1, y: 0, z: 0},
-			{x: 2, y: 0, z: 0},
-			{x: 1, y: 0, z: 1},
-		],
-	},
-
-	// 4 blocks - Z
-	{
-		name: "Brick4_9",
-		color: PIECE_COLORS.red,
-		blocks: [
 			{x: 0, y: 0, z: 1},
-			{x: 1, y: 0, z: 1},
 			{x: 1, y: 0, z: 0},
-			{x: 2, y: 0, z: 0},
+			{x: 0, y: 1, z: 0},
 		],
 	},
 
-	// 8 blocks - 2x2x2 cube
+	// Brick4_6: 3D L-piece (extends into Z axis)
 	{
-		name: "Brick8_0",
-		color: PIECE_COLORS.black,
+		name: "Brick4_6",
+		color: PIECE_COLORS.yellow,
 		blocks: [
 			{x: 0, y: 0, z: 0},
 			{x: 1, y: 0, z: 0},
-			{x: 0, y: 0, z: 1},
 			{x: 1, y: 0, z: 1},
 			{x: 0, y: 1, z: 0},
-			{x: 1, y: 1, z: 0},
-			{x: 0, y: 1, z: 1},
-			{x: 1, y: 1, z: 1},
+		],
+	},
+
+	// Brick4_7: 3D S-piece (extends into Z axis)
+	{
+		name: "Brick4_7",
+		color: PIECE_COLORS.cyan,
+		blocks: [
+			{x: 0, y: 0, z: 0},
+			{x: 1, y: 0, z: 0},
+			{x: 1, y: 0, z: 1},
+			{x: 0, y: 1, z: 0},
 		],
 	},
 ];

@@ -32,11 +32,12 @@ const FACE_NEIGHBORS: Record<FaceDir, Point3D> = {
  * Create unified piece geometry for a set of blocks.
  * Internal faces between adjacent cubes are removed.
  * Beveled edges only appear on exterior surfaces.
+ * Matches original CubeTetris mesh geometry (cube0.mesh.xml)
  */
-function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 0.95, bevel: number = 0.06): THREE.BufferGeometry {
-	const s = cubeSize / 2;      // half size
-	const b = bevel;              // bevel amount
-	const inner = s - b;          // inner flat area
+function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 1.003): THREE.BufferGeometry {
+	const s = cubeSize / 2;        // half size (≈0.5015)
+	const inner = s * 0.82;        // inner flat area (≈0.411)
+	const outer = s * 0.91;        // bevel edge (≈0.456)
 
 	const vertices: number[] = [];
 	const normals: number[] = [];
@@ -55,26 +56,12 @@ function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 0.95, 
 		return blockSet.has(key);
 	};
 
-	// Check if edge is exterior (at least one adjacent face is exterior)
-	const isEdgeExterior = (block: Point3D, dir1: FaceDir, dir2: FaceDir): boolean => {
-		// Edge is exterior if either of its adjacent faces is exterior
-		return !hasNeighbor(block, dir1) || !hasNeighbor(block, dir2);
-	};
-
 	// Helper to add a quad face
 	const addFace = (v0: number[], v1: number[], v2: number[], v3: number[], normal: number[]) => {
 		const baseIdx = vertices.length / 3;
 		vertices.push(...v0, ...v1, ...v2, ...v3);
 		normals.push(...normal, ...normal, ...normal, ...normal);
 		indices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
-	};
-
-	// Helper to add a triangle face
-	const addTriangle = (v0: number[], v1: number[], v2: number[], normal: number[]) => {
-		const baseIdx = vertices.length / 3;
-		vertices.push(...v0, ...v1, ...v2);
-		normals.push(...normal, ...normal, ...normal);
-		indices.push(baseIdx, baseIdx + 1, baseIdx + 2);
 	};
 
 	// Process each block
@@ -95,78 +82,78 @@ function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 0.95, 
 
 		// +Y face (top)
 		if (exterior["+y"]) {
-			// Inner flat area
+			// Inner flat area (CCW when viewed from above)
 			addFace(
-				[ox - inner, oy + s, oz - inner], [ox + inner, oy + s, oz - inner],
-				[ox + inner, oy + s, oz + inner], [ox - inner, oy + s, oz + inner],
+				[ox - inner, oy + s, oz + inner], [ox + inner, oy + s, oz + inner],
+				[ox + inner, oy + s, oz - inner], [ox - inner, oy + s, oz - inner],
 				[0, 1, 0]
 			);
 			// Beveled edges - only if edge is exterior
 			if (exterior["-x"]) {
 				addFace(
-					[ox - inner, oy + s, oz - inner], [ox - s, oy + s - b, oz - s],
-					[ox - s, oy + s - b, oz + s], [ox - inner, oy + s, oz + inner],
-					[-0.707, 0.707, 0]
+					[ox - inner, oy + s, oz + inner], [ox - inner, oy + s, oz - inner],
+					[ox - outer, oy + outer, oz - outer], [ox - outer, oy + outer, oz + outer],
+					[-0.716, 0.698, 0]
 				);
 			}
 			if (exterior["+x"]) {
 				addFace(
-					[ox + inner, oy + s, oz + inner], [ox + s, oy + s - b, oz + s],
-					[ox + s, oy + s - b, oz - s], [ox + inner, oy + s, oz - inner],
-					[0.707, 0.707, 0]
+					[ox + inner, oy + s, oz - inner], [ox + inner, oy + s, oz + inner],
+					[ox + outer, oy + outer, oz + outer], [ox + outer, oy + outer, oz - outer],
+					[0.716, 0.698, 0]
 				);
 			}
 			if (exterior["+z"]) {
 				addFace(
-					[ox - inner, oy + s, oz + inner], [ox + inner, oy + s, oz + inner],
-					[ox + s, oy + s - b, oz + s], [ox - s, oy + s - b, oz + s],
-					[0, 0.707, 0.707]
+					[ox + inner, oy + s, oz + inner], [ox - inner, oy + s, oz + inner],
+					[ox - outer, oy + outer, oz + outer], [ox + outer, oy + outer, oz + outer],
+					[0, 0.698, 0.716]
 				);
 			}
 			if (exterior["-z"]) {
 				addFace(
-					[ox + inner, oy + s, oz - inner], [ox - inner, oy + s, oz - inner],
-					[ox - s, oy + s - b, oz - s], [ox + s, oy + s - b, oz - s],
-					[0, 0.707, -0.707]
+					[ox - inner, oy + s, oz - inner], [ox + inner, oy + s, oz - inner],
+					[ox + outer, oy + outer, oz - outer], [ox - outer, oy + outer, oz - outer],
+					[0, 0.698, -0.716]
 				);
 			}
 		}
 
 		// -Y face (bottom)
 		if (exterior["-y"]) {
-			// Inner flat area
+			// Inner flat area (CCW when viewed from below)
 			addFace(
-				[ox - inner, oy - s, oz + inner], [ox + inner, oy - s, oz + inner],
-				[ox + inner, oy - s, oz - inner], [ox - inner, oy - s, oz - inner],
+				[ox - inner, oy - s, oz - inner], [ox + inner, oy - s, oz - inner],
+				[ox + inner, oy - s, oz + inner], [ox - inner, oy - s, oz + inner],
 				[0, -1, 0]
 			);
 			// Beveled edges
 			if (exterior["-x"]) {
 				addFace(
-					[ox - inner, oy - s, oz + inner], [ox - s, oy - s + b, oz + s],
-					[ox - s, oy - s + b, oz - s], [ox - inner, oy - s, oz - inner],
-					[-0.707, -0.707, 0]
+					[ox - inner, oy - s, oz - inner], [ox - inner, oy - s, oz + inner],
+					[ox - outer, oy - outer, oz + outer], [ox - outer, oy - outer, oz - outer],
+					[-0.716, -0.698, 0]
 				);
 			}
 			if (exterior["+x"]) {
 				addFace(
-					[ox + inner, oy - s, oz - inner], [ox + s, oy - s + b, oz - s],
-					[ox + s, oy - s + b, oz + s], [ox + inner, oy - s, oz + inner],
-					[0.707, -0.707, 0]
+					[ox + inner, oy - s, oz + inner], [ox + inner, oy - s, oz - inner],
+					[ox + outer, oy - outer, oz - outer], [ox + outer, oy - outer, oz + outer],
+					[0.716, -0.698, 0]
 				);
 			}
 			if (exterior["+z"]) {
 				addFace(
-					[ox + inner, oy - s, oz + inner], [ox + s, oy - s + b, oz + s],
-					[ox - s, oy - s + b, oz + s], [ox - inner, oy - s, oz + inner],
-					[0, -0.707, 0.707]
+					[ox - inner, oy - s, oz + inner], [ox + inner, oy - s, oz + inner],
+					[ox + outer, oy - outer, oz + outer], [ox - outer, oy - outer, oz + outer],
+					[0, -0.698, 0.716]
 				);
 			}
 			if (exterior["-z"]) {
 				addFace(
-					[ox - inner, oy - s, oz - inner], [ox - s, oy - s + b, oz - s],
-					[ox + s, oy - s + b, oz - s], [ox + inner, oy - s, oz - inner],
-					[0, -0.707, -0.707]
+					[ox + inner, oy - s, oz - inner], [ox - inner, oy - s, oz - inner],
+					[ox - outer, oy - outer, oz - outer], [ox + outer, oy - outer, oz - outer],
+					[0, -0.698, -0.716]
 				);
 			}
 		}
@@ -179,19 +166,33 @@ function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 0.95, 
 				[ox + inner, oy + inner, oz + s], [ox - inner, oy + inner, oz + s],
 				[0, 0, 1]
 			);
-			// Side beveled edges
+			// Beveled edges - all 4 sides
 			if (exterior["-x"]) {
 				addFace(
-					[ox - inner, oy - inner, oz + s], [ox - s, oy - s + b, oz + s],
-					[ox - s, oy + s - b, oz + s], [ox - inner, oy + inner, oz + s],
-					[-0.707, 0, 0.707]
+					[ox - inner, oy - inner, oz + s], [ox - inner, oy + inner, oz + s],
+					[ox - outer, oy + outer, oz + outer], [ox - outer, oy - outer, oz + outer],
+					[-0.716, 0, 0.698]
 				);
 			}
 			if (exterior["+x"]) {
 				addFace(
-					[ox + inner, oy + inner, oz + s], [ox + s, oy + s - b, oz + s],
-					[ox + s, oy - s + b, oz + s], [ox + inner, oy - inner, oz + s],
-					[0.707, 0, 0.707]
+					[ox + inner, oy + inner, oz + s], [ox + inner, oy - inner, oz + s],
+					[ox + outer, oy - outer, oz + outer], [ox + outer, oy + outer, oz + outer],
+					[0.716, 0, 0.698]
+				);
+			}
+			if (exterior["+y"]) {
+				addFace(
+					[ox - inner, oy + inner, oz + s], [ox + inner, oy + inner, oz + s],
+					[ox + outer, oy + outer, oz + outer], [ox - outer, oy + outer, oz + outer],
+					[0, 0.716, 0.698]
+				);
+			}
+			if (exterior["-y"]) {
+				addFace(
+					[ox + inner, oy - inner, oz + s], [ox - inner, oy - inner, oz + s],
+					[ox - outer, oy - outer, oz + outer], [ox + outer, oy - outer, oz + outer],
+					[0, -0.716, 0.698]
 				);
 			}
 		}
@@ -204,19 +205,33 @@ function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 0.95, 
 				[ox - inner, oy + inner, oz - s], [ox + inner, oy + inner, oz - s],
 				[0, 0, -1]
 			);
-			// Side beveled edges
+			// Beveled edges - all 4 sides
 			if (exterior["+x"]) {
 				addFace(
-					[ox + inner, oy - inner, oz - s], [ox + s, oy - s + b, oz - s],
-					[ox + s, oy + s - b, oz - s], [ox + inner, oy + inner, oz - s],
-					[0.707, 0, -0.707]
+					[ox + inner, oy - inner, oz - s], [ox + inner, oy + inner, oz - s],
+					[ox + outer, oy + outer, oz - outer], [ox + outer, oy - outer, oz - outer],
+					[0.716, 0, -0.698]
 				);
 			}
 			if (exterior["-x"]) {
 				addFace(
-					[ox - inner, oy + inner, oz - s], [ox - s, oy + s - b, oz - s],
-					[ox - s, oy - s + b, oz - s], [ox - inner, oy - inner, oz - s],
-					[-0.707, 0, -0.707]
+					[ox - inner, oy + inner, oz - s], [ox - inner, oy - inner, oz - s],
+					[ox - outer, oy - outer, oz - outer], [ox - outer, oy + outer, oz - outer],
+					[-0.716, 0, -0.698]
+				);
+			}
+			if (exterior["+y"]) {
+				addFace(
+					[ox + inner, oy + inner, oz - s], [ox - inner, oy + inner, oz - s],
+					[ox - outer, oy + outer, oz - outer], [ox + outer, oy + outer, oz - outer],
+					[0, 0.716, -0.698]
+				);
+			}
+			if (exterior["-y"]) {
+				addFace(
+					[ox - inner, oy - inner, oz - s], [ox + inner, oy - inner, oz - s],
+					[ox + outer, oy - outer, oz - outer], [ox - outer, oy - outer, oz - outer],
+					[0, -0.716, -0.698]
 				);
 			}
 		}
@@ -229,6 +244,35 @@ function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 0.95, 
 				[ox + s, oy + inner, oz - inner], [ox + s, oy + inner, oz + inner],
 				[1, 0, 0]
 			);
+			// Beveled edges - all 4 sides
+			if (exterior["+y"]) {
+				addFace(
+					[ox + s, oy + inner, oz + inner], [ox + s, oy + inner, oz - inner],
+					[ox + outer, oy + outer, oz - outer], [ox + outer, oy + outer, oz + outer],
+					[0.698, 0.716, 0]
+				);
+			}
+			if (exterior["-y"]) {
+				addFace(
+					[ox + s, oy - inner, oz - inner], [ox + s, oy - inner, oz + inner],
+					[ox + outer, oy - outer, oz + outer], [ox + outer, oy - outer, oz - outer],
+					[0.698, -0.716, 0]
+				);
+			}
+			if (exterior["+z"]) {
+				addFace(
+					[ox + s, oy - inner, oz + inner], [ox + s, oy + inner, oz + inner],
+					[ox + outer, oy + outer, oz + outer], [ox + outer, oy - outer, oz + outer],
+					[0.698, 0, 0.716]
+				);
+			}
+			if (exterior["-z"]) {
+				addFace(
+					[ox + s, oy + inner, oz - inner], [ox + s, oy - inner, oz - inner],
+					[ox + outer, oy - outer, oz - outer], [ox + outer, oy + outer, oz - outer],
+					[0.698, 0, -0.716]
+				);
+			}
 		}
 
 		// -X face (left)
@@ -239,35 +283,37 @@ function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 0.95, 
 				[ox - s, oy + inner, oz + inner], [ox - s, oy + inner, oz - inner],
 				[-1, 0, 0]
 			);
+			// Beveled edges - all 4 sides
+			if (exterior["+y"]) {
+				addFace(
+					[ox - s, oy + inner, oz - inner], [ox - s, oy + inner, oz + inner],
+					[ox - outer, oy + outer, oz + outer], [ox - outer, oy + outer, oz - outer],
+					[-0.698, 0.716, 0]
+				);
+			}
+			if (exterior["-y"]) {
+				addFace(
+					[ox - s, oy - inner, oz + inner], [ox - s, oy - inner, oz - inner],
+					[ox - outer, oy - outer, oz - outer], [ox - outer, oy - outer, oz + outer],
+					[-0.698, -0.716, 0]
+				);
+			}
+			if (exterior["+z"]) {
+				addFace(
+					[ox - s, oy + inner, oz + inner], [ox - s, oy - inner, oz + inner],
+					[ox - outer, oy - outer, oz + outer], [ox - outer, oy + outer, oz + outer],
+					[-0.698, 0, 0.716]
+				);
+			}
+			if (exterior["-z"]) {
+				addFace(
+					[ox - s, oy - inner, oz - inner], [ox - s, oy + inner, oz - inner],
+					[ox - outer, oy + outer, oz - outer], [ox - outer, oy - outer, oz - outer],
+					[-0.698, 0, -0.716]
+				);
+			}
 		}
 
-		// Corner bevels - only add if all 3 adjacent faces are exterior
-		const addCornerBevel = (sx: number, sy: number, sz: number) => {
-			const xDir: FaceDir = sx > 0 ? "+x" : "-x";
-			const yDir: FaceDir = sy > 0 ? "+y" : "-y";
-			const zDir: FaceDir = sz > 0 ? "+z" : "-z";
-
-			// Only add corner bevel if all three adjacent faces are exterior
-			if (!exterior[xDir] || !exterior[yDir] || !exterior[zDir]) return;
-
-			const x = ox + sx * s;
-			const y = oy + sy * s;
-			const z = oz + sz * s;
-			const bx = ox + sx * (s - b);
-			const by = oy + sy * (s - b);
-			const bz = oz + sz * (s - b);
-			const n = [sx * 0.577, sy * 0.577, sz * 0.577];
-			addTriangle([bx, y, bz], [x, by, bz], [bx, by, z], n);
-		};
-
-		addCornerBevel(1, 1, 1);
-		addCornerBevel(-1, 1, 1);
-		addCornerBevel(1, -1, 1);
-		addCornerBevel(-1, -1, 1);
-		addCornerBevel(1, 1, -1);
-		addCornerBevel(-1, 1, -1);
-		addCornerBevel(1, -1, -1);
-		addCornerBevel(-1, -1, -1);
 	}
 
 	const geometry = new THREE.BufferGeometry();
@@ -282,9 +328,9 @@ function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 0.95, 
 /**
  * Create beveled cube geometry for a single cube (used for board blocks)
  */
-function createBeveledCubeGeometry(size: number = 0.95, bevel: number = 0.06): THREE.BufferGeometry {
+function createBeveledCubeGeometry(size: number = 1.003): THREE.BufferGeometry {
 	// Use unified piece geometry with a single block
-	return createUnifiedPieceGeometry([{x: 0, y: 0, z: 0}], size, bevel);
+	return createUnifiedPieceGeometry([{x: 0, y: 0, z: 0}], size);
 }
 
 
@@ -316,6 +362,18 @@ export class TetrisRenderer {
 	private autoRotateSpeed: number = 0.3;
 	private autoRotateAngle: number = 0;
 	private boardCenter: THREE.Vector3;
+
+	// Camera height following
+	private heapMaxY: number = 0;
+	private currentPieceY: number = 0;
+	private cameraTargetHeight: number = 5;
+	private lastFrameTime: number = 0;
+
+	// Layer clearing animation
+	private clearingBlocks: Map<string, {mesh: THREE.Mesh; remain: number; originalColor: THREE.Color}> = new Map();
+	private clearingGroup: THREE.Group;
+	private readonly CLEAR_DURATION = 0.4;  // 0.4 seconds like original
+	private readonly FLASH_INTERVAL = 0.08; // Flash every 80ms like original
 
 
 	constructor(canvas: HTMLCanvasElement, config?: Partial<GameConfig>) {
@@ -359,14 +417,16 @@ export class TetrisRenderer {
 		this.pieceGroup = new THREE.Group();
 		this.ghostGroup = new THREE.Group();
 		this.boundaryGroup = new THREE.Group();
+		this.clearingGroup = new THREE.Group();
 
 		this.scene.add(this.boardGroup);
 		this.scene.add(this.pieceGroup);
 		this.scene.add(this.ghostGroup);
 		this.scene.add(this.boundaryGroup);
+		this.scene.add(this.clearingGroup);
 
 		// Shared geometry and materials - use beveled cube
-		this.blockGeometry = createBeveledCubeGeometry(0.95, 0.06);
+		this.blockGeometry = createBeveledCubeGeometry();
 		this.ghostMaterial = new THREE.MeshStandardMaterial({
 			color: 0xffffff,
 			transparent: true,
@@ -534,7 +594,7 @@ export class TetrisRenderer {
 		if (blocks.length === 0) return;
 
 		// Create unified geometry for the piece's local shape
-		const geometry = createUnifiedPieceGeometry(localBlocks, 0.95, 0.06);
+		const geometry = createUnifiedPieceGeometry(localBlocks);
 
 		// Create material with piece color
 		const material = new THREE.MeshStandardMaterial({
@@ -575,7 +635,7 @@ export class TetrisRenderer {
 		if (localBlocks.length === 0) return;
 
 		// Create unified geometry for the ghost piece
-		const geometry = createUnifiedPieceGeometry(localBlocks, 0.95, 0.06);
+		const geometry = createUnifiedPieceGeometry(localBlocks);
 
 		// Create single mesh for the ghost
 		const mesh = new THREE.Mesh(geometry, this.ghostMaterial);
@@ -599,19 +659,35 @@ export class TetrisRenderer {
 	/**
 	 * Render a single frame
 	 */
-	render(): void {
+	render(time: number = 0): void {
 		if (this.isDisposed) return;
+
+		// Calculate elapsed time in seconds
+		const elapsed = this.lastFrameTime > 0 ? (time - this.lastFrameTime) / 1000 : 0.016;
+		this.lastFrameTime = time;
+
+		// Update clearing animation
+		this.updateClearingAnimation(elapsed);
+
+		// Update camera height to follow heap/piece
+		this.updateCameraHeight(elapsed);
+
+		// Update board center Y to follow camera target height
+		this.boardCenter.y = this.cameraTargetHeight;
 
 		// Auto-rotate camera if enabled
 		if (this.autoRotate) {
 			this.autoRotateAngle += this.autoRotateSpeed * 0.01;
 			const radius = 12;
-			const height = this.boardCenter.y + 5;
+			const height = this.cameraTargetHeight + 5;
 			this.camera.position.x = this.boardCenter.x + Math.cos(this.autoRotateAngle) * radius;
 			this.camera.position.z = this.boardCenter.z + Math.sin(this.autoRotateAngle) * radius;
 			this.camera.position.y = height;
 			this.camera.lookAt(this.boardCenter);
 			this.controls.target.copy(this.boardCenter);
+		} else {
+			// In manual mode, also update orbit controls target
+			this.controls.target.y = this.cameraTargetHeight;
 		}
 
 		this.controls.update();
@@ -627,7 +703,7 @@ export class TetrisRenderer {
 			if (this.isDisposed) return;
 
 			onFrame?.(time);
-			this.render();
+			this.render(time);
 			this.animationFrameId = requestAnimationFrame(animate);
 		};
 
@@ -676,6 +752,8 @@ export class TetrisRenderer {
 		disposeGroup(this.pieceGroup);
 		disposeGroup(this.ghostGroup);
 		disposeGroup(this.boundaryGroup);
+		disposeGroup(this.clearingGroup);
+		this.clearingBlocks.clear();
 
 		// Dispose controls and renderer
 		this.controls.dispose();
@@ -719,5 +797,169 @@ export class TetrisRenderer {
 	 */
 	isAutoRotating(): boolean {
 		return this.autoRotate;
+	}
+
+
+	/**
+	 * Calculate ideal camera height based on heap and current piece
+	 * Ported from original CubeTetris TetrisPool:idealCameraHeight()
+	 */
+	private idealCameraHeight(): number {
+		const minHeight = 5;  // Minimum camera height
+		const maxHeight = this.config.boardHeight;
+
+		// Base height follows heap top + offset
+		let height = this.heapMaxY + 2;
+
+		// If there's a current piece, constrain camera to piece range
+		if (this.currentPieceY > 0) {
+			const pieceY = this.currentPieceY;
+			// Camera should be at most 12 units below the piece
+			if (height < pieceY - 12) {
+				height = pieceY - 12;
+			}
+			// Camera should be at most 10 units above the piece
+			if (height > pieceY + 10) {
+				height = pieceY + 10;
+			}
+		}
+
+		// Clamp to valid range
+		height = Math.min(height, maxHeight);
+		height = Math.max(height, minHeight);
+
+		return height;
+	}
+
+
+	/**
+	 * Update camera height to smoothly follow the ideal height
+	 * Ported from original CubeTetris TetrisPool update logic
+	 */
+	private updateCameraHeight(elapsed: number): void {
+		const ideal = this.idealCameraHeight();
+		const differ = ideal - this.cameraTargetHeight;
+
+		// Calculate smooth delta movement
+		// Speed increases with distance (min 0.6, scales with differ * 0.8)
+		const speed = Math.max(0.6, Math.abs(differ) * 0.8);
+		let delta = (differ > 0 ? 1 : -1) * elapsed * speed;
+
+		// Snap to ideal if we'd overshoot
+		if (Math.abs(delta) > Math.abs(differ)) {
+			delta = differ;
+		}
+
+		this.cameraTargetHeight += delta;
+	}
+
+
+	/**
+	 * Update heap max Y (call this when board changes)
+	 */
+	setHeapMaxY(maxY: number): void {
+		this.heapMaxY = maxY;
+	}
+
+
+	/**
+	 * Update current piece Y position (call this when piece changes)
+	 */
+	setCurrentPieceY(y: number): void {
+		this.currentPieceY = y;
+	}
+
+
+	/**
+	 * Start clearing animation for blocks at specified positions
+	 * @param blocks Array of block positions to animate
+	 * @param color Color of the blocks being cleared
+	 */
+	startClearingAnimation(blocks: Array<{point: Point3D; color: string}>): void {
+		for (const {point, color} of blocks) {
+			const key = coordKey(point.x, point.y, point.z);
+
+			// Skip if already animating this block
+			if (this.clearingBlocks.has(key)) {
+				continue;
+			}
+
+			// Create mesh for clearing block
+			const originalColor = new THREE.Color(color);
+			const material = new THREE.MeshStandardMaterial({
+				color: originalColor,
+				metalness: 0.3,
+				roughness: 0.4,
+				emissive: new THREE.Color(0xffffff),
+				emissiveIntensity: 0,
+			});
+			const mesh = new THREE.Mesh(this.blockGeometry, material);
+			mesh.position.set(point.x, point.y, point.z);
+			mesh.castShadow = true;
+			mesh.receiveShadow = true;
+
+			this.clearingGroup.add(mesh);
+			this.clearingBlocks.set(key, {
+				mesh,
+				remain: this.CLEAR_DURATION,
+				originalColor,
+			});
+		}
+	}
+
+
+	/**
+	 * Update clearing animation
+	 * @param elapsed Time elapsed since last frame in seconds
+	 * @returns true if animation is still ongoing, false if all clearing is done
+	 */
+	updateClearingAnimation(elapsed: number): boolean {
+		if (this.clearingBlocks.size === 0) return false;
+
+		const toRemove: string[] = [];
+
+		for (const [key, data] of this.clearingBlocks) {
+			// Calculate flash state (alternates every FLASH_INTERVAL)
+			const flashPhase = Math.floor(data.remain / this.FLASH_INTERVAL) % 2;
+			const material = data.mesh.material as THREE.MeshStandardMaterial;
+
+			if (flashPhase === 0) {
+				// Bright flash (white-ish)
+				material.emissiveIntensity = 0.8;
+				material.color.setRGB(1, 1, 1);
+			} else {
+				// Original color
+				material.emissiveIntensity = 0.2;
+				material.color.copy(data.originalColor);
+			}
+
+			// Update remaining time
+			data.remain -= elapsed;
+
+			if (data.remain <= 0) {
+				toRemove.push(key);
+			}
+		}
+
+		// Remove finished blocks
+		for (const key of toRemove) {
+			const data = this.clearingBlocks.get(key);
+			if (data) {
+				this.clearingGroup.remove(data.mesh);
+				data.mesh.geometry?.dispose();
+				(data.mesh.material as THREE.Material).dispose();
+				this.clearingBlocks.delete(key);
+			}
+		}
+
+		return this.clearingBlocks.size > 0;
+	}
+
+
+	/**
+	 * Check if clearing animation is currently active
+	 */
+	isClearingAnimation(): boolean {
+		return this.clearingBlocks.size > 0;
 	}
 }

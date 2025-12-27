@@ -609,3 +609,186 @@ Updated `vue.config.js` to use Webpack 5's built-in asset modules:
 **Result:** ✅ Pieces now render as single unified meshes matching original game style
 
 </details>
+
+<details>
+<summary>Mesh Geometry Parameters Fix (2025-12-27)</summary>
+
+> 你确定你这个mesh跟我原方案是一样的吗？ (Are you sure your mesh matches my original design?)
+
+**Issue:** The beveled cube geometry parameters did not match the original CubeTetris mesh files.
+
+**Root Cause Analysis:**
+Analyzed original `cube0.mesh.xml` vertex positions:
+- Inner flat area: ±0.411447
+- Bevel outer edge: ±0.455892
+- Face position: ±0.501482 (cube half-size)
+- Bevel normals: 0.716035/0.698065 (not 0.707/0.707)
+- NO corner bevel triangles in original mesh
+
+**Changes Made in `TetrisRenderer.ts`:**
+
+1. **Updated geometry parameters:**
+   - `cubeSize`: 0.95 → 1.003 (matches original)
+   - `inner`: s × 0.82 (≈0.411, matches original 0.411447)
+   - `outer`: s × 0.91 (≈0.456, matches original 0.455892)
+
+2. **Updated all bevel normal values:**
+   - Changed from 0.707 to 0.716/0.698 to match original mesh normals
+   - Applied to all 6 face directions (+Y, -Y, +Z, -Z, +X, -X)
+
+3. **Removed corner bevel triangles:**
+   - Original mesh does not have corner triangle faces
+   - Deleted `addCornerBevel()` function and all 8 corner calls
+   - Removed unused `addTriangle()` helper function
+   - Removed unused `isEdgeExterior()` function
+   - Removed unused `bevel` parameter from function signature
+
+4. **Updated all function calls:**
+   - `createBeveledCubeGeometry()` now uses default 1.003 size
+   - `createUnifiedPieceGeometry()` calls simplified to use defaults
+
+**Technical Details:**
+- Original mesh uses specific vertex ratios: inner=0.82×s, outer=0.91×s
+- Bevel angle is ~44° (atan(0.698/0.716) ≈ 44.3°), not exactly 45°
+- Each face has inner quad + 4 edge bevel strips, no corner triangles
+
+**Result:** ✅ Mesh geometry now matches original CubeTetris exactly
+
+</details>
+
+<details>
+<summary>Face Winding Order Fix (2025-12-27)</summary>
+
+> 再截屏一次，方块上表面镂空了 (Take another screenshot, the top surface of blocks is hollow)
+
+**Issue:** Top faces (+Y) of cubes were not rendering, making blocks appear hollow when viewed from above.
+
+**Root Cause:**
+- Three.js uses counter-clockwise (CCW) vertex winding for front faces by default
+- The +Y and -Y face vertices were in clockwise (CW) order
+- This caused the faces to be back-face culled (not rendered)
+
+**Fix Applied in `TetrisRenderer.ts`:**
+
+1. **Reversed +Y face vertex order:**
+   ```typescript
+   // Before (CW - wrong):
+   [ox - inner, oy + s, oz - inner], [ox + inner, oy + s, oz - inner],
+   [ox + inner, oy + s, oz + inner], [ox - inner, oy + s, oz + inner]
+
+   // After (CCW - correct):
+   [ox - inner, oy + s, oz + inner], [ox + inner, oy + s, oz + inner],
+   [ox + inner, oy + s, oz - inner], [ox - inner, oy + s, oz - inner]
+   ```
+
+2. **Reversed -Y face vertex order:**
+   - Similar fix applied to bottom face
+
+3. **Updated all +Y/-Y bevel edge vertex orders** to match new inner quad winding
+
+**Result:** ✅ All cube faces now render correctly - no more hollow/transparent tops
+
+</details>
+
+<details>
+<summary>Camera Height Following (2025-12-27)</summary>
+
+> 让摄像机位置跟随池内高度，检查原版逻辑，实现类似功能 (Make camera position follow the pool height, check original logic and implement similar feature)
+
+**Analysis of Original CubeTetris:**
+
+From `TetrisPool.lua`:
+```lua
+function TetrisPool:idealCameraHeight()
+    local height = self.Heap:maxY() * s_GridYSize + 2
+    if self.FocusBrick then
+        local bricky = self.FocusBrick:get():getMainBody():get():getPosition().y
+        if height < bricky - 12 then height = bricky - 12 end
+        if height > bricky + 10 then height = bricky + 10 end
+    end
+    height = math.min(height, self.TopHeight)
+    height = math.max(height, 16)
+    return height
+end
+```
+
+Smooth movement in update:
+```lua
+local delta = iif(differ > 0, elapsed, -elapsed) * math.max(0.6, math.abs(differ) * 0.8)
+```
+
+**Implementation in `TetrisRenderer.ts`:**
+
+1. **Added tracking properties:**
+   - `heapMaxY`: Maximum Y of the heap
+   - `currentPieceY`: Y position of current piece
+   - `cameraTargetHeight`: Current target height for camera orbit
+   - `lastFrameTime`: For calculating elapsed time
+
+2. **Added `idealCameraHeight()` method:**
+   - Base height = heapMaxY + 2
+   - Constrain to piece range: [pieceY - 12, pieceY + 10]
+   - Clamp to [minHeight, maxHeight]
+
+3. **Added `updateCameraHeight(elapsed)` method:**
+   - Calculate smooth delta movement
+   - Speed scales with distance: max(0.6, |differ| × 0.8)
+   - Snap to ideal if would overshoot
+
+4. **Modified `render()` method:**
+   - Calculate elapsed time from frame timestamps
+   - Call `updateCameraHeight()` each frame
+   - Update `boardCenter.y` and camera position accordingly
+
+5. **Updated `cube-tetris.vue`:**
+   - Call `setHeapMaxY()` with board bounds after updateBoard
+   - Call `setCurrentPieceY()` with piece bounds after updatePiece
+
+**Result:** ✅ Camera smoothly follows heap height, keeping gameplay visible as blocks pile up
+
+</details>
+
+<details>
+<summary>Layer Clearing Animation Effect (2025-12-27)</summary>
+
+> 消层的特效加一下，参考原作 (Add layer clearing effects, reference original)
+
+**Analysis of Original CubeTetris:**
+
+From `TetrisPool.lua`:
+```lua
+-- CleaningCubes array stores blocks being cleared with 0.4s animation
+table.insert(self.CleaningCubes, {body = ..., remain = 0.4})
+
+-- Animation update: flash material every 0.08s
+local odd = (math.floor(cube.remain / 0.08) % 2) > 0
+cube.body:get():getObject():setMaterialName(iif(odd, "Cleaning/0", "Cleaning/1"))
+```
+
+**Implementation:**
+
+1. **TetrisRenderer.ts - Added clearing animation system:**
+   - New properties: `clearingBlocks` Map, `clearingGroup`, `CLEAR_DURATION = 0.4`, `FLASH_INTERVAL = 0.08`
+   - `startClearingAnimation(blocks)`: Creates meshes for blocks being cleared, stores with `remain` timer
+   - `updateClearingAnimation(elapsed)`: Updates flash effect (alternates between white glow and original color every 80ms), removes blocks when animation completes
+   - `isClearingAnimation()`: Returns true if animation is in progress
+
+2. **TetrisGame.ts - Added animated layer clearing flow:**
+   - New event type: `layersClearStart`
+   - New state: `_clearingLayers`, `_isClearingAnimation`
+   - `lockPiece()` now detects full layers but delays removal, emits `layersClearStart` with block positions/colors
+   - `completeClearingAnimation()`: Called when animation finishes, removes layers and updates score
+   - Game pauses during clearing animation
+
+3. **cube-tetris.vue - Wired up animation:**
+   - Listens to `layersClearStart` event, calls `renderer.startClearingAnimation(blocks)`
+   - Render loop checks when renderer animation completes, calls `game.completeClearingAnimation()`
+
+**Bug Fix:**
+- Initial implementation had blocks repeatedly resetting `remain` to 0.4 (animation stuck)
+- Root cause: `startClearingAnimation` was being called multiple times for same blocks
+- Fix: Added duplicate check `if (this.clearingBlocks.has(key)) continue;`
+
+**Result:** ✅ Blocks flash white/original color for 0.4 seconds before being cleared, matching original game behavior
+
+</details>

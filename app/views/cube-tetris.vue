@@ -131,6 +131,11 @@
 				this.game.on("pieceMoved", () => this.updateVisuals());
 				this.game.on("pieceRotated", () => this.updateVisuals());
 				this.game.on("pieceLocked", () => this.updateVisuals());
+				this.game.on("layersClearStart", (event) => {
+					// Start the clearing animation
+					const {blocks} = event.data;
+					this.renderer.startClearingAnimation(blocks);
+				});
 				this.game.on("layersCleared", () => this.updateVisuals());
 				this.game.on("gameOver", () => {
 					this.updateState();
@@ -156,6 +161,13 @@
 				this.renderer.startAnimationLoop((time) => {
 					this.game.update(time);
 					this.aiController.update(time);
+
+					// Check if clearing animation finished
+					if (this.game.isClearingAnimation && !this.renderer.isClearingAnimation()) {
+						this.game.completeClearingAnimation();
+						this.updateVisuals();
+						this.updateState();
+					}
 				});
 			},
 
@@ -175,6 +187,17 @@
 					this.game.currentPiece,
 					this.game.getGhostPosition()
 				);
+
+				// Update camera height tracking
+				const boardBounds = this.game.board.getBounds();
+				this.renderer.setHeapMaxY(boardBounds.maxY);
+
+				if (this.game.currentPiece) {
+					const pieceBounds = this.game.currentPiece.getWorldBounds();
+					this.renderer.setCurrentPieceY(pieceBounds.min.y);
+				} else {
+					this.renderer.setCurrentPieceY(0);
+				}
 			},
 
 
@@ -187,7 +210,7 @@
 				this.aiMode = enabled;
 				if (this.aiController) {
 					this.aiController.setEnabled(enabled);
-					this.aiController.setMoveDelay(enabled ? 80 : 100);
+					this.aiController.setMoveDelay(enabled ? 200 : 100);
 				}
 				if (this.renderer) {
 					this.renderer.setAutoRotate(enabled, 0.2);

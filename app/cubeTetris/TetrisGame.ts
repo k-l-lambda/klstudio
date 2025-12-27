@@ -9,7 +9,7 @@ import {TetrisPiece} from "./TetrisPiece";
 import {GAME_CONFIG, SCORE_PER_LINE, SCORE_MULTIPLIER} from "./constants";
 
 
-export type GameEventType = "pieceSpawned" | "pieceMoved" | "pieceRotated" | "pieceLocked" | "layersCleared" | "gameOver" | "scoreChanged";
+export type GameEventType = "pieceSpawned" | "pieceMoved" | "pieceRotated" | "pieceLocked" | "layersClearStart" | "layersCleared" | "gameOver" | "scoreChanged";
 
 export interface GameEvent {
 	type: GameEventType;
@@ -29,6 +29,10 @@ export class TetrisGame {
 	private _state: GameState;
 	private _lastDropTime: number = 0;
 	private _eventListeners: Map<GameEventType, Set<(event: GameEvent) => void>> = new Map();
+
+	// Layer clearing state
+	private _clearingLayers: number[] = [];
+	private _isClearingAnimation: boolean = false;
 
 	constructor(config?: Partial<GameConfig>) {
 		this.config = {...GAME_CONFIG, ...config};
@@ -337,19 +341,46 @@ export class TetrisGame {
 
 		this.emit("pieceLocked", {piece: this._currentPiece});
 
-		// Check for completed layers
-		const clearedLayers = this.checkAndClearLayers();
+		// Check for completed layers and start animation if any
+		const fullLayers = this.detectFullLayers();
 
-		// Spawn next piece
-		this.spawnNextPiece();
+		if (fullLayers.length > 0) {
+			// Collect blocks that will be cleared
+			const clearingBlocks: Array<{point: Point3D; color: string}> = [];
+			for (const y of fullLayers) {
+				for (let x = 0; x < this.config.boardWidth; x++) {
+					for (let z = 0; z < this.config.boardDepth; z++) {
+						const block = this.board.get(x, y, z);
+						if (block) {
+							clearingBlocks.push({
+								point: {x, y, z},
+								color: block.color,
+							});
+						}
+					}
+				}
+			}
+
+			// Store layers for later clearing
+			this._clearingLayers = fullLayers;
+			this._isClearingAnimation = true;
+
+			// Emit event to start animation
+			this.emit("layersClearStart", {layers: fullLayers, blocks: clearingBlocks});
+
+			// Don't spawn next piece yet - wait for animation to complete
+		} else {
+			// No layers to clear, spawn next piece immediately
+			this.spawnNextPiece();
+		}
 	}
 
 
 	/**
-	 * Check and clear completed layers
-	 * Returns number of layers cleared
+	 * Detect completed layers (without removing them)
+	 * Returns array of Y levels that are full
 	 */
-	private checkAndClearLayers(): number {
+	private detectFullLayers(): number[] {
 		const fullLayers: number[] = [];
 		const blocksPerLayer = this.config.boardWidth * this.config.boardDepth;
 
@@ -360,16 +391,28 @@ export class TetrisGame {
 			}
 		}
 
-		if (fullLayers.length === 0) return 0;
+		return fullLayers;
+	}
 
-		// Clear layers (from top to bottom to maintain correct shifting)
-		fullLayers.sort((a, b) => b - a);
-		for (const y of fullLayers) {
+
+	/**
+	 * Complete the layer clearing (call after animation finishes)
+	 */
+	completeClearingAnimation(): void {
+		if (!this._isClearingAnimation || this._clearingLayers.length === 0) {
+			return;
+		}
+
+		// Sort from top to bottom for correct shifting
+		this._clearingLayers.sort((a, b) => b - a);
+
+		// Clear layers
+		for (const y of this._clearingLayers) {
 			this.board.removeLayerAndShift(y);
 		}
 
 		// Update score
-		const lines = fullLayers.length;
+		const lines = this._clearingLayers.length;
 		const multiplier = SCORE_MULTIPLIER[Math.min(lines, SCORE_MULTIPLIER.length - 1)];
 		const points = SCORE_PER_LINE * multiplier * this._state.level;
 
@@ -379,10 +422,23 @@ export class TetrisGame {
 		// Level up every 10 lines
 		this._state.level = Math.floor(this._state.linesCleared / 10) + 1;
 
-		this.emit("layersCleared", {layers: fullLayers, score: points});
+		this.emit("layersCleared", {layers: this._clearingLayers, score: points});
 		this.emit("scoreChanged", {score: this._state.score, level: this._state.level});
 
-		return lines;
+		// Reset clearing state
+		this._clearingLayers = [];
+		this._isClearingAnimation = false;
+
+		// Now spawn next piece
+		this.spawnNextPiece();
+	}
+
+
+	/**
+	 * Check if clearing animation is in progress
+	 */
+	get isClearingAnimation(): boolean {
+		return this._isClearingAnimation;
 	}
 
 
@@ -412,7 +468,8 @@ export class TetrisGame {
 	 * Update game state (call in animation loop)
 	 */
 	update(timestamp: number): void {
-		if (this._state.gameOver || this._state.paused || !this._currentPiece) return;
+		// Skip updates during clearing animation, game over, or pause
+		if (this._state.gameOver || this._state.paused || this._isClearingAnimation || !this._currentPiece) return;
 
 		// Calculate drop interval based on level
 		const dropInterval = Math.max(

@@ -508,6 +508,32 @@ Updated `vue.config.js` to use Webpack 5's built-in asset modules:
 
 </details>
 
+<details>
+<summary>AI Controller Fix During Layer Clearing (2025-12-27)</summary>
+
+> Why does AI playing suddenly stop during gameplay?
+
+**Issue:** AI controller would suddenly stop playing/controlling the piece during gameplay, particularly after layer clearing events.
+
+**Root Cause:** The AI controller's `update()` method didn't check for `isClearingAnimation` state. During layer clearing animation:
+- The game's `currentPiece` is still the old locked piece
+- AI would try to continue controlling/moving a piece that should be locked
+- This caused unexpected behavior and interruptions
+
+**Fix Applied in `AiController.ts:128`:**
+```typescript
+update(timestamp: number): void {
+    if (!this.enabled || !this.targetState || !this.game.currentPiece) return;
+    if (this.game.state.paused || this.game.state.gameOver) return;
+    if (this.game.isClearingAnimation) return;  // Skip during layer clearing
+    // ...
+}
+```
+
+**Result:** ✅ AI now pauses control during layer clearing animation and resumes after new piece spawns
+
+</details>
+
 **Next steps:**
 - Test the built application in browser to verify Vue 3 compatibility and all features work correctly
 - Verify `vue-class-component`/`vue-property-decorator` usage with Vue 3; upgrade or refactor components to options/composition API under compat mode

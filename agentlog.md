@@ -512,3 +512,54 @@ Updated `vue.config.js` to use Webpack 5's built-in asset modules:
 - Test the built application in browser to verify Vue 3 compatibility and all features work correctly
 - Verify `vue-class-component`/`vue-property-decorator` usage with Vue 3; upgrade or refactor components to options/composition API under compat mode
 - Address remaining Vue compat warnings (e.g., `.sync` modifier → `v-model:propName`, `beforeDestroy` → `beforeUnmount`)
+
+
+## 2025/12/27
+
+
+> Use the same tetris types as the original game - each brick should consist of 4 cubes. The mesh geometry should also match the original, not assembled from small cubes. First implement the AI auto-play demo mode from CubeTetris for development testing, then add interactive input controls later. You can commit to git when there are milestones. Continuously improve the game's appearance to match the original game as shown in the reference screenshot.
+
+<details>
+<summary>Cube Tetris AI Demo Mode Implementation (2025-12-27)</summary>
+
+**Changes Made:**
+
+1. **Refactored `constants.ts`:**
+   - Reduced from 15 piece definitions to 8 standard tetromino types (Brick4_0 through Brick4_7)
+   - All pieces now have exactly 4 cubes as in the original CubeTetris
+   - Includes both 2D flat shapes (I, L, T, O, S) and 3D shapes that extend into Z-axis
+
+2. **Enhanced `TetrisRenderer.ts`:**
+   - Created `createBeveledCubeGeometry()` function that generates cube mesh with beveled edges
+   - Mimics the original cube0.mesh geometry with inner flat faces and angled edge bevels
+   - Added auto-rotating camera support for demo/screensaver mode
+   - Added `setAutoRotate(enabled, speed)` method to control camera rotation
+   - Updated visual style: darker background (0x0a0a18), more visible boundary posts
+
+3. **Created `AiController.ts`:**
+   - Ported AI logic from original `AiController.lua`
+   - Evaluates all 24 regular orientations (cube rotations) for each piece
+   - Position scoring based on:
+     - Height score (lower positions preferred)
+     - Side faces count (fewer exposed faces = better)
+     - Hole space (empty spaces beneath blocks = penalty)
+   - Automatically moves and rotates pieces toward optimal position
+   - Configurable move delay for AI speed control
+
+4. **Updated `cube-tetris.vue`:**
+   - Integrated AI controller with game loop
+   - Added toggle button to switch between AI demo mode and manual play
+   - Auto-restart game after game over in AI mode (2 second delay)
+   - Controls hint only shown in manual mode
+   - Camera auto-rotates in AI mode, user control in manual mode
+
+**Technical Details:**
+- AI evaluates all positions for each orientation, then selects from top 3 candidates (adds variety)
+- Beveled cube geometry has 6 main faces + bevel quads + corner triangles
+- Used `markRaw()` for Vue 3 compatibility with Three.js objects
+
+**Commit:** `feat(cube-tetris): Add AI demo mode with beveled cube geometry`
+
+**Result:** ✅ Game running with AI auto-play, auto-rotating camera, beveled cube visuals
+
+</details>

@@ -159,6 +159,11 @@ export const routes = [
 		name: "Lotus Player",
 		component: () => import(/* webpackChunkName: "lotus", */ "./views/lotus.vue"),
 	},
+	{
+		path: "/cube-tetris",
+		name: "Cube Tetris",
+		component: () => import(/* webpackChunkName: "cube-tetris", */ "./views/cube-tetris.vue"),
+	},
 ];
 
 

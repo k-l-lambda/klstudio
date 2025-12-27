@@ -42,7 +42,7 @@ export default defineConfig(({mode}) => {
 			},
 		},
 		optimizeDeps: {
-			exclude: ["plotly.min.js"],
+			exclude: ["plotly.min.js", "echarts", "zrender", "v-charts"],
 			esbuildOptions: {
 				define: {
 					global: "globalThis",

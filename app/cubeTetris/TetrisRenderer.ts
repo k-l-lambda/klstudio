@@ -10,23 +10,58 @@ import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import type {GameConfig, Point3D} from "./types";
 import {CubeGrid} from "./CubeGrid";
 import {TetrisPiece} from "./TetrisPiece";
-import {GAME_CONFIG} from "./constants";
+import {GAME_CONFIG, PIECE_DEFINITIONS, coordKey} from "./constants";
+
+
+// Face direction constants
+type FaceDir = "+x" | "-x" | "+y" | "-y" | "+z" | "-z";
+const FACE_DIRS: FaceDir[] = ["+x", "-x", "+y", "-y", "+z", "-z"];
+
+// Neighbor offsets for each face direction
+const FACE_NEIGHBORS: Record<FaceDir, Point3D> = {
+	"+x": {x: 1, y: 0, z: 0},
+	"-x": {x: -1, y: 0, z: 0},
+	"+y": {x: 0, y: 1, z: 0},
+	"-y": {x: 0, y: -1, z: 0},
+	"+z": {x: 0, y: 0, z: 1},
+	"-z": {x: 0, y: 0, z: -1},
+};
 
 
 /**
- * Create beveled cube geometry similar to original game
- * The original cube0.mesh has beveled edges at ~0.455892 with inner flat face
+ * Create unified piece geometry for a set of blocks.
+ * Internal faces between adjacent cubes are removed.
+ * Beveled edges only appear on exterior surfaces.
  */
-function createBeveledCubeGeometry(size: number = 0.95, bevel: number = 0.08): THREE.BufferGeometry {
-	const s = size / 2;      // half size
-	const b = bevel;          // bevel amount
-	const inner = s - b;      // inner flat area
+function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 0.95, bevel: number = 0.06): THREE.BufferGeometry {
+	const s = cubeSize / 2;      // half size
+	const b = bevel;              // bevel amount
+	const inner = s - b;          // inner flat area
 
 	const vertices: number[] = [];
 	const normals: number[] = [];
 	const indices: number[] = [];
 
-	// Helper to add a face
+	// Build a set of block positions for quick neighbor lookup
+	const blockSet = new Set<string>();
+	for (const block of blocks) {
+		blockSet.add(coordKey(block.x, block.y, block.z));
+	}
+
+	// Check if a neighbor exists in the given direction
+	const hasNeighbor = (block: Point3D, dir: FaceDir): boolean => {
+		const offset = FACE_NEIGHBORS[dir];
+		const key = coordKey(block.x + offset.x, block.y + offset.y, block.z + offset.z);
+		return blockSet.has(key);
+	};
+
+	// Check if edge is exterior (at least one adjacent face is exterior)
+	const isEdgeExterior = (block: Point3D, dir1: FaceDir, dir2: FaceDir): boolean => {
+		// Edge is exterior if either of its adjacent faces is exterior
+		return !hasNeighbor(block, dir1) || !hasNeighbor(block, dir2);
+	};
+
+	// Helper to add a quad face
 	const addFace = (v0: number[], v1: number[], v2: number[], v3: number[], normal: number[]) => {
 		const baseIdx = vertices.length / 3;
 		vertices.push(...v0, ...v1, ...v2, ...v3);
@@ -34,85 +69,206 @@ function createBeveledCubeGeometry(size: number = 0.95, bevel: number = 0.08): T
 		indices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
 	};
 
-	// Helper to add a beveled edge quad
-	const addBevelQuad = (v0: number[], v1: number[], v2: number[], v3: number[], n: number[]) => {
-		addFace(v0, v1, v2, v3, n);
-	};
-
-	// Top face (+Y) - inner flat area
-	addFace(
-		[-inner, s, -inner], [inner, s, -inner], [inner, s, inner], [-inner, s, inner],
-		[0, 1, 0]
-	);
-	// Top face bevels
-	addBevelQuad([-inner, s, -inner], [-s, s - b, -s], [-s, s - b, s], [-inner, s, inner], [-0.707, 0.707, 0]);
-	addBevelQuad([inner, s, inner], [s, s - b, s], [s, s - b, -s], [inner, s, -inner], [0.707, 0.707, 0]);
-	addBevelQuad([-inner, s, inner], [inner, s, inner], [s, s - b, s], [-s, s - b, s], [0, 0.707, 0.707]);
-	addBevelQuad([inner, s, -inner], [-inner, s, -inner], [-s, s - b, -s], [s, s - b, -s], [0, 0.707, -0.707]);
-
-	// Bottom face (-Y) - inner flat area
-	addFace(
-		[-inner, -s, inner], [inner, -s, inner], [inner, -s, -inner], [-inner, -s, -inner],
-		[0, -1, 0]
-	);
-	// Bottom face bevels
-	addBevelQuad([-inner, -s, inner], [-s, -s + b, s], [-s, -s + b, -s], [-inner, -s, -inner], [-0.707, -0.707, 0]);
-	addBevelQuad([inner, -s, -inner], [s, -s + b, -s], [s, -s + b, s], [inner, -s, inner], [0.707, -0.707, 0]);
-	addBevelQuad([inner, -s, inner], [s, -s + b, s], [-s, -s + b, s], [-inner, -s, inner], [0, -0.707, 0.707]);
-	addBevelQuad([-inner, -s, -inner], [-s, -s + b, -s], [s, -s + b, -s], [inner, -s, -inner], [0, -0.707, -0.707]);
-
-	// Front face (+Z) - inner flat area
-	addFace(
-		[-inner, -inner, s], [inner, -inner, s], [inner, inner, s], [-inner, inner, s],
-		[0, 0, 1]
-	);
-	// Front face side bevels
-	addBevelQuad([-inner, -inner, s], [-s, -s + b, s], [-s, s - b, s], [-inner, inner, s], [-0.707, 0, 0.707]);
-	addBevelQuad([inner, inner, s], [s, s - b, s], [s, -s + b, s], [inner, -inner, s], [0.707, 0, 0.707]);
-
-	// Back face (-Z) - inner flat area
-	addFace(
-		[inner, -inner, -s], [-inner, -inner, -s], [-inner, inner, -s], [inner, inner, -s],
-		[0, 0, -1]
-	);
-	// Back face side bevels
-	addBevelQuad([inner, -inner, -s], [s, -s + b, -s], [s, s - b, -s], [inner, inner, -s], [0.707, 0, -0.707]);
-	addBevelQuad([-inner, inner, -s], [-s, s - b, -s], [-s, -s + b, -s], [-inner, -inner, -s], [-0.707, 0, -0.707]);
-
-	// Right face (+X) - inner flat area
-	addFace(
-		[s, -inner, inner], [s, -inner, -inner], [s, inner, -inner], [s, inner, inner],
-		[1, 0, 0]
-	);
-
-	// Left face (-X) - inner flat area
-	addFace(
-		[-s, -inner, -inner], [-s, -inner, inner], [-s, inner, inner], [-s, inner, -inner],
-		[-1, 0, 0]
-	);
-
-	// Create corner bevels (8 corners)
-	const addCornerBevel = (sx: number, sy: number, sz: number) => {
-		const x = sx * s, y = sy * s, z = sz * s;
-		const ix = sx * inner, iy = sy * inner, iz = sz * inner;
-		const bx = sx * (s - b), by = sy * (s - b), bz = sz * (s - b);
-		// Small triangular corner bevel
-		const n = [sx * 0.577, sy * 0.577, sz * 0.577];
+	// Helper to add a triangle face
+	const addTriangle = (v0: number[], v1: number[], v2: number[], normal: number[]) => {
 		const baseIdx = vertices.length / 3;
-		vertices.push(bx, y, bz);
-		vertices.push(x, by, bz);
-		vertices.push(bx, by, z);
-		normals.push(...n, ...n, ...n);
+		vertices.push(...v0, ...v1, ...v2);
+		normals.push(...normal, ...normal, ...normal);
 		indices.push(baseIdx, baseIdx + 1, baseIdx + 2);
 	};
-	addCornerBevel(1, 1, 1);
-	addCornerBevel(-1, 1, 1);
-	addCornerBevel(1, -1, 1);
-	addCornerBevel(-1, -1, 1);
-	addCornerBevel(1, 1, -1);
-	addCornerBevel(-1, 1, -1);
-	addCornerBevel(1, -1, -1);
-	addCornerBevel(-1, -1, -1);
+
+	// Process each block
+	for (const block of blocks) {
+		const ox = block.x;  // offset x
+		const oy = block.y;  // offset y
+		const oz = block.z;  // offset z
+
+		// Determine which faces are exterior
+		const exterior: Record<FaceDir, boolean> = {
+			"+x": !hasNeighbor(block, "+x"),
+			"-x": !hasNeighbor(block, "-x"),
+			"+y": !hasNeighbor(block, "+y"),
+			"-y": !hasNeighbor(block, "-y"),
+			"+z": !hasNeighbor(block, "+z"),
+			"-z": !hasNeighbor(block, "-z"),
+		};
+
+		// +Y face (top)
+		if (exterior["+y"]) {
+			// Inner flat area
+			addFace(
+				[ox - inner, oy + s, oz - inner], [ox + inner, oy + s, oz - inner],
+				[ox + inner, oy + s, oz + inner], [ox - inner, oy + s, oz + inner],
+				[0, 1, 0]
+			);
+			// Beveled edges - only if edge is exterior
+			if (exterior["-x"]) {
+				addFace(
+					[ox - inner, oy + s, oz - inner], [ox - s, oy + s - b, oz - s],
+					[ox - s, oy + s - b, oz + s], [ox - inner, oy + s, oz + inner],
+					[-0.707, 0.707, 0]
+				);
+			}
+			if (exterior["+x"]) {
+				addFace(
+					[ox + inner, oy + s, oz + inner], [ox + s, oy + s - b, oz + s],
+					[ox + s, oy + s - b, oz - s], [ox + inner, oy + s, oz - inner],
+					[0.707, 0.707, 0]
+				);
+			}
+			if (exterior["+z"]) {
+				addFace(
+					[ox - inner, oy + s, oz + inner], [ox + inner, oy + s, oz + inner],
+					[ox + s, oy + s - b, oz + s], [ox - s, oy + s - b, oz + s],
+					[0, 0.707, 0.707]
+				);
+			}
+			if (exterior["-z"]) {
+				addFace(
+					[ox + inner, oy + s, oz - inner], [ox - inner, oy + s, oz - inner],
+					[ox - s, oy + s - b, oz - s], [ox + s, oy + s - b, oz - s],
+					[0, 0.707, -0.707]
+				);
+			}
+		}
+
+		// -Y face (bottom)
+		if (exterior["-y"]) {
+			// Inner flat area
+			addFace(
+				[ox - inner, oy - s, oz + inner], [ox + inner, oy - s, oz + inner],
+				[ox + inner, oy - s, oz - inner], [ox - inner, oy - s, oz - inner],
+				[0, -1, 0]
+			);
+			// Beveled edges
+			if (exterior["-x"]) {
+				addFace(
+					[ox - inner, oy - s, oz + inner], [ox - s, oy - s + b, oz + s],
+					[ox - s, oy - s + b, oz - s], [ox - inner, oy - s, oz - inner],
+					[-0.707, -0.707, 0]
+				);
+			}
+			if (exterior["+x"]) {
+				addFace(
+					[ox + inner, oy - s, oz - inner], [ox + s, oy - s + b, oz - s],
+					[ox + s, oy - s + b, oz + s], [ox + inner, oy - s, oz + inner],
+					[0.707, -0.707, 0]
+				);
+			}
+			if (exterior["+z"]) {
+				addFace(
+					[ox + inner, oy - s, oz + inner], [ox + s, oy - s + b, oz + s],
+					[ox - s, oy - s + b, oz + s], [ox - inner, oy - s, oz + inner],
+					[0, -0.707, 0.707]
+				);
+			}
+			if (exterior["-z"]) {
+				addFace(
+					[ox - inner, oy - s, oz - inner], [ox - s, oy - s + b, oz - s],
+					[ox + s, oy - s + b, oz - s], [ox + inner, oy - s, oz - inner],
+					[0, -0.707, -0.707]
+				);
+			}
+		}
+
+		// +Z face (front)
+		if (exterior["+z"]) {
+			// Inner flat area
+			addFace(
+				[ox - inner, oy - inner, oz + s], [ox + inner, oy - inner, oz + s],
+				[ox + inner, oy + inner, oz + s], [ox - inner, oy + inner, oz + s],
+				[0, 0, 1]
+			);
+			// Side beveled edges
+			if (exterior["-x"]) {
+				addFace(
+					[ox - inner, oy - inner, oz + s], [ox - s, oy - s + b, oz + s],
+					[ox - s, oy + s - b, oz + s], [ox - inner, oy + inner, oz + s],
+					[-0.707, 0, 0.707]
+				);
+			}
+			if (exterior["+x"]) {
+				addFace(
+					[ox + inner, oy + inner, oz + s], [ox + s, oy + s - b, oz + s],
+					[ox + s, oy - s + b, oz + s], [ox + inner, oy - inner, oz + s],
+					[0.707, 0, 0.707]
+				);
+			}
+		}
+
+		// -Z face (back)
+		if (exterior["-z"]) {
+			// Inner flat area
+			addFace(
+				[ox + inner, oy - inner, oz - s], [ox - inner, oy - inner, oz - s],
+				[ox - inner, oy + inner, oz - s], [ox + inner, oy + inner, oz - s],
+				[0, 0, -1]
+			);
+			// Side beveled edges
+			if (exterior["+x"]) {
+				addFace(
+					[ox + inner, oy - inner, oz - s], [ox + s, oy - s + b, oz - s],
+					[ox + s, oy + s - b, oz - s], [ox + inner, oy + inner, oz - s],
+					[0.707, 0, -0.707]
+				);
+			}
+			if (exterior["-x"]) {
+				addFace(
+					[ox - inner, oy + inner, oz - s], [ox - s, oy + s - b, oz - s],
+					[ox - s, oy - s + b, oz - s], [ox - inner, oy - inner, oz - s],
+					[-0.707, 0, -0.707]
+				);
+			}
+		}
+
+		// +X face (right)
+		if (exterior["+x"]) {
+			// Inner flat area
+			addFace(
+				[ox + s, oy - inner, oz + inner], [ox + s, oy - inner, oz - inner],
+				[ox + s, oy + inner, oz - inner], [ox + s, oy + inner, oz + inner],
+				[1, 0, 0]
+			);
+		}
+
+		// -X face (left)
+		if (exterior["-x"]) {
+			// Inner flat area
+			addFace(
+				[ox - s, oy - inner, oz - inner], [ox - s, oy - inner, oz + inner],
+				[ox - s, oy + inner, oz + inner], [ox - s, oy + inner, oz - inner],
+				[-1, 0, 0]
+			);
+		}
+
+		// Corner bevels - only add if all 3 adjacent faces are exterior
+		const addCornerBevel = (sx: number, sy: number, sz: number) => {
+			const xDir: FaceDir = sx > 0 ? "+x" : "-x";
+			const yDir: FaceDir = sy > 0 ? "+y" : "-y";
+			const zDir: FaceDir = sz > 0 ? "+z" : "-z";
+
+			// Only add corner bevel if all three adjacent faces are exterior
+			if (!exterior[xDir] || !exterior[yDir] || !exterior[zDir]) return;
+
+			const x = ox + sx * s;
+			const y = oy + sy * s;
+			const z = oz + sz * s;
+			const bx = ox + sx * (s - b);
+			const by = oy + sy * (s - b);
+			const bz = oz + sz * (s - b);
+			const n = [sx * 0.577, sy * 0.577, sz * 0.577];
+			addTriangle([bx, y, bz], [x, by, bz], [bx, by, z], n);
+		};
+
+		addCornerBevel(1, 1, 1);
+		addCornerBevel(-1, 1, 1);
+		addCornerBevel(1, -1, 1);
+		addCornerBevel(-1, -1, 1);
+		addCornerBevel(1, 1, -1);
+		addCornerBevel(-1, 1, -1);
+		addCornerBevel(1, -1, -1);
+		addCornerBevel(-1, -1, -1);
+	}
 
 	const geometry = new THREE.BufferGeometry();
 	geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
@@ -120,6 +276,15 @@ function createBeveledCubeGeometry(size: number = 0.95, bevel: number = 0.08): T
 	geometry.setIndex(indices);
 
 	return geometry;
+}
+
+
+/**
+ * Create beveled cube geometry for a single cube (used for board blocks)
+ */
+function createBeveledCubeGeometry(size: number = 0.95, bevel: number = 0.06): THREE.BufferGeometry {
+	// Use unified piece geometry with a single block
+	return createUnifiedPieceGeometry([{x: 0, y: 0, z: 0}], size, bevel);
 }
 
 
@@ -348,7 +513,7 @@ export class TetrisRenderer {
 
 
 	/**
-	 * Update current piece visualization
+	 * Update current piece visualization using unified piece mesh
 	 */
 	updatePiece(piece: TetrisPiece | null): void {
 		// Clear existing piece meshes
@@ -356,42 +521,67 @@ export class TetrisRenderer {
 			const child = this.pieceGroup.children[0];
 			this.pieceGroup.remove(child);
 			if (child instanceof THREE.Mesh) {
+				child.geometry?.dispose();
 				(child.material as THREE.Material).dispose();
 			}
 		}
 
 		if (!piece) return;
 
-		// Add blocks from piece
-		for (const {point, data} of piece.getWorldBlocks()) {
-			const mesh = this.createBlockMesh(data.color);
-			mesh.position.set(point.x, point.y, point.z);
-			this.pieceGroup.add(mesh);
-		}
+		// Get the piece's local blocks (relative positions)
+		const localBlocks = piece.getLocalBlocks();
+		const blocks = piece.getWorldBlocks();
+		if (blocks.length === 0) return;
+
+		// Create unified geometry for the piece's local shape
+		const geometry = createUnifiedPieceGeometry(localBlocks, 0.95, 0.06);
+
+		// Create material with piece color
+		const material = new THREE.MeshStandardMaterial({
+			color: new THREE.Color(blocks[0].data.color),
+			metalness: 0.3,
+			roughness: 0.4,
+		});
+
+		// Create single mesh for the entire piece
+		const mesh = new THREE.Mesh(geometry, material);
+		mesh.castShadow = true;
+		mesh.receiveShadow = true;
+
+		// Position at piece position
+		mesh.position.set(piece.position.x, piece.position.y, piece.position.z);
+
+		this.pieceGroup.add(mesh);
 	}
 
 
 	/**
-	 * Update ghost piece visualization (drop preview)
+	 * Update ghost piece visualization (drop preview) using unified mesh
 	 */
 	updateGhost(piece: TetrisPiece | null, ghostPosition: Point3D | null): void {
 		// Clear existing ghost meshes
 		while (this.ghostGroup.children.length > 0) {
 			const child = this.ghostGroup.children[0];
 			this.ghostGroup.remove(child);
+			if (child instanceof THREE.Mesh) {
+				child.geometry?.dispose();
+			}
 		}
 
 		if (!piece || !ghostPosition) return;
 
-		// Create ghost piece at drop position
-		const ghostPiece = piece.clone();
-		ghostPiece.position = ghostPosition;
+		// Get the piece's local blocks (relative positions)
+		const localBlocks = piece.getLocalBlocks();
+		if (localBlocks.length === 0) return;
 
-		for (const {point} of ghostPiece.getWorldBlocks()) {
-			const mesh = new THREE.Mesh(this.blockGeometry, this.ghostMaterial);
-			mesh.position.set(point.x, point.y, point.z);
-			this.ghostGroup.add(mesh);
-		}
+		// Create unified geometry for the ghost piece
+		const geometry = createUnifiedPieceGeometry(localBlocks, 0.95, 0.06);
+
+		// Create single mesh for the ghost
+		const mesh = new THREE.Mesh(geometry, this.ghostMaterial);
+		mesh.position.set(ghostPosition.x, ghostPosition.y, ghostPosition.z);
+
+		this.ghostGroup.add(mesh);
 	}
 
 

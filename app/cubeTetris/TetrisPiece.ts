@@ -86,6 +86,14 @@ export class TetrisPiece {
 
 
 	/**
+	 * Get all local-space block positions (relative to piece origin)
+	 */
+	getLocalBlocks(): Point3D[] {
+		return this.grid.toPointList().map(({point}) => ({...point}));
+	}
+
+
+	/**
 	 * Move the piece
 	 */
 	move(dx: number, dy: number, dz: number): void {

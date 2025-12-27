@@ -563,3 +563,49 @@ Updated `vue.config.js` to use Webpack 5's built-in asset modules:
 **Result:** ✅ Game running with AI auto-play, auto-rotating camera, beveled cube visuals
 
 </details>
+
+<details>
+<summary>Unified Piece Mesh Geometry (2025-12-27)</summary>
+
+> The mesh is still assembled from small cubes. Note how F:\Documents\Works\Games\TanxGames\CubeTetris\Product\cube*.mesh.xml files define the geometry.
+
+**Issue:** Initial implementation assembled pieces from individual cube meshes, creating visible seams between adjacent cubes within the same piece. Original CubeTetris uses unified meshes where each brick is a single geometry.
+
+**Root Cause Analysis:**
+- Analyzed original Ogre3D mesh files (cube0.mesh.xml, cube1.mesh.xml, cube2.mesh.xml)
+- cube0: Single beveled cube with 6 submeshes (one per face)
+- cube1, cube2: Multi-cube pieces where internal faces between adjacent cubes are removed
+- Beveled edges only appear on exterior surfaces
+
+**Solution:** Created `createUnifiedPieceGeometry()` function in `TetrisRenderer.ts`:
+
+1. **Neighbor detection**: Build a set of block positions, check each cube's 6 neighbors
+2. **Face culling**: Only render faces where there's no adjacent cube (exterior faces)
+3. **Edge bevels**: Only add beveled edges on exterior surfaces
+4. **Corner bevels**: Only add corner triangles when all 3 adjacent faces are exterior
+
+**Changes Made:**
+
+1. **TetrisRenderer.ts:**
+   - Added `createUnifiedPieceGeometry(blocks[], cubeSize, bevel)` function
+   - Uses `FaceDir` type and `FACE_NEIGHBORS` map for direction handling
+   - Processes each block, determines exterior faces, generates appropriate geometry
+   - Updated `updatePiece()` to create single unified mesh positioned at piece origin
+   - Updated `updateGhost()` to use unified mesh for ghost preview
+   - Proper geometry disposal on mesh cleanup
+
+2. **TetrisPiece.ts:**
+   - Added `getLocalBlocks()` method to return block positions relative to piece origin
+   - Used by renderer to generate unified geometry in local space
+
+**Technical Details:**
+- Geometry is generated dynamically for each piece shape/rotation
+- Internal faces (where cubes touch) are completely removed
+- Beveled edges follow the same rules as the original mesh files
+- Single mesh per piece reduces draw calls and looks correct
+
+**Commit:** `feat(cube-tetris): Use unified piece mesh geometry`
+
+**Result:** ✅ Pieces now render as single unified meshes matching original game style
+
+</details>

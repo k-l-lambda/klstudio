@@ -52,6 +52,8 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 	const s = cubeSize / 2;        // half size (≈0.5015)
 	const inner = s * 0.82;        // inner flat area (≈0.411)
 	const outer = s * 0.91;        // bevel edge (≈0.456)
+	// Extend slightly beyond s when meeting neighbor to ensure overlap (prevent gaps)
+	const sExt = s + 0.02;
 
 	const vertices: number[] = [];
 	const normals: number[] = [];
@@ -75,13 +77,22 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 		"-z": (faceMask & FACE_MASK.NEG_Z) !== 0,
 	};
 
-	// For inner flat area: extend to full edge (s) when face is NOT exterior
-	const xMin = exterior["-x"] ? inner : s;
-	const xMax = exterior["+x"] ? inner : s;
-	const yMin = exterior["-y"] ? inner : s;
-	const yMax = exterior["+y"] ? inner : s;
-	const zMin = exterior["-z"] ? inner : s;
-	const zMax = exterior["+z"] ? inner : s;
+	// For inner flat area: extend beyond edge (sExt) when face is NOT exterior to overlap with neighbor
+	const xMin = exterior["-x"] ? inner : sExt;
+	const xMax = exterior["+x"] ? inner : sExt;
+	const yMin = exterior["-y"] ? inner : sExt;
+	const yMax = exterior["+y"] ? inner : sExt;
+	const zMin = exterior["-z"] ? inner : sExt;
+	const zMax = exterior["+z"] ? inner : sExt;
+
+	// Outer bevel coordinates - extend when perpendicular face has neighbor
+	const outerExt = outer + 0.02;  // Extended outer to match sExt overlap
+	const oxMin = exterior["-x"] ? outer : outerExt;
+	const oxMax = exterior["+x"] ? outer : outerExt;
+	const oyMin = exterior["-y"] ? outer : outerExt;
+	const oyMax = exterior["+y"] ? outer : outerExt;
+	const ozMin = exterior["-z"] ? outer : outerExt;
+	const ozMax = exterior["+z"] ? outer : outerExt;
 
 	// +Y face (top)
 	if (exterior["+y"]) {
@@ -93,28 +104,28 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 		if (exterior["-x"]) {
 			addFace(
 				[-inner, s, zMax], [-inner, s, -zMin],
-				[-outer, outer, -outer], [-outer, outer, outer],
+				[-outer, outer, -ozMin], [-outer, outer, ozMax],
 				[-0.716, 0.698, 0]
 			);
 		}
 		if (exterior["+x"]) {
 			addFace(
 				[inner, s, -zMin], [inner, s, zMax],
-				[outer, outer, outer], [outer, outer, -outer],
+				[outer, outer, ozMax], [outer, outer, -ozMin],
 				[0.716, 0.698, 0]
 			);
 		}
 		if (exterior["+z"]) {
 			addFace(
 				[xMax, s, inner], [-xMin, s, inner],
-				[-outer, outer, outer], [outer, outer, outer],
+				[-oxMin, outer, outer], [oxMax, outer, outer],
 				[0, 0.698, 0.716]
 			);
 		}
 		if (exterior["-z"]) {
 			addFace(
 				[-xMin, s, -inner], [xMax, s, -inner],
-				[outer, outer, -outer], [-outer, outer, -outer],
+				[oxMax, outer, -outer], [-oxMin, outer, -outer],
 				[0, 0.698, -0.716]
 			);
 		}
@@ -130,28 +141,28 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 		if (exterior["-x"]) {
 			addFace(
 				[-inner, -s, -zMin], [-inner, -s, zMax],
-				[-outer, -outer, outer], [-outer, -outer, -outer],
+				[-outer, -outer, ozMax], [-outer, -outer, -ozMin],
 				[-0.716, -0.698, 0]
 			);
 		}
 		if (exterior["+x"]) {
 			addFace(
 				[inner, -s, zMax], [inner, -s, -zMin],
-				[outer, -outer, -outer], [outer, -outer, outer],
+				[outer, -outer, -ozMin], [outer, -outer, ozMax],
 				[0.716, -0.698, 0]
 			);
 		}
 		if (exterior["+z"]) {
 			addFace(
 				[-xMin, -s, inner], [xMax, -s, inner],
-				[outer, -outer, outer], [-outer, -outer, outer],
+				[oxMax, -outer, outer], [-oxMin, -outer, outer],
 				[0, -0.698, 0.716]
 			);
 		}
 		if (exterior["-z"]) {
 			addFace(
 				[xMax, -s, -inner], [-xMin, -s, -inner],
-				[-outer, -outer, -outer], [outer, -outer, -outer],
+				[-oxMin, -outer, -outer], [oxMax, -outer, -outer],
 				[0, -0.698, -0.716]
 			);
 		}
@@ -167,28 +178,28 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 		if (exterior["-x"]) {
 			addFace(
 				[-inner, -yMin, s], [-inner, yMax, s],
-				[-outer, outer, outer], [-outer, -outer, outer],
+				[-outer, oyMax, outer], [-outer, -oyMin, outer],
 				[-0.716, 0, 0.698]
 			);
 		}
 		if (exterior["+x"]) {
 			addFace(
 				[inner, yMax, s], [inner, -yMin, s],
-				[outer, -outer, outer], [outer, outer, outer],
+				[outer, -oyMin, outer], [outer, oyMax, outer],
 				[0.716, 0, 0.698]
 			);
 		}
 		if (exterior["+y"]) {
 			addFace(
 				[-xMin, inner, s], [xMax, inner, s],
-				[outer, outer, outer], [-outer, outer, outer],
+				[oxMax, outer, outer], [-oxMin, outer, outer],
 				[0, 0.716, 0.698]
 			);
 		}
 		if (exterior["-y"]) {
 			addFace(
 				[xMax, -inner, s], [-xMin, -inner, s],
-				[-outer, -outer, outer], [outer, -outer, outer],
+				[-oxMin, -outer, outer], [oxMax, -outer, outer],
 				[0, -0.716, 0.698]
 			);
 		}
@@ -204,28 +215,28 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 		if (exterior["+x"]) {
 			addFace(
 				[inner, -yMin, -s], [inner, yMax, -s],
-				[outer, outer, -outer], [outer, -outer, -outer],
+				[outer, oyMax, -outer], [outer, -oyMin, -outer],
 				[0.716, 0, -0.698]
 			);
 		}
 		if (exterior["-x"]) {
 			addFace(
 				[-inner, yMax, -s], [-inner, -yMin, -s],
-				[-outer, -outer, -outer], [-outer, outer, -outer],
+				[-outer, -oyMin, -outer], [-outer, oyMax, -outer],
 				[-0.716, 0, -0.698]
 			);
 		}
 		if (exterior["+y"]) {
 			addFace(
 				[xMax, inner, -s], [-xMin, inner, -s],
-				[-outer, outer, -outer], [outer, outer, -outer],
+				[-oxMin, outer, -outer], [oxMax, outer, -outer],
 				[0, 0.716, -0.698]
 			);
 		}
 		if (exterior["-y"]) {
 			addFace(
 				[-xMin, -inner, -s], [xMax, -inner, -s],
-				[outer, -outer, -outer], [-outer, -outer, -outer],
+				[oxMax, -outer, -outer], [-oxMin, -outer, -outer],
 				[0, -0.716, -0.698]
 			);
 		}
@@ -241,28 +252,28 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 		if (exterior["+y"]) {
 			addFace(
 				[s, inner, zMax], [s, inner, -zMin],
-				[outer, outer, -outer], [outer, outer, outer],
+				[outer, outer, -ozMin], [outer, outer, ozMax],
 				[0.698, 0.716, 0]
 			);
 		}
 		if (exterior["-y"]) {
 			addFace(
 				[s, -inner, -zMin], [s, -inner, zMax],
-				[outer, -outer, outer], [outer, -outer, -outer],
+				[outer, -outer, ozMax], [outer, -outer, -ozMin],
 				[0.698, -0.716, 0]
 			);
 		}
 		if (exterior["+z"]) {
 			addFace(
 				[s, -yMin, inner], [s, yMax, inner],
-				[outer, outer, outer], [outer, -outer, outer],
+				[outer, oyMax, outer], [outer, -oyMin, outer],
 				[0.698, 0, 0.716]
 			);
 		}
 		if (exterior["-z"]) {
 			addFace(
 				[s, yMax, -inner], [s, -yMin, -inner],
-				[outer, -outer, -outer], [outer, outer, -outer],
+				[outer, -oyMin, -outer], [outer, oyMax, -outer],
 				[0.698, 0, -0.716]
 			);
 		}
@@ -278,28 +289,28 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 		if (exterior["+y"]) {
 			addFace(
 				[-s, inner, -zMin], [-s, inner, zMax],
-				[-outer, outer, outer], [-outer, outer, -outer],
+				[-outer, outer, ozMax], [-outer, outer, -ozMin],
 				[-0.698, 0.716, 0]
 			);
 		}
 		if (exterior["-y"]) {
 			addFace(
 				[-s, -inner, zMax], [-s, -inner, -zMin],
-				[-outer, -outer, -outer], [-outer, -outer, outer],
+				[-outer, -outer, -ozMin], [-outer, -outer, ozMax],
 				[-0.698, -0.716, 0]
 			);
 		}
 		if (exterior["+z"]) {
 			addFace(
 				[-s, yMax, inner], [-s, -yMin, inner],
-				[-outer, -outer, outer], [-outer, outer, outer],
+				[-outer, -oyMin, outer], [-outer, oyMax, outer],
 				[-0.698, 0, 0.716]
 			);
 		}
 		if (exterior["-z"]) {
 			addFace(
 				[-s, -yMin, -inner], [-s, yMax, -inner],
-				[-outer, outer, -outer], [-outer, -outer, -outer],
+				[-outer, oyMax, -outer], [-outer, -oyMin, -outer],
 				[-0.698, 0, -0.716]
 			);
 		}

@@ -903,3 +903,90 @@ Initial implementation had left/right swapped in +X and -X quadrants. The correc
 **Result:** ✅ Pieces now fall smoothly at 25 units/second instead of teleporting
 
 </details>
+
+<details>
+<summary>Geometry Caching by Rotation (2025-12-28)</summary>
+
+> Fix piece/ghost alignment bug introduced when using mesh.rotation for piece rendering.
+
+**Issue:** After attempting to optimize by using only 8 base geometries with mesh.rotation for different orientations, the piece and ghost positions became misaligned.
+
+**Root Cause:** Three.js Euler angles (`mesh.rotation.set()`) don't compose the same way as `CubeGrid.rotate()` which applies sequential 90° rotations around the origin with specific formulas per axis.
+
+**Fix Applied:**
+1. Changed geometry caching from `piece.definition.name` (8 types) to `geometryCacheKey(localBlocks)` which caches by actual rotated block positions
+2. Removed `mesh.rotation` usage - geometry is created directly from `localBlocks` which are already rotated by `CubeGrid.rotate()`
+3. Simplified positioning - mesh placed directly at piece position without offset calculations
+
+**Result:** ✅ Piece and ghost now use identical geometry and positioning, ensuring perfect alignment
+
+</details>
+
+<details>
+<summary>Preserve Block Geometry When Locking (2025-12-28)</summary>
+
+> Create geometry with 4 separate parts for each brick so blocks can be easily split apart and managed individually when locked into the heap.
+
+**Implementation:**
+
+1. **Added `faceMask` to BlockData type** (`types.ts`):
+   - Bitmask indicating which faces are exposed (no neighbor within piece)
+   - Bits: +x=1, -x=2, +y=4, -y=8, +z=16, -z=32
+
+2. **Added `FACE_MASK` constants** (`constants.ts`):
+   - Named constants for each face direction
+   - `FACE_MASK.ALL = 63` for isolated cubes
+
+3. **Updated `TetrisPiece.getWorldBlocks()`** (`TetrisPiece.ts`):
+   - Calculates `faceMask` for each block based on neighbors within the piece
+   - Internal faces (where blocks touch within piece) are marked as hidden
+
+4. **Added `createBlockGeometryFromMask()`** (`TetrisRenderer.ts`):
+   - Generates single-block geometry with only specified faces exposed
+   - Reuses same bevel edge logic as unified piece geometry
+   - Cached by `faceMask` (up to 64 variants possible)
+
+5. **Updated board rendering**:
+   - `updateBoard()` uses stored `faceMask` for each block
+   - `startClearingAnimation()` also uses `faceMask` for consistency
+   - All use `blockGeometryCache` for efficient reuse
+
+**Result:** ✅ When pieces lock into heap, each block retains its original mesh appearance (internal faces remain hidden), matching original CubeTetris behavior
+
+</details>
+
+<details>
+<summary>Fix Diamond-Shaped Gaps at Block Connections (2025-12-28)</summary>
+
+> Note there are diamond-shaped small gaps at cube connection points.
+
+**Issue:** Small diamond-shaped gaps appeared at corners where adjacent blocks meet in the heap.
+
+**Root Cause:** In `createBlockGeometryFromMask()`, when a face is exterior but a perpendicular face has a neighbor:
+- The inner flat area extended to `sExt` (overlapping with neighbor)
+- But the bevel edge outer corners still used fixed `outer` values
+- This created a mismatch at corners where the inner area extends beyond the bevel edge
+
+**Fix Applied in `TetrisRenderer.ts`:**
+
+1. **Added extended outer coordinates** (lines 88-95):
+   ```typescript
+   const outerExt = outer + 0.02;  // Extended outer to match sExt overlap
+   const oxMin = exterior["-x"] ? outer : outerExt;
+   const oxMax = exterior["+x"] ? outer : outerExt;
+   const oyMin = exterior["-y"] ? outer : outerExt;
+   const oyMax = exterior["+y"] ? outer : outerExt;
+   const ozMin = exterior["-z"] ? outer : outerExt;
+   const ozMax = exterior["+z"] ? outer : outerExt;
+   ```
+
+2. **Updated all bevel edge outer corners** to use `oxMin/oxMax`, `oyMin/oyMax`, `ozMin/ozMax` instead of fixed `outer` values
+
+**Technical Details:**
+- When a perpendicular face has a neighbor, both the inner flat area AND the bevel edge outer corners extend to ensure overlap
+- This eliminates the diamond-shaped gaps at corners where blocks meet
+- The fix applies to all 6 face directions and their bevel edges
+
+**Result:** ✅ Blocks now connect seamlessly without diamond-shaped gaps at corners
+
+</details>

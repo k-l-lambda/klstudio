@@ -778,6 +778,14 @@ export class TetrisRenderer {
 
 
 	/**
+	 * Get board center for camera-relative controls
+	 */
+	getBoardCenter(): THREE.Vector3 {
+		return this.boardCenter.clone();
+	}
+
+
+	/**
 	 * Enable/disable auto-rotate camera for demo mode
 	 */
 	setAutoRotate(enabled: boolean, speed: number = 0.3): void {

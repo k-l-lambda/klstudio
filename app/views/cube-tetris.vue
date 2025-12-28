@@ -246,19 +246,19 @@
 				// Skip other controls if AI mode is active
 				if (this.aiMode) return;
 
-				// Check key bindings
+				// Check key bindings - use camera-relative movement
 				if (KEY_BINDINGS.moveLeft.includes(code)) {
 					event.preventDefault();
-					this.game.moveLeft();
+					this.moveCameraRelative("left");
 				} else if (KEY_BINDINGS.moveRight.includes(code)) {
 					event.preventDefault();
-					this.game.moveRight();
+					this.moveCameraRelative("right");
 				} else if (KEY_BINDINGS.moveForward.includes(code)) {
 					event.preventDefault();
-					this.game.moveForward();
+					this.moveCameraRelative("forward");
 				} else if (KEY_BINDINGS.moveBackward.includes(code)) {
 					event.preventDefault();
-					this.game.moveBackward();
+					this.moveCameraRelative("backward");
 				} else if (KEY_BINDINGS.drop.includes(code)) {
 					event.preventDefault();
 					this.game.hardDrop();
@@ -286,6 +286,70 @@
 				}
 
 				this.updateVisuals();
+			},
+
+
+			/**
+			 * Move piece relative to camera view direction
+			 */
+			moveCameraRelative(direction) {
+				if (!this.renderer || !this.game) return;
+
+				const camera = this.renderer.getCamera();
+				const target = this.renderer.getBoardCenter();
+
+				// Calculate camera forward direction on XZ plane
+				const dx = target.x - camera.position.x;
+				const dz = target.z - camera.position.z;
+
+				// Determine which quadrant the camera is viewing from
+				// and map input direction to world direction
+				const angle = Math.atan2(dz, dx);  // Angle from camera to center
+
+				// Normalize to 0-360 degrees
+				const degrees = ((angle * 180 / Math.PI) + 360) % 360;
+
+				// Determine primary viewing direction (which way is "forward" for the player)
+				// 0-45 or 315-360: camera looking toward +X
+				// 45-135: camera looking toward +Z
+				// 135-225: camera looking toward -X
+				// 225-315: camera looking toward -Z
+
+				let forward, backward, left, right;
+
+				if (degrees >= 315 || degrees < 45) {
+					// Camera looking toward +X
+					forward = () => this.game.moveRight();
+					backward = () => this.game.moveLeft();
+					left = () => this.game.moveBackward();
+					right = () => this.game.moveForward();
+				} else if (degrees >= 45 && degrees < 135) {
+					// Camera looking toward +Z
+					forward = () => this.game.moveBackward();
+					backward = () => this.game.moveForward();
+					left = () => this.game.moveRight();
+					right = () => this.game.moveLeft();
+				} else if (degrees >= 135 && degrees < 225) {
+					// Camera looking toward -X
+					forward = () => this.game.moveLeft();
+					backward = () => this.game.moveRight();
+					left = () => this.game.moveForward();
+					right = () => this.game.moveBackward();
+				} else {
+					// Camera looking toward -Z (225-315)
+					forward = () => this.game.moveForward();
+					backward = () => this.game.moveBackward();
+					left = () => this.game.moveLeft();
+					right = () => this.game.moveRight();
+				}
+
+				// Execute the mapped movement
+				switch (direction) {
+					case "forward": forward(); break;
+					case "backward": backward(); break;
+					case "left": left(); break;
+					case "right": right(); break;
+				}
 			},
 
 

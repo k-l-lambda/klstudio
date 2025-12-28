@@ -83,6 +83,13 @@
 
 	const apps = [
 		{
+			name: "Cube Tetris",
+			_title: "Cube Tetris",
+			path: "/cube-tetris",
+			cover: "cube-tetris.png",
+			description: `<p>A 3D reconstruction of the classical Tetris game.</p>`,
+		},
+		{
 			name: "Chess Lab",
 			_title: "Chess Lab",
 			path: "/chess-lab",

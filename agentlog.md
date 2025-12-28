@@ -534,6 +534,31 @@ update(timestamp: number): void {
 
 </details>
 
+<details>
+<summary>Add Cube Tetris Home Page Entry (2025-12-28)</summary>
+
+**Added Cube Tetris as the first entry on the home page:**
+
+1. **Cover image**: Copied and resized ChatGPT-generated image to 300x300 pixels
+   - Source: `footages/ChatGPT Image Dec 28, 2025, 09_44_03 PM.png` (1024x1024, 1MB)
+   - Destination: `app/assets/app-covers/cube-tetris.png` (300x300, 155KB)
+
+2. **Home page entry** in `app/home.vue`:
+   ```javascript
+   {
+       name: "Cube Tetris",
+       _title: "Cube Tetris",
+       path: "/cube-tetris",
+       cover: "cube-tetris.png",
+       description: `<p>A 3D Tetris game in a 4×4×20 cubic well. Features AI auto-play demo mode and camera-relative controls.</p>
+   <p>Ported from the original <a href="https://github.com/nicholascc/CubeTetris" target="_blank">CubeTetris</a> game.</p>`,
+   },
+   ```
+
+**Result:** ✅ Cube Tetris now appears as the first app on the K.L. Studio home page
+
+</details>
+
 **Next steps:**
 - Test the built application in browser to verify Vue 3 compatibility and all features work correctly
 - Verify `vue-class-component`/`vue-property-decorator` usage with Vue 3; upgrade or refactor components to options/composition API under compat mode

@@ -5,12 +5,12 @@
 		<div class="ui-overlay">
 			<div class="score-panel">
 				<div class="stat">
-					<span class="label">Score</span>
-					<span class="value">{{ state.score }}</span>
-				</div>
-				<div class="stat">
 					<span class="label">Hi-Score</span>
 					<span class="value hi-score">{{ highScore }}</span>
+				</div>
+				<div class="stat">
+					<span class="label">Score</span>
+					<span class="value">{{ state.score }}</span>
 				</div>
 				<div class="stat">
 					<span class="label">Level</span>

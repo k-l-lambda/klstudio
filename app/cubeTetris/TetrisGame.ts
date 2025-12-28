@@ -394,8 +394,13 @@ export class TetrisGame {
 	private lockPiece(): void {
 		if (!this._currentPiece) return;
 
-		// Add piece blocks to board
-		for (const {point, data} of this._currentPiece.getWorldBlocks()) {
+		// Get blocks from piece with their piece-internal faceMask
+		// (faceMask already handles same-piece adjacency from getWorldBlocks())
+		const newBlocks = this._currentPiece.getWorldBlocks();
+
+		// Add all blocks to the board with their piece-internal faceMasks intact
+		// Blocks from different pieces keep their individual geometry/appearance
+		for (const {point, data} of newBlocks) {
 			this.board.set(point.x, point.y, point.z, data);
 		}
 

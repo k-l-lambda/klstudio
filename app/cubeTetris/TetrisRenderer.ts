@@ -52,8 +52,8 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 	const s = cubeSize / 2;        // half size (≈0.5015)
 	const inner = s * 0.82;        // inner flat area (≈0.411)
 	const outer = s * 0.91;        // bevel edge (≈0.456)
-	// Extend slightly beyond s when meeting neighbor to ensure overlap (prevent gaps)
-	const sExt = s + 0.02;
+	// Extend exactly to half the grid spacing (0.5) when meeting neighbor
+	const sExt = 0.5;
 
 	const vertices: number[] = [];
 	const normals: number[] = [];
@@ -67,6 +67,14 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 		indices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
 	};
 
+	// Helper to add a triangle face (for corners)
+	const addTriangle = (v0: number[], v1: number[], v2: number[], normal: number[]) => {
+		const baseIdx = vertices.length / 3;
+		vertices.push(...v0, ...v1, ...v2);
+		normals.push(...normal, ...normal, ...normal);
+		indices.push(baseIdx, baseIdx + 1, baseIdx + 2);
+	};
+
 	// Check which faces are exposed
 	const exterior = {
 		"+x": (faceMask & FACE_MASK.POS_X) !== 0,
@@ -77,7 +85,7 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 		"-z": (faceMask & FACE_MASK.NEG_Z) !== 0,
 	};
 
-	// For inner flat area: extend beyond edge (sExt) when face is NOT exterior to overlap with neighbor
+	// For inner flat area: extend to sExt when face is NOT exterior to meet neighbor
 	const xMin = exterior["-x"] ? inner : sExt;
 	const xMax = exterior["+x"] ? inner : sExt;
 	const yMin = exterior["-y"] ? inner : sExt;
@@ -85,14 +93,13 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 	const zMin = exterior["-z"] ? inner : sExt;
 	const zMax = exterior["+z"] ? inner : sExt;
 
-	// Outer bevel coordinates - extend when perpendicular face has neighbor
-	const outerExt = outer + 0.02;  // Extended outer to match sExt overlap
-	const oxMin = exterior["-x"] ? outer : outerExt;
-	const oxMax = exterior["+x"] ? outer : outerExt;
-	const oyMin = exterior["-y"] ? outer : outerExt;
-	const oyMax = exterior["+y"] ? outer : outerExt;
-	const ozMin = exterior["-z"] ? outer : outerExt;
-	const ozMax = exterior["+z"] ? outer : outerExt;
+	// Outer bevel coordinates - extend to sExt when perpendicular face has neighbor
+	const oxMin = exterior["-x"] ? outer : sExt;
+	const oxMax = exterior["+x"] ? outer : sExt;
+	const oyMin = exterior["-y"] ? outer : sExt;
+	const oyMax = exterior["+y"] ? outer : sExt;
+	const ozMin = exterior["-z"] ? outer : sExt;
+	const ozMax = exterior["+z"] ? outer : sExt;
 
 	// +Y face (top)
 	if (exterior["+y"]) {
@@ -107,12 +114,26 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 				[-outer, outer, -ozMin], [-outer, outer, ozMax],
 				[-0.716, 0.698, 0]
 			);
+		} else {
+			// Flat extension strip when -X neighbor exists
+			addFace(
+				[-inner, s, zMax], [-inner, s, -zMin],
+				[-sExt, s, -zMin], [-sExt, s, zMax],
+				[0, 1, 0]
+			);
 		}
 		if (exterior["+x"]) {
 			addFace(
 				[inner, s, -zMin], [inner, s, zMax],
 				[outer, outer, ozMax], [outer, outer, -ozMin],
 				[0.716, 0.698, 0]
+			);
+		} else {
+			// Flat extension strip when +X neighbor exists
+			addFace(
+				[inner, s, -zMin], [inner, s, zMax],
+				[sExt, s, zMax], [sExt, s, -zMin],
+				[0, 1, 0]
 			);
 		}
 		if (exterior["+z"]) {
@@ -121,12 +142,26 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 				[-oxMin, outer, outer], [oxMax, outer, outer],
 				[0, 0.698, 0.716]
 			);
+		} else {
+			// Flat extension strip when +Z neighbor exists
+			addFace(
+				[xMax, s, inner], [-xMin, s, inner],
+				[-xMin, s, sExt], [xMax, s, sExt],
+				[0, 1, 0]
+			);
 		}
 		if (exterior["-z"]) {
 			addFace(
 				[-xMin, s, -inner], [xMax, s, -inner],
 				[oxMax, outer, -outer], [-oxMin, outer, -outer],
 				[0, 0.698, -0.716]
+			);
+		} else {
+			// Flat extension strip when -Z neighbor exists
+			addFace(
+				[-xMin, s, -inner], [xMax, s, -inner],
+				[xMax, s, -sExt], [-xMin, s, -sExt],
+				[0, 1, 0]
 			);
 		}
 	}
@@ -144,12 +179,24 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 				[-outer, -outer, ozMax], [-outer, -outer, -ozMin],
 				[-0.716, -0.698, 0]
 			);
+		} else {
+			addFace(
+				[-inner, -s, -zMin], [-inner, -s, zMax],
+				[-sExt, -s, zMax], [-sExt, -s, -zMin],
+				[0, -1, 0]
+			);
 		}
 		if (exterior["+x"]) {
 			addFace(
 				[inner, -s, zMax], [inner, -s, -zMin],
 				[outer, -outer, -ozMin], [outer, -outer, ozMax],
 				[0.716, -0.698, 0]
+			);
+		} else {
+			addFace(
+				[inner, -s, zMax], [inner, -s, -zMin],
+				[sExt, -s, -zMin], [sExt, -s, zMax],
+				[0, -1, 0]
 			);
 		}
 		if (exterior["+z"]) {
@@ -158,12 +205,24 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 				[oxMax, -outer, outer], [-oxMin, -outer, outer],
 				[0, -0.698, 0.716]
 			);
+		} else {
+			addFace(
+				[-xMin, -s, inner], [xMax, -s, inner],
+				[xMax, -s, sExt], [-xMin, -s, sExt],
+				[0, -1, 0]
+			);
 		}
 		if (exterior["-z"]) {
 			addFace(
 				[xMax, -s, -inner], [-xMin, -s, -inner],
 				[-oxMin, -outer, -outer], [oxMax, -outer, -outer],
 				[0, -0.698, -0.716]
+			);
+		} else {
+			addFace(
+				[xMax, -s, -inner], [-xMin, -s, -inner],
+				[-xMin, -s, -sExt], [xMax, -s, -sExt],
+				[0, -1, 0]
 			);
 		}
 	}
@@ -181,12 +240,24 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 				[-outer, oyMax, outer], [-outer, -oyMin, outer],
 				[-0.716, 0, 0.698]
 			);
+		} else {
+			addFace(
+				[-inner, -yMin, s], [-inner, yMax, s],
+				[-sExt, yMax, s], [-sExt, -yMin, s],
+				[0, 0, 1]
+			);
 		}
 		if (exterior["+x"]) {
 			addFace(
 				[inner, yMax, s], [inner, -yMin, s],
 				[outer, -oyMin, outer], [outer, oyMax, outer],
 				[0.716, 0, 0.698]
+			);
+		} else {
+			addFace(
+				[inner, yMax, s], [inner, -yMin, s],
+				[sExt, -yMin, s], [sExt, yMax, s],
+				[0, 0, 1]
 			);
 		}
 		if (exterior["+y"]) {
@@ -195,12 +266,24 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 				[oxMax, outer, outer], [-oxMin, outer, outer],
 				[0, 0.716, 0.698]
 			);
+		} else {
+			addFace(
+				[-xMin, inner, s], [xMax, inner, s],
+				[xMax, sExt, s], [-xMin, sExt, s],
+				[0, 0, 1]
+			);
 		}
 		if (exterior["-y"]) {
 			addFace(
 				[xMax, -inner, s], [-xMin, -inner, s],
 				[-oxMin, -outer, outer], [oxMax, -outer, outer],
 				[0, -0.716, 0.698]
+			);
+		} else {
+			addFace(
+				[xMax, -inner, s], [-xMin, -inner, s],
+				[-xMin, -sExt, s], [xMax, -sExt, s],
+				[0, 0, 1]
 			);
 		}
 	}
@@ -218,12 +301,24 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 				[outer, oyMax, -outer], [outer, -oyMin, -outer],
 				[0.716, 0, -0.698]
 			);
+		} else {
+			addFace(
+				[inner, -yMin, -s], [inner, yMax, -s],
+				[sExt, yMax, -s], [sExt, -yMin, -s],
+				[0, 0, -1]
+			);
 		}
 		if (exterior["-x"]) {
 			addFace(
 				[-inner, yMax, -s], [-inner, -yMin, -s],
 				[-outer, -oyMin, -outer], [-outer, oyMax, -outer],
 				[-0.716, 0, -0.698]
+			);
+		} else {
+			addFace(
+				[-inner, yMax, -s], [-inner, -yMin, -s],
+				[-sExt, -yMin, -s], [-sExt, yMax, -s],
+				[0, 0, -1]
 			);
 		}
 		if (exterior["+y"]) {
@@ -232,12 +327,24 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 				[-oxMin, outer, -outer], [oxMax, outer, -outer],
 				[0, 0.716, -0.698]
 			);
+		} else {
+			addFace(
+				[xMax, inner, -s], [-xMin, inner, -s],
+				[-xMin, sExt, -s], [xMax, sExt, -s],
+				[0, 0, -1]
+			);
 		}
 		if (exterior["-y"]) {
 			addFace(
 				[-xMin, -inner, -s], [xMax, -inner, -s],
 				[oxMax, -outer, -outer], [-oxMin, -outer, -outer],
 				[0, -0.716, -0.698]
+			);
+		} else {
+			addFace(
+				[-xMin, -inner, -s], [xMax, -inner, -s],
+				[xMax, -sExt, -s], [-xMin, -sExt, -s],
+				[0, 0, -1]
 			);
 		}
 	}
@@ -255,12 +362,26 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 				[outer, outer, -ozMin], [outer, outer, ozMax],
 				[0.698, 0.716, 0]
 			);
+		} else {
+			// Flat extension strip when +Y neighbor exists
+			addFace(
+				[s, inner, zMax], [s, inner, -zMin],
+				[s, sExt, -zMin], [s, sExt, zMax],
+				[1, 0, 0]
+			);
 		}
 		if (exterior["-y"]) {
 			addFace(
 				[s, -inner, -zMin], [s, -inner, zMax],
 				[outer, -outer, ozMax], [outer, -outer, -ozMin],
 				[0.698, -0.716, 0]
+			);
+		} else {
+			// Flat extension strip when -Y neighbor exists
+			addFace(
+				[s, -inner, -zMin], [s, -inner, zMax],
+				[s, -sExt, zMax], [s, -sExt, -zMin],
+				[1, 0, 0]
 			);
 		}
 		if (exterior["+z"]) {
@@ -269,12 +390,26 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 				[outer, oyMax, outer], [outer, -oyMin, outer],
 				[0.698, 0, 0.716]
 			);
+		} else {
+			// Flat extension strip when +Z neighbor exists
+			addFace(
+				[s, -yMin, inner], [s, yMax, inner],
+				[s, yMax, sExt], [s, -yMin, sExt],
+				[1, 0, 0]
+			);
 		}
 		if (exterior["-z"]) {
 			addFace(
 				[s, yMax, -inner], [s, -yMin, -inner],
 				[outer, -oyMin, -outer], [outer, oyMax, -outer],
 				[0.698, 0, -0.716]
+			);
+		} else {
+			// Flat extension strip when -Z neighbor exists
+			addFace(
+				[s, yMax, -inner], [s, -yMin, -inner],
+				[s, -yMin, -sExt], [s, yMax, -sExt],
+				[1, 0, 0]
 			);
 		}
 	}
@@ -292,12 +427,26 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 				[-outer, outer, ozMax], [-outer, outer, -ozMin],
 				[-0.698, 0.716, 0]
 			);
+		} else {
+			// Flat extension strip when +Y neighbor exists
+			addFace(
+				[-s, inner, -zMin], [-s, inner, zMax],
+				[-s, sExt, zMax], [-s, sExt, -zMin],
+				[-1, 0, 0]
+			);
 		}
 		if (exterior["-y"]) {
 			addFace(
 				[-s, -inner, zMax], [-s, -inner, -zMin],
 				[-outer, -outer, -ozMin], [-outer, -outer, ozMax],
 				[-0.698, -0.716, 0]
+			);
+		} else {
+			// Flat extension strip when -Y neighbor exists
+			addFace(
+				[-s, -inner, zMax], [-s, -inner, -zMin],
+				[-s, -sExt, -zMin], [-s, -sExt, zMax],
+				[-1, 0, 0]
 			);
 		}
 		if (exterior["+z"]) {
@@ -306,6 +455,13 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 				[-outer, -oyMin, outer], [-outer, oyMax, outer],
 				[-0.698, 0, 0.716]
 			);
+		} else {
+			// Flat extension strip when +Z neighbor exists
+			addFace(
+				[-s, yMax, inner], [-s, -yMin, inner],
+				[-s, -yMin, sExt], [-s, yMax, sExt],
+				[-1, 0, 0]
+			);
 		}
 		if (exterior["-z"]) {
 			addFace(
@@ -313,8 +469,19 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 				[-outer, oyMax, -outer], [-outer, -oyMin, -outer],
 				[-0.698, 0, -0.716]
 			);
+		} else {
+			// Flat extension strip when -Z neighbor exists
+			addFace(
+				[-s, -yMin, -inner], [-s, yMax, -inner],
+				[-s, yMax, -sExt], [-s, -yMin, -sExt],
+				[-1, 0, 0]
+			);
 		}
 	}
+
+	// Note: Original CubeTetris mesh does NOT have corner triangles.
+	// The bevel strips share vertices at corners, naturally filling the gaps.
+	// Adding corner triangles would create overlapping/duplicate geometry.
 
 	const geometry = new THREE.BufferGeometry();
 	geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
@@ -336,6 +503,8 @@ function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 1.003)
 	const s = cubeSize / 2;        // half size (≈0.5015)
 	const inner = s * 0.82;        // inner flat area (≈0.411)
 	const outer = s * 0.91;        // bevel edge (≈0.456)
+	// Extend exactly to half the grid spacing (0.5) when meeting neighbor
+	const sExt = 0.5;
 
 	const vertices: number[] = [];
 	const normals: number[] = [];
@@ -378,50 +547,92 @@ function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 1.003)
 			"-z": !hasNeighbor(block, "-z"),
 		};
 
-		// For inner flat area: extend to full edge (s) when adjacent to neighbor, use inner when exterior
-		// This eliminates seams between adjacent cubes
-		const xMin = exterior["-x"] ? inner : s;
-		const xMax = exterior["+x"] ? inner : s;
-		const yMin = exterior["-y"] ? inner : s;
-		const yMax = exterior["+y"] ? inner : s;
-		const zMin = exterior["-z"] ? inner : s;
-		const zMax = exterior["+z"] ? inner : s;
+		// Inner flat area ALWAYS uses 'inner' bounds
+		// Extension strips (in else branches) fill the gap from 'inner' to 'sExt'
+		const xMin = inner;
+		const xMax = inner;
+		const yMin = inner;
+		const yMax = inner;
+		const zMin = inner;
+		const zMax = inner;
+
+		// Extended bounds for extension strips - extend to sExt when perpendicular face has neighbor
+		// This ensures extension strips cover corners properly
+		const exMin = exterior["-x"] ? inner : sExt;
+		const exMax = exterior["+x"] ? inner : sExt;
+		const eyMin = exterior["-y"] ? inner : sExt;
+		const eyMax = exterior["+y"] ? inner : sExt;
+		const ezMin = exterior["-z"] ? inner : sExt;
+		const ezMax = exterior["+z"] ? inner : sExt;
+
+		// Outer bevel coordinates - extend to sExt when perpendicular face has neighbor
+		// This ensures bevel edges meet properly with adjacent blocks
+		const oxMin = exterior["-x"] ? outer : sExt;
+		const oxMax = exterior["+x"] ? outer : sExt;
+		const oyMin = exterior["-y"] ? outer : sExt;
+		const oyMax = exterior["+y"] ? outer : sExt;
+		const ozMin = exterior["-z"] ? outer : sExt;
+		const ozMax = exterior["+z"] ? outer : sExt;
 
 		// +Y face (top)
 		if (exterior["+y"]) {
-			// Inner flat area (CCW when viewed from above) - extends to neighbor edges
+			// Inner flat area (CCW when viewed from above)
 			addFace(
 				[ox - xMin, oy + s, oz + zMax], [ox + xMax, oy + s, oz + zMax],
 				[ox + xMax, oy + s, oz - zMin], [ox - xMin, oy + s, oz - zMin],
 				[0, 1, 0]
 			);
-			// Beveled edges - only if edge is exterior
+			// Beveled edges when exterior, flat extension strips when neighbor exists
 			if (exterior["-x"]) {
 				addFace(
-					[ox - inner, oy + s, oz + zMax], [ox - inner, oy + s, oz - zMin],
-					[ox - outer, oy + outer, oz - outer], [ox - outer, oy + outer, oz + outer],
+					[ox - inner, oy + s, oz + ezMax], [ox - inner, oy + s, oz - ezMin],
+					[ox - outer, oy + outer, oz - ozMin], [ox - outer, oy + outer, oz + ozMax],
 					[-0.716, 0.698, 0]
+				);
+			} else {
+				addFace(
+					[ox - inner, oy + s, oz + ezMax], [ox - inner, oy + s, oz - ezMin],
+					[ox - sExt, oy + s, oz - ezMin], [ox - sExt, oy + s, oz + ezMax],
+					[0, 1, 0]
 				);
 			}
 			if (exterior["+x"]) {
 				addFace(
-					[ox + inner, oy + s, oz - zMin], [ox + inner, oy + s, oz + zMax],
-					[ox + outer, oy + outer, oz + outer], [ox + outer, oy + outer, oz - outer],
+					[ox + inner, oy + s, oz - ezMin], [ox + inner, oy + s, oz + ezMax],
+					[ox + outer, oy + outer, oz + ozMax], [ox + outer, oy + outer, oz - ozMin],
 					[0.716, 0.698, 0]
+				);
+			} else {
+				addFace(
+					[ox + inner, oy + s, oz - ezMin], [ox + inner, oy + s, oz + ezMax],
+					[ox + sExt, oy + s, oz + ezMax], [ox + sExt, oy + s, oz - ezMin],
+					[0, 1, 0]
 				);
 			}
 			if (exterior["+z"]) {
 				addFace(
-					[ox + xMax, oy + s, oz + inner], [ox - xMin, oy + s, oz + inner],
-					[ox - outer, oy + outer, oz + outer], [ox + outer, oy + outer, oz + outer],
+					[ox + exMax, oy + s, oz + inner], [ox - exMin, oy + s, oz + inner],
+					[ox - oxMin, oy + outer, oz + outer], [ox + oxMax, oy + outer, oz + outer],
 					[0, 0.698, 0.716]
+				);
+			} else {
+				addFace(
+					[ox + exMax, oy + s, oz + inner], [ox - exMin, oy + s, oz + inner],
+					[ox - exMin, oy + s, oz + sExt], [ox + exMax, oy + s, oz + sExt],
+					[0, 1, 0]
 				);
 			}
 			if (exterior["-z"]) {
 				addFace(
-					[ox - xMin, oy + s, oz - inner], [ox + xMax, oy + s, oz - inner],
-					[ox + outer, oy + outer, oz - outer], [ox - outer, oy + outer, oz - outer],
+					[ox - exMin, oy + s, oz - inner], [ox + exMax, oy + s, oz - inner],
+					[ox + oxMax, oy + outer, oz - outer], [ox - oxMin, oy + outer, oz - outer],
 					[0, 0.698, -0.716]
+				);
+			} else {
+				addFace(
+					[ox - exMin, oy + s, oz - inner], [ox + exMax, oy + s, oz - inner],
+					[ox + exMax, oy + s, oz - sExt], [ox - exMin, oy + s, oz - sExt],
+					[0, 1, 0]
 				);
 			}
 		}
@@ -434,33 +645,57 @@ function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 1.003)
 				[ox + xMax, oy - s, oz + zMax], [ox - xMin, oy - s, oz + zMax],
 				[0, -1, 0]
 			);
-			// Beveled edges
+			// Beveled edges when exterior, flat extension strips when neighbor exists
 			if (exterior["-x"]) {
 				addFace(
-					[ox - inner, oy - s, oz - zMin], [ox - inner, oy - s, oz + zMax],
-					[ox - outer, oy - outer, oz + outer], [ox - outer, oy - outer, oz - outer],
+					[ox - inner, oy - s, oz - ezMin], [ox - inner, oy - s, oz + ezMax],
+					[ox - outer, oy - outer, oz + ozMax], [ox - outer, oy - outer, oz - ozMin],
 					[-0.716, -0.698, 0]
+				);
+			} else {
+				addFace(
+					[ox - inner, oy - s, oz - ezMin], [ox - inner, oy - s, oz + ezMax],
+					[ox - sExt, oy - s, oz + ezMax], [ox - sExt, oy - s, oz - ezMin],
+					[0, -1, 0]
 				);
 			}
 			if (exterior["+x"]) {
 				addFace(
-					[ox + inner, oy - s, oz + zMax], [ox + inner, oy - s, oz - zMin],
-					[ox + outer, oy - outer, oz - outer], [ox + outer, oy - outer, oz + outer],
+					[ox + inner, oy - s, oz + ezMax], [ox + inner, oy - s, oz - ezMin],
+					[ox + outer, oy - outer, oz - ozMin], [ox + outer, oy - outer, oz + ozMax],
 					[0.716, -0.698, 0]
+				);
+			} else {
+				addFace(
+					[ox + inner, oy - s, oz + ezMax], [ox + inner, oy - s, oz - ezMin],
+					[ox + sExt, oy - s, oz - ezMin], [ox + sExt, oy - s, oz + ezMax],
+					[0, -1, 0]
 				);
 			}
 			if (exterior["+z"]) {
 				addFace(
-					[ox - xMin, oy - s, oz + inner], [ox + xMax, oy - s, oz + inner],
-					[ox + outer, oy - outer, oz + outer], [ox - outer, oy - outer, oz + outer],
+					[ox - exMin, oy - s, oz + inner], [ox + exMax, oy - s, oz + inner],
+					[ox + oxMax, oy - outer, oz + outer], [ox - oxMin, oy - outer, oz + outer],
 					[0, -0.698, 0.716]
+				);
+			} else {
+				addFace(
+					[ox - exMin, oy - s, oz + inner], [ox + exMax, oy - s, oz + inner],
+					[ox + exMax, oy - s, oz + sExt], [ox - exMin, oy - s, oz + sExt],
+					[0, -1, 0]
 				);
 			}
 			if (exterior["-z"]) {
 				addFace(
-					[ox + xMax, oy - s, oz - inner], [ox - xMin, oy - s, oz - inner],
-					[ox - outer, oy - outer, oz - outer], [ox + outer, oy - outer, oz - outer],
+					[ox + exMax, oy - s, oz - inner], [ox - exMin, oy - s, oz - inner],
+					[ox - oxMin, oy - outer, oz - outer], [ox + oxMax, oy - outer, oz - outer],
 					[0, -0.698, -0.716]
+				);
+			} else {
+				addFace(
+					[ox + exMax, oy - s, oz - inner], [ox - exMin, oy - s, oz - inner],
+					[ox - exMin, oy - s, oz - sExt], [ox + exMax, oy - s, oz - sExt],
+					[0, -1, 0]
 				);
 			}
 		}
@@ -473,33 +708,57 @@ function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 1.003)
 				[ox + xMax, oy + yMax, oz + s], [ox - xMin, oy + yMax, oz + s],
 				[0, 0, 1]
 			);
-			// Beveled edges - all 4 sides
+			// Beveled edges when exterior, flat extension strips when neighbor exists
 			if (exterior["-x"]) {
 				addFace(
-					[ox - inner, oy - yMin, oz + s], [ox - inner, oy + yMax, oz + s],
-					[ox - outer, oy + outer, oz + outer], [ox - outer, oy - outer, oz + outer],
+					[ox - inner, oy - eyMin, oz + s], [ox - inner, oy + eyMax, oz + s],
+					[ox - outer, oy + oyMax, oz + outer], [ox - outer, oy - oyMin, oz + outer],
 					[-0.716, 0, 0.698]
+				);
+			} else {
+				addFace(
+					[ox - inner, oy - eyMin, oz + s], [ox - inner, oy + eyMax, oz + s],
+					[ox - sExt, oy + eyMax, oz + s], [ox - sExt, oy - eyMin, oz + s],
+					[0, 0, 1]
 				);
 			}
 			if (exterior["+x"]) {
 				addFace(
-					[ox + inner, oy + yMax, oz + s], [ox + inner, oy - yMin, oz + s],
-					[ox + outer, oy - outer, oz + outer], [ox + outer, oy + outer, oz + outer],
+					[ox + inner, oy + eyMax, oz + s], [ox + inner, oy - eyMin, oz + s],
+					[ox + outer, oy - oyMin, oz + outer], [ox + outer, oy + oyMax, oz + outer],
 					[0.716, 0, 0.698]
+				);
+			} else {
+				addFace(
+					[ox + inner, oy + eyMax, oz + s], [ox + inner, oy - eyMin, oz + s],
+					[ox + sExt, oy - eyMin, oz + s], [ox + sExt, oy + eyMax, oz + s],
+					[0, 0, 1]
 				);
 			}
 			if (exterior["+y"]) {
 				addFace(
-					[ox - xMin, oy + inner, oz + s], [ox + xMax, oy + inner, oz + s],
-					[ox + outer, oy + outer, oz + outer], [ox - outer, oy + outer, oz + outer],
+					[ox - exMin, oy + inner, oz + s], [ox + exMax, oy + inner, oz + s],
+					[ox + oxMax, oy + outer, oz + outer], [ox - oxMin, oy + outer, oz + outer],
 					[0, 0.716, 0.698]
+				);
+			} else {
+				addFace(
+					[ox - exMin, oy + inner, oz + s], [ox + exMax, oy + inner, oz + s],
+					[ox + exMax, oy + sExt, oz + s], [ox - exMin, oy + sExt, oz + s],
+					[0, 0, 1]
 				);
 			}
 			if (exterior["-y"]) {
 				addFace(
-					[ox + xMax, oy - inner, oz + s], [ox - xMin, oy - inner, oz + s],
-					[ox - outer, oy - outer, oz + outer], [ox + outer, oy - outer, oz + outer],
+					[ox + exMax, oy - inner, oz + s], [ox - exMin, oy - inner, oz + s],
+					[ox - oxMin, oy - outer, oz + outer], [ox + oxMax, oy - outer, oz + outer],
 					[0, -0.716, 0.698]
+				);
+			} else {
+				addFace(
+					[ox + exMax, oy - inner, oz + s], [ox - exMin, oy - inner, oz + s],
+					[ox - exMin, oy - sExt, oz + s], [ox + exMax, oy - sExt, oz + s],
+					[0, 0, 1]
 				);
 			}
 		}
@@ -512,33 +771,57 @@ function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 1.003)
 				[ox - xMin, oy + yMax, oz - s], [ox + xMax, oy + yMax, oz - s],
 				[0, 0, -1]
 			);
-			// Beveled edges - all 4 sides
+			// Beveled edges when exterior, flat extension strips when neighbor exists
 			if (exterior["+x"]) {
 				addFace(
-					[ox + inner, oy - yMin, oz - s], [ox + inner, oy + yMax, oz - s],
-					[ox + outer, oy + outer, oz - outer], [ox + outer, oy - outer, oz - outer],
+					[ox + inner, oy - eyMin, oz - s], [ox + inner, oy + eyMax, oz - s],
+					[ox + outer, oy + oyMax, oz - outer], [ox + outer, oy - oyMin, oz - outer],
 					[0.716, 0, -0.698]
+				);
+			} else {
+				addFace(
+					[ox + inner, oy - eyMin, oz - s], [ox + inner, oy + eyMax, oz - s],
+					[ox + sExt, oy + eyMax, oz - s], [ox + sExt, oy - eyMin, oz - s],
+					[0, 0, -1]
 				);
 			}
 			if (exterior["-x"]) {
 				addFace(
-					[ox - inner, oy + yMax, oz - s], [ox - inner, oy - yMin, oz - s],
-					[ox - outer, oy - outer, oz - outer], [ox - outer, oy + outer, oz - outer],
+					[ox - inner, oy + eyMax, oz - s], [ox - inner, oy - eyMin, oz - s],
+					[ox - outer, oy - oyMin, oz - outer], [ox - outer, oy + oyMax, oz - outer],
 					[-0.716, 0, -0.698]
+				);
+			} else {
+				addFace(
+					[ox - inner, oy + eyMax, oz - s], [ox - inner, oy - eyMin, oz - s],
+					[ox - sExt, oy - eyMin, oz - s], [ox - sExt, oy + eyMax, oz - s],
+					[0, 0, -1]
 				);
 			}
 			if (exterior["+y"]) {
 				addFace(
-					[ox + xMax, oy + inner, oz - s], [ox - xMin, oy + inner, oz - s],
-					[ox - outer, oy + outer, oz - outer], [ox + outer, oy + outer, oz - outer],
+					[ox + exMax, oy + inner, oz - s], [ox - exMin, oy + inner, oz - s],
+					[ox - oxMin, oy + outer, oz - outer], [ox + oxMax, oy + outer, oz - outer],
 					[0, 0.716, -0.698]
+				);
+			} else {
+				addFace(
+					[ox + exMax, oy + inner, oz - s], [ox - exMin, oy + inner, oz - s],
+					[ox - exMin, oy + sExt, oz - s], [ox + exMax, oy + sExt, oz - s],
+					[0, 0, -1]
 				);
 			}
 			if (exterior["-y"]) {
 				addFace(
-					[ox - xMin, oy - inner, oz - s], [ox + xMax, oy - inner, oz - s],
-					[ox + outer, oy - outer, oz - outer], [ox - outer, oy - outer, oz - outer],
+					[ox - exMin, oy - inner, oz - s], [ox + exMax, oy - inner, oz - s],
+					[ox + oxMax, oy - outer, oz - outer], [ox - oxMin, oy - outer, oz - outer],
 					[0, -0.716, -0.698]
+				);
+			} else {
+				addFace(
+					[ox - exMin, oy - inner, oz - s], [ox + exMax, oy - inner, oz - s],
+					[ox + exMax, oy - sExt, oz - s], [ox - exMin, oy - sExt, oz - s],
+					[0, 0, -1]
 				);
 			}
 		}
@@ -551,33 +834,57 @@ function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 1.003)
 				[ox + s, oy + yMax, oz - zMin], [ox + s, oy + yMax, oz + zMax],
 				[1, 0, 0]
 			);
-			// Beveled edges - all 4 sides
+			// Beveled edges when exterior, flat extension strips when neighbor exists
 			if (exterior["+y"]) {
 				addFace(
-					[ox + s, oy + inner, oz + zMax], [ox + s, oy + inner, oz - zMin],
-					[ox + outer, oy + outer, oz - outer], [ox + outer, oy + outer, oz + outer],
+					[ox + s, oy + inner, oz + ezMax], [ox + s, oy + inner, oz - ezMin],
+					[ox + outer, oy + outer, oz - ozMin], [ox + outer, oy + outer, oz + ozMax],
 					[0.698, 0.716, 0]
+				);
+			} else {
+				addFace(
+					[ox + s, oy + inner, oz + ezMax], [ox + s, oy + inner, oz - ezMin],
+					[ox + s, oy + sExt, oz - ezMin], [ox + s, oy + sExt, oz + ezMax],
+					[1, 0, 0]
 				);
 			}
 			if (exterior["-y"]) {
 				addFace(
-					[ox + s, oy - inner, oz - zMin], [ox + s, oy - inner, oz + zMax],
-					[ox + outer, oy - outer, oz + outer], [ox + outer, oy - outer, oz - outer],
+					[ox + s, oy - inner, oz - ezMin], [ox + s, oy - inner, oz + ezMax],
+					[ox + outer, oy - outer, oz + ozMax], [ox + outer, oy - outer, oz - ozMin],
 					[0.698, -0.716, 0]
+				);
+			} else {
+				addFace(
+					[ox + s, oy - inner, oz - ezMin], [ox + s, oy - inner, oz + ezMax],
+					[ox + s, oy - sExt, oz + ezMax], [ox + s, oy - sExt, oz - ezMin],
+					[1, 0, 0]
 				);
 			}
 			if (exterior["+z"]) {
 				addFace(
-					[ox + s, oy - yMin, oz + inner], [ox + s, oy + yMax, oz + inner],
-					[ox + outer, oy + outer, oz + outer], [ox + outer, oy - outer, oz + outer],
+					[ox + s, oy - eyMin, oz + inner], [ox + s, oy + eyMax, oz + inner],
+					[ox + outer, oy + oyMax, oz + outer], [ox + outer, oy - oyMin, oz + outer],
 					[0.698, 0, 0.716]
+				);
+			} else {
+				addFace(
+					[ox + s, oy - eyMin, oz + inner], [ox + s, oy + eyMax, oz + inner],
+					[ox + s, oy + eyMax, oz + sExt], [ox + s, oy - eyMin, oz + sExt],
+					[1, 0, 0]
 				);
 			}
 			if (exterior["-z"]) {
 				addFace(
-					[ox + s, oy + yMax, oz - inner], [ox + s, oy - yMin, oz - inner],
-					[ox + outer, oy - outer, oz - outer], [ox + outer, oy + outer, oz - outer],
+					[ox + s, oy + eyMax, oz - inner], [ox + s, oy - eyMin, oz - inner],
+					[ox + outer, oy - oyMin, oz - outer], [ox + outer, oy + oyMax, oz - outer],
 					[0.698, 0, -0.716]
+				);
+			} else {
+				addFace(
+					[ox + s, oy + eyMax, oz - inner], [ox + s, oy - eyMin, oz - inner],
+					[ox + s, oy - eyMin, oz - sExt], [ox + s, oy + eyMax, oz - sExt],
+					[1, 0, 0]
 				);
 			}
 		}
@@ -590,36 +897,64 @@ function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 1.003)
 				[ox - s, oy + yMax, oz + zMax], [ox - s, oy + yMax, oz - zMin],
 				[-1, 0, 0]
 			);
-			// Beveled edges - all 4 sides
+			// Beveled edges when exterior, flat extension strips when neighbor exists
 			if (exterior["+y"]) {
 				addFace(
-					[ox - s, oy + inner, oz - zMin], [ox - s, oy + inner, oz + zMax],
-					[ox - outer, oy + outer, oz + outer], [ox - outer, oy + outer, oz - outer],
+					[ox - s, oy + inner, oz - ezMin], [ox - s, oy + inner, oz + ezMax],
+					[ox - outer, oy + outer, oz + ozMax], [ox - outer, oy + outer, oz - ozMin],
 					[-0.698, 0.716, 0]
+				);
+			} else {
+				addFace(
+					[ox - s, oy + inner, oz - ezMin], [ox - s, oy + inner, oz + ezMax],
+					[ox - s, oy + sExt, oz + ezMax], [ox - s, oy + sExt, oz - ezMin],
+					[-1, 0, 0]
 				);
 			}
 			if (exterior["-y"]) {
 				addFace(
-					[ox - s, oy - inner, oz + zMax], [ox - s, oy - inner, oz - zMin],
-					[ox - outer, oy - outer, oz - outer], [ox - outer, oy - outer, oz + outer],
+					[ox - s, oy - inner, oz + ezMax], [ox - s, oy - inner, oz - ezMin],
+					[ox - outer, oy - outer, oz - ozMin], [ox - outer, oy - outer, oz + ozMax],
 					[-0.698, -0.716, 0]
+				);
+			} else {
+				addFace(
+					[ox - s, oy - inner, oz + ezMax], [ox - s, oy - inner, oz - ezMin],
+					[ox - s, oy - sExt, oz - ezMin], [ox - s, oy - sExt, oz + ezMax],
+					[-1, 0, 0]
 				);
 			}
 			if (exterior["+z"]) {
 				addFace(
-					[ox - s, oy + yMax, oz + inner], [ox - s, oy - yMin, oz + inner],
-					[ox - outer, oy - outer, oz + outer], [ox - outer, oy + outer, oz + outer],
+					[ox - s, oy + eyMax, oz + inner], [ox - s, oy - eyMin, oz + inner],
+					[ox - outer, oy - oyMin, oz + outer], [ox - outer, oy + oyMax, oz + outer],
 					[-0.698, 0, 0.716]
+				);
+			} else {
+				addFace(
+					[ox - s, oy + eyMax, oz + inner], [ox - s, oy - eyMin, oz + inner],
+					[ox - s, oy - eyMin, oz + sExt], [ox - s, oy + eyMax, oz + sExt],
+					[-1, 0, 0]
 				);
 			}
 			if (exterior["-z"]) {
 				addFace(
-					[ox - s, oy - yMin, oz - inner], [ox - s, oy + yMax, oz - inner],
-					[ox - outer, oy + outer, oz - outer], [ox - outer, oy - outer, oz - outer],
+					[ox - s, oy - eyMin, oz - inner], [ox - s, oy + eyMax, oz - inner],
+					[ox - outer, oy + oyMax, oz - outer], [ox - outer, oy - oyMin, oz - outer],
 					[-0.698, 0, -0.716]
+				);
+			} else {
+				addFace(
+					[ox - s, oy - eyMin, oz - inner], [ox - s, oy + eyMax, oz - inner],
+					[ox - s, oy + eyMax, oz - sExt], [ox - s, oy - eyMin, oz - sExt],
+					[-1, 0, 0]
 				);
 			}
 		}
+
+		// Note: Original CubeTetris mesh does NOT have corner triangles.
+		// The bevel strips share vertices at corners, naturally filling the gaps.
+		// Adding corner triangles would create overlapping/duplicate geometry.
 
 	}
 

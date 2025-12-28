@@ -125,15 +125,15 @@ export const PIECE_DEFINITIONS: PieceDefinition[] = [
 		],
 	},
 
-	// Brick4_7: 3D S-piece (extends into Z axis)
+	// Brick4_7: 3D S-piece (mirror of Brick4_6)
 	{
 		name: "Brick4_7",
 		color: PIECE_COLORS.cyan,
 		blocks: [
 			{x: 0, y: 0, z: 0},
 			{x: 1, y: 0, z: 0},
-			{x: 1, y: 0, z: 1},
-			{x: 0, y: 1, z: 0},
+			{x: 0, y: 0, z: 1},
+			{x: 1, y: 1, z: 0},
 		],
 	},
 ];

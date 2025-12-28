@@ -298,7 +298,7 @@ export class AiController {
 
 		// Count hole space (empty spaces beneath blocks)
 		const holeSpace = this.countHoleSpace(testPiece);
-		score += holeSpace * 4;
+		score += holeSpace * 8;
 
 		return score;
 	}
@@ -425,7 +425,7 @@ export class AiController {
 				// Count existing holes below the board block we hit
 				let holeY = y - 1;
 				while (holeY >= 0 && !this.game.board.has(point.x, holeY, point.z)) {
-					count += 0.5;  // Penalty for each existing hole we're covering
+					count += 0.2;  // Penalty for each existing hole we're covering
 					holeY--;
 				}
 			}

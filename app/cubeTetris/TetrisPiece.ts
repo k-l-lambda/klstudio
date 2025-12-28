@@ -5,7 +5,7 @@
 
 import type {PieceDefinition, Point3D, BlockData} from "./types";
 import {CubeGrid} from "./CubeGrid";
-import {PIECE_DEFINITIONS} from "./constants";
+import {PIECE_DEFINITIONS, coordKey, FACE_MASK} from "./constants";
 
 
 /**
@@ -77,19 +77,39 @@ export class TetrisPiece {
 
 
 	/**
-	 * Get all world-space block positions
+	 * Get all world-space block positions with faceMask calculated
+	 * faceMask indicates which faces are exposed (no neighbor within piece)
 	 */
 	getWorldBlocks(): Array<{point: Point3D; data: BlockData}> {
 		const blocks: Array<{point: Point3D; data: BlockData}> = [];
+		const localBlocks = this.grid.toPointList();
 
-		for (const {point, data} of this.grid.toPointList()) {
+		// Build a set for quick neighbor lookup within the piece
+		const blockSet = new Set<string>();
+		for (const {point} of localBlocks) {
+			blockSet.add(coordKey(point.x, point.y, point.z));
+		}
+
+		for (const {point, data} of localBlocks) {
+			// Calculate faceMask based on neighbors within the piece
+			let faceMask = 0;
+			if (!blockSet.has(coordKey(point.x + 1, point.y, point.z))) faceMask |= FACE_MASK.POS_X;
+			if (!blockSet.has(coordKey(point.x - 1, point.y, point.z))) faceMask |= FACE_MASK.NEG_X;
+			if (!blockSet.has(coordKey(point.x, point.y + 1, point.z))) faceMask |= FACE_MASK.POS_Y;
+			if (!blockSet.has(coordKey(point.x, point.y - 1, point.z))) faceMask |= FACE_MASK.NEG_Y;
+			if (!blockSet.has(coordKey(point.x, point.y, point.z + 1))) faceMask |= FACE_MASK.POS_Z;
+			if (!blockSet.has(coordKey(point.x, point.y, point.z - 1))) faceMask |= FACE_MASK.NEG_Z;
+
 			blocks.push({
 				point: {
 					x: point.x + this._position.x,
 					y: point.y + this._position.y,
 					z: point.z + this._position.z,
 				},
-				data,
+				data: {
+					...data,
+					faceMask,
+				},
 			});
 		}
 

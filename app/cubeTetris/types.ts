@@ -12,6 +12,8 @@ export interface Point3D {
 export interface BlockData {
 	color: string;
 	position: Point3D;
+	/** Bitmask of exposed faces: +x=1, -x=2, +y=4, -y=8, +z=16, -z=32 */
+	faceMask?: number;
 }
 
 export interface PieceDefinition {

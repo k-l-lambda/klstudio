@@ -7,10 +7,10 @@
 import * as THREE from "three";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 
-import type {GameConfig, Point3D} from "./types";
+import type {GameConfig, Point3D, BlockData} from "./types";
 import {CubeGrid} from "./CubeGrid";
 import {TetrisPiece} from "./TetrisPiece";
-import {GAME_CONFIG, PIECE_DEFINITIONS, coordKey} from "./constants";
+import {GAME_CONFIG, PIECE_DEFINITIONS, coordKey, FACE_MASK} from "./constants";
 
 
 // Face direction constants
@@ -40,6 +40,277 @@ function geometryCacheKey(blocks: Point3D[]): string {
 		return a.z - b.z;
 	});
 	return sorted.map(b => `${b.x},${b.y},${b.z}`).join("|");
+}
+
+
+/**
+ * Create single block geometry with specific faces exposed (based on faceMask).
+ * This preserves the original mesh shape when blocks are locked into the board.
+ * FaceMask bits: +x=1, -x=2, +y=4, -y=8, +z=16, -z=32
+ */
+function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003): THREE.BufferGeometry {
+	const s = cubeSize / 2;        // half size (≈0.5015)
+	const inner = s * 0.82;        // inner flat area (≈0.411)
+	const outer = s * 0.91;        // bevel edge (≈0.456)
+
+	const vertices: number[] = [];
+	const normals: number[] = [];
+	const indices: number[] = [];
+
+	// Helper to add a quad face
+	const addFace = (v0: number[], v1: number[], v2: number[], v3: number[], normal: number[]) => {
+		const baseIdx = vertices.length / 3;
+		vertices.push(...v0, ...v1, ...v2, ...v3);
+		normals.push(...normal, ...normal, ...normal, ...normal);
+		indices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
+	};
+
+	// Check which faces are exposed
+	const exterior = {
+		"+x": (faceMask & FACE_MASK.POS_X) !== 0,
+		"-x": (faceMask & FACE_MASK.NEG_X) !== 0,
+		"+y": (faceMask & FACE_MASK.POS_Y) !== 0,
+		"-y": (faceMask & FACE_MASK.NEG_Y) !== 0,
+		"+z": (faceMask & FACE_MASK.POS_Z) !== 0,
+		"-z": (faceMask & FACE_MASK.NEG_Z) !== 0,
+	};
+
+	// For inner flat area: extend to full edge (s) when face is NOT exterior
+	const xMin = exterior["-x"] ? inner : s;
+	const xMax = exterior["+x"] ? inner : s;
+	const yMin = exterior["-y"] ? inner : s;
+	const yMax = exterior["+y"] ? inner : s;
+	const zMin = exterior["-z"] ? inner : s;
+	const zMax = exterior["+z"] ? inner : s;
+
+	// +Y face (top)
+	if (exterior["+y"]) {
+		addFace(
+			[-xMin, s, zMax], [xMax, s, zMax],
+			[xMax, s, -zMin], [-xMin, s, -zMin],
+			[0, 1, 0]
+		);
+		if (exterior["-x"]) {
+			addFace(
+				[-inner, s, zMax], [-inner, s, -zMin],
+				[-outer, outer, -outer], [-outer, outer, outer],
+				[-0.716, 0.698, 0]
+			);
+		}
+		if (exterior["+x"]) {
+			addFace(
+				[inner, s, -zMin], [inner, s, zMax],
+				[outer, outer, outer], [outer, outer, -outer],
+				[0.716, 0.698, 0]
+			);
+		}
+		if (exterior["+z"]) {
+			addFace(
+				[xMax, s, inner], [-xMin, s, inner],
+				[-outer, outer, outer], [outer, outer, outer],
+				[0, 0.698, 0.716]
+			);
+		}
+		if (exterior["-z"]) {
+			addFace(
+				[-xMin, s, -inner], [xMax, s, -inner],
+				[outer, outer, -outer], [-outer, outer, -outer],
+				[0, 0.698, -0.716]
+			);
+		}
+	}
+
+	// -Y face (bottom)
+	if (exterior["-y"]) {
+		addFace(
+			[-xMin, -s, -zMin], [xMax, -s, -zMin],
+			[xMax, -s, zMax], [-xMin, -s, zMax],
+			[0, -1, 0]
+		);
+		if (exterior["-x"]) {
+			addFace(
+				[-inner, -s, -zMin], [-inner, -s, zMax],
+				[-outer, -outer, outer], [-outer, -outer, -outer],
+				[-0.716, -0.698, 0]
+			);
+		}
+		if (exterior["+x"]) {
+			addFace(
+				[inner, -s, zMax], [inner, -s, -zMin],
+				[outer, -outer, -outer], [outer, -outer, outer],
+				[0.716, -0.698, 0]
+			);
+		}
+		if (exterior["+z"]) {
+			addFace(
+				[-xMin, -s, inner], [xMax, -s, inner],
+				[outer, -outer, outer], [-outer, -outer, outer],
+				[0, -0.698, 0.716]
+			);
+		}
+		if (exterior["-z"]) {
+			addFace(
+				[xMax, -s, -inner], [-xMin, -s, -inner],
+				[-outer, -outer, -outer], [outer, -outer, -outer],
+				[0, -0.698, -0.716]
+			);
+		}
+	}
+
+	// +Z face (front)
+	if (exterior["+z"]) {
+		addFace(
+			[-xMin, -yMin, s], [xMax, -yMin, s],
+			[xMax, yMax, s], [-xMin, yMax, s],
+			[0, 0, 1]
+		);
+		if (exterior["-x"]) {
+			addFace(
+				[-inner, -yMin, s], [-inner, yMax, s],
+				[-outer, outer, outer], [-outer, -outer, outer],
+				[-0.716, 0, 0.698]
+			);
+		}
+		if (exterior["+x"]) {
+			addFace(
+				[inner, yMax, s], [inner, -yMin, s],
+				[outer, -outer, outer], [outer, outer, outer],
+				[0.716, 0, 0.698]
+			);
+		}
+		if (exterior["+y"]) {
+			addFace(
+				[-xMin, inner, s], [xMax, inner, s],
+				[outer, outer, outer], [-outer, outer, outer],
+				[0, 0.716, 0.698]
+			);
+		}
+		if (exterior["-y"]) {
+			addFace(
+				[xMax, -inner, s], [-xMin, -inner, s],
+				[-outer, -outer, outer], [outer, -outer, outer],
+				[0, -0.716, 0.698]
+			);
+		}
+	}
+
+	// -Z face (back)
+	if (exterior["-z"]) {
+		addFace(
+			[xMax, -yMin, -s], [-xMin, -yMin, -s],
+			[-xMin, yMax, -s], [xMax, yMax, -s],
+			[0, 0, -1]
+		);
+		if (exterior["+x"]) {
+			addFace(
+				[inner, -yMin, -s], [inner, yMax, -s],
+				[outer, outer, -outer], [outer, -outer, -outer],
+				[0.716, 0, -0.698]
+			);
+		}
+		if (exterior["-x"]) {
+			addFace(
+				[-inner, yMax, -s], [-inner, -yMin, -s],
+				[-outer, -outer, -outer], [-outer, outer, -outer],
+				[-0.716, 0, -0.698]
+			);
+		}
+		if (exterior["+y"]) {
+			addFace(
+				[xMax, inner, -s], [-xMin, inner, -s],
+				[-outer, outer, -outer], [outer, outer, -outer],
+				[0, 0.716, -0.698]
+			);
+		}
+		if (exterior["-y"]) {
+			addFace(
+				[-xMin, -inner, -s], [xMax, -inner, -s],
+				[outer, -outer, -outer], [-outer, -outer, -outer],
+				[0, -0.716, -0.698]
+			);
+		}
+	}
+
+	// +X face (right)
+	if (exterior["+x"]) {
+		addFace(
+			[s, -yMin, zMax], [s, -yMin, -zMin],
+			[s, yMax, -zMin], [s, yMax, zMax],
+			[1, 0, 0]
+		);
+		if (exterior["+y"]) {
+			addFace(
+				[s, inner, zMax], [s, inner, -zMin],
+				[outer, outer, -outer], [outer, outer, outer],
+				[0.698, 0.716, 0]
+			);
+		}
+		if (exterior["-y"]) {
+			addFace(
+				[s, -inner, -zMin], [s, -inner, zMax],
+				[outer, -outer, outer], [outer, -outer, -outer],
+				[0.698, -0.716, 0]
+			);
+		}
+		if (exterior["+z"]) {
+			addFace(
+				[s, -yMin, inner], [s, yMax, inner],
+				[outer, outer, outer], [outer, -outer, outer],
+				[0.698, 0, 0.716]
+			);
+		}
+		if (exterior["-z"]) {
+			addFace(
+				[s, yMax, -inner], [s, -yMin, -inner],
+				[outer, -outer, -outer], [outer, outer, -outer],
+				[0.698, 0, -0.716]
+			);
+		}
+	}
+
+	// -X face (left)
+	if (exterior["-x"]) {
+		addFace(
+			[-s, -yMin, -zMin], [-s, -yMin, zMax],
+			[-s, yMax, zMax], [-s, yMax, -zMin],
+			[-1, 0, 0]
+		);
+		if (exterior["+y"]) {
+			addFace(
+				[-s, inner, -zMin], [-s, inner, zMax],
+				[-outer, outer, outer], [-outer, outer, -outer],
+				[-0.698, 0.716, 0]
+			);
+		}
+		if (exterior["-y"]) {
+			addFace(
+				[-s, -inner, zMax], [-s, -inner, -zMin],
+				[-outer, -outer, -outer], [-outer, -outer, outer],
+				[-0.698, -0.716, 0]
+			);
+		}
+		if (exterior["+z"]) {
+			addFace(
+				[-s, yMax, inner], [-s, -yMin, inner],
+				[-outer, -outer, outer], [-outer, outer, outer],
+				[-0.698, 0, 0.716]
+			);
+		}
+		if (exterior["-z"]) {
+			addFace(
+				[-s, -yMin, -inner], [-s, yMax, -inner],
+				[-outer, outer, -outer], [-outer, -outer, -outer],
+				[-0.698, 0, -0.716]
+			);
+		}
+	}
+
+	const geometry = new THREE.BufferGeometry();
+	geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+	geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+	geometry.setIndex(indices);
+
+	return geometry;
 }
 
 
@@ -382,6 +653,9 @@ export class TetrisRenderer {
 	// Geometry cache for piece shapes (keyed by block positions)
 	private geometryCache: Map<string, THREE.BufferGeometry> = new Map();
 
+	// Geometry cache for board blocks (keyed by faceMask)
+	private blockGeometryCache: Map<number, THREE.BufferGeometry> = new Map();
+
 	private animationFrameId: number | null = null;
 	private isDisposed: boolean = false;
 
@@ -563,15 +837,25 @@ export class TetrisRenderer {
 
 
 	/**
-	 * Create a block mesh with given color
+	 * Create a block mesh with given color and optional faceMask
+	 * @param color Block color
+	 * @param faceMask Bitmask of exposed faces (default: all faces = 63)
 	 */
-	private createBlockMesh(color: string): THREE.Mesh {
+	private createBlockMesh(color: string, faceMask: number = FACE_MASK.ALL): THREE.Mesh {
 		const material = new THREE.MeshStandardMaterial({
 			color: new THREE.Color(color),
 			metalness: 0.3,
 			roughness: 0.4,
 		});
-		const mesh = new THREE.Mesh(this.blockGeometry, material);
+
+		// Get or create cached geometry for this faceMask
+		let geometry = this.blockGeometryCache.get(faceMask);
+		if (!geometry) {
+			geometry = createBlockGeometryFromMask(faceMask);
+			this.blockGeometryCache.set(faceMask, geometry);
+		}
+
+		const mesh = new THREE.Mesh(geometry, material);
 		mesh.castShadow = true;
 		mesh.receiveShadow = true;
 		return mesh;
@@ -591,9 +875,10 @@ export class TetrisRenderer {
 			}
 		}
 
-		// Add blocks from board
+		// Add blocks from board using their stored faceMask
 		for (const {point, data} of board.toPointList()) {
-			const mesh = this.createBlockMesh(data.color);
+			const faceMask = data.faceMask ?? FACE_MASK.ALL;
+			const mesh = this.createBlockMesh(data.color, faceMask);
 			mesh.position.set(point.x, point.y, point.z);
 			this.boardGroup.add(mesh);
 		}
@@ -775,18 +1060,24 @@ export class TetrisRenderer {
 		this.blockGeometry.dispose();
 		this.ghostMaterial.dispose();
 
-		// Dispose cached geometries
+		// Dispose cached piece geometries
 		for (const geometry of this.geometryCache.values()) {
 			geometry.dispose();
 		}
 		this.geometryCache.clear();
 
+		// Dispose cached block geometries
+		for (const geometry of this.blockGeometryCache.values()) {
+			geometry.dispose();
+		}
+		this.blockGeometryCache.clear();
+
 		// Dispose all meshes in groups
-		const disposeGroup = (group: THREE.Group) => {
+		const disposeGroup = (group: THREE.Group, skipGeometry: boolean = false) => {
 			group.traverse((child) => {
 				if (child instanceof THREE.Mesh) {
-					// Skip geometry disposal for piece/ghost groups - they use cached geometry
-					if (group !== this.pieceGroup && group !== this.ghostGroup) {
+					// Skip geometry disposal for groups using cached geometry
+					if (!skipGeometry) {
 						child.geometry?.dispose();
 					}
 					if (child.material instanceof THREE.Material) {
@@ -799,9 +1090,9 @@ export class TetrisRenderer {
 			group.clear();
 		};
 
-		disposeGroup(this.boardGroup);
-		disposeGroup(this.pieceGroup);
-		disposeGroup(this.ghostGroup);
+		disposeGroup(this.boardGroup, true);  // Uses cached block geometries
+		disposeGroup(this.pieceGroup, true);  // Uses cached piece geometries
+		disposeGroup(this.ghostGroup, true);  // Uses cached piece geometries
 		disposeGroup(this.boundaryGroup);
 		disposeGroup(this.clearingGroup);
 		this.clearingBlocks.clear();
@@ -931,16 +1222,23 @@ export class TetrisRenderer {
 
 	/**
 	 * Start clearing animation for blocks at specified positions
-	 * @param blocks Array of block positions to animate
-	 * @param color Color of the blocks being cleared
+	 * @param blocks Array of block positions to animate (with color and faceMask)
 	 */
-	startClearingAnimation(blocks: Array<{point: Point3D; color: string}>): void {
-		for (const {point, color} of blocks) {
+	startClearingAnimation(blocks: Array<{point: Point3D; color: string; faceMask?: number}>): void {
+		for (const {point, color, faceMask} of blocks) {
 			const key = coordKey(point.x, point.y, point.z);
 
 			// Skip if already animating this block
 			if (this.clearingBlocks.has(key)) {
 				continue;
+			}
+
+			// Get or create cached geometry for this faceMask
+			const mask = faceMask ?? FACE_MASK.ALL;
+			let geometry = this.blockGeometryCache.get(mask);
+			if (!geometry) {
+				geometry = createBlockGeometryFromMask(mask);
+				this.blockGeometryCache.set(mask, geometry);
 			}
 
 			// Create mesh for clearing block
@@ -952,7 +1250,7 @@ export class TetrisRenderer {
 				emissive: new THREE.Color(0xffffff),
 				emissiveIntensity: 0,
 			});
-			const mesh = new THREE.Mesh(this.blockGeometry, material);
+			const mesh = new THREE.Mesh(geometry, material);
 			mesh.position.set(point.x, point.y, point.z);
 			mesh.castShadow = true;
 			mesh.receiveShadow = true;

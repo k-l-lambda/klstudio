@@ -186,3 +186,18 @@ export function parseCoordKey(key: string): Point3D {
 	const [x, y, z] = key.split(",").map(Number);
 	return {x, y, z};
 }
+
+
+/**
+ * Face mask bits for block geometry
+ * Each bit represents whether a face is exposed (no neighbor)
+ */
+export const FACE_MASK = {
+	POS_X: 1,   // +x face exposed
+	NEG_X: 2,   // -x face exposed
+	POS_Y: 4,   // +y face exposed
+	NEG_Y: 8,   // -y face exposed
+	POS_Z: 16,  // +z face exposed
+	NEG_Z: 32,  // -z face exposed
+	ALL: 63,    // all faces exposed (isolated cube)
+};

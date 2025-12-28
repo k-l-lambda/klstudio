@@ -405,8 +405,8 @@ export class TetrisGame {
 		const fullLayers = this.detectFullLayers();
 
 		if (fullLayers.length > 0) {
-			// Collect blocks that will be cleared
-			const clearingBlocks: Array<{point: Point3D; color: string}> = [];
+			// Collect blocks that will be cleared (including faceMask for geometry)
+			const clearingBlocks: Array<{point: Point3D; color: string; faceMask?: number}> = [];
 			for (const y of fullLayers) {
 				for (let x = 0; x < this.config.boardWidth; x++) {
 					for (let z = 0; z < this.config.boardDepth; z++) {
@@ -415,6 +415,7 @@ export class TetrisGame {
 							clearingBlocks.push({
 								point: {x, y, z},
 								color: block.color,
+								faceMask: block.faceMask,
 							});
 						}
 					}

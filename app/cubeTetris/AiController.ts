@@ -298,7 +298,7 @@ export class AiController {
 
 		// Count hole space (empty spaces beneath blocks)
 		const holeSpace = this.countHoleSpace(testPiece);
-		score += holeSpace * 2;
+		score += holeSpace * 4;
 
 		return score;
 	}

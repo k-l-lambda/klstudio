@@ -46,4 +46,5 @@ export interface GameConfig {
 	gridSize: number;
 	dropInterval: number;
 	fastDropInterval: number;
+	hardDropSpeed: number;
 }

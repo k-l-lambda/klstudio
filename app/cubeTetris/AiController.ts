@@ -126,6 +126,7 @@ export class AiController {
 		if (!this.enabled || !this.targetState || !this.game.currentPiece) return;
 		if (this.game.state.paused || this.game.state.gameOver) return;
 		if (this.game.isClearingAnimation) return;  // Skip during layer clearing
+		if (this.game.isDropping) return;  // Skip during drop animation
 
 		// Rate limit moves
 		if (timestamp - this.lastMoveTime < this.moveDelay) return;

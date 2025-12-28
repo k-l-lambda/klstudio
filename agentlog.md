@@ -855,3 +855,51 @@ Initial implementation had left/right swapped in +X and -X quadrants. The correc
 **Result:** ✅ Movement controls now intuitive regardless of camera rotation angle
 
 </details>
+
+<details>
+<summary>Hard Drop Animation (2025-12-28)</summary>
+
+> Make bricks fall over a period of time instead of instantly, reference original implementation.
+
+**Issue:** Hard drop was instant (teleporting), unlike the original game which has pieces falling smoothly.
+
+**Analysis of Original:**
+- Original CubeTetris uses physics simulation (Havok) where pieces fall due to gravity
+- Our implementation doesn't have physics, so we simulate falling animation
+
+**Implementation:**
+
+1. **Added `hardDropSpeed` config** (`constants.ts`):
+   - 25 units per second for smooth falling animation
+
+2. **Added drop animation state** (`TetrisGame.ts`):
+   - `_isDropping`: boolean flag
+   - `_dropTargetY`: final Y position
+   - `_dropVisualY`: current visual Y during animation
+   - `_lastDropAnimTime`: for elapsed time calculation
+
+3. **Modified `hardDrop()` method**:
+   - Calculates target position using ghost position
+   - Moves piece to target immediately (for collision)
+   - Starts visual animation from current Y to target Y
+   - Emits `pieceDropping` event
+
+4. **Added `updateDropAnimation()` method**:
+   - Animates `_dropVisualY` toward `_dropTargetY` at configured speed
+   - Locks piece when animation completes
+
+5. **Updated `TetrisRenderer.updatePiece()`**:
+   - Added optional `visualY` parameter for animation override
+
+6. **Updated Vue component**:
+   - `updateVisuals()` passes `game.dropVisualY` during animation
+   - Hides ghost piece during drop
+   - Render loop calls `updateVisuals()` during drop
+   - Camera tracking uses visual Y during drop
+
+7. **AI Controller skip during drop**:
+   - Added `if (this.game.isDropping) return;` check
+
+**Result:** ✅ Pieces now fall smoothly at 25 units/second instead of teleporting
+
+</details>

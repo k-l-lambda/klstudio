@@ -15,6 +15,7 @@ export const GAME_CONFIG: GameConfig = {
 	gridSize: 1.0,
 	dropInterval: 1000,		// ms between drops
 	fastDropInterval: 50,	// ms when fast dropping
+	hardDropSpeed: 25,		// units per second for hard drop animation
 };
 
 

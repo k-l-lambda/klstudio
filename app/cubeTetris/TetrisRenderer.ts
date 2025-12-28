@@ -574,8 +574,10 @@ export class TetrisRenderer {
 
 	/**
 	 * Update current piece visualization using unified piece mesh
+	 * @param piece The piece to render
+	 * @param visualY Optional Y position override for animation
 	 */
-	updatePiece(piece: TetrisPiece | null): void {
+	updatePiece(piece: TetrisPiece | null, visualY?: number): void {
 		// Clear existing piece meshes
 		while (this.pieceGroup.children.length > 0) {
 			const child = this.pieceGroup.children[0];
@@ -608,8 +610,9 @@ export class TetrisRenderer {
 		mesh.castShadow = true;
 		mesh.receiveShadow = true;
 
-		// Position at piece position
-		mesh.position.set(piece.position.x, piece.position.y, piece.position.z);
+		// Position at piece position (use visualY if provided for animation)
+		const y = visualY !== undefined ? visualY : piece.position.y;
+		mesh.position.set(piece.position.x, y, piece.position.z);
 
 		this.pieceGroup.add(mesh);
 	}

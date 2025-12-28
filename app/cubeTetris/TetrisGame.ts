@@ -12,7 +12,7 @@ import {GAME_CONFIG, SCORE_PER_LINE, SCORE_MULTIPLIER} from "./constants";
 const HIGH_SCORE_KEY = "cubeTetris.highScore";
 
 
-export type GameEventType = "pieceSpawned" | "pieceMoved" | "pieceRotated" | "pieceLocked" | "layersClearStart" | "layersCleared" | "gameOver" | "scoreChanged" | "newHighScore";
+export type GameEventType = "pieceSpawned" | "pieceMoved" | "pieceRotated" | "pieceLocked" | "pieceDropping" | "layersClearStart" | "layersCleared" | "gameOver" | "scoreChanged" | "newHighScore";
 
 export interface GameEvent {
 	type: GameEventType;
@@ -37,6 +37,11 @@ export class TetrisGame {
 	// Layer clearing state
 	private _clearingLayers: number[] = [];
 	private _isClearingAnimation: boolean = false;
+
+	// Hard drop animation state
+	private _isDropping: boolean = false;
+	private _dropTargetY: number = 0;
+	private _dropVisualY: number = 0;  // Current visual Y position during drop
 
 	constructor(config?: Partial<GameConfig>) {
 		this.config = {...GAME_CONFIG, ...config};
@@ -81,6 +86,26 @@ export class TetrisGame {
 	 */
 	get highScore(): number {
 		return this._highScore;
+	}
+
+
+	/**
+	 * Check if drop animation is in progress
+	 */
+	get isDropping(): boolean {
+		return this._isDropping;
+	}
+
+
+	/**
+	 * Get current visual Y position during drop animation
+	 * Returns piece's actual Y if not dropping
+	 */
+	get dropVisualY(): number {
+		if (this._isDropping) {
+			return this._dropVisualY;
+		}
+		return this._currentPiece?.position.y ?? 0;
 	}
 
 
@@ -332,16 +357,34 @@ export class TetrisGame {
 
 
 	/**
-	 * Hard drop - drop piece all the way down
+	 * Hard drop - start drop animation to target position
 	 */
 	hardDrop(): void {
 		if (!this._currentPiece || this._state.gameOver || this._state.paused) return;
+		if (this._isDropping) return;  // Already dropping
 
-		while (this.movePiece(0, -1, 0)) {
-			// Keep dropping
+		// Calculate target Y position
+		const ghostPos = this.getGhostPosition();
+		if (!ghostPos) return;
+
+		const startY = this._currentPiece.position.y;
+		const targetY = ghostPos.y;
+
+		// If already at target, just lock
+		if (startY <= targetY) {
+			this.lockPiece();
+			return;
 		}
 
-		this.lockPiece();
+		// Start drop animation
+		this._isDropping = true;
+		this._dropTargetY = targetY;
+		this._dropVisualY = startY;
+
+		// Move piece to target position immediately (for collision purposes)
+		this._currentPiece.position = {...this._currentPiece.position, y: targetY};
+
+		this.emit("pieceDropping", {startY, targetY});
 	}
 
 
@@ -489,6 +532,12 @@ export class TetrisGame {
 		// Skip updates during clearing animation, game over, or pause
 		if (this._state.gameOver || this._state.paused || this._isClearingAnimation || !this._currentPiece) return;
 
+		// Handle drop animation
+		if (this._isDropping) {
+			this.updateDropAnimation(timestamp);
+			return;
+		}
+
 		// Initialize drop time on first update
 		if (this._lastDropTime === 0) {
 			this._lastDropTime = timestamp;
@@ -505,6 +554,38 @@ export class TetrisGame {
 			this.dropOne();
 			this._lastDropTime = timestamp;
 		}
+	}
+
+
+	/**
+	 * Update drop animation
+	 */
+	private _lastDropAnimTime: number = 0;
+	private updateDropAnimation(timestamp: number): void {
+		if (!this._isDropping) return;
+
+		// Calculate elapsed time
+		if (this._lastDropAnimTime === 0) {
+			this._lastDropAnimTime = timestamp;
+			return;
+		}
+
+		const elapsed = (timestamp - this._lastDropAnimTime) / 1000;  // seconds
+		this._lastDropAnimTime = timestamp;
+
+		// Move visual Y toward target
+		const speed = this.config.hardDropSpeed;
+		this._dropVisualY -= speed * elapsed;
+
+		// Check if reached target
+		if (this._dropVisualY <= this._dropTargetY) {
+			this._dropVisualY = this._dropTargetY;
+			this._isDropping = false;
+			this._lastDropAnimTime = 0;
+			this.lockPiece();
+		}
+
+		this.emit("pieceMoved", {visualY: this._dropVisualY});
 	}
 
 

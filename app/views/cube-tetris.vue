@@ -171,6 +171,11 @@
 					this.game.update(time);
 					this.aiController.update(time);
 
+					// Update visuals during drop animation
+					if (this.game.isDropping) {
+						this.updateVisuals();
+					}
+
 					// Check if clearing animation finished
 					if (this.game.isClearingAnimation && !this.renderer.isClearingAnimation()) {
 						this.game.completeClearingAnimation();
@@ -190,20 +195,33 @@
 			updateVisuals() {
 				if (!this.game || !this.renderer) return;
 
-				this.renderer.updateBoard(this.game.board);
-				this.renderer.updatePiece(this.game.currentPiece);
-				this.renderer.updateGhost(
-					this.game.currentPiece,
-					this.game.getGhostPosition()
-				);
+				// Don't update board during clearing animation (let clearing effect show)
+				if (!this.game.isClearingAnimation) {
+					this.renderer.updateBoard(this.game.board);
+				}
+
+				// Use visual Y position during drop animation
+				const visualY = this.game.isDropping ? this.game.dropVisualY : undefined;
+				this.renderer.updatePiece(this.game.currentPiece, visualY);
+
+				// Hide ghost during clearing animation only (keep during drop)
+				if (this.game.isClearingAnimation) {
+					this.renderer.updateGhost(null, null);
+				} else {
+					this.renderer.updateGhost(
+						this.game.currentPiece,
+						this.game.getGhostPosition()
+					);
+				}
 
 				// Update camera height tracking
 				const boardBounds = this.game.board.getBounds();
 				this.renderer.setHeapMaxY(boardBounds.maxY);
 
 				if (this.game.currentPiece) {
-					const pieceBounds = this.game.currentPiece.getWorldBounds();
-					this.renderer.setCurrentPieceY(pieceBounds.min.y);
+					// Use visual Y for camera tracking during drop
+					const pieceY = this.game.isDropping ? this.game.dropVisualY : this.game.currentPiece.getWorldBounds().min.y;
+					this.renderer.setCurrentPieceY(pieceY);
 				} else {
 					this.renderer.setCurrentPieceY(0);
 				}

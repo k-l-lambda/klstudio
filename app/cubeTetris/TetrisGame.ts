@@ -287,11 +287,15 @@ export class TetrisGame {
 			return true;
 		}
 
-		// Try wall kicks (simple version: try moving left/right/forward/backward)
-		const kicks = [
-			{x: -1, z: 0}, {x: 1, z: 0}, {x: 0, z: -1}, {x: 0, z: 1},
-			{x: -1, z: -1}, {x: 1, z: -1}, {x: -1, z: 1}, {x: 1, z: 1},
-		];
+		// Try wall kicks - expanded range for 4x4 board with large pieces
+		// Try smaller offsets first, then larger ones
+		const kicks: {x: number; z: number}[] = [];
+		for (let dist = 1; dist <= 3; dist++) {
+			// Cardinal directions
+			kicks.push({x: -dist, z: 0}, {x: dist, z: 0}, {x: 0, z: -dist}, {x: 0, z: dist});
+			// Diagonals
+			kicks.push({x: -dist, z: -dist}, {x: dist, z: -dist}, {x: -dist, z: dist}, {x: dist, z: dist});
+		}
 
 		for (const kick of kicks) {
 			const kickedPiece = this._currentPiece.clone();

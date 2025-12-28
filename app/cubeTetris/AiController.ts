@@ -382,6 +382,7 @@ export class AiController {
 
 	/**
 	 * Count hole space (empty spaces directly beneath piece blocks)
+	 * A "hole" is an empty space that will be trapped under the piece
 	 */
 	private countHoleSpace(piece: TetrisPiece): number {
 		const blocks = piece.getWorldBlocks();
@@ -399,16 +400,34 @@ export class AiController {
 			const belowKey = `${point.x},${point.y - 1},${point.z}`;
 			if (blockSet.has(belowKey)) continue;
 
-			// Count empty spaces below this block
+			// Count empty spaces below this block until we hit floor or board block
 			let y = point.y - 1;
-			while (y >= 0 && !this.game.board.has(point.x, y, point.z)) {
+			while (y >= 0) {
+				const key = `${point.x},${y},${point.z}`;
+				// Skip if this position is occupied by another part of the piece
+				if (blockSet.has(key)) {
+					y--;
+					continue;
+				}
+				// Stop if we hit a board block
+				if (this.game.board.has(point.x, y, point.z)) {
+					break;
+				}
+				// Empty space = hole
 				count++;
 				y--;
 			}
 
-			// Extra penalty if there's space below the bottom
-			if (y > 0 && !this.game.board.has(point.x, y - 1, point.z)) {
-				count += 0.2;
+			// Extra penalty for placing above existing holes in the board
+			// If we stopped at a board block (y >= 0) and there's empty space below it,
+			// the board already has holes that will be harder to fill
+			if (y > 0) {
+				// Count existing holes below the board block we hit
+				let holeY = y - 1;
+				while (holeY >= 0 && !this.game.board.has(point.x, holeY, point.z)) {
+					count += 0.5;  // Penalty for each existing hole we're covering
+					holeY--;
+				}
 			}
 		}
 

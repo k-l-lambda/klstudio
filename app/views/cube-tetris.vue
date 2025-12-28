@@ -321,26 +321,26 @@
 					// Camera looking toward +X
 					forward = () => this.game.moveRight();
 					backward = () => this.game.moveLeft();
-					left = () => this.game.moveBackward();
-					right = () => this.game.moveForward();
+					left = () => this.game.moveForward();   // -Z when facing +X
+					right = () => this.game.moveBackward(); // +Z when facing +X
 				} else if (degrees >= 45 && degrees < 135) {
 					// Camera looking toward +Z
 					forward = () => this.game.moveBackward();
 					backward = () => this.game.moveForward();
-					left = () => this.game.moveRight();
-					right = () => this.game.moveLeft();
+					left = () => this.game.moveRight();     // +X when facing +Z
+					right = () => this.game.moveLeft();     // -X when facing +Z
 				} else if (degrees >= 135 && degrees < 225) {
 					// Camera looking toward -X
 					forward = () => this.game.moveLeft();
 					backward = () => this.game.moveRight();
-					left = () => this.game.moveForward();
-					right = () => this.game.moveBackward();
+					left = () => this.game.moveBackward();  // +Z when facing -X
+					right = () => this.game.moveForward();  // -Z when facing -X
 				} else {
 					// Camera looking toward -Z (225-315)
 					forward = () => this.game.moveForward();
 					backward = () => this.game.moveBackward();
-					left = () => this.game.moveLeft();
-					right = () => this.game.moveRight();
+					left = () => this.game.moveLeft();      // -X when facing -Z
+					right = () => this.game.moveRight();    // +X when facing -Z
 				}
 
 				// Execute the mapped movement

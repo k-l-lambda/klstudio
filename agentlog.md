@@ -818,3 +818,40 @@ cube.body:get():getObject():setMaterialName(iif(odd, "Cleaning/0", "Cleaning/1")
 **Result:** ✅ Blocks flash white/original color for 0.4 seconds before being cleared, matching original game behavior
 
 </details>
+
+<details>
+<summary>Camera-Relative Movement Controls (2025-12-27)</summary>
+
+> In non-AI mode, let movement always be defined by current camera view direction.
+
+**Issue:** Movement controls (WASD) were using fixed world directions, which became confusing when the camera was rotated to different viewing angles.
+
+**Implementation in `cube-tetris.vue`:**
+
+1. **Added `moveCameraRelative(direction)` method:**
+   - Gets camera position and board center from renderer
+   - Calculates camera-to-center angle using `atan2(dz, dx)`
+   - Divides into 4 quadrants (45° each) to determine viewing direction
+   - Maps input direction (forward/backward/left/right) to world movement
+
+2. **Quadrant mappings:**
+   ```
+   315-45°:  Camera looking toward +X
+   45-135°:  Camera looking toward +Z
+   135-225°: Camera looking toward -X
+   225-315°: Camera looking toward -Z
+   ```
+
+3. **Added `getBoardCenter()` method to TetrisRenderer.ts**
+
+**Bug Fix - All Quadrants Left/Right:**
+
+Initial implementation had left/right swapped in +X and -X quadrants. The correct mapping uses counter-clockwise rotation (viewed from above) to determine left:
+- Facing +X: left = -Z (moveForward), right = +Z (moveBackward)
+- Facing +Z: left = +X (moveRight), right = -X (moveLeft)
+- Facing -X: left = +Z (moveBackward), right = -Z (moveForward)
+- Facing -Z: left = -X (moveLeft), right = +X (moveRight)
+
+**Result:** ✅ Movement controls now intuitive regardless of camera rotation angle
+
+</details>

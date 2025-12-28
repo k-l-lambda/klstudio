@@ -9,17 +9,29 @@ import {PIECE_DEFINITIONS} from "./constants";
 
 
 /**
+ * Rotation state tracking (cumulative 90° rotations on each axis)
+ */
+interface RotationState {
+	x: number;  // -1, 0, 1, or 2 (times 90°)
+	y: number;
+	z: number;
+}
+
+
+/**
  * TetrisPiece - Represents a falling tetris piece
  */
 export class TetrisPiece {
 	private grid: CubeGrid;
 	private _position: Point3D;
+	private _rotationState: RotationState;
 	readonly definition: PieceDefinition;
 
 	constructor(definition: PieceDefinition, startPosition?: Point3D) {
 		this.definition = definition;
 		this.grid = new CubeGrid();
 		this._position = startPosition ?? {x: 0, y: 0, z: 0};
+		this._rotationState = {x: 0, y: 0, z: 0};
 
 		// Initialize grid with piece blocks
 		this.initializeBlocks();
@@ -94,6 +106,29 @@ export class TetrisPiece {
 
 
 	/**
+	 * Get base (unrotated) block positions from definition
+	 * Used for geometry caching - only 8 unique shapes
+	 */
+	getBaseBlocks(): Point3D[] {
+		return this.definition.blocks.map(b => ({...b}));
+	}
+
+
+	/**
+	 * Get rotation state for rendering
+	 * Returns rotation angles in radians for each axis
+	 */
+	getRotationAngles(): {x: number; y: number; z: number} {
+		const halfPi = Math.PI / 2;
+		return {
+			x: this._rotationState.x * halfPi,
+			y: this._rotationState.y * halfPi,
+			z: this._rotationState.z * halfPi,
+		};
+	}
+
+
+	/**
 	 * Move the piece
 	 */
 	move(dx: number, dy: number, dz: number): void {
@@ -148,6 +183,9 @@ export class TetrisPiece {
 	 */
 	rotate(axis: "x" | "y" | "z", times: number = 1): void {
 		this.grid = this.grid.rotate(axis, times);
+		// Track rotation state for rendering
+		this._rotationState[axis] = (this._rotationState[axis] + times) % 4;
+		if (this._rotationState[axis] < 0) this._rotationState[axis] += 4;
 	}
 
 
@@ -201,6 +239,7 @@ export class TetrisPiece {
 	clone(): TetrisPiece {
 		const cloned = new TetrisPiece(this.definition, {...this._position});
 		cloned.grid = this.grid.clone();
+		cloned._rotationState = {...this._rotationState};
 		return cloned;
 	}
 

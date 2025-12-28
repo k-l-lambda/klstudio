@@ -9,7 +9,10 @@ import {TetrisPiece} from "./TetrisPiece";
 import {GAME_CONFIG, SCORE_PER_LINE, SCORE_MULTIPLIER} from "./constants";
 
 
-export type GameEventType = "pieceSpawned" | "pieceMoved" | "pieceRotated" | "pieceLocked" | "layersClearStart" | "layersCleared" | "gameOver" | "scoreChanged";
+const HIGH_SCORE_KEY = "cubeTetris.highScore";
+
+
+export type GameEventType = "pieceSpawned" | "pieceMoved" | "pieceRotated" | "pieceLocked" | "layersClearStart" | "layersCleared" | "gameOver" | "scoreChanged" | "newHighScore";
 
 export interface GameEvent {
 	type: GameEventType;
@@ -27,6 +30,7 @@ export class TetrisGame {
 	private _currentPiece: TetrisPiece | null = null;
 	private _nextPiece: TetrisPiece | null = null;
 	private _state: GameState;
+	private _highScore: number = 0;
 	private _lastDropTime: number = 0;
 	private _eventListeners: Map<GameEventType, Set<(event: GameEvent) => void>> = new Map();
 
@@ -44,6 +48,7 @@ export class TetrisGame {
 			gameOver: false,
 			paused: false,
 		};
+		this._highScore = this.loadHighScore();
 	}
 
 
@@ -68,6 +73,14 @@ export class TetrisGame {
 	 */
 	get state(): GameState {
 		return {...this._state};
+	}
+
+
+	/**
+	 * Get high score
+	 */
+	get highScore(): number {
+		return this._highScore;
 	}
 
 
@@ -424,6 +437,7 @@ export class TetrisGame {
 
 		this.emit("layersCleared", {layers: this._clearingLayers, score: points});
 		this.emit("scoreChanged", {score: this._state.score, level: this._state.level});
+		this.checkHighScore();
 
 		// Reset clearing state
 		this._clearingLayers = [];
@@ -495,5 +509,42 @@ export class TetrisGame {
 	 */
 	get dropInterval(): number {
 		return Math.max(100, this.config.dropInterval - (this._state.level - 1) * 50);
+	}
+
+
+	/**
+	 * Load high score from localStorage
+	 */
+	private loadHighScore(): number {
+		try {
+			const stored = localStorage.getItem(HIGH_SCORE_KEY);
+			return stored ? parseInt(stored, 10) || 0 : 0;
+		} catch {
+			return 0;
+		}
+	}
+
+
+	/**
+	 * Save high score to localStorage
+	 */
+	private saveHighScore(): void {
+		try {
+			localStorage.setItem(HIGH_SCORE_KEY, String(this._highScore));
+		} catch {
+			// Ignore storage errors
+		}
+	}
+
+
+	/**
+	 * Check and update high score if current score is higher
+	 */
+	private checkHighScore(): void {
+		if (this._state.score > this._highScore) {
+			this._highScore = this._state.score;
+			this.saveHighScore();
+			this.emit("newHighScore", {highScore: this._highScore});
+		}
 	}
 }

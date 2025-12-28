@@ -9,6 +9,10 @@
 					<span class="value">{{ state.score }}</span>
 				</div>
 				<div class="stat">
+					<span class="label">Hi-Score</span>
+					<span class="value hi-score">{{ highScore }}</span>
+				</div>
+				<div class="stat">
 					<span class="label">Level</span>
 					<span class="value">{{ state.level }}</span>
 				</div>
@@ -82,6 +86,7 @@
 				renderer: null,
 				aiController: null,
 				aiMode: true,  // Start in AI demo mode
+				highScore: 0,
 				state: {
 					score: 0,
 					level: 1,
@@ -124,6 +129,9 @@
 
 				// Listen to game events
 				this.game.on("scoreChanged", () => this.updateState());
+				this.game.on("newHighScore", (event) => {
+					this.highScore = event.data.highScore;
+				});
 				this.game.on("pieceSpawned", () => {
 					this.updateVisuals();
 					this.aiController.onPieceSpawned();
@@ -151,6 +159,7 @@
 
 				// Start game
 				this.game.start();
+				this.highScore = this.game.highScore;
 				this.updateState();
 				this.updateVisuals();
 
@@ -362,6 +371,10 @@
 			.value {
 				font-weight: bold;
 				font-size: 1.2em;
+
+				&.hi-score {
+					color: #ffcc44;
+				}
 			}
 		}
 	}

@@ -135,11 +135,21 @@ export class AiController {
 
 		// First apply rotations if not done yet
 		if (!this.rotationsApplied) {
+			let rotationFailed = false;
 			for (const rot of target.rotations) {
-				this.game.rotatePiece(rot.axis, rot.times);
+				if (!this.game.rotatePiece(rot.axis, rot.times)) {
+					rotationFailed = true;
+					break;
+				}
 			}
 			this.rotationsApplied = true;
 			this.lastMoveTime = timestamp;
+
+			// If rotation failed, recompute target for new orientation
+			if (rotationFailed) {
+				this.computeTarget();
+				this.rotationsApplied = true;  // Skip rotation for new target
+			}
 			return;
 		}
 
@@ -149,22 +159,38 @@ export class AiController {
 		const currentZ = bounds.min.z;
 
 		if (currentX < target.x) {
-			this.game.moveRight();
+			if (!this.game.moveRight()) {
+				// Can't move right, recompute target
+				this.computeTarget();
+				this.rotationsApplied = true;
+			}
 			this.lastMoveTime = timestamp;
 			return;
 		} else if (currentX > target.x) {
-			this.game.moveLeft();
+			if (!this.game.moveLeft()) {
+				// Can't move left, recompute target
+				this.computeTarget();
+				this.rotationsApplied = true;
+			}
 			this.lastMoveTime = timestamp;
 			return;
 		}
 
 		// Move towards target Z position
 		if (currentZ < target.z) {
-			this.game.moveBackward();
+			if (!this.game.moveBackward()) {
+				// Can't move backward, recompute target
+				this.computeTarget();
+				this.rotationsApplied = true;
+			}
 			this.lastMoveTime = timestamp;
 			return;
 		} else if (currentZ > target.z) {
-			this.game.moveForward();
+			if (!this.game.moveForward()) {
+				// Can't move forward, recompute target
+				this.computeTarget();
+				this.rotationsApplied = true;
+			}
 			this.lastMoveTime = timestamp;
 			return;
 		}

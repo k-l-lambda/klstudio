@@ -111,7 +111,7 @@ export class TetrisGame {
 			gameOver: false,
 			paused: false,
 		};
-		this._lastDropTime = Date.now();
+		this._lastDropTime = 0;  // Will be set on first update
 
 		// Spawn initial pieces
 		this._nextPiece = this.createPiece();
@@ -126,7 +126,7 @@ export class TetrisGame {
 		if (this._state.gameOver) return;
 		this._state.paused = !this._state.paused;
 		if (!this._state.paused) {
-			this._lastDropTime = Date.now();
+			this._lastDropTime = 0;  // Reset on next update
 		}
 	}
 
@@ -470,6 +470,12 @@ export class TetrisGame {
 	update(timestamp: number): void {
 		// Skip updates during clearing animation, game over, or pause
 		if (this._state.gameOver || this._state.paused || this._isClearingAnimation || !this._currentPiece) return;
+
+		// Initialize drop time on first update
+		if (this._lastDropTime === 0) {
+			this._lastDropTime = timestamp;
+			return;
+		}
 
 		// Calculate drop interval based on level
 		const dropInterval = Math.max(

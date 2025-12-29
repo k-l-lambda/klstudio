@@ -28,6 +28,1127 @@ const FACE_NEIGHBORS: Record<FaceDir, Point3D> = {
 };
 
 
+// ============================================================================
+// Nine-Grid Block Geometry System
+// ============================================================================
+//
+// Each face is divided into 9 parts (3x3 grid):
+// ┌────────┬────────┬────────┐
+// │ Corner │  Edge  │ Corner │
+// │(-A,-B) │  -B    │(+A,-B) │
+// ├────────┼────────┼────────┤
+// │  Edge  │ Center │  Edge  │
+// │  -A    │(fixed) │  +A    │
+// ├────────┼────────┼────────┤
+// │ Corner │  Edge  │ Corner │
+// │(-A,+B) │  +B    │(+A,+B) │
+// └────────┴────────┴────────┘
+//
+// - Center: fixed quad, always flat
+// - Edges: bevel (chamfer) when exterior, flat extension when neighbor exists
+// - Corners: 3 cases based on adjacent edge states (2 triangles each)
+//   A. Outer convex corner (both edges exterior)
+//   B. Side extension (one edge exterior, one has neighbor)
+//   C. Inner concave corner (both edges have neighbors)
+// ============================================================================
+
+// Geometry constants
+const CUBE_SIZE = 1.003;
+const HALF_SIZE = CUBE_SIZE / 2;        // ≈0.5015 (face position s)
+const INNER = HALF_SIZE * 0.82;         // ≈0.411 (center region boundary)
+const OUTER = HALF_SIZE * 0.91;         // ≈0.456 (bevel outer boundary)
+const S_EXT = 0.5;                      // neighbor connection point (exact grid midpoint)
+
+// Bevel normal components (from original cube0.mesh.xml)
+const BEVEL_MAJOR = 0.716;  // major axis component
+const BEVEL_MINOR = 0.698;  // minor axis component
+
+
+/**
+ * Corner types for nine-grid geometry
+ */
+enum CornerType {
+	OUTER_CONVEX,    // Outer convex corner: both edges are exterior
+	SIDE_EXTEND_A,   // Side extension: edge A is exterior, edge B has neighbor
+	SIDE_EXTEND_B,   // Side extension: edge A has neighbor, edge B is exterior
+	INNER_CONCAVE,   // Inner concave corner: both edges have neighbors
+}
+
+
+/**
+ * Determine corner type based on edge exterior states
+ */
+function getCornerType(exteriorA: boolean, exteriorB: boolean): CornerType {
+	if (exteriorA && exteriorB) return CornerType.OUTER_CONVEX;
+	if (exteriorA && !exteriorB) return CornerType.SIDE_EXTEND_A;
+	if (!exteriorA && exteriorB) return CornerType.SIDE_EXTEND_B;
+	return CornerType.INNER_CONCAVE;
+}
+
+
+/**
+ * Geometry builder helper class
+ */
+class GeometryBuilder {
+	vertices: number[] = [];
+	normals: number[] = [];
+	indices: number[] = [];
+
+	addQuad(v0: number[], v1: number[], v2: number[], v3: number[], normal: number[]): void {
+		const baseIdx = this.vertices.length / 3;
+		this.vertices.push(...v0, ...v1, ...v2, ...v3);
+		this.normals.push(...normal, ...normal, ...normal, ...normal);
+		this.indices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
+	}
+
+	addTriangle(v0: number[], v1: number[], v2: number[], normal: number[]): void {
+		const baseIdx = this.vertices.length / 3;
+		this.vertices.push(...v0, ...v1, ...v2);
+		this.normals.push(...normal, ...normal, ...normal);
+		this.indices.push(baseIdx, baseIdx + 1, baseIdx + 2);
+	}
+
+	build(): THREE.BufferGeometry {
+		const geometry = new THREE.BufferGeometry();
+		geometry.setAttribute("position", new THREE.Float32BufferAttribute(this.vertices, 3));
+		geometry.setAttribute("normal", new THREE.Float32BufferAttribute(this.normals, 3));
+		geometry.setIndex(this.indices);
+		return geometry;
+	}
+}
+
+
+/**
+ * Generate nine-grid geometry for a single face
+ * @param builder Geometry builder
+ * @param ox, oy, oz Block offset
+ * @param face Face direction
+ * @param exterior Neighbor state record
+ */
+function buildFaceGeometry(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	face: FaceDir,
+	exterior: Record<FaceDir, boolean>
+): void {
+	const s = HALF_SIZE;
+	const inner = INNER;
+	const outer = OUTER;
+	const sExt = S_EXT;
+
+	// Determine coordinate mapping based on face direction
+	// Each face has: main axis (face normal direction), A-axis, B-axis
+	// +Y face: main=Y, A=X, B=Z
+	// -Y face: main=Y, A=X, B=Z (reversed)
+	// +Z face: main=Z, A=X, B=Y
+	// -Z face: main=Z, A=X, B=Y (reversed)
+	// +X face: main=X, A=Z, B=Y
+	// -X face: main=X, A=Z, B=Y (reversed)
+
+	if (face === "+y") {
+		buildFaceYPositive(builder, ox, oy, oz, s, inner, outer, sExt, exterior);
+	}
+	else if (face === "-y") {
+		buildFaceYNegative(builder, ox, oy, oz, s, inner, outer, sExt, exterior);
+	}
+	else if (face === "+z") {
+		buildFaceZPositive(builder, ox, oy, oz, s, inner, outer, sExt, exterior);
+	}
+	else if (face === "-z") {
+		buildFaceZNegative(builder, ox, oy, oz, s, inner, outer, sExt, exterior);
+	}
+	else if (face === "+x") {
+		buildFaceXPositive(builder, ox, oy, oz, s, inner, outer, sExt, exterior);
+	}
+	else if (face === "-x") {
+		buildFaceXNegative(builder, ox, oy, oz, s, inner, outer, sExt, exterior);
+	}
+}
+
+
+/**
+ * +Y face (top) nine-grid generation
+ * A-axis = X, B-axis = Z
+ */
+function buildFaceYPositive(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	s: number, inner: number, outer: number, sExt: number,
+	exterior: Record<FaceDir, boolean>
+): void {
+	const y = oy + s;  // face position
+	const normal: number[] = [0, 1, 0];
+
+	const extPosX = exterior["+x"];
+	const extNegX = exterior["-x"];
+	const extPosZ = exterior["+z"];
+	const extNegZ = exterior["-z"];
+
+	// ========== 1. Center quad ==========
+	builder.addQuad(
+		[ox - inner, y, oz + inner], [ox + inner, y, oz + inner],
+		[ox + inner, y, oz - inner], [ox - inner, y, oz - inner],
+		normal
+	);
+
+	// ========== 2. Four edges ==========
+	// -X edge
+	if (extNegX) {
+		// Bevel surface
+		builder.addQuad(
+			[ox - inner, y, oz + inner], [ox - inner, y, oz - inner],
+			[ox - outer, oy + outer, oz - inner], [ox - outer, oy + outer, oz + inner],
+			[-BEVEL_MAJOR, BEVEL_MINOR, 0]
+		);
+	}
+	else {
+		// Flat extension
+		builder.addQuad(
+			[ox - inner, y, oz + inner], [ox - inner, y, oz - inner],
+			[ox - sExt, y, oz - inner], [ox - sExt, y, oz + inner],
+			normal
+		);
+	}
+
+	// +X edge
+	if (extPosX) {
+		builder.addQuad(
+			[ox + inner, y, oz - inner], [ox + inner, y, oz + inner],
+			[ox + outer, oy + outer, oz + inner], [ox + outer, oy + outer, oz - inner],
+			[BEVEL_MAJOR, BEVEL_MINOR, 0]
+		);
+	}
+	else {
+		builder.addQuad(
+			[ox + inner, y, oz - inner], [ox + inner, y, oz + inner],
+			[ox + sExt, y, oz + inner], [ox + sExt, y, oz - inner],
+			normal
+		);
+	}
+
+	// -Z edge
+	if (extNegZ) {
+		builder.addQuad(
+			[ox - inner, y, oz - inner], [ox + inner, y, oz - inner],
+			[ox + inner, oy + outer, oz - outer], [ox - inner, oy + outer, oz - outer],
+			[0, BEVEL_MINOR, -BEVEL_MAJOR]
+		);
+	}
+	else {
+		builder.addQuad(
+			[ox - inner, y, oz - inner], [ox + inner, y, oz - inner],
+			[ox + inner, y, oz - sExt], [ox - inner, y, oz - sExt],
+			normal
+		);
+	}
+
+	// +Z edge
+	if (extPosZ) {
+		builder.addQuad(
+			[ox + inner, y, oz + inner], [ox - inner, y, oz + inner],
+			[ox - inner, oy + outer, oz + outer], [ox + inner, oy + outer, oz + outer],
+			[0, BEVEL_MINOR, BEVEL_MAJOR]
+		);
+	}
+	else {
+		builder.addQuad(
+			[ox + inner, y, oz + inner], [ox - inner, y, oz + inner],
+			[ox - inner, y, oz + sExt], [ox + inner, y, oz + sExt],
+			normal
+		);
+	}
+
+	// ========== 3. Four corners ==========
+	// (-X, -Z) corner
+	buildCornerYPositive(builder, ox, oy, oz, s, inner, outer, sExt,
+		-1, -1, extNegX, extNegZ);
+
+	// (+X, -Z) corner
+	buildCornerYPositive(builder, ox, oy, oz, s, inner, outer, sExt,
+		+1, -1, extPosX, extNegZ);
+
+	// (-X, +Z) corner
+	buildCornerYPositive(builder, ox, oy, oz, s, inner, outer, sExt,
+		-1, +1, extNegX, extPosZ);
+
+	// (+X, +Z) corner
+	buildCornerYPositive(builder, ox, oy, oz, s, inner, outer, sExt,
+		+1, +1, extPosX, extPosZ);
+}
+
+
+/**
+ * +Y face corner generation
+ * Triangulation: a-b-d and a-d-c (shared edge a-d from inner to diagonal outer)
+ * @param signX X direction sign (+1 or -1)
+ * @param signZ Z direction sign (+1 or -1)
+ */
+function buildCornerYPositive(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	s: number, inner: number, outer: number, sExt: number,
+	signX: number, signZ: number,
+	exteriorX: boolean, exteriorZ: boolean
+): void {
+	const y = oy + s;
+	const yOuter = oy + outer;
+
+	// Point a: inner corner on face (always fixed)
+	const a: number[] = [ox + signX * inner, y, oz + signZ * inner];
+
+	// Point d: diagonal outer corner - coordinates depend on neighbor status
+	const xD = exteriorX ? outer : sExt;
+	const zD = exteriorZ ? outer : sExt;
+	// Face normal direction: use inner if both neighbors (concave), else outer
+	const yD = (!exteriorX && !exteriorZ) ? (oy + inner) : yOuter;
+	const d: number[] = [ox + signX * xD, yD, oz + signZ * zD];
+
+	// Point b: on X-direction edge
+	// - exterior: on bevel at (xOuter, yOuter, zInner)
+	// - neighbor: on flat at (xExt, y, zInner)
+	const b: number[] = exteriorX
+		? [ox + signX * outer, yOuter, oz + signZ * inner]
+		: [ox + signX * sExt, y, oz + signZ * inner];
+
+	// Point c: on Z-direction edge
+	// - exterior: on bevel at (xInner, yOuter, zOuter)
+	// - neighbor: on flat at (xInner, y, zExt)
+	const c: number[] = exteriorZ
+		? [ox + signX * inner, yOuter, oz + signZ * outer]
+		: [ox + signX * inner, y, oz + signZ * sExt];
+
+	// Helper: compute triangle normal via cross product
+	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
+		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+		const nx = ab[1] * ac[2] - ab[2] * ac[1];
+		const ny = ab[2] * ac[0] - ab[0] * ac[2];
+		const nz = ab[0] * ac[1] - ab[1] * ac[0];
+		const len = Math.hypot(nx, ny, nz) || 1;
+		return [nx / len, ny / len, nz / len];
+	};
+
+	// Winding order depends on sign product
+	// When signX * signZ < 0 (opposite signs): a-b-d, a-d-c
+	// When signX * signZ > 0 (same signs): a-d-b, a-c-d
+	if (signX * signZ < 0) {
+		const n1 = triNormal(a, b, d);
+		if (n1[1] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, b, d, n1);
+
+		const n2 = triNormal(a, d, c);
+		if (n2[1] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, d, c, n2);
+	}
+	else {
+		const n1 = triNormal(a, d, b);
+		if (n1[1] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, d, b, n1);
+
+		const n2 = triNormal(a, c, d);
+		if (n2[1] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, c, d, n2);
+	}
+}
+
+
+/**
+ * -Y face (bottom) nine-grid generation
+ */
+function buildFaceYNegative(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	s: number, inner: number, outer: number, sExt: number,
+	exterior: Record<FaceDir, boolean>
+): void {
+	const y = oy - s;
+	const normal: number[] = [0, -1, 0];
+
+	const extPosX = exterior["+x"];
+	const extNegX = exterior["-x"];
+	const extPosZ = exterior["+z"];
+	const extNegZ = exterior["-z"];
+
+	// Center
+	builder.addQuad(
+		[ox - inner, y, oz - inner], [ox + inner, y, oz - inner],
+		[ox + inner, y, oz + inner], [ox - inner, y, oz + inner],
+		normal
+	);
+
+	// -X edge
+	if (extNegX) {
+		builder.addQuad(
+			[ox - inner, y, oz - inner], [ox - inner, y, oz + inner],
+			[ox - outer, oy - outer, oz + inner], [ox - outer, oy - outer, oz - inner],
+			[-BEVEL_MAJOR, -BEVEL_MINOR, 0]
+		);
+	}
+	else {
+		builder.addQuad(
+			[ox - inner, y, oz - inner], [ox - inner, y, oz + inner],
+			[ox - sExt, y, oz + inner], [ox - sExt, y, oz - inner],
+			normal
+		);
+	}
+
+	// +X edge
+	if (extPosX) {
+		builder.addQuad(
+			[ox + inner, y, oz + inner], [ox + inner, y, oz - inner],
+			[ox + outer, oy - outer, oz - inner], [ox + outer, oy - outer, oz + inner],
+			[BEVEL_MAJOR, -BEVEL_MINOR, 0]
+		);
+	}
+	else {
+		builder.addQuad(
+			[ox + inner, y, oz + inner], [ox + inner, y, oz - inner],
+			[ox + sExt, y, oz - inner], [ox + sExt, y, oz + inner],
+			normal
+		);
+	}
+
+	// -Z edge
+	if (extNegZ) {
+		builder.addQuad(
+			[ox + inner, y, oz - inner], [ox - inner, y, oz - inner],
+			[ox - inner, oy - outer, oz - outer], [ox + inner, oy - outer, oz - outer],
+			[0, -BEVEL_MINOR, -BEVEL_MAJOR]
+		);
+	}
+	else {
+		builder.addQuad(
+			[ox + inner, y, oz - inner], [ox - inner, y, oz - inner],
+			[ox - inner, y, oz - sExt], [ox + inner, y, oz - sExt],
+			normal
+		);
+	}
+
+	// +Z edge
+	if (extPosZ) {
+		builder.addQuad(
+			[ox - inner, y, oz + inner], [ox + inner, y, oz + inner],
+			[ox + inner, oy - outer, oz + outer], [ox - inner, oy - outer, oz + outer],
+			[0, -BEVEL_MINOR, BEVEL_MAJOR]
+		);
+	}
+	else {
+		builder.addQuad(
+			[ox - inner, y, oz + inner], [ox + inner, y, oz + inner],
+			[ox + inner, y, oz + sExt], [ox - inner, y, oz + sExt],
+			normal
+		);
+	}
+
+	// Four corners
+	buildCornerYNegative(builder, ox, oy, oz, s, inner, outer, sExt, -1, -1, extNegX, extNegZ);
+	buildCornerYNegative(builder, ox, oy, oz, s, inner, outer, sExt, +1, -1, extPosX, extNegZ);
+	buildCornerYNegative(builder, ox, oy, oz, s, inner, outer, sExt, -1, +1, extNegX, extPosZ);
+	buildCornerYNegative(builder, ox, oy, oz, s, inner, outer, sExt, +1, +1, extPosX, extPosZ);
+}
+
+
+function buildCornerYNegative(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	s: number, inner: number, outer: number, sExt: number,
+	signX: number, signZ: number,
+	exteriorX: boolean, exteriorZ: boolean
+): void {
+	const y = oy - s;
+	const yOuter = oy - outer;
+
+	// Point a: inner corner on face (always fixed)
+	const a: number[] = [ox + signX * inner, y, oz + signZ * inner];
+
+	// Point d: diagonal outer corner - coordinates depend on neighbor status
+	const xD = exteriorX ? outer : sExt;
+	const zD = exteriorZ ? outer : sExt;
+	// Face normal direction: use inner if both neighbors (concave), else outer
+	const yD = (!exteriorX && !exteriorZ) ? (oy - inner) : yOuter;
+	const d: number[] = [ox + signX * xD, yD, oz + signZ * zD];
+
+	// Point b: on X-direction edge
+	const b: number[] = exteriorX
+		? [ox + signX * outer, yOuter, oz + signZ * inner]
+		: [ox + signX * sExt, y, oz + signZ * inner];
+
+	// Point c: on Z-direction edge
+	const c: number[] = exteriorZ
+		? [ox + signX * inner, yOuter, oz + signZ * outer]
+		: [ox + signX * inner, y, oz + signZ * sExt];
+
+	// Helper: compute triangle normal
+	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
+		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+		const nx = ab[1] * ac[2] - ab[2] * ac[1];
+		const ny = ab[2] * ac[0] - ab[0] * ac[2];
+		const nz = ab[0] * ac[1] - ab[1] * ac[0];
+		const len = Math.hypot(nx, ny, nz) || 1;
+		return [nx / len, ny / len, nz / len];
+	};
+
+	// Winding order depends on sign product (opposite to +Y face)
+	if (signX * signZ < 0) {
+		const n1 = triNormal(a, d, b);
+		if (n1[1] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, d, b, n1);
+
+		const n2 = triNormal(a, c, d);
+		if (n2[1] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, c, d, n2);
+	}
+	else {
+		const n1 = triNormal(a, b, d);
+		if (n1[1] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, b, d, n1);
+
+		const n2 = triNormal(a, d, c);
+		if (n2[1] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, d, c, n2);
+	}
+}
+
+
+/**
+ * +Z face (front) nine-grid generation
+ * A-axis = X, B-axis = Y
+ */
+function buildFaceZPositive(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	s: number, inner: number, outer: number, sExt: number,
+	exterior: Record<FaceDir, boolean>
+): void {
+	const z = oz + s;
+	const normal: number[] = [0, 0, 1];
+
+	const extPosX = exterior["+x"];
+	const extNegX = exterior["-x"];
+	const extPosY = exterior["+y"];
+	const extNegY = exterior["-y"];
+
+	// Center
+	builder.addQuad(
+		[ox - inner, oy - inner, z], [ox + inner, oy - inner, z],
+		[ox + inner, oy + inner, z], [ox - inner, oy + inner, z],
+		normal
+	);
+
+	// -X edge
+	if (extNegX) {
+		builder.addQuad(
+			[ox - inner, oy - inner, z], [ox - inner, oy + inner, z],
+			[ox - outer, oy + inner, oz + outer], [ox - outer, oy - inner, oz + outer],
+			[-BEVEL_MAJOR, 0, BEVEL_MINOR]
+		);
+	}
+	else {
+		builder.addQuad(
+			[ox - inner, oy - inner, z], [ox - inner, oy + inner, z],
+			[ox - sExt, oy + inner, z], [ox - sExt, oy - inner, z],
+			normal
+		);
+	}
+
+	// +X edge
+	if (extPosX) {
+		builder.addQuad(
+			[ox + inner, oy + inner, z], [ox + inner, oy - inner, z],
+			[ox + outer, oy - inner, oz + outer], [ox + outer, oy + inner, oz + outer],
+			[BEVEL_MAJOR, 0, BEVEL_MINOR]
+		);
+	}
+	else {
+		builder.addQuad(
+			[ox + inner, oy + inner, z], [ox + inner, oy - inner, z],
+			[ox + sExt, oy - inner, z], [ox + sExt, oy + inner, z],
+			normal
+		);
+	}
+
+	// -Y edge
+	if (extNegY) {
+		builder.addQuad(
+			[ox + inner, oy - inner, z], [ox - inner, oy - inner, z],
+			[ox - inner, oy - outer, oz + outer], [ox + inner, oy - outer, oz + outer],
+			[0, -BEVEL_MAJOR, BEVEL_MINOR]
+		);
+	}
+	else {
+		builder.addQuad(
+			[ox + inner, oy - inner, z], [ox - inner, oy - inner, z],
+			[ox - inner, oy - sExt, z], [ox + inner, oy - sExt, z],
+			normal
+		);
+	}
+
+	// +Y edge
+	if (extPosY) {
+		builder.addQuad(
+			[ox - inner, oy + inner, z], [ox + inner, oy + inner, z],
+			[ox + inner, oy + outer, oz + outer], [ox - inner, oy + outer, oz + outer],
+			[0, BEVEL_MAJOR, BEVEL_MINOR]
+		);
+	}
+	else {
+		builder.addQuad(
+			[ox - inner, oy + inner, z], [ox + inner, oy + inner, z],
+			[ox + inner, oy + sExt, z], [ox - inner, oy + sExt, z],
+			normal
+		);
+	}
+
+	// Four corners
+	buildCornerZPositive(builder, ox, oy, oz, s, inner, outer, sExt, -1, -1, extNegX, extNegY);
+	buildCornerZPositive(builder, ox, oy, oz, s, inner, outer, sExt, +1, -1, extPosX, extNegY);
+	buildCornerZPositive(builder, ox, oy, oz, s, inner, outer, sExt, -1, +1, extNegX, extPosY);
+	buildCornerZPositive(builder, ox, oy, oz, s, inner, outer, sExt, +1, +1, extPosX, extPosY);
+}
+
+
+function buildCornerZPositive(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	s: number, inner: number, outer: number, sExt: number,
+	signX: number, signY: number,
+	exteriorX: boolean, exteriorY: boolean
+): void {
+	const z = oz + s;
+	const zOuter = oz + outer;
+
+	// Point a: inner corner on face (always fixed)
+	const a: number[] = [ox + signX * inner, oy + signY * inner, z];
+
+	// Point d: diagonal outer corner - coordinates depend on neighbor status
+	const xD = exteriorX ? outer : sExt;
+	const yD = exteriorY ? outer : sExt;
+	// Face normal direction: use inner if both neighbors (concave), else outer
+	const zD = (!exteriorX && !exteriorY) ? (oz + inner) : zOuter;
+	const d: number[] = [ox + signX * xD, oy + signY * yD, zD];
+
+	// Point b: on X-direction edge
+	const b: number[] = exteriorX
+		? [ox + signX * outer, oy + signY * inner, zOuter]
+		: [ox + signX * sExt, oy + signY * inner, z];
+
+	// Point c: on Y-direction edge
+	const c: number[] = exteriorY
+		? [ox + signX * inner, oy + signY * outer, zOuter]
+		: [ox + signX * inner, oy + signY * sExt, z];
+
+	// Helper: compute triangle normal
+	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
+		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+		const nx = ab[1] * ac[2] - ab[2] * ac[1];
+		const ny = ab[2] * ac[0] - ab[0] * ac[2];
+		const nz = ab[0] * ac[1] - ab[1] * ac[0];
+		const len = Math.hypot(nx, ny, nz) || 1;
+		return [nx / len, ny / len, nz / len];
+	};
+
+	// Winding order depends on sign product
+	if (signX * signY > 0) {
+		const n1 = triNormal(a, b, d);
+		if (n1[2] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, b, d, n1);
+
+		const n2 = triNormal(a, d, c);
+		if (n2[2] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, d, c, n2);
+	}
+	else {
+		const n1 = triNormal(a, d, b);
+		if (n1[2] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, d, b, n1);
+
+		const n2 = triNormal(a, c, d);
+		if (n2[2] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, c, d, n2);
+	}
+}
+
+
+/**
+ * -Z face (back) nine-grid generation
+ */
+function buildFaceZNegative(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	s: number, inner: number, outer: number, sExt: number,
+	exterior: Record<FaceDir, boolean>
+): void {
+	const z = oz - s;
+	const normal: number[] = [0, 0, -1];
+
+	const extPosX = exterior["+x"];
+	const extNegX = exterior["-x"];
+	const extPosY = exterior["+y"];
+	const extNegY = exterior["-y"];
+
+	// Center
+	builder.addQuad(
+		[ox + inner, oy - inner, z], [ox - inner, oy - inner, z],
+		[ox - inner, oy + inner, z], [ox + inner, oy + inner, z],
+		normal
+	);
+
+	// +X edge
+	if (extPosX) {
+		builder.addQuad(
+			[ox + inner, oy - inner, z], [ox + inner, oy + inner, z],
+			[ox + outer, oy + inner, oz - outer], [ox + outer, oy - inner, oz - outer],
+			[BEVEL_MAJOR, 0, -BEVEL_MINOR]
+		);
+	}
+	else {
+		builder.addQuad(
+			[ox + inner, oy - inner, z], [ox + inner, oy + inner, z],
+			[ox + sExt, oy + inner, z], [ox + sExt, oy - inner, z],
+			normal
+		);
+	}
+
+	// -X edge
+	if (extNegX) {
+		builder.addQuad(
+			[ox - inner, oy + inner, z], [ox - inner, oy - inner, z],
+			[ox - outer, oy - inner, oz - outer], [ox - outer, oy + inner, oz - outer],
+			[-BEVEL_MAJOR, 0, -BEVEL_MINOR]
+		);
+	}
+	else {
+		builder.addQuad(
+			[ox - inner, oy + inner, z], [ox - inner, oy - inner, z],
+			[ox - sExt, oy - inner, z], [ox - sExt, oy + inner, z],
+			normal
+		);
+	}
+
+	// -Y edge
+	if (extNegY) {
+		builder.addQuad(
+			[ox - inner, oy - inner, z], [ox + inner, oy - inner, z],
+			[ox + inner, oy - outer, oz - outer], [ox - inner, oy - outer, oz - outer],
+			[0, -BEVEL_MAJOR, -BEVEL_MINOR]
+		);
+	}
+	else {
+		builder.addQuad(
+			[ox - inner, oy - inner, z], [ox + inner, oy - inner, z],
+			[ox + inner, oy - sExt, z], [ox - inner, oy - sExt, z],
+			normal
+		);
+	}
+
+	// +Y edge
+	if (extPosY) {
+		builder.addQuad(
+			[ox + inner, oy + inner, z], [ox - inner, oy + inner, z],
+			[ox - inner, oy + outer, oz - outer], [ox + inner, oy + outer, oz - outer],
+			[0, BEVEL_MAJOR, -BEVEL_MINOR]
+		);
+	}
+	else {
+		builder.addQuad(
+			[ox + inner, oy + inner, z], [ox - inner, oy + inner, z],
+			[ox - inner, oy + sExt, z], [ox + inner, oy + sExt, z],
+			normal
+		);
+	}
+
+	// Four corners
+	buildCornerZNegative(builder, ox, oy, oz, s, inner, outer, sExt, -1, -1, extNegX, extNegY);
+	buildCornerZNegative(builder, ox, oy, oz, s, inner, outer, sExt, +1, -1, extPosX, extNegY);
+	buildCornerZNegative(builder, ox, oy, oz, s, inner, outer, sExt, -1, +1, extNegX, extPosY);
+	buildCornerZNegative(builder, ox, oy, oz, s, inner, outer, sExt, +1, +1, extPosX, extPosY);
+}
+
+
+function buildCornerZNegative(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	s: number, inner: number, outer: number, sExt: number,
+	signX: number, signY: number,
+	exteriorX: boolean, exteriorY: boolean
+): void {
+	const z = oz - s;
+	const zOuter = oz - outer;
+
+	// Point a: inner corner on face (always fixed)
+	const a: number[] = [ox + signX * inner, oy + signY * inner, z];
+
+	// Point d: diagonal outer corner - coordinates depend on neighbor status
+	const xD = exteriorX ? outer : sExt;
+	const yD = exteriorY ? outer : sExt;
+	// Face normal direction: use inner if both neighbors (concave), else outer
+	const zD = (!exteriorX && !exteriorY) ? (oz - inner) : zOuter;
+	const d: number[] = [ox + signX * xD, oy + signY * yD, zD];
+
+	// Point b: on X-direction edge
+	const b: number[] = exteriorX
+		? [ox + signX * outer, oy + signY * inner, zOuter]
+		: [ox + signX * sExt, oy + signY * inner, z];
+
+	// Point c: on Y-direction edge
+	const c: number[] = exteriorY
+		? [ox + signX * inner, oy + signY * outer, zOuter]
+		: [ox + signX * inner, oy + signY * sExt, z];
+
+	// Helper: compute triangle normal
+	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
+		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+		const nx = ab[1] * ac[2] - ab[2] * ac[1];
+		const ny = ab[2] * ac[0] - ab[0] * ac[2];
+		const nz = ab[0] * ac[1] - ab[1] * ac[0];
+		const len = Math.hypot(nx, ny, nz) || 1;
+		return [nx / len, ny / len, nz / len];
+	};
+
+	// Winding order depends on sign product (opposite to +Z face)
+	if (signX * signY > 0) {
+		const n1 = triNormal(a, d, b);
+		if (n1[2] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, d, b, n1);
+
+		const n2 = triNormal(a, c, d);
+		if (n2[2] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, c, d, n2);
+	}
+	else {
+		const n1 = triNormal(a, b, d);
+		if (n1[2] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, b, d, n1);
+
+		const n2 = triNormal(a, d, c);
+		if (n2[2] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, d, c, n2);
+	}
+}
+
+
+/**
+ * +X face (right) nine-grid generation
+ * A-axis = Z, B-axis = Y
+ */
+function buildFaceXPositive(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	s: number, inner: number, outer: number, sExt: number,
+	exterior: Record<FaceDir, boolean>
+): void {
+	const x = ox + s;
+	const normal: number[] = [1, 0, 0];
+
+	const extPosZ = exterior["+z"];
+	const extNegZ = exterior["-z"];
+	const extPosY = exterior["+y"];
+	const extNegY = exterior["-y"];
+
+	// Center
+	builder.addQuad(
+		[x, oy - inner, oz + inner], [x, oy - inner, oz - inner],
+		[x, oy + inner, oz - inner], [x, oy + inner, oz + inner],
+		normal
+	);
+
+	// +Z edge
+	if (extPosZ) {
+		builder.addQuad(
+			[x, oy - inner, oz + inner], [x, oy + inner, oz + inner],
+			[ox + outer, oy + inner, oz + outer], [ox + outer, oy - inner, oz + outer],
+			[BEVEL_MINOR, 0, BEVEL_MAJOR]
+		);
+	}
+	else {
+		builder.addQuad(
+			[x, oy - inner, oz + inner], [x, oy + inner, oz + inner],
+			[x, oy + inner, oz + sExt], [x, oy - inner, oz + sExt],
+			normal
+		);
+	}
+
+	// -Z edge
+	if (extNegZ) {
+		builder.addQuad(
+			[x, oy + inner, oz - inner], [x, oy - inner, oz - inner],
+			[ox + outer, oy - inner, oz - outer], [ox + outer, oy + inner, oz - outer],
+			[BEVEL_MINOR, 0, -BEVEL_MAJOR]
+		);
+	}
+	else {
+		builder.addQuad(
+			[x, oy + inner, oz - inner], [x, oy - inner, oz - inner],
+			[x, oy - inner, oz - sExt], [x, oy + inner, oz - sExt],
+			normal
+		);
+	}
+
+	// -Y edge
+	if (extNegY) {
+		builder.addQuad(
+			[x, oy - inner, oz - inner], [x, oy - inner, oz + inner],
+			[ox + outer, oy - outer, oz + inner], [ox + outer, oy - outer, oz - inner],
+			[BEVEL_MINOR, -BEVEL_MAJOR, 0]
+		);
+	}
+	else {
+		builder.addQuad(
+			[x, oy - inner, oz - inner], [x, oy - inner, oz + inner],
+			[x, oy - sExt, oz + inner], [x, oy - sExt, oz - inner],
+			normal
+		);
+	}
+
+	// +Y edge
+	if (extPosY) {
+		builder.addQuad(
+			[x, oy + inner, oz + inner], [x, oy + inner, oz - inner],
+			[ox + outer, oy + outer, oz - inner], [ox + outer, oy + outer, oz + inner],
+			[BEVEL_MINOR, BEVEL_MAJOR, 0]
+		);
+	}
+	else {
+		builder.addQuad(
+			[x, oy + inner, oz + inner], [x, oy + inner, oz - inner],
+			[x, oy + sExt, oz - inner], [x, oy + sExt, oz + inner],
+			normal
+		);
+	}
+
+	// Four corners
+	buildCornerXPositive(builder, ox, oy, oz, s, inner, outer, sExt, -1, -1, extNegZ, extNegY);
+	buildCornerXPositive(builder, ox, oy, oz, s, inner, outer, sExt, +1, -1, extPosZ, extNegY);
+	buildCornerXPositive(builder, ox, oy, oz, s, inner, outer, sExt, -1, +1, extNegZ, extPosY);
+	buildCornerXPositive(builder, ox, oy, oz, s, inner, outer, sExt, +1, +1, extPosZ, extPosY);
+}
+
+
+function buildCornerXPositive(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	s: number, inner: number, outer: number, sExt: number,
+	signZ: number, signY: number,
+	exteriorZ: boolean, exteriorY: boolean
+): void {
+	const x = ox + s;
+	const xOuter = ox + outer;
+
+	// Point a: inner corner on face (always fixed)
+	const a: number[] = [x, oy + signY * inner, oz + signZ * inner];
+
+	// Point d: diagonal outer corner - coordinates depend on neighbor status
+	const yD = exteriorY ? outer : sExt;
+	const zD = exteriorZ ? outer : sExt;
+	// Face normal direction: use inner if both neighbors (concave), else outer
+	const xD = (!exteriorY && !exteriorZ) ? (ox + inner) : xOuter;
+	const d: number[] = [xD, oy + signY * yD, oz + signZ * zD];
+
+	// Point b: on Z-direction edge
+	const b: number[] = exteriorZ
+		? [xOuter, oy + signY * inner, oz + signZ * outer]
+		: [x, oy + signY * inner, oz + signZ * sExt];
+
+	// Point c: on Y-direction edge
+	const c: number[] = exteriorY
+		? [xOuter, oy + signY * outer, oz + signZ * inner]
+		: [x, oy + signY * sExt, oz + signZ * inner];
+
+	// Helper: compute triangle normal
+	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
+		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+		const nx = ab[1] * ac[2] - ab[2] * ac[1];
+		const ny = ab[2] * ac[0] - ab[0] * ac[2];
+		const nz = ab[0] * ac[1] - ab[1] * ac[0];
+		const len = Math.hypot(nx, ny, nz) || 1;
+		return [nx / len, ny / len, nz / len];
+	};
+
+	// Winding order depends on sign product
+	if (signZ * signY < 0) {
+		const n1 = triNormal(a, b, d);
+		if (n1[0] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, b, d, n1);
+
+		const n2 = triNormal(a, d, c);
+		if (n2[0] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, d, c, n2);
+	}
+	else {
+		const n1 = triNormal(a, d, b);
+		if (n1[0] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, d, b, n1);
+
+		const n2 = triNormal(a, c, d);
+		if (n2[0] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, c, d, n2);
+	}
+}
+
+
+/**
+ * -X face (left) nine-grid generation
+ */
+function buildFaceXNegative(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	s: number, inner: number, outer: number, sExt: number,
+	exterior: Record<FaceDir, boolean>
+): void {
+	const x = ox - s;
+	const normal: number[] = [-1, 0, 0];
+
+	const extPosZ = exterior["+z"];
+	const extNegZ = exterior["-z"];
+	const extPosY = exterior["+y"];
+	const extNegY = exterior["-y"];
+
+	// Center
+	builder.addQuad(
+		[x, oy - inner, oz - inner], [x, oy - inner, oz + inner],
+		[x, oy + inner, oz + inner], [x, oy + inner, oz - inner],
+		normal
+	);
+
+	// -Z edge
+	if (extNegZ) {
+		builder.addQuad(
+			[x, oy - inner, oz - inner], [x, oy + inner, oz - inner],
+			[ox - outer, oy + inner, oz - outer], [ox - outer, oy - inner, oz - outer],
+			[-BEVEL_MINOR, 0, -BEVEL_MAJOR]
+		);
+	}
+	else {
+		builder.addQuad(
+			[x, oy - inner, oz - inner], [x, oy + inner, oz - inner],
+			[x, oy + inner, oz - sExt], [x, oy - inner, oz - sExt],
+			normal
+		);
+	}
+
+	// +Z edge
+	if (extPosZ) {
+		builder.addQuad(
+			[x, oy + inner, oz + inner], [x, oy - inner, oz + inner],
+			[ox - outer, oy - inner, oz + outer], [ox - outer, oy + inner, oz + outer],
+			[-BEVEL_MINOR, 0, BEVEL_MAJOR]
+		);
+	}
+	else {
+		builder.addQuad(
+			[x, oy + inner, oz + inner], [x, oy - inner, oz + inner],
+			[x, oy - inner, oz + sExt], [x, oy + inner, oz + sExt],
+			normal
+		);
+	}
+
+	// -Y edge
+	if (extNegY) {
+		builder.addQuad(
+			[x, oy - inner, oz + inner], [x, oy - inner, oz - inner],
+			[ox - outer, oy - outer, oz - inner], [ox - outer, oy - outer, oz + inner],
+			[-BEVEL_MINOR, -BEVEL_MAJOR, 0]
+		);
+	}
+	else {
+		builder.addQuad(
+			[x, oy - inner, oz + inner], [x, oy - inner, oz - inner],
+			[x, oy - sExt, oz - inner], [x, oy - sExt, oz + inner],
+			normal
+		);
+	}
+
+	// +Y edge
+	if (extPosY) {
+		builder.addQuad(
+			[x, oy + inner, oz - inner], [x, oy + inner, oz + inner],
+			[ox - outer, oy + outer, oz + inner], [ox - outer, oy + outer, oz - inner],
+			[-BEVEL_MINOR, BEVEL_MAJOR, 0]
+		);
+	}
+	else {
+		builder.addQuad(
+			[x, oy + inner, oz - inner], [x, oy + inner, oz + inner],
+			[x, oy + sExt, oz + inner], [x, oy + sExt, oz - inner],
+			normal
+		);
+	}
+
+	// Four corners
+	buildCornerXNegative(builder, ox, oy, oz, s, inner, outer, sExt, -1, -1, extNegZ, extNegY);
+	buildCornerXNegative(builder, ox, oy, oz, s, inner, outer, sExt, +1, -1, extPosZ, extNegY);
+	buildCornerXNegative(builder, ox, oy, oz, s, inner, outer, sExt, -1, +1, extNegZ, extPosY);
+	buildCornerXNegative(builder, ox, oy, oz, s, inner, outer, sExt, +1, +1, extPosZ, extPosY);
+}
+
+
+function buildCornerXNegative(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	s: number, inner: number, outer: number, sExt: number,
+	signZ: number, signY: number,
+	exteriorZ: boolean, exteriorY: boolean
+): void {
+	const x = ox - s;
+	const xOuter = ox - outer;
+
+	// Point a: inner corner on face (always fixed)
+	const a: number[] = [x, oy + signY * inner, oz + signZ * inner];
+
+	// Point d: diagonal outer corner - coordinates depend on neighbor status
+	const yD = exteriorY ? outer : sExt;
+	const zD = exteriorZ ? outer : sExt;
+	// Face normal direction: use inner if both neighbors (concave), else outer
+	const xD = (!exteriorY && !exteriorZ) ? (ox - inner) : xOuter;
+	const d: number[] = [xD, oy + signY * yD, oz + signZ * zD];
+
+	// Point b: on Z-direction edge
+	const b: number[] = exteriorZ
+		? [xOuter, oy + signY * inner, oz + signZ * outer]
+		: [x, oy + signY * inner, oz + signZ * sExt];
+
+	// Point c: on Y-direction edge
+	const c: number[] = exteriorY
+		? [xOuter, oy + signY * outer, oz + signZ * inner]
+		: [x, oy + signY * sExt, oz + signZ * inner];
+
+	// Helper: compute triangle normal
+	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
+		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+		const nx = ab[1] * ac[2] - ab[2] * ac[1];
+		const ny = ab[2] * ac[0] - ab[0] * ac[2];
+		const nz = ab[0] * ac[1] - ab[1] * ac[0];
+		const len = Math.hypot(nx, ny, nz) || 1;
+		return [nx / len, ny / len, nz / len];
+	};
+
+	// Winding order depends on sign product (opposite to +X face)
+	if (signZ * signY < 0) {
+		const n1 = triNormal(a, d, b);
+		if (n1[0] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, d, b, n1);
+
+		const n2 = triNormal(a, c, d);
+		if (n2[0] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, c, d, n2);
+	}
+	else {
+		const n1 = triNormal(a, b, d);
+		if (n1[0] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, b, d, n1);
+
+		const n2 = triNormal(a, d, c);
+		if (n2[0] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, d, c, n2);
+	}
+}
+
+
 /**
  * Generate a cache key from block positions
  * Sorts positions to ensure same shape always gets same key
@@ -45,38 +1166,14 @@ function geometryCacheKey(blocks: Point3D[]): string {
 
 /**
  * Create single block geometry with specific faces exposed (based on faceMask).
- * This preserves the original mesh shape when blocks are locked into the board.
+ * Uses the nine-grid system for proper corner handling.
  * FaceMask bits: +x=1, -x=2, +y=4, -y=8, +z=16, -z=32
  */
-function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003): THREE.BufferGeometry {
-	const s = cubeSize / 2;        // half size (≈0.5015)
-	const inner = s * 0.82;        // inner flat area (≈0.411)
-	const outer = s * 0.91;        // bevel edge (≈0.456)
-	// Extend exactly to half the grid spacing (0.5) when meeting neighbor
-	const sExt = 0.5;
+export function createBlockGeometryFromMask(faceMask: number): THREE.BufferGeometry {
+	const builder = new GeometryBuilder();
 
-	const vertices: number[] = [];
-	const normals: number[] = [];
-	const indices: number[] = [];
-
-	// Helper to add a quad face
-	const addFace = (v0: number[], v1: number[], v2: number[], v3: number[], normal: number[]) => {
-		const baseIdx = vertices.length / 3;
-		vertices.push(...v0, ...v1, ...v2, ...v3);
-		normals.push(...normal, ...normal, ...normal, ...normal);
-		indices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
-	};
-
-	// Helper to add a triangle face (for corners)
-	const addTriangle = (v0: number[], v1: number[], v2: number[], normal: number[]) => {
-		const baseIdx = vertices.length / 3;
-		vertices.push(...v0, ...v1, ...v2);
-		normals.push(...normal, ...normal, ...normal);
-		indices.push(baseIdx, baseIdx + 1, baseIdx + 2);
-	};
-
-	// Check which faces are exposed
-	const exterior = {
+	// Determine which faces are exterior (exposed)
+	const exterior: Record<FaceDir, boolean> = {
 		"+x": (faceMask & FACE_MASK.POS_X) !== 0,
 		"-x": (faceMask & FACE_MASK.NEG_X) !== 0,
 		"+y": (faceMask & FACE_MASK.POS_Y) !== 0,
@@ -85,430 +1182,24 @@ function createBlockGeometryFromMask(faceMask: number, cubeSize: number = 1.003)
 		"-z": (faceMask & FACE_MASK.NEG_Z) !== 0,
 	};
 
-	// For inner flat area: extend to sExt when face is NOT exterior to meet neighbor
-	const xMin = exterior["-x"] ? inner : sExt;
-	const xMax = exterior["+x"] ? inner : sExt;
-	const yMin = exterior["-y"] ? inner : sExt;
-	const yMax = exterior["+y"] ? inner : sExt;
-	const zMin = exterior["-z"] ? inner : sExt;
-	const zMax = exterior["+z"] ? inner : sExt;
-
-	// Outer bevel coordinates - extend to sExt when perpendicular face has neighbor
-	const oxMin = exterior["-x"] ? outer : sExt;
-	const oxMax = exterior["+x"] ? outer : sExt;
-	const oyMin = exterior["-y"] ? outer : sExt;
-	const oyMax = exterior["+y"] ? outer : sExt;
-	const ozMin = exterior["-z"] ? outer : sExt;
-	const ozMax = exterior["+z"] ? outer : sExt;
-
-	// +Y face (top)
-	if (exterior["+y"]) {
-		addFace(
-			[-xMin, s, zMax], [xMax, s, zMax],
-			[xMax, s, -zMin], [-xMin, s, -zMin],
-			[0, 1, 0]
-		);
-		if (exterior["-x"]) {
-			addFace(
-				[-inner, s, zMax], [-inner, s, -zMin],
-				[-outer, outer, -ozMin], [-outer, outer, ozMax],
-				[-0.716, 0.698, 0]
-			);
-		} else {
-			// Flat extension strip when -X neighbor exists
-			addFace(
-				[-inner, s, zMax], [-inner, s, -zMin],
-				[-sExt, s, -zMin], [-sExt, s, zMax],
-				[0, 1, 0]
-			);
-		}
-		if (exterior["+x"]) {
-			addFace(
-				[inner, s, -zMin], [inner, s, zMax],
-				[outer, outer, ozMax], [outer, outer, -ozMin],
-				[0.716, 0.698, 0]
-			);
-		} else {
-			// Flat extension strip when +X neighbor exists
-			addFace(
-				[inner, s, -zMin], [inner, s, zMax],
-				[sExt, s, zMax], [sExt, s, -zMin],
-				[0, 1, 0]
-			);
-		}
-		if (exterior["+z"]) {
-			addFace(
-				[xMax, s, inner], [-xMin, s, inner],
-				[-oxMin, outer, outer], [oxMax, outer, outer],
-				[0, 0.698, 0.716]
-			);
-		} else {
-			// Flat extension strip when +Z neighbor exists
-			addFace(
-				[xMax, s, inner], [-xMin, s, inner],
-				[-xMin, s, sExt], [xMax, s, sExt],
-				[0, 1, 0]
-			);
-		}
-		if (exterior["-z"]) {
-			addFace(
-				[-xMin, s, -inner], [xMax, s, -inner],
-				[oxMax, outer, -outer], [-oxMin, outer, -outer],
-				[0, 0.698, -0.716]
-			);
-		} else {
-			// Flat extension strip when -Z neighbor exists
-			addFace(
-				[-xMin, s, -inner], [xMax, s, -inner],
-				[xMax, s, -sExt], [-xMin, s, -sExt],
-				[0, 1, 0]
-			);
+	// Build each exterior face using nine-grid system
+	for (const face of FACE_DIRS) {
+		if (exterior[face]) {
+			buildFaceGeometry(builder, 0, 0, 0, face, exterior);
 		}
 	}
 
-	// -Y face (bottom)
-	if (exterior["-y"]) {
-		addFace(
-			[-xMin, -s, -zMin], [xMax, -s, -zMin],
-			[xMax, -s, zMax], [-xMin, -s, zMax],
-			[0, -1, 0]
-		);
-		if (exterior["-x"]) {
-			addFace(
-				[-inner, -s, -zMin], [-inner, -s, zMax],
-				[-outer, -outer, ozMax], [-outer, -outer, -ozMin],
-				[-0.716, -0.698, 0]
-			);
-		} else {
-			addFace(
-				[-inner, -s, -zMin], [-inner, -s, zMax],
-				[-sExt, -s, zMax], [-sExt, -s, -zMin],
-				[0, -1, 0]
-			);
-		}
-		if (exterior["+x"]) {
-			addFace(
-				[inner, -s, zMax], [inner, -s, -zMin],
-				[outer, -outer, -ozMin], [outer, -outer, ozMax],
-				[0.716, -0.698, 0]
-			);
-		} else {
-			addFace(
-				[inner, -s, zMax], [inner, -s, -zMin],
-				[sExt, -s, -zMin], [sExt, -s, zMax],
-				[0, -1, 0]
-			);
-		}
-		if (exterior["+z"]) {
-			addFace(
-				[-xMin, -s, inner], [xMax, -s, inner],
-				[oxMax, -outer, outer], [-oxMin, -outer, outer],
-				[0, -0.698, 0.716]
-			);
-		} else {
-			addFace(
-				[-xMin, -s, inner], [xMax, -s, inner],
-				[xMax, -s, sExt], [-xMin, -s, sExt],
-				[0, -1, 0]
-			);
-		}
-		if (exterior["-z"]) {
-			addFace(
-				[xMax, -s, -inner], [-xMin, -s, -inner],
-				[-oxMin, -outer, -outer], [oxMax, -outer, -outer],
-				[0, -0.698, -0.716]
-			);
-		} else {
-			addFace(
-				[xMax, -s, -inner], [-xMin, -s, -inner],
-				[-xMin, -s, -sExt], [xMax, -s, -sExt],
-				[0, -1, 0]
-			);
-		}
-	}
-
-	// +Z face (front)
-	if (exterior["+z"]) {
-		addFace(
-			[-xMin, -yMin, s], [xMax, -yMin, s],
-			[xMax, yMax, s], [-xMin, yMax, s],
-			[0, 0, 1]
-		);
-		if (exterior["-x"]) {
-			addFace(
-				[-inner, -yMin, s], [-inner, yMax, s],
-				[-outer, oyMax, outer], [-outer, -oyMin, outer],
-				[-0.716, 0, 0.698]
-			);
-		} else {
-			addFace(
-				[-inner, -yMin, s], [-inner, yMax, s],
-				[-sExt, yMax, s], [-sExt, -yMin, s],
-				[0, 0, 1]
-			);
-		}
-		if (exterior["+x"]) {
-			addFace(
-				[inner, yMax, s], [inner, -yMin, s],
-				[outer, -oyMin, outer], [outer, oyMax, outer],
-				[0.716, 0, 0.698]
-			);
-		} else {
-			addFace(
-				[inner, yMax, s], [inner, -yMin, s],
-				[sExt, -yMin, s], [sExt, yMax, s],
-				[0, 0, 1]
-			);
-		}
-		if (exterior["+y"]) {
-			addFace(
-				[-xMin, inner, s], [xMax, inner, s],
-				[oxMax, outer, outer], [-oxMin, outer, outer],
-				[0, 0.716, 0.698]
-			);
-		} else {
-			addFace(
-				[-xMin, inner, s], [xMax, inner, s],
-				[xMax, sExt, s], [-xMin, sExt, s],
-				[0, 0, 1]
-			);
-		}
-		if (exterior["-y"]) {
-			addFace(
-				[xMax, -inner, s], [-xMin, -inner, s],
-				[-oxMin, -outer, outer], [oxMax, -outer, outer],
-				[0, -0.716, 0.698]
-			);
-		} else {
-			addFace(
-				[xMax, -inner, s], [-xMin, -inner, s],
-				[-xMin, -sExt, s], [xMax, -sExt, s],
-				[0, 0, 1]
-			);
-		}
-	}
-
-	// -Z face (back)
-	if (exterior["-z"]) {
-		addFace(
-			[xMax, -yMin, -s], [-xMin, -yMin, -s],
-			[-xMin, yMax, -s], [xMax, yMax, -s],
-			[0, 0, -1]
-		);
-		if (exterior["+x"]) {
-			addFace(
-				[inner, -yMin, -s], [inner, yMax, -s],
-				[outer, oyMax, -outer], [outer, -oyMin, -outer],
-				[0.716, 0, -0.698]
-			);
-		} else {
-			addFace(
-				[inner, -yMin, -s], [inner, yMax, -s],
-				[sExt, yMax, -s], [sExt, -yMin, -s],
-				[0, 0, -1]
-			);
-		}
-		if (exterior["-x"]) {
-			addFace(
-				[-inner, yMax, -s], [-inner, -yMin, -s],
-				[-outer, -oyMin, -outer], [-outer, oyMax, -outer],
-				[-0.716, 0, -0.698]
-			);
-		} else {
-			addFace(
-				[-inner, yMax, -s], [-inner, -yMin, -s],
-				[-sExt, -yMin, -s], [-sExt, yMax, -s],
-				[0, 0, -1]
-			);
-		}
-		if (exterior["+y"]) {
-			addFace(
-				[xMax, inner, -s], [-xMin, inner, -s],
-				[-oxMin, outer, -outer], [oxMax, outer, -outer],
-				[0, 0.716, -0.698]
-			);
-		} else {
-			addFace(
-				[xMax, inner, -s], [-xMin, inner, -s],
-				[-xMin, sExt, -s], [xMax, sExt, -s],
-				[0, 0, -1]
-			);
-		}
-		if (exterior["-y"]) {
-			addFace(
-				[-xMin, -inner, -s], [xMax, -inner, -s],
-				[oxMax, -outer, -outer], [-oxMin, -outer, -outer],
-				[0, -0.716, -0.698]
-			);
-		} else {
-			addFace(
-				[-xMin, -inner, -s], [xMax, -inner, -s],
-				[xMax, -sExt, -s], [-xMin, -sExt, -s],
-				[0, 0, -1]
-			);
-		}
-	}
-
-	// +X face (right)
-	if (exterior["+x"]) {
-		addFace(
-			[s, -yMin, zMax], [s, -yMin, -zMin],
-			[s, yMax, -zMin], [s, yMax, zMax],
-			[1, 0, 0]
-		);
-		if (exterior["+y"]) {
-			addFace(
-				[s, inner, zMax], [s, inner, -zMin],
-				[outer, outer, -ozMin], [outer, outer, ozMax],
-				[0.698, 0.716, 0]
-			);
-		} else {
-			// Flat extension strip when +Y neighbor exists
-			addFace(
-				[s, inner, zMax], [s, inner, -zMin],
-				[s, sExt, -zMin], [s, sExt, zMax],
-				[1, 0, 0]
-			);
-		}
-		if (exterior["-y"]) {
-			addFace(
-				[s, -inner, -zMin], [s, -inner, zMax],
-				[outer, -outer, ozMax], [outer, -outer, -ozMin],
-				[0.698, -0.716, 0]
-			);
-		} else {
-			// Flat extension strip when -Y neighbor exists
-			addFace(
-				[s, -inner, -zMin], [s, -inner, zMax],
-				[s, -sExt, zMax], [s, -sExt, -zMin],
-				[1, 0, 0]
-			);
-		}
-		if (exterior["+z"]) {
-			addFace(
-				[s, -yMin, inner], [s, yMax, inner],
-				[outer, oyMax, outer], [outer, -oyMin, outer],
-				[0.698, 0, 0.716]
-			);
-		} else {
-			// Flat extension strip when +Z neighbor exists
-			addFace(
-				[s, -yMin, inner], [s, yMax, inner],
-				[s, yMax, sExt], [s, -yMin, sExt],
-				[1, 0, 0]
-			);
-		}
-		if (exterior["-z"]) {
-			addFace(
-				[s, yMax, -inner], [s, -yMin, -inner],
-				[outer, -oyMin, -outer], [outer, oyMax, -outer],
-				[0.698, 0, -0.716]
-			);
-		} else {
-			// Flat extension strip when -Z neighbor exists
-			addFace(
-				[s, yMax, -inner], [s, -yMin, -inner],
-				[s, -yMin, -sExt], [s, yMax, -sExt],
-				[1, 0, 0]
-			);
-		}
-	}
-
-	// -X face (left)
-	if (exterior["-x"]) {
-		addFace(
-			[-s, -yMin, -zMin], [-s, -yMin, zMax],
-			[-s, yMax, zMax], [-s, yMax, -zMin],
-			[-1, 0, 0]
-		);
-		if (exterior["+y"]) {
-			addFace(
-				[-s, inner, -zMin], [-s, inner, zMax],
-				[-outer, outer, ozMax], [-outer, outer, -ozMin],
-				[-0.698, 0.716, 0]
-			);
-		} else {
-			// Flat extension strip when +Y neighbor exists
-			addFace(
-				[-s, inner, -zMin], [-s, inner, zMax],
-				[-s, sExt, zMax], [-s, sExt, -zMin],
-				[-1, 0, 0]
-			);
-		}
-		if (exterior["-y"]) {
-			addFace(
-				[-s, -inner, zMax], [-s, -inner, -zMin],
-				[-outer, -outer, -ozMin], [-outer, -outer, ozMax],
-				[-0.698, -0.716, 0]
-			);
-		} else {
-			// Flat extension strip when -Y neighbor exists
-			addFace(
-				[-s, -inner, zMax], [-s, -inner, -zMin],
-				[-s, -sExt, -zMin], [-s, -sExt, zMax],
-				[-1, 0, 0]
-			);
-		}
-		if (exterior["+z"]) {
-			addFace(
-				[-s, yMax, inner], [-s, -yMin, inner],
-				[-outer, -oyMin, outer], [-outer, oyMax, outer],
-				[-0.698, 0, 0.716]
-			);
-		} else {
-			// Flat extension strip when +Z neighbor exists
-			addFace(
-				[-s, yMax, inner], [-s, -yMin, inner],
-				[-s, -yMin, sExt], [-s, yMax, sExt],
-				[-1, 0, 0]
-			);
-		}
-		if (exterior["-z"]) {
-			addFace(
-				[-s, -yMin, -inner], [-s, yMax, -inner],
-				[-outer, oyMax, -outer], [-outer, -oyMin, -outer],
-				[-0.698, 0, -0.716]
-			);
-		} else {
-			// Flat extension strip when -Z neighbor exists
-			addFace(
-				[-s, -yMin, -inner], [-s, yMax, -inner],
-				[-s, yMax, -sExt], [-s, -yMin, -sExt],
-				[-1, 0, 0]
-			);
-		}
-	}
-
-	// Note: Original CubeTetris mesh does NOT have corner triangles.
-	// The bevel strips share vertices at corners, naturally filling the gaps.
-	// Adding corner triangles would create overlapping/duplicate geometry.
-
-	const geometry = new THREE.BufferGeometry();
-	geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
-	geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
-	geometry.setIndex(indices);
-
-	return geometry;
+	return builder.build();
 }
 
 
 /**
  * Create unified piece geometry for a set of blocks.
+ * Uses the nine-grid system for proper corner handling.
  * Internal faces between adjacent cubes are removed.
- * Beveled edges only appear on exterior surfaces.
- * Inner flat areas extend to full edge when adjacent to neighbor cubes.
- * Matches original CubeTetris mesh geometry (cube0.mesh.xml)
  */
-function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 1.003): THREE.BufferGeometry {
-	const s = cubeSize / 2;        // half size (≈0.5015)
-	const inner = s * 0.82;        // inner flat area (≈0.411)
-	const outer = s * 0.91;        // bevel edge (≈0.456)
-	// Extend exactly to half the grid spacing (0.5) when meeting neighbor
-	const sExt = 0.5;
-
-	const vertices: number[] = [];
-	const normals: number[] = [];
-	const indices: number[] = [];
+export function createUnifiedPieceGeometry(blocks: Point3D[]): THREE.BufferGeometry {
+	const builder = new GeometryBuilder();
 
 	// Build a set of block positions for quick neighbor lookup
 	const blockSet = new Set<string>();
@@ -523,21 +1214,9 @@ function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 1.003)
 		return blockSet.has(key);
 	};
 
-	// Helper to add a quad face
-	const addFace = (v0: number[], v1: number[], v2: number[], v3: number[], normal: number[]) => {
-		const baseIdx = vertices.length / 3;
-		vertices.push(...v0, ...v1, ...v2, ...v3);
-		normals.push(...normal, ...normal, ...normal, ...normal);
-		indices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
-	};
-
 	// Process each block
 	for (const block of blocks) {
-		const ox = block.x;  // offset x
-		const oy = block.y;  // offset y
-		const oz = block.z;  // offset z
-
-		// Determine which faces are exterior
+		// Determine which faces are exterior (no neighbor in that direction)
 		const exterior: Record<FaceDir, boolean> = {
 			"+x": !hasNeighbor(block, "+x"),
 			"-x": !hasNeighbor(block, "-x"),
@@ -547,432 +1226,24 @@ function createUnifiedPieceGeometry(blocks: Point3D[], cubeSize: number = 1.003)
 			"-z": !hasNeighbor(block, "-z"),
 		};
 
-		// Inner flat area ALWAYS uses 'inner' bounds
-		// Extension strips (in else branches) fill the gap from 'inner' to 'sExt'
-		const xMin = inner;
-		const xMax = inner;
-		const yMin = inner;
-		const yMax = inner;
-		const zMin = inner;
-		const zMax = inner;
-
-		// Extended bounds for extension strips - extend to sExt when perpendicular face has neighbor
-		// This ensures extension strips cover corners properly
-		const exMin = exterior["-x"] ? inner : sExt;
-		const exMax = exterior["+x"] ? inner : sExt;
-		const eyMin = exterior["-y"] ? inner : sExt;
-		const eyMax = exterior["+y"] ? inner : sExt;
-		const ezMin = exterior["-z"] ? inner : sExt;
-		const ezMax = exterior["+z"] ? inner : sExt;
-
-		// Outer bevel coordinates - extend to sExt when perpendicular face has neighbor
-		// This ensures bevel edges meet properly with adjacent blocks
-		const oxMin = exterior["-x"] ? outer : sExt;
-		const oxMax = exterior["+x"] ? outer : sExt;
-		const oyMin = exterior["-y"] ? outer : sExt;
-		const oyMax = exterior["+y"] ? outer : sExt;
-		const ozMin = exterior["-z"] ? outer : sExt;
-		const ozMax = exterior["+z"] ? outer : sExt;
-
-		// +Y face (top)
-		if (exterior["+y"]) {
-			// Inner flat area (CCW when viewed from above)
-			addFace(
-				[ox - xMin, oy + s, oz + zMax], [ox + xMax, oy + s, oz + zMax],
-				[ox + xMax, oy + s, oz - zMin], [ox - xMin, oy + s, oz - zMin],
-				[0, 1, 0]
-			);
-			// Beveled edges when exterior, flat extension strips when neighbor exists
-			if (exterior["-x"]) {
-				addFace(
-					[ox - inner, oy + s, oz + ezMax], [ox - inner, oy + s, oz - ezMin],
-					[ox - outer, oy + outer, oz - ozMin], [ox - outer, oy + outer, oz + ozMax],
-					[-0.716, 0.698, 0]
-				);
-			} else {
-				addFace(
-					[ox - inner, oy + s, oz + ezMax], [ox - inner, oy + s, oz - ezMin],
-					[ox - sExt, oy + s, oz - ezMin], [ox - sExt, oy + s, oz + ezMax],
-					[0, 1, 0]
-				);
-			}
-			if (exterior["+x"]) {
-				addFace(
-					[ox + inner, oy + s, oz - ezMin], [ox + inner, oy + s, oz + ezMax],
-					[ox + outer, oy + outer, oz + ozMax], [ox + outer, oy + outer, oz - ozMin],
-					[0.716, 0.698, 0]
-				);
-			} else {
-				addFace(
-					[ox + inner, oy + s, oz - ezMin], [ox + inner, oy + s, oz + ezMax],
-					[ox + sExt, oy + s, oz + ezMax], [ox + sExt, oy + s, oz - ezMin],
-					[0, 1, 0]
-				);
-			}
-			if (exterior["+z"]) {
-				addFace(
-					[ox + exMax, oy + s, oz + inner], [ox - exMin, oy + s, oz + inner],
-					[ox - oxMin, oy + outer, oz + outer], [ox + oxMax, oy + outer, oz + outer],
-					[0, 0.698, 0.716]
-				);
-			} else {
-				addFace(
-					[ox + exMax, oy + s, oz + inner], [ox - exMin, oy + s, oz + inner],
-					[ox - exMin, oy + s, oz + sExt], [ox + exMax, oy + s, oz + sExt],
-					[0, 1, 0]
-				);
-			}
-			if (exterior["-z"]) {
-				addFace(
-					[ox - exMin, oy + s, oz - inner], [ox + exMax, oy + s, oz - inner],
-					[ox + oxMax, oy + outer, oz - outer], [ox - oxMin, oy + outer, oz - outer],
-					[0, 0.698, -0.716]
-				);
-			} else {
-				addFace(
-					[ox - exMin, oy + s, oz - inner], [ox + exMax, oy + s, oz - inner],
-					[ox + exMax, oy + s, oz - sExt], [ox - exMin, oy + s, oz - sExt],
-					[0, 1, 0]
-				);
+		// Build each exterior face using nine-grid system
+		for (const face of FACE_DIRS) {
+			if (exterior[face]) {
+				buildFaceGeometry(builder, block.x, block.y, block.z, face, exterior);
 			}
 		}
-
-		// -Y face (bottom)
-		if (exterior["-y"]) {
-			// Inner flat area (CCW when viewed from below)
-			addFace(
-				[ox - xMin, oy - s, oz - zMin], [ox + xMax, oy - s, oz - zMin],
-				[ox + xMax, oy - s, oz + zMax], [ox - xMin, oy - s, oz + zMax],
-				[0, -1, 0]
-			);
-			// Beveled edges when exterior, flat extension strips when neighbor exists
-			if (exterior["-x"]) {
-				addFace(
-					[ox - inner, oy - s, oz - ezMin], [ox - inner, oy - s, oz + ezMax],
-					[ox - outer, oy - outer, oz + ozMax], [ox - outer, oy - outer, oz - ozMin],
-					[-0.716, -0.698, 0]
-				);
-			} else {
-				addFace(
-					[ox - inner, oy - s, oz - ezMin], [ox - inner, oy - s, oz + ezMax],
-					[ox - sExt, oy - s, oz + ezMax], [ox - sExt, oy - s, oz - ezMin],
-					[0, -1, 0]
-				);
-			}
-			if (exterior["+x"]) {
-				addFace(
-					[ox + inner, oy - s, oz + ezMax], [ox + inner, oy - s, oz - ezMin],
-					[ox + outer, oy - outer, oz - ozMin], [ox + outer, oy - outer, oz + ozMax],
-					[0.716, -0.698, 0]
-				);
-			} else {
-				addFace(
-					[ox + inner, oy - s, oz + ezMax], [ox + inner, oy - s, oz - ezMin],
-					[ox + sExt, oy - s, oz - ezMin], [ox + sExt, oy - s, oz + ezMax],
-					[0, -1, 0]
-				);
-			}
-			if (exterior["+z"]) {
-				addFace(
-					[ox - exMin, oy - s, oz + inner], [ox + exMax, oy - s, oz + inner],
-					[ox + oxMax, oy - outer, oz + outer], [ox - oxMin, oy - outer, oz + outer],
-					[0, -0.698, 0.716]
-				);
-			} else {
-				addFace(
-					[ox - exMin, oy - s, oz + inner], [ox + exMax, oy - s, oz + inner],
-					[ox + exMax, oy - s, oz + sExt], [ox - exMin, oy - s, oz + sExt],
-					[0, -1, 0]
-				);
-			}
-			if (exterior["-z"]) {
-				addFace(
-					[ox + exMax, oy - s, oz - inner], [ox - exMin, oy - s, oz - inner],
-					[ox - oxMin, oy - outer, oz - outer], [ox + oxMax, oy - outer, oz - outer],
-					[0, -0.698, -0.716]
-				);
-			} else {
-				addFace(
-					[ox + exMax, oy - s, oz - inner], [ox - exMin, oy - s, oz - inner],
-					[ox - exMin, oy - s, oz - sExt], [ox + exMax, oy - s, oz - sExt],
-					[0, -1, 0]
-				);
-			}
-		}
-
-		// +Z face (front)
-		if (exterior["+z"]) {
-			// Inner flat area
-			addFace(
-				[ox - xMin, oy - yMin, oz + s], [ox + xMax, oy - yMin, oz + s],
-				[ox + xMax, oy + yMax, oz + s], [ox - xMin, oy + yMax, oz + s],
-				[0, 0, 1]
-			);
-			// Beveled edges when exterior, flat extension strips when neighbor exists
-			if (exterior["-x"]) {
-				addFace(
-					[ox - inner, oy - eyMin, oz + s], [ox - inner, oy + eyMax, oz + s],
-					[ox - outer, oy + oyMax, oz + outer], [ox - outer, oy - oyMin, oz + outer],
-					[-0.716, 0, 0.698]
-				);
-			} else {
-				addFace(
-					[ox - inner, oy - eyMin, oz + s], [ox - inner, oy + eyMax, oz + s],
-					[ox - sExt, oy + eyMax, oz + s], [ox - sExt, oy - eyMin, oz + s],
-					[0, 0, 1]
-				);
-			}
-			if (exterior["+x"]) {
-				addFace(
-					[ox + inner, oy + eyMax, oz + s], [ox + inner, oy - eyMin, oz + s],
-					[ox + outer, oy - oyMin, oz + outer], [ox + outer, oy + oyMax, oz + outer],
-					[0.716, 0, 0.698]
-				);
-			} else {
-				addFace(
-					[ox + inner, oy + eyMax, oz + s], [ox + inner, oy - eyMin, oz + s],
-					[ox + sExt, oy - eyMin, oz + s], [ox + sExt, oy + eyMax, oz + s],
-					[0, 0, 1]
-				);
-			}
-			if (exterior["+y"]) {
-				addFace(
-					[ox - exMin, oy + inner, oz + s], [ox + exMax, oy + inner, oz + s],
-					[ox + oxMax, oy + outer, oz + outer], [ox - oxMin, oy + outer, oz + outer],
-					[0, 0.716, 0.698]
-				);
-			} else {
-				addFace(
-					[ox - exMin, oy + inner, oz + s], [ox + exMax, oy + inner, oz + s],
-					[ox + exMax, oy + sExt, oz + s], [ox - exMin, oy + sExt, oz + s],
-					[0, 0, 1]
-				);
-			}
-			if (exterior["-y"]) {
-				addFace(
-					[ox + exMax, oy - inner, oz + s], [ox - exMin, oy - inner, oz + s],
-					[ox - oxMin, oy - outer, oz + outer], [ox + oxMax, oy - outer, oz + outer],
-					[0, -0.716, 0.698]
-				);
-			} else {
-				addFace(
-					[ox + exMax, oy - inner, oz + s], [ox - exMin, oy - inner, oz + s],
-					[ox - exMin, oy - sExt, oz + s], [ox + exMax, oy - sExt, oz + s],
-					[0, 0, 1]
-				);
-			}
-		}
-
-		// -Z face (back)
-		if (exterior["-z"]) {
-			// Inner flat area
-			addFace(
-				[ox + xMax, oy - yMin, oz - s], [ox - xMin, oy - yMin, oz - s],
-				[ox - xMin, oy + yMax, oz - s], [ox + xMax, oy + yMax, oz - s],
-				[0, 0, -1]
-			);
-			// Beveled edges when exterior, flat extension strips when neighbor exists
-			if (exterior["+x"]) {
-				addFace(
-					[ox + inner, oy - eyMin, oz - s], [ox + inner, oy + eyMax, oz - s],
-					[ox + outer, oy + oyMax, oz - outer], [ox + outer, oy - oyMin, oz - outer],
-					[0.716, 0, -0.698]
-				);
-			} else {
-				addFace(
-					[ox + inner, oy - eyMin, oz - s], [ox + inner, oy + eyMax, oz - s],
-					[ox + sExt, oy + eyMax, oz - s], [ox + sExt, oy - eyMin, oz - s],
-					[0, 0, -1]
-				);
-			}
-			if (exterior["-x"]) {
-				addFace(
-					[ox - inner, oy + eyMax, oz - s], [ox - inner, oy - eyMin, oz - s],
-					[ox - outer, oy - oyMin, oz - outer], [ox - outer, oy + oyMax, oz - outer],
-					[-0.716, 0, -0.698]
-				);
-			} else {
-				addFace(
-					[ox - inner, oy + eyMax, oz - s], [ox - inner, oy - eyMin, oz - s],
-					[ox - sExt, oy - eyMin, oz - s], [ox - sExt, oy + eyMax, oz - s],
-					[0, 0, -1]
-				);
-			}
-			if (exterior["+y"]) {
-				addFace(
-					[ox + exMax, oy + inner, oz - s], [ox - exMin, oy + inner, oz - s],
-					[ox - oxMin, oy + outer, oz - outer], [ox + oxMax, oy + outer, oz - outer],
-					[0, 0.716, -0.698]
-				);
-			} else {
-				addFace(
-					[ox + exMax, oy + inner, oz - s], [ox - exMin, oy + inner, oz - s],
-					[ox - exMin, oy + sExt, oz - s], [ox + exMax, oy + sExt, oz - s],
-					[0, 0, -1]
-				);
-			}
-			if (exterior["-y"]) {
-				addFace(
-					[ox - exMin, oy - inner, oz - s], [ox + exMax, oy - inner, oz - s],
-					[ox + oxMax, oy - outer, oz - outer], [ox - oxMin, oy - outer, oz - outer],
-					[0, -0.716, -0.698]
-				);
-			} else {
-				addFace(
-					[ox - exMin, oy - inner, oz - s], [ox + exMax, oy - inner, oz - s],
-					[ox + exMax, oy - sExt, oz - s], [ox - exMin, oy - sExt, oz - s],
-					[0, 0, -1]
-				);
-			}
-		}
-
-		// +X face (right)
-		if (exterior["+x"]) {
-			// Inner flat area
-			addFace(
-				[ox + s, oy - yMin, oz + zMax], [ox + s, oy - yMin, oz - zMin],
-				[ox + s, oy + yMax, oz - zMin], [ox + s, oy + yMax, oz + zMax],
-				[1, 0, 0]
-			);
-			// Beveled edges when exterior, flat extension strips when neighbor exists
-			if (exterior["+y"]) {
-				addFace(
-					[ox + s, oy + inner, oz + ezMax], [ox + s, oy + inner, oz - ezMin],
-					[ox + outer, oy + outer, oz - ozMin], [ox + outer, oy + outer, oz + ozMax],
-					[0.698, 0.716, 0]
-				);
-			} else {
-				addFace(
-					[ox + s, oy + inner, oz + ezMax], [ox + s, oy + inner, oz - ezMin],
-					[ox + s, oy + sExt, oz - ezMin], [ox + s, oy + sExt, oz + ezMax],
-					[1, 0, 0]
-				);
-			}
-			if (exterior["-y"]) {
-				addFace(
-					[ox + s, oy - inner, oz - ezMin], [ox + s, oy - inner, oz + ezMax],
-					[ox + outer, oy - outer, oz + ozMax], [ox + outer, oy - outer, oz - ozMin],
-					[0.698, -0.716, 0]
-				);
-			} else {
-				addFace(
-					[ox + s, oy - inner, oz - ezMin], [ox + s, oy - inner, oz + ezMax],
-					[ox + s, oy - sExt, oz + ezMax], [ox + s, oy - sExt, oz - ezMin],
-					[1, 0, 0]
-				);
-			}
-			if (exterior["+z"]) {
-				addFace(
-					[ox + s, oy - eyMin, oz + inner], [ox + s, oy + eyMax, oz + inner],
-					[ox + outer, oy + oyMax, oz + outer], [ox + outer, oy - oyMin, oz + outer],
-					[0.698, 0, 0.716]
-				);
-			} else {
-				addFace(
-					[ox + s, oy - eyMin, oz + inner], [ox + s, oy + eyMax, oz + inner],
-					[ox + s, oy + eyMax, oz + sExt], [ox + s, oy - eyMin, oz + sExt],
-					[1, 0, 0]
-				);
-			}
-			if (exterior["-z"]) {
-				addFace(
-					[ox + s, oy + eyMax, oz - inner], [ox + s, oy - eyMin, oz - inner],
-					[ox + outer, oy - oyMin, oz - outer], [ox + outer, oy + oyMax, oz - outer],
-					[0.698, 0, -0.716]
-				);
-			} else {
-				addFace(
-					[ox + s, oy + eyMax, oz - inner], [ox + s, oy - eyMin, oz - inner],
-					[ox + s, oy - eyMin, oz - sExt], [ox + s, oy + eyMax, oz - sExt],
-					[1, 0, 0]
-				);
-			}
-		}
-
-		// -X face (left)
-		if (exterior["-x"]) {
-			// Inner flat area
-			addFace(
-				[ox - s, oy - yMin, oz - zMin], [ox - s, oy - yMin, oz + zMax],
-				[ox - s, oy + yMax, oz + zMax], [ox - s, oy + yMax, oz - zMin],
-				[-1, 0, 0]
-			);
-			// Beveled edges when exterior, flat extension strips when neighbor exists
-			if (exterior["+y"]) {
-				addFace(
-					[ox - s, oy + inner, oz - ezMin], [ox - s, oy + inner, oz + ezMax],
-					[ox - outer, oy + outer, oz + ozMax], [ox - outer, oy + outer, oz - ozMin],
-					[-0.698, 0.716, 0]
-				);
-			} else {
-				addFace(
-					[ox - s, oy + inner, oz - ezMin], [ox - s, oy + inner, oz + ezMax],
-					[ox - s, oy + sExt, oz + ezMax], [ox - s, oy + sExt, oz - ezMin],
-					[-1, 0, 0]
-				);
-			}
-			if (exterior["-y"]) {
-				addFace(
-					[ox - s, oy - inner, oz + ezMax], [ox - s, oy - inner, oz - ezMin],
-					[ox - outer, oy - outer, oz - ozMin], [ox - outer, oy - outer, oz + ozMax],
-					[-0.698, -0.716, 0]
-				);
-			} else {
-				addFace(
-					[ox - s, oy - inner, oz + ezMax], [ox - s, oy - inner, oz - ezMin],
-					[ox - s, oy - sExt, oz - ezMin], [ox - s, oy - sExt, oz + ezMax],
-					[-1, 0, 0]
-				);
-			}
-			if (exterior["+z"]) {
-				addFace(
-					[ox - s, oy + eyMax, oz + inner], [ox - s, oy - eyMin, oz + inner],
-					[ox - outer, oy - oyMin, oz + outer], [ox - outer, oy + oyMax, oz + outer],
-					[-0.698, 0, 0.716]
-				);
-			} else {
-				addFace(
-					[ox - s, oy + eyMax, oz + inner], [ox - s, oy - eyMin, oz + inner],
-					[ox - s, oy - eyMin, oz + sExt], [ox - s, oy + eyMax, oz + sExt],
-					[-1, 0, 0]
-				);
-			}
-			if (exterior["-z"]) {
-				addFace(
-					[ox - s, oy - eyMin, oz - inner], [ox - s, oy + eyMax, oz - inner],
-					[ox - outer, oy + oyMax, oz - outer], [ox - outer, oy - oyMin, oz - outer],
-					[-0.698, 0, -0.716]
-				);
-			} else {
-				addFace(
-					[ox - s, oy - eyMin, oz - inner], [ox - s, oy + eyMax, oz - inner],
-					[ox - s, oy + eyMax, oz - sExt], [ox - s, oy - eyMin, oz - sExt],
-					[-1, 0, 0]
-				);
-			}
-		}
-
-		// Note: Original CubeTetris mesh does NOT have corner triangles.
-		// The bevel strips share vertices at corners, naturally filling the gaps.
-		// Adding corner triangles would create overlapping/duplicate geometry.
-
 	}
 
-	const geometry = new THREE.BufferGeometry();
-	geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
-	geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
-	geometry.setIndex(indices);
-
-	return geometry;
+	return builder.build();
 }
 
 
 /**
  * Create beveled cube geometry for a single cube (used for board blocks)
  */
-function createBeveledCubeGeometry(size: number = 1.003): THREE.BufferGeometry {
+function createBeveledCubeGeometry(): THREE.BufferGeometry {
 	// Use unified piece geometry with a single block
-	return createUnifiedPieceGeometry([{x: 0, y: 0, z: 0}], size);
+	return createUnifiedPieceGeometry([{x: 0, y: 0, z: 0}]);
 }
 
 

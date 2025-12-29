@@ -119,6 +119,20 @@ class GeometryBuilder {
 
 
 /**
+ * Compute triangle normal via cross product (shared helper for all corner builders)
+ */
+function triNormal(p1: number[], p2: number[], p3: number[]): number[] {
+	const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+	const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+	const nx = ab[1] * ac[2] - ab[2] * ac[1];
+	const ny = ab[2] * ac[0] - ab[0] * ac[2];
+	const nz = ab[0] * ac[1] - ab[1] * ac[0];
+	const len = Math.hypot(nx, ny, nz) || 1;
+	return [nx / len, ny / len, nz / len];
+}
+
+
+/**
  * Generate nine-grid geometry for a single face
  * @param builder Geometry builder
  * @param ox, oy, oz Block offset
@@ -317,17 +331,6 @@ function buildCornerYPositive(
 		? [ox + signX * inner, yOuter, oz + signZ * outer]
 		: [ox + signX * inner, y, oz + signZ * sExt];
 
-	// Helper: compute triangle normal via cross product
-	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
-		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
-		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
-		const nx = ab[1] * ac[2] - ab[2] * ac[1];
-		const ny = ab[2] * ac[0] - ab[0] * ac[2];
-		const nz = ab[0] * ac[1] - ab[1] * ac[0];
-		const len = Math.hypot(nx, ny, nz) || 1;
-		return [nx / len, ny / len, nz / len];
-	};
-
 	// Winding order depends on sign product
 	// When signX * signZ < 0 (opposite signs): a-b-d, a-d-c
 	// When signX * signZ > 0 (same signs): a-d-b, a-c-d
@@ -478,17 +481,6 @@ function buildCornerYNegative(
 		? [ox + signX * inner, yOuter, oz + signZ * outer]
 		: [ox + signX * inner, y, oz + signZ * sExt];
 
-	// Helper: compute triangle normal
-	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
-		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
-		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
-		const nx = ab[1] * ac[2] - ab[2] * ac[1];
-		const ny = ab[2] * ac[0] - ab[0] * ac[2];
-		const nz = ab[0] * ac[1] - ab[1] * ac[0];
-		const len = Math.hypot(nx, ny, nz) || 1;
-		return [nx / len, ny / len, nz / len];
-	};
-
 	// Winding order depends on sign product (opposite to +Y face)
 	if (signX * signZ < 0) {
 		const n1 = triNormal(a, d, b);
@@ -638,17 +630,6 @@ function buildCornerZPositive(
 		? [ox + signX * inner, oy + signY * outer, zOuter]
 		: [ox + signX * inner, oy + signY * sExt, z];
 
-	// Helper: compute triangle normal
-	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
-		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
-		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
-		const nx = ab[1] * ac[2] - ab[2] * ac[1];
-		const ny = ab[2] * ac[0] - ab[0] * ac[2];
-		const nz = ab[0] * ac[1] - ab[1] * ac[0];
-		const len = Math.hypot(nx, ny, nz) || 1;
-		return [nx / len, ny / len, nz / len];
-	};
-
 	// Winding order depends on sign product
 	if (signX * signY > 0) {
 		const n1 = triNormal(a, b, d);
@@ -796,17 +777,6 @@ function buildCornerZNegative(
 	const c: number[] = exteriorY
 		? [ox + signX * inner, oy + signY * outer, zOuter]
 		: [ox + signX * inner, oy + signY * sExt, z];
-
-	// Helper: compute triangle normal
-	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
-		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
-		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
-		const nx = ab[1] * ac[2] - ab[2] * ac[1];
-		const ny = ab[2] * ac[0] - ab[0] * ac[2];
-		const nz = ab[0] * ac[1] - ab[1] * ac[0];
-		const len = Math.hypot(nx, ny, nz) || 1;
-		return [nx / len, ny / len, nz / len];
-	};
 
 	// Winding order depends on sign product (opposite to +Z face)
 	if (signX * signY > 0) {
@@ -957,17 +927,6 @@ function buildCornerXPositive(
 		? [xOuter, oy + signY * outer, oz + signZ * inner]
 		: [x, oy + signY * sExt, oz + signZ * inner];
 
-	// Helper: compute triangle normal
-	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
-		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
-		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
-		const nx = ab[1] * ac[2] - ab[2] * ac[1];
-		const ny = ab[2] * ac[0] - ab[0] * ac[2];
-		const nz = ab[0] * ac[1] - ab[1] * ac[0];
-		const len = Math.hypot(nx, ny, nz) || 1;
-		return [nx / len, ny / len, nz / len];
-	};
-
 	// Winding order depends on sign product
 	if (signZ * signY < 0) {
 		const n1 = triNormal(a, b, d);
@@ -1116,17 +1075,6 @@ function buildCornerXNegative(
 		? [xOuter, oy + signY * outer, oz + signZ * inner]
 		: [x, oy + signY * sExt, oz + signZ * inner];
 
-	// Helper: compute triangle normal
-	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
-		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
-		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
-		const nx = ab[1] * ac[2] - ab[2] * ac[1];
-		const ny = ab[2] * ac[0] - ab[0] * ac[2];
-		const nz = ab[0] * ac[1] - ab[1] * ac[0];
-		const len = Math.hypot(nx, ny, nz) || 1;
-		return [nx / len, ny / len, nz / len];
-	};
-
 	// Winding order depends on sign product (opposite to +X face)
 	if (signZ * signY < 0) {
 		const n1 = triNormal(a, d, b);
@@ -1196,17 +1144,6 @@ function buildInnerCornerYPositive(
 		zD = outer;
 	}
 	const d: number[] = [ox + signX * xD, oy + yD, oz + signZ * zD];
-
-	// Helper: compute triangle normal
-	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
-		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
-		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
-		const nx = ab[1] * ac[2] - ab[2] * ac[1];
-		const ny = ab[2] * ac[0] - ab[0] * ac[2];
-		const nz = ab[0] * ac[1] - ab[1] * ac[0];
-		const len = Math.hypot(nx, ny, nz) || 1;
-		return [nx / len, ny / len, nz / len];
-	};
 
 	// Winding order
 	if (signX * signZ < 0) {
@@ -1327,17 +1264,6 @@ function buildInnerCornerYNegative(
 		zD = outer;
 	}
 	const d: number[] = [ox + signX * xD, oy - yD, oz + signZ * zD];
-
-	// Helper: compute triangle normal
-	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
-		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
-		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
-		const nx = ab[1] * ac[2] - ab[2] * ac[1];
-		const ny = ab[2] * ac[0] - ab[0] * ac[2];
-		const nz = ab[0] * ac[1] - ab[1] * ac[0];
-		const len = Math.hypot(nx, ny, nz) || 1;
-		return [nx / len, ny / len, nz / len];
-	};
 
 	// Winding order (opposite to +Y)
 	if (signX * signZ < 0) {
@@ -1467,17 +1393,6 @@ function buildInnerCornerZPositive(
 	}
 	const d: number[] = [ox + signX * xD, oy + signY * yD, oz + zD];
 
-	// Helper: compute triangle normal
-	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
-		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
-		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
-		const nx = ab[1] * ac[2] - ab[2] * ac[1];
-		const ny = ab[2] * ac[0] - ab[0] * ac[2];
-		const nz = ab[0] * ac[1] - ab[1] * ac[0];
-		const len = Math.hypot(nx, ny, nz) || 1;
-		return [nx / len, ny / len, nz / len];
-	};
-
 	// Winding order depends on sign product (same as exterior +Z corners)
 	if (signX * signY > 0) {
 		const n1 = triNormal(a, b, d);
@@ -1596,17 +1511,6 @@ function buildInnerCornerZNegative(
 		zD = sExt;
 	}
 	const d: number[] = [ox + signX * xD, oy + signY * yD, oz - zD];
-
-	// Helper: compute triangle normal
-	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
-		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
-		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
-		const nx = ab[1] * ac[2] - ab[2] * ac[1];
-		const ny = ab[2] * ac[0] - ab[0] * ac[2];
-		const nz = ab[0] * ac[1] - ab[1] * ac[0];
-		const len = Math.hypot(nx, ny, nz) || 1;
-		return [nx / len, ny / len, nz / len];
-	};
 
 	// Winding order (opposite to +Z)
 	if (signX * signY > 0) {
@@ -1728,17 +1632,6 @@ function buildInnerCornerXPositive(
 	}
 	const d: number[] = [ox + xD, oy + signY * yD, oz + signZ * zD];
 
-	// Helper: compute triangle normal
-	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
-		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
-		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
-		const nx = ab[1] * ac[2] - ab[2] * ac[1];
-		const ny = ab[2] * ac[0] - ab[0] * ac[2];
-		const nz = ab[0] * ac[1] - ab[1] * ac[0];
-		const len = Math.hypot(nx, ny, nz) || 1;
-		return [nx / len, ny / len, nz / len];
-	};
-
 	// Winding order
 	if (signZ * signY < 0) {
 		const n1 = triNormal(a, b, d);
@@ -1857,17 +1750,6 @@ function buildInnerCornerXNegative(
 		zD = outer;
 	}
 	const d: number[] = [ox - xD, oy + signY * yD, oz + signZ * zD];
-
-	// Helper: compute triangle normal
-	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
-		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
-		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
-		const nx = ab[1] * ac[2] - ab[2] * ac[1];
-		const ny = ab[2] * ac[0] - ab[0] * ac[2];
-		const nz = ab[0] * ac[1] - ab[1] * ac[0];
-		const len = Math.hypot(nx, ny, nz) || 1;
-		return [nx / len, ny / len, nz / len];
-	};
 
 	// Winding order (opposite to +X)
 	if (signZ * signY < 0) {

@@ -1459,3 +1459,72 @@ if (exterior["-x"]) {
 **Result:** ✅ All pieces now render with seamless connections - no diamond-shaped gaps at corners, no overlapping geometry causing bright lines in ghost mesh
 
 </details>
+
+<details>
+<summary>Nine-Grid Geometry System Refactoring (2025-12-30)</summary>
+
+> Redesign block geometry using a nine-grid (九宫格) system for proper corner handling.
+
+**Issue:** Previous geometry code had many ad-hoc fixes for corner handling, leading to complex and hard-to-maintain code with potential edge cases.
+
+**Solution:** Implemented a systematic nine-grid approach where each face is divided into 9 parts (3×3 grid):
+
+```
+┌────────┬────────┬────────┐
+│ Corner │  Edge  │ Corner │
+│(-A,-B) │  -B    │(+A,-B) │
+├────────┼────────┼────────┤
+│  Edge  │ Center │  Edge  │
+│  -A    │(fixed) │  +A    │
+├────────┼────────┼────────┤
+│ Corner │  Edge  │ Corner │
+│(-A,+B) │  +B    │(+A,+B) │
+└────────┴────────┴────────┘
+```
+
+**Key Components:**
+
+1. **Center quad**: Always fixed, flat face at `inner` bounds
+2. **Edge strips**: Bevel (chamfer) when exterior, flat extension when neighbor exists
+3. **Corner triangles**: Dynamic based on adjacent edge states:
+   - Both edges exterior: Outer convex corner at `(outer, outer, outer)`
+   - One edge has neighbor: Side extension
+   - Both edges have neighbors: Inner concave corner (three-way junction)
+
+**Implementation:**
+
+1. **Created per-face geometry builders** (6 pairs of functions):
+   - `buildFaceYPositive/buildCornerYPositive` for +Y face
+   - `buildFaceYNegative/buildCornerYNegative` for -Y face
+   - `buildFaceZPositive/buildCornerZPositive` for +Z face
+   - `buildFaceZNegative/buildCornerZNegative` for -Z face
+   - `buildFaceXPositive/buildCornerXPositive` for +X face
+   - `buildFaceXNegative/buildCornerXNegative` for -X face
+
+2. **Created inner face functions** (6 pairs for closing geometry):
+   - `buildInnerFaceYPositive/buildInnerCornerYPositive`
+   - `buildInnerFaceYNegative/buildInnerCornerYNegative`
+   - `buildInnerFaceZPositive/buildInnerCornerZPositive`
+   - `buildInnerFaceZNegative/buildInnerCornerZNegative`
+   - `buildInnerFaceXPositive/buildInnerCornerXPositive`
+   - `buildInnerFaceXNegative/buildInnerCornerXNegative`
+
+3. **Dynamic d-point coordinates** for inner face corners:
+   - Default (both perpendicular exterior): `d = (outer, outer, ext)`
+   - One side has neighbor: `d = (inner, ext, ext)` or `(ext, inner, ext)`
+   - Both sides have neighbors: `d = (outer, outer, outer)` (true 3D corner)
+
+4. **Three-way junction corners** in `createUnifiedPieceGeometry`:
+   - When all 3 perpendicular directions have neighbors, draw corners from ALL 3 inner faces
+   - Point `a` moves from `(inner, inner, ext)` to `(outer, outer, ext)` for three-way junctions
+   - These corners close the geometry at the `(outer, outer, outer)` position where exterior bevels meet
+
+**Technical Details:**
+- Each corner uses 2 triangles with computed normals
+- Winding order determined by sign product of axis directions
+- Normal direction enforced to face outward based on face direction
+- `GeometryBuilder` class handles vertex/normal/index accumulation
+
+**Result:** ✅ Systematic and maintainable geometry generation with proper corner handling for all configurations
+
+</details>

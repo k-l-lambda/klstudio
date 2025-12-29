@@ -1166,8 +1166,9 @@ function buildInnerCornerYPositive(
 ): void {
 	const y = oy + sExt;
 
-	// Point a: inner corner (always fixed)
-	const a: number[] = [ox + signX * inner, y, oz + signZ * inner];
+	// Point a: inner corner, or outer when both neighbors exist (three-way junction)
+	const aRadius = (neighborX && neighborZ) ? outer : inner;
+	const a: number[] = [ox + signX * aRadius, y, oz + signZ * aRadius];
 
 	// Point b: on X-direction edge
 	const b: number[] = [ox + signX * sExt, y, oz + signZ * inner];
@@ -1296,8 +1297,9 @@ function buildInnerCornerYNegative(
 ): void {
 	const y = oy - sExt;
 
-	// Point a: inner corner (always fixed)
-	const a: number[] = [ox + signX * inner, y, oz + signZ * inner];
+	// Point a: inner corner, or outer when both neighbors exist (three-way junction)
+	const aRadius = (neighborX && neighborZ) ? outer : inner;
+	const a: number[] = [ox + signX * aRadius, y, oz + signZ * aRadius];
 
 	// Point b: on X-direction edge
 	const b: number[] = [ox + signX * sExt, y, oz + signZ * inner];
@@ -1430,8 +1432,9 @@ function buildInnerCornerZPositive(
 ): void {
 	const z = oz + sExt;
 
-	// Point a: inner corner (always fixed)
-	const a: number[] = [ox + signX * inner, oy + signY * inner, z];
+	// Point a: inner corner, or outer when both neighbors exist (three-way junction)
+	const aRadius = (neighborX && neighborY) ? outer : inner;
+	const a: number[] = [ox + signX * aRadius, oy + signY * aRadius, z];
 
 	// Point b: on X-direction edge
 	const b: number[] = [ox + signX * sExt, oy + signY * inner, z];
@@ -1563,8 +1566,9 @@ function buildInnerCornerZNegative(
 ): void {
 	const z = oz - sExt;
 
-	// Point a: inner corner (always fixed)
-	const a: number[] = [ox + signX * inner, oy + signY * inner, z];
+	// Point a: inner corner, or outer when both neighbors exist (three-way junction)
+	const aRadius = (neighborX && neighborY) ? outer : inner;
+	const a: number[] = [ox + signX * aRadius, oy + signY * aRadius, z];
 
 	// Point b: on X-direction edge
 	const b: number[] = [ox + signX * sExt, oy + signY * inner, z];
@@ -1693,8 +1697,9 @@ function buildInnerCornerXPositive(
 ): void {
 	const x = ox + sExt;
 
-	// Point a: inner corner (always fixed)
-	const a: number[] = [x, oy + signY * inner, oz + signZ * inner];
+	// Point a: inner corner, or outer when both neighbors exist (three-way junction)
+	const aRadius = (neighborZ && neighborY) ? outer : inner;
+	const a: number[] = [x, oy + signY * aRadius, oz + signZ * aRadius];
 
 	// Point b: on Z-direction edge
 	const b: number[] = [x, oy + signY * inner, oz + signZ * sExt];
@@ -1822,8 +1827,9 @@ function buildInnerCornerXNegative(
 ): void {
 	const x = ox - sExt;
 
-	// Point a: inner corner (always fixed)
-	const a: number[] = [x, oy + signY * inner, oz + signZ * inner];
+	// Point a: inner corner, or outer when both neighbors exist (three-way junction)
+	const aRadius = (neighborZ && neighborY) ? outer : inner;
+	const a: number[] = [x, oy + signY * aRadius, oz + signZ * aRadius];
 
 	// Point b: on Z-direction edge
 	const b: number[] = [x, oy + signY * inner, oz + signZ * sExt];
@@ -2042,9 +2048,13 @@ export function createBlockGeometryFromMask(faceMask: number): THREE.BufferGeome
  * Create unified piece geometry for a set of blocks.
  * Uses the nine-grid system for proper corner handling.
  * Internal faces between adjacent cubes are removed.
+ * Special case: corners where all 3 directions have neighbors are still drawn.
  */
 export function createUnifiedPieceGeometry(blocks: Point3D[]): THREE.BufferGeometry {
 	const builder = new GeometryBuilder();
+	const inner = INNER;
+	const outer = OUTER;
+	const sExt = S_EXT;
 
 	// Build a set of block positions for quick neighbor lookup
 	const blockSet = new Set<string>();
@@ -2072,10 +2082,117 @@ export function createUnifiedPieceGeometry(blocks: Point3D[]): THREE.BufferGeome
 		};
 
 		// Build each exterior face using nine-grid system
-		// (internal faces between adjacent blocks are hidden)
 		for (const face of FACE_DIRS) {
 			if (exterior[face]) {
 				buildFaceGeometry(builder, block.x, block.y, block.z, face, exterior);
+			}
+		}
+
+		// Special case: draw corners where all 3 directions have neighbors
+		// These are "three-way junction" corners that need to close the geometry
+		// Each corner needs triangles from ALL 3 inner faces (Y, X, Z) - they are different triangles
+		const neighbors: Record<FaceDir, boolean> = {
+			"+x": !exterior["+x"],
+			"-x": !exterior["-x"],
+			"+y": !exterior["+y"],
+			"-y": !exterior["-y"],
+			"+z": !exterior["+z"],
+			"-z": !exterior["-z"],
+		};
+
+		// For +Y inner face corners (when +Y has neighbor)
+		if (neighbors["+y"]) {
+			if (neighbors["+x"] && neighbors["+z"]) {
+				buildInnerCornerYPositive(builder, block.x, block.y, block.z, inner, outer, sExt, +1, +1, true, true);
+			}
+			if (neighbors["+x"] && neighbors["-z"]) {
+				buildInnerCornerYPositive(builder, block.x, block.y, block.z, inner, outer, sExt, +1, -1, true, true);
+			}
+			if (neighbors["-x"] && neighbors["+z"]) {
+				buildInnerCornerYPositive(builder, block.x, block.y, block.z, inner, outer, sExt, -1, +1, true, true);
+			}
+			if (neighbors["-x"] && neighbors["-z"]) {
+				buildInnerCornerYPositive(builder, block.x, block.y, block.z, inner, outer, sExt, -1, -1, true, true);
+			}
+		}
+
+		// For -Y inner face corners (when -Y has neighbor)
+		if (neighbors["-y"]) {
+			if (neighbors["+x"] && neighbors["+z"]) {
+				buildInnerCornerYNegative(builder, block.x, block.y, block.z, inner, outer, sExt, +1, +1, true, true);
+			}
+			if (neighbors["+x"] && neighbors["-z"]) {
+				buildInnerCornerYNegative(builder, block.x, block.y, block.z, inner, outer, sExt, +1, -1, true, true);
+			}
+			if (neighbors["-x"] && neighbors["+z"]) {
+				buildInnerCornerYNegative(builder, block.x, block.y, block.z, inner, outer, sExt, -1, +1, true, true);
+			}
+			if (neighbors["-x"] && neighbors["-z"]) {
+				buildInnerCornerYNegative(builder, block.x, block.y, block.z, inner, outer, sExt, -1, -1, true, true);
+			}
+		}
+
+		// For +Z inner face corners (when +Z has neighbor)
+		if (neighbors["+z"]) {
+			if (neighbors["+x"] && neighbors["+y"]) {
+				buildInnerCornerZPositive(builder, block.x, block.y, block.z, inner, outer, sExt, +1, +1, true, true);
+			}
+			if (neighbors["+x"] && neighbors["-y"]) {
+				buildInnerCornerZPositive(builder, block.x, block.y, block.z, inner, outer, sExt, +1, -1, true, true);
+			}
+			if (neighbors["-x"] && neighbors["+y"]) {
+				buildInnerCornerZPositive(builder, block.x, block.y, block.z, inner, outer, sExt, -1, +1, true, true);
+			}
+			if (neighbors["-x"] && neighbors["-y"]) {
+				buildInnerCornerZPositive(builder, block.x, block.y, block.z, inner, outer, sExt, -1, -1, true, true);
+			}
+		}
+
+		// For -Z inner face corners (when -Z has neighbor)
+		if (neighbors["-z"]) {
+			if (neighbors["+x"] && neighbors["+y"]) {
+				buildInnerCornerZNegative(builder, block.x, block.y, block.z, inner, outer, sExt, +1, +1, true, true);
+			}
+			if (neighbors["+x"] && neighbors["-y"]) {
+				buildInnerCornerZNegative(builder, block.x, block.y, block.z, inner, outer, sExt, +1, -1, true, true);
+			}
+			if (neighbors["-x"] && neighbors["+y"]) {
+				buildInnerCornerZNegative(builder, block.x, block.y, block.z, inner, outer, sExt, -1, +1, true, true);
+			}
+			if (neighbors["-x"] && neighbors["-y"]) {
+				buildInnerCornerZNegative(builder, block.x, block.y, block.z, inner, outer, sExt, -1, -1, true, true);
+			}
+		}
+
+		// For +X inner face corners (when +X has neighbor)
+		if (neighbors["+x"]) {
+			if (neighbors["+z"] && neighbors["+y"]) {
+				buildInnerCornerXPositive(builder, block.x, block.y, block.z, inner, outer, sExt, +1, +1, true, true);
+			}
+			if (neighbors["+z"] && neighbors["-y"]) {
+				buildInnerCornerXPositive(builder, block.x, block.y, block.z, inner, outer, sExt, +1, -1, true, true);
+			}
+			if (neighbors["-z"] && neighbors["+y"]) {
+				buildInnerCornerXPositive(builder, block.x, block.y, block.z, inner, outer, sExt, -1, +1, true, true);
+			}
+			if (neighbors["-z"] && neighbors["-y"]) {
+				buildInnerCornerXPositive(builder, block.x, block.y, block.z, inner, outer, sExt, -1, -1, true, true);
+			}
+		}
+
+		// For -X inner face corners (when -X has neighbor)
+		if (neighbors["-x"]) {
+			if (neighbors["+z"] && neighbors["+y"]) {
+				buildInnerCornerXNegative(builder, block.x, block.y, block.z, inner, outer, sExt, +1, +1, true, true);
+			}
+			if (neighbors["+z"] && neighbors["-y"]) {
+				buildInnerCornerXNegative(builder, block.x, block.y, block.z, inner, outer, sExt, +1, -1, true, true);
+			}
+			if (neighbors["-z"] && neighbors["+y"]) {
+				buildInnerCornerXNegative(builder, block.x, block.y, block.z, inner, outer, sExt, -1, +1, true, true);
+			}
+			if (neighbors["-z"] && neighbors["-y"]) {
+				buildInnerCornerXNegative(builder, block.x, block.y, block.z, inner, outer, sExt, -1, -1, true, true);
 			}
 		}
 	}

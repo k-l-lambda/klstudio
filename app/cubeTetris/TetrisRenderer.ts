@@ -1149,6 +1149,836 @@ function buildCornerXNegative(
 }
 
 
+// ============================================================
+// Inner Face Functions (for closing geometry on neighbor sides)
+// ============================================================
+
+/**
+ * +Y inner face corner with dynamic d-point
+ * For +Y face: A-axis = X, B-axis = Z
+ */
+function buildInnerCornerYPositive(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	inner: number, outer: number, sExt: number,
+	signX: number, signZ: number,
+	neighborX: boolean, neighborZ: boolean
+): void {
+	const y = oy + sExt;
+
+	// Point a: inner corner (always fixed)
+	const a: number[] = [ox + signX * inner, y, oz + signZ * inner];
+
+	// Point b: on X-direction edge
+	const b: number[] = [ox + signX * sExt, y, oz + signZ * inner];
+
+	// Point c: on Z-direction edge
+	const c: number[] = [ox + signX * inner, y, oz + signZ * sExt];
+
+	// Point d: diagonal - coordinates depend on neighbor status
+	let xD: number, yD: number, zD: number;
+	if (neighborX && neighborZ) {
+		xD = outer;
+		yD = outer;
+		zD = outer;
+	} else if (neighborX) {
+		xD = sExt;
+		yD = sExt;
+		zD = inner;
+	} else if (neighborZ) {
+		xD = inner;
+		yD = sExt;
+		zD = sExt;
+	} else {
+		xD = outer;
+		yD = sExt;
+		zD = outer;
+	}
+	const d: number[] = [ox + signX * xD, oy + yD, oz + signZ * zD];
+
+	// Helper: compute triangle normal
+	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
+		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+		const nx = ab[1] * ac[2] - ab[2] * ac[1];
+		const ny = ab[2] * ac[0] - ab[0] * ac[2];
+		const nz = ab[0] * ac[1] - ab[1] * ac[0];
+		const len = Math.hypot(nx, ny, nz) || 1;
+		return [nx / len, ny / len, nz / len];
+	};
+
+	// Winding order
+	if (signX * signZ < 0) {
+		const n1 = triNormal(a, b, d);
+		if (n1[1] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, b, d, n1);
+
+		const n2 = triNormal(a, d, c);
+		if (n2[1] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, d, c, n2);
+	} else {
+		const n1 = triNormal(a, d, b);
+		if (n1[1] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, d, b, n1);
+
+		const n2 = triNormal(a, c, d);
+		if (n2[1] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, c, d, n2);
+	}
+}
+
+
+/**
+ * +Y inner face (when +Y has neighbor)
+ * Flat face at y = oy + sExt, extends based on perpendicular neighbors
+ */
+function buildInnerFaceYPositive(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	inner: number, outer: number, sExt: number,
+	neighborXPos: boolean, neighborXNeg: boolean,
+	neighborZPos: boolean, neighborZNeg: boolean
+): void {
+	const y = oy + sExt;
+	const normal: number[] = [0, 1, 0];
+
+	// Center quad - always present
+	builder.addQuad(
+		[ox - inner, y, oz + inner], [ox + inner, y, oz + inner],
+		[ox + inner, y, oz - inner], [ox - inner, y, oz - inner],
+		normal
+	);
+
+	// +X edge (always present for nine-grid)
+	builder.addQuad(
+		[ox + inner, y, oz + inner], [ox + sExt, y, oz + inner],
+		[ox + sExt, y, oz - inner], [ox + inner, y, oz - inner],
+		normal
+	);
+
+	// -X edge (always present)
+	builder.addQuad(
+		[ox - sExt, y, oz + inner], [ox - inner, y, oz + inner],
+		[ox - inner, y, oz - inner], [ox - sExt, y, oz - inner],
+		normal
+	);
+
+	// +Z edge (always present)
+	builder.addQuad(
+		[ox - inner, y, oz + sExt], [ox + inner, y, oz + sExt],
+		[ox + inner, y, oz + inner], [ox - inner, y, oz + inner],
+		normal
+	);
+
+	// -Z edge (always present)
+	builder.addQuad(
+		[ox - inner, y, oz - inner], [ox + inner, y, oz - inner],
+		[ox + inner, y, oz - sExt], [ox - inner, y, oz - sExt],
+		normal
+	);
+
+	// Four corners with dynamic d-point
+	buildInnerCornerYPositive(builder, ox, oy, oz, inner, outer, sExt, +1, +1, neighborXPos, neighborZPos);
+	buildInnerCornerYPositive(builder, ox, oy, oz, inner, outer, sExt, +1, -1, neighborXPos, neighborZNeg);
+	buildInnerCornerYPositive(builder, ox, oy, oz, inner, outer, sExt, -1, +1, neighborXNeg, neighborZPos);
+	buildInnerCornerYPositive(builder, ox, oy, oz, inner, outer, sExt, -1, -1, neighborXNeg, neighborZNeg);
+}
+
+/**
+ * -Y inner face corner with dynamic d-point
+ */
+function buildInnerCornerYNegative(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	inner: number, outer: number, sExt: number,
+	signX: number, signZ: number,
+	neighborX: boolean, neighborZ: boolean
+): void {
+	const y = oy - sExt;
+
+	// Point a: inner corner (always fixed)
+	const a: number[] = [ox + signX * inner, y, oz + signZ * inner];
+
+	// Point b: on X-direction edge
+	const b: number[] = [ox + signX * sExt, y, oz + signZ * inner];
+
+	// Point c: on Z-direction edge
+	const c: number[] = [ox + signX * inner, y, oz + signZ * sExt];
+
+	// Point d: diagonal - coordinates depend on neighbor status
+	let xD: number, yD: number, zD: number;
+	if (neighborX && neighborZ) {
+		xD = outer;
+		yD = outer;
+		zD = outer;
+	} else if (neighborX) {
+		xD = sExt;
+		yD = sExt;
+		zD = inner;
+	} else if (neighborZ) {
+		xD = inner;
+		yD = sExt;
+		zD = sExt;
+	} else {
+		xD = outer;
+		yD = sExt;
+		zD = outer;
+	}
+	const d: number[] = [ox + signX * xD, oy - yD, oz + signZ * zD];
+
+	// Helper: compute triangle normal
+	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
+		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+		const nx = ab[1] * ac[2] - ab[2] * ac[1];
+		const ny = ab[2] * ac[0] - ab[0] * ac[2];
+		const nz = ab[0] * ac[1] - ab[1] * ac[0];
+		const len = Math.hypot(nx, ny, nz) || 1;
+		return [nx / len, ny / len, nz / len];
+	};
+
+	// Winding order (opposite to +Y)
+	if (signX * signZ < 0) {
+		const n1 = triNormal(a, d, b);
+		if (n1[1] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, d, b, n1);
+
+		const n2 = triNormal(a, c, d);
+		if (n2[1] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, c, d, n2);
+	} else {
+		const n1 = triNormal(a, b, d);
+		if (n1[1] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, b, d, n1);
+
+		const n2 = triNormal(a, d, c);
+		if (n2[1] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, d, c, n2);
+	}
+}
+
+
+/**
+ * -Y inner face (when -Y has neighbor)
+ */
+function buildInnerFaceYNegative(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	inner: number, outer: number, sExt: number,
+	neighborXPos: boolean, neighborXNeg: boolean,
+	neighborZPos: boolean, neighborZNeg: boolean
+): void {
+	const y = oy - sExt;
+	const normal: number[] = [0, -1, 0];
+
+	// Center quad
+	builder.addQuad(
+		[ox - inner, y, oz - inner], [ox + inner, y, oz - inner],
+		[ox + inner, y, oz + inner], [ox - inner, y, oz + inner],
+		normal
+	);
+
+	// +X edge
+	builder.addQuad(
+		[ox + inner, y, oz - inner], [ox + sExt, y, oz - inner],
+		[ox + sExt, y, oz + inner], [ox + inner, y, oz + inner],
+		normal
+	);
+
+	// -X edge
+	builder.addQuad(
+		[ox - sExt, y, oz - inner], [ox - inner, y, oz - inner],
+		[ox - inner, y, oz + inner], [ox - sExt, y, oz + inner],
+		normal
+	);
+
+	// +Z edge
+	builder.addQuad(
+		[ox - inner, y, oz + inner], [ox + inner, y, oz + inner],
+		[ox + inner, y, oz + sExt], [ox - inner, y, oz + sExt],
+		normal
+	);
+
+	// -Z edge
+	builder.addQuad(
+		[ox - inner, y, oz - sExt], [ox + inner, y, oz - sExt],
+		[ox + inner, y, oz - inner], [ox - inner, y, oz - inner],
+		normal
+	);
+
+	// Four corners with dynamic d-point
+	buildInnerCornerYNegative(builder, ox, oy, oz, inner, outer, sExt, +1, +1, neighborXPos, neighborZPos);
+	buildInnerCornerYNegative(builder, ox, oy, oz, inner, outer, sExt, +1, -1, neighborXPos, neighborZNeg);
+	buildInnerCornerYNegative(builder, ox, oy, oz, inner, outer, sExt, -1, +1, neighborXNeg, neighborZPos);
+	buildInnerCornerYNegative(builder, ox, oy, oz, inner, outer, sExt, -1, -1, neighborXNeg, neighborZNeg);
+}
+
+/**
+ * +Z inner face corner with dynamic d-point
+ * d-point coordinates depend on neighbor status:
+ * - Both exterior: (outer, outer, ext)
+ * - X has neighbor: (ext, inner, ext)
+ * - Y has neighbor: (inner, ext, ext)
+ * - Both have neighbors: (outer, outer, outer)
+ */
+function buildInnerCornerZPositive(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	inner: number, outer: number, sExt: number,
+	signX: number, signY: number,
+	neighborX: boolean, neighborY: boolean
+): void {
+	const z = oz + sExt;
+
+	// Point a: inner corner (always fixed)
+	const a: number[] = [ox + signX * inner, oy + signY * inner, z];
+
+	// Point b: on X-direction edge
+	const b: number[] = [ox + signX * sExt, oy + signY * inner, z];
+
+	// Point c: on Y-direction edge
+	const c: number[] = [ox + signX * inner, oy + signY * sExt, z];
+
+	// Point d: diagonal - coordinates depend on neighbor status
+	let xD: number, yD: number, zD: number;
+	if (neighborX && neighborY) {
+		// Both have neighbors: d goes to true corner
+		xD = outer;
+		yD = outer;
+		zD = outer;
+	} else if (neighborX) {
+		// X has neighbor: extend toward X, shrink Y
+		xD = sExt;
+		yD = inner;
+		zD = sExt;
+	} else if (neighborY) {
+		// Y has neighbor: extend toward Y, shrink X
+		xD = inner;
+		yD = sExt;
+		zD = sExt;
+	} else {
+		// Both exterior: bevel corner
+		xD = outer;
+		yD = outer;
+		zD = sExt;
+	}
+	const d: number[] = [ox + signX * xD, oy + signY * yD, oz + zD];
+
+	// Helper: compute triangle normal
+	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
+		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+		const nx = ab[1] * ac[2] - ab[2] * ac[1];
+		const ny = ab[2] * ac[0] - ab[0] * ac[2];
+		const nz = ab[0] * ac[1] - ab[1] * ac[0];
+		const len = Math.hypot(nx, ny, nz) || 1;
+		return [nx / len, ny / len, nz / len];
+	};
+
+	// Winding order depends on sign product (same as exterior +Z corners)
+	if (signX * signY > 0) {
+		const n1 = triNormal(a, b, d);
+		if (n1[2] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, b, d, n1);
+
+		const n2 = triNormal(a, d, c);
+		if (n2[2] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, d, c, n2);
+	} else {
+		const n1 = triNormal(a, d, b);
+		if (n1[2] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, d, b, n1);
+
+		const n2 = triNormal(a, c, d);
+		if (n2[2] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, c, d, n2);
+	}
+}
+
+
+/**
+ * +Z inner face (when +Z has neighbor)
+ */
+function buildInnerFaceZPositive(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	inner: number, outer: number, sExt: number,
+	neighborXPos: boolean, neighborXNeg: boolean,
+	neighborYPos: boolean, neighborYNeg: boolean
+): void {
+	const z = oz + sExt;
+	const normal: number[] = [0, 0, 1];
+
+	// Center quad
+	builder.addQuad(
+		[ox - inner, oy - inner, z], [ox + inner, oy - inner, z],
+		[ox + inner, oy + inner, z], [ox - inner, oy + inner, z],
+		normal
+	);
+
+	// +X edge
+	builder.addQuad(
+		[ox + inner, oy - inner, z], [ox + sExt, oy - inner, z],
+		[ox + sExt, oy + inner, z], [ox + inner, oy + inner, z],
+		normal
+	);
+
+	// -X edge
+	builder.addQuad(
+		[ox - sExt, oy - inner, z], [ox - inner, oy - inner, z],
+		[ox - inner, oy + inner, z], [ox - sExt, oy + inner, z],
+		normal
+	);
+
+	// +Y edge
+	builder.addQuad(
+		[ox - inner, oy + inner, z], [ox + inner, oy + inner, z],
+		[ox + inner, oy + sExt, z], [ox - inner, oy + sExt, z],
+		normal
+	);
+
+	// -Y edge
+	builder.addQuad(
+		[ox - inner, oy - sExt, z], [ox + inner, oy - sExt, z],
+		[ox + inner, oy - inner, z], [ox - inner, oy - inner, z],
+		normal
+	);
+
+	// Four corners with dynamic d-point
+	buildInnerCornerZPositive(builder, ox, oy, oz, inner, outer, sExt, +1, +1, neighborXPos, neighborYPos);
+	buildInnerCornerZPositive(builder, ox, oy, oz, inner, outer, sExt, +1, -1, neighborXPos, neighborYNeg);
+	buildInnerCornerZPositive(builder, ox, oy, oz, inner, outer, sExt, -1, +1, neighborXNeg, neighborYPos);
+	buildInnerCornerZPositive(builder, ox, oy, oz, inner, outer, sExt, -1, -1, neighborXNeg, neighborYNeg);
+}
+
+/**
+ * -Z inner face corner with dynamic d-point
+ */
+function buildInnerCornerZNegative(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	inner: number, outer: number, sExt: number,
+	signX: number, signY: number,
+	neighborX: boolean, neighborY: boolean
+): void {
+	const z = oz - sExt;
+
+	// Point a: inner corner (always fixed)
+	const a: number[] = [ox + signX * inner, oy + signY * inner, z];
+
+	// Point b: on X-direction edge
+	const b: number[] = [ox + signX * sExt, oy + signY * inner, z];
+
+	// Point c: on Y-direction edge
+	const c: number[] = [ox + signX * inner, oy + signY * sExt, z];
+
+	// Point d: diagonal - coordinates depend on neighbor status
+	let xD: number, yD: number, zD: number;
+	if (neighborX && neighborY) {
+		xD = outer;
+		yD = outer;
+		zD = outer;
+	} else if (neighborX) {
+		xD = sExt;
+		yD = inner;
+		zD = sExt;
+	} else if (neighborY) {
+		xD = inner;
+		yD = sExt;
+		zD = sExt;
+	} else {
+		xD = outer;
+		yD = outer;
+		zD = sExt;
+	}
+	const d: number[] = [ox + signX * xD, oy + signY * yD, oz - zD];
+
+	// Helper: compute triangle normal
+	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
+		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+		const nx = ab[1] * ac[2] - ab[2] * ac[1];
+		const ny = ab[2] * ac[0] - ab[0] * ac[2];
+		const nz = ab[0] * ac[1] - ab[1] * ac[0];
+		const len = Math.hypot(nx, ny, nz) || 1;
+		return [nx / len, ny / len, nz / len];
+	};
+
+	// Winding order (opposite to +Z)
+	if (signX * signY > 0) {
+		const n1 = triNormal(a, d, b);
+		if (n1[2] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, d, b, n1);
+
+		const n2 = triNormal(a, c, d);
+		if (n2[2] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, c, d, n2);
+	} else {
+		const n1 = triNormal(a, b, d);
+		if (n1[2] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, b, d, n1);
+
+		const n2 = triNormal(a, d, c);
+		if (n2[2] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, d, c, n2);
+	}
+}
+
+
+/**
+ * -Z inner face (when -Z has neighbor)
+ */
+function buildInnerFaceZNegative(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	inner: number, outer: number, sExt: number,
+	neighborXPos: boolean, neighborXNeg: boolean,
+	neighborYPos: boolean, neighborYNeg: boolean
+): void {
+	const z = oz - sExt;
+	const normal: number[] = [0, 0, -1];
+
+	// Center quad
+	builder.addQuad(
+		[ox + inner, oy - inner, z], [ox - inner, oy - inner, z],
+		[ox - inner, oy + inner, z], [ox + inner, oy + inner, z],
+		normal
+	);
+
+	// +X edge
+	builder.addQuad(
+		[ox + sExt, oy - inner, z], [ox + inner, oy - inner, z],
+		[ox + inner, oy + inner, z], [ox + sExt, oy + inner, z],
+		normal
+	);
+
+	// -X edge
+	builder.addQuad(
+		[ox - inner, oy - inner, z], [ox - sExt, oy - inner, z],
+		[ox - sExt, oy + inner, z], [ox - inner, oy + inner, z],
+		normal
+	);
+
+	// +Y edge
+	builder.addQuad(
+		[ox + inner, oy + inner, z], [ox - inner, oy + inner, z],
+		[ox - inner, oy + sExt, z], [ox + inner, oy + sExt, z],
+		normal
+	);
+
+	// -Y edge
+	builder.addQuad(
+		[ox + inner, oy - sExt, z], [ox - inner, oy - sExt, z],
+		[ox - inner, oy - inner, z], [ox + inner, oy - inner, z],
+		normal
+	);
+
+	// Four corners with dynamic d-point
+	buildInnerCornerZNegative(builder, ox, oy, oz, inner, outer, sExt, +1, +1, neighborXPos, neighborYPos);
+	buildInnerCornerZNegative(builder, ox, oy, oz, inner, outer, sExt, +1, -1, neighborXPos, neighborYNeg);
+	buildInnerCornerZNegative(builder, ox, oy, oz, inner, outer, sExt, -1, +1, neighborXNeg, neighborYPos);
+	buildInnerCornerZNegative(builder, ox, oy, oz, inner, outer, sExt, -1, -1, neighborXNeg, neighborYNeg);
+}
+
+/**
+ * +X inner face corner with dynamic d-point
+ * For +X face: A-axis = Z, B-axis = Y
+ */
+function buildInnerCornerXPositive(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	inner: number, outer: number, sExt: number,
+	signZ: number, signY: number,
+	neighborZ: boolean, neighborY: boolean
+): void {
+	const x = ox + sExt;
+
+	// Point a: inner corner (always fixed)
+	const a: number[] = [x, oy + signY * inner, oz + signZ * inner];
+
+	// Point b: on Z-direction edge
+	const b: number[] = [x, oy + signY * inner, oz + signZ * sExt];
+
+	// Point c: on Y-direction edge
+	const c: number[] = [x, oy + signY * sExt, oz + signZ * inner];
+
+	// Point d: diagonal - coordinates depend on neighbor status
+	let xD: number, yD: number, zD: number;
+	if (neighborZ && neighborY) {
+		xD = outer;
+		yD = outer;
+		zD = outer;
+	} else if (neighborZ) {
+		xD = sExt;
+		yD = inner;
+		zD = sExt;
+	} else if (neighborY) {
+		xD = sExt;
+		yD = sExt;
+		zD = inner;
+	} else {
+		xD = sExt;
+		yD = outer;
+		zD = outer;
+	}
+	const d: number[] = [ox + xD, oy + signY * yD, oz + signZ * zD];
+
+	// Helper: compute triangle normal
+	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
+		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+		const nx = ab[1] * ac[2] - ab[2] * ac[1];
+		const ny = ab[2] * ac[0] - ab[0] * ac[2];
+		const nz = ab[0] * ac[1] - ab[1] * ac[0];
+		const len = Math.hypot(nx, ny, nz) || 1;
+		return [nx / len, ny / len, nz / len];
+	};
+
+	// Winding order
+	if (signZ * signY < 0) {
+		const n1 = triNormal(a, b, d);
+		if (n1[0] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, b, d, n1);
+
+		const n2 = triNormal(a, d, c);
+		if (n2[0] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, d, c, n2);
+	} else {
+		const n1 = triNormal(a, d, b);
+		if (n1[0] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, d, b, n1);
+
+		const n2 = triNormal(a, c, d);
+		if (n2[0] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, c, d, n2);
+	}
+}
+
+
+/**
+ * +X inner face (when +X has neighbor)
+ */
+function buildInnerFaceXPositive(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	inner: number, outer: number, sExt: number,
+	neighborZPos: boolean, neighborZNeg: boolean,
+	neighborYPos: boolean, neighborYNeg: boolean
+): void {
+	const x = ox + sExt;
+	const normal: number[] = [1, 0, 0];
+
+	// Center quad
+	builder.addQuad(
+		[x, oy - inner, oz + inner], [x, oy - inner, oz - inner],
+		[x, oy + inner, oz - inner], [x, oy + inner, oz + inner],
+		normal
+	);
+
+	// +Z edge
+	builder.addQuad(
+		[x, oy - inner, oz + sExt], [x, oy - inner, oz + inner],
+		[x, oy + inner, oz + inner], [x, oy + inner, oz + sExt],
+		normal
+	);
+
+	// -Z edge
+	builder.addQuad(
+		[x, oy - inner, oz - inner], [x, oy - inner, oz - sExt],
+		[x, oy + inner, oz - sExt], [x, oy + inner, oz - inner],
+		normal
+	);
+
+	// +Y edge
+	builder.addQuad(
+		[x, oy + inner, oz + inner], [x, oy + inner, oz - inner],
+		[x, oy + sExt, oz - inner], [x, oy + sExt, oz + inner],
+		normal
+	);
+
+	// -Y edge
+	builder.addQuad(
+		[x, oy - sExt, oz + inner], [x, oy - sExt, oz - inner],
+		[x, oy - inner, oz - inner], [x, oy - inner, oz + inner],
+		normal
+	);
+
+	// Four corners with dynamic d-point
+	buildInnerCornerXPositive(builder, ox, oy, oz, inner, outer, sExt, +1, +1, neighborZPos, neighborYPos);
+	buildInnerCornerXPositive(builder, ox, oy, oz, inner, outer, sExt, +1, -1, neighborZPos, neighborYNeg);
+	buildInnerCornerXPositive(builder, ox, oy, oz, inner, outer, sExt, -1, +1, neighborZNeg, neighborYPos);
+	buildInnerCornerXPositive(builder, ox, oy, oz, inner, outer, sExt, -1, -1, neighborZNeg, neighborYNeg);
+}
+
+/**
+ * -X inner face corner with dynamic d-point
+ */
+function buildInnerCornerXNegative(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	inner: number, outer: number, sExt: number,
+	signZ: number, signY: number,
+	neighborZ: boolean, neighborY: boolean
+): void {
+	const x = ox - sExt;
+
+	// Point a: inner corner (always fixed)
+	const a: number[] = [x, oy + signY * inner, oz + signZ * inner];
+
+	// Point b: on Z-direction edge
+	const b: number[] = [x, oy + signY * inner, oz + signZ * sExt];
+
+	// Point c: on Y-direction edge
+	const c: number[] = [x, oy + signY * sExt, oz + signZ * inner];
+
+	// Point d: diagonal - coordinates depend on neighbor status
+	let xD: number, yD: number, zD: number;
+	if (neighborZ && neighborY) {
+		xD = outer;
+		yD = outer;
+		zD = outer;
+	} else if (neighborZ) {
+		xD = sExt;
+		yD = inner;
+		zD = sExt;
+	} else if (neighborY) {
+		xD = sExt;
+		yD = sExt;
+		zD = inner;
+	} else {
+		xD = sExt;
+		yD = outer;
+		zD = outer;
+	}
+	const d: number[] = [ox - xD, oy + signY * yD, oz + signZ * zD];
+
+	// Helper: compute triangle normal
+	const triNormal = (p1: number[], p2: number[], p3: number[]): number[] => {
+		const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+		const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+		const nx = ab[1] * ac[2] - ab[2] * ac[1];
+		const ny = ab[2] * ac[0] - ab[0] * ac[2];
+		const nz = ab[0] * ac[1] - ab[1] * ac[0];
+		const len = Math.hypot(nx, ny, nz) || 1;
+		return [nx / len, ny / len, nz / len];
+	};
+
+	// Winding order (opposite to +X)
+	if (signZ * signY < 0) {
+		const n1 = triNormal(a, d, b);
+		if (n1[0] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, d, b, n1);
+
+		const n2 = triNormal(a, c, d);
+		if (n2[0] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, c, d, n2);
+	} else {
+		const n1 = triNormal(a, b, d);
+		if (n1[0] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		builder.addTriangle(a, b, d, n1);
+
+		const n2 = triNormal(a, d, c);
+		if (n2[0] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(a, d, c, n2);
+	}
+}
+
+
+/**
+ * -X inner face (when -X has neighbor)
+ */
+function buildInnerFaceXNegative(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	inner: number, outer: number, sExt: number,
+	neighborZPos: boolean, neighborZNeg: boolean,
+	neighborYPos: boolean, neighborYNeg: boolean
+): void {
+	const x = ox - sExt;
+	const normal: number[] = [-1, 0, 0];
+
+	// Center quad
+	builder.addQuad(
+		[x, oy - inner, oz - inner], [x, oy - inner, oz + inner],
+		[x, oy + inner, oz + inner], [x, oy + inner, oz - inner],
+		normal
+	);
+
+	// +Z edge
+	builder.addQuad(
+		[x, oy - inner, oz + inner], [x, oy - inner, oz + sExt],
+		[x, oy + inner, oz + sExt], [x, oy + inner, oz + inner],
+		normal
+	);
+
+	// -Z edge
+	builder.addQuad(
+		[x, oy - inner, oz - sExt], [x, oy - inner, oz - inner],
+		[x, oy + inner, oz - inner], [x, oy + inner, oz - sExt],
+		normal
+	);
+
+	// +Y edge
+	builder.addQuad(
+		[x, oy + inner, oz - inner], [x, oy + inner, oz + inner],
+		[x, oy + sExt, oz + inner], [x, oy + sExt, oz - inner],
+		normal
+	);
+
+	// -Y edge
+	builder.addQuad(
+		[x, oy - sExt, oz - inner], [x, oy - sExt, oz + inner],
+		[x, oy - inner, oz + inner], [x, oy - inner, oz - inner],
+		normal
+	);
+
+	// Four corners with dynamic d-point
+	buildInnerCornerXNegative(builder, ox, oy, oz, inner, outer, sExt, +1, +1, neighborZPos, neighborYPos);
+	buildInnerCornerXNegative(builder, ox, oy, oz, inner, outer, sExt, +1, -1, neighborZPos, neighborYNeg);
+	buildInnerCornerXNegative(builder, ox, oy, oz, inner, outer, sExt, -1, +1, neighborZNeg, neighborYPos);
+	buildInnerCornerXNegative(builder, ox, oy, oz, inner, outer, sExt, -1, -1, neighborZNeg, neighborYNeg);
+}
+
+/**
+ * Build inner face geometry for a face that has a neighbor
+ */
+function buildInnerFaceGeometry(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	face: FaceDir,
+	neighbors: Record<FaceDir, boolean>
+): void {
+	const inner = INNER;
+	const outer = OUTER;
+	const sExt = S_EXT;
+
+	if (face === "+y") {
+		buildInnerFaceYPositive(builder, ox, oy, oz, inner, outer, sExt,
+			neighbors["+x"], neighbors["-x"], neighbors["+z"], neighbors["-z"]);
+	}
+	else if (face === "-y") {
+		buildInnerFaceYNegative(builder, ox, oy, oz, inner, outer, sExt,
+			neighbors["+x"], neighbors["-x"], neighbors["+z"], neighbors["-z"]);
+	}
+	else if (face === "+z") {
+		buildInnerFaceZPositive(builder, ox, oy, oz, inner, outer, sExt,
+			neighbors["+x"], neighbors["-x"], neighbors["+y"], neighbors["-y"]);
+	}
+	else if (face === "-z") {
+		buildInnerFaceZNegative(builder, ox, oy, oz, inner, outer, sExt,
+			neighbors["+x"], neighbors["-x"], neighbors["+y"], neighbors["-y"]);
+	}
+	else if (face === "+x") {
+		buildInnerFaceXPositive(builder, ox, oy, oz, inner, outer, sExt,
+			neighbors["+z"], neighbors["-z"], neighbors["+y"], neighbors["-y"]);
+	}
+	else if (face === "-x") {
+		buildInnerFaceXNegative(builder, ox, oy, oz, inner, outer, sExt,
+			neighbors["+z"], neighbors["-z"], neighbors["+y"], neighbors["-y"]);
+	}
+}
+
+
 /**
  * Generate a cache key from block positions
  * Sorts positions to ensure same shape always gets same key
@@ -1182,10 +2012,25 @@ export function createBlockGeometryFromMask(faceMask: number): THREE.BufferGeome
 		"-z": (faceMask & FACE_MASK.NEG_Z) !== 0,
 	};
 
-	// Build each exterior face using nine-grid system
+	// Build neighbor record for inner faces (opposite of exterior)
+	const neighbors: Record<FaceDir, boolean> = {
+		"+x": !exterior["+x"],
+		"-x": !exterior["-x"],
+		"+y": !exterior["+y"],
+		"-y": !exterior["-y"],
+		"+z": !exterior["+z"],
+		"-z": !exterior["-z"],
+	};
+
+	// Build each face using nine-grid system
 	for (const face of FACE_DIRS) {
 		if (exterior[face]) {
+			// Exterior face: beveled nine-grid
 			buildFaceGeometry(builder, 0, 0, 0, face, exterior);
+		}
+		else {
+			// Inner face: flat nine-grid to close geometry
+			buildInnerFaceGeometry(builder, 0, 0, 0, face, neighbors);
 		}
 	}
 
@@ -1227,6 +2072,7 @@ export function createUnifiedPieceGeometry(blocks: Point3D[]): THREE.BufferGeome
 		};
 
 		// Build each exterior face using nine-grid system
+		// (internal faces between adjacent blocks are hidden)
 		for (const face of FACE_DIRS) {
 			if (exterior[face]) {
 				buildFaceGeometry(builder, block.x, block.y, block.z, face, exterior);

@@ -208,9 +208,14 @@
 					this.renderer.updateBoard(this.game.board);
 				}
 
-				// Use visual Y position during drop animation
-				const visualY = this.game.isDropping ? this.game.dropVisualY : undefined;
-				this.renderer.updatePiece(this.game.currentPiece, visualY);
+				// Hide piece during clearing animation (it's already locked to board)
+				if (this.game.isClearingAnimation) {
+					this.renderer.updatePiece(null);
+				} else {
+					// Use visual Y position during drop animation
+					const visualY = this.game.isDropping ? this.game.dropVisualY : undefined;
+					this.renderer.updatePiece(this.game.currentPiece, visualY);
+				}
 
 				// Hide ghost during clearing animation only (keep during drop)
 				if (this.game.isClearingAnimation) {

@@ -217,14 +217,6 @@
 				// Update camera height tracking
 				const boardBounds = this.game.board.getBounds();
 				this.renderer.setHeapMaxY(boardBounds.maxY);
-
-				if (this.game.currentPiece) {
-					// Use visual Y for camera tracking during drop
-					const pieceY = this.game.isDropping ? this.game.dropVisualY : this.game.currentPiece.getWorldBounds().min.y;
-					this.renderer.setCurrentPieceY(pieceY);
-				} else {
-					this.renderer.setCurrentPieceY(0);
-				}
 			},
 
 

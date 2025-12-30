@@ -846,7 +846,6 @@ export class TetrisRenderer {
 
 	// Camera height following
 	private heapMaxY: number = 0;
-	private currentPieceY: number = 0;
 	private cameraTargetHeight: number = 5;
 	private lastFrameTime: number = 0;
 
@@ -1330,7 +1329,7 @@ export class TetrisRenderer {
 
 
 	/**
-	 * Calculate ideal camera height based on heap and current piece
+	 * Calculate ideal camera height based on heap
 	 * Ported from original CubeTetris TetrisPool:idealCameraHeight()
 	 */
 	private idealCameraHeight(): number {
@@ -1339,19 +1338,6 @@ export class TetrisRenderer {
 
 		// Base height follows heap top + offset
 		let height = this.heapMaxY + 2;
-
-		// If there's a current piece, constrain camera to piece range
-		if (this.currentPieceY > 0) {
-			const pieceY = this.currentPieceY;
-			// Camera should be at most 12 units below the piece
-			if (height < pieceY - 12) {
-				height = pieceY - 12;
-			}
-			// Camera should be at most 10 units above the piece
-			if (height > pieceY + 10) {
-				height = pieceY + 10;
-			}
-		}
 
 		// Clamp to valid range
 		height = Math.min(height, maxHeight);
@@ -1388,14 +1374,6 @@ export class TetrisRenderer {
 	 */
 	setHeapMaxY(maxY: number): void {
 		this.heapMaxY = maxY;
-	}
-
-
-	/**
-	 * Update current piece Y position (call this when piece changes)
-	 */
-	setCurrentPieceY(y: number): void {
-		this.currentPieceY = y;
 	}
 
 

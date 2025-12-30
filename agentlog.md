@@ -1630,3 +1630,46 @@ if (exterior["-x"]) {
 **Result:** ✅ Level progression now based on layers cleared with logarithmic scaling
 
 </details>
+
+<details>
+<summary>Fix Block Loss During Layer Clearing (2025-12-30)</summary>
+
+> 现在有个现象我想不通。我们每个砖块是4单位，每一层是16单位，消层的时候以16增倍数减小单元数。但为什么有时候能观察到残留的单位数量不是4的整倍数？
+
+**Issue:** After clearing layers, remaining block count was sometimes not a multiple of 4, which is mathematically impossible (each piece = 4 blocks, each layer = 16 blocks).
+
+**Root Cause Analysis (via Puppeteer monitoring):**
+Console logs revealed:
+```
+[BUG] Block count changed during shift! After remove: 28, After shift: 26, Shifted: 28
+[BUG] Removed 18 blocks, expected 16! Before: 44, After: 26
+```
+
+The `removeLayerAndShift()` function was losing blocks during the shift operation. The `toShift` array was processed in Map iteration order (effectively random), causing this scenario:
+
+1. Block B at (0, 2, 0) processed first → moves to (0, 1, 0)
+2. Block A at (0, 1, 0) still in original position → gets OVERWRITTEN by Block B!
+3. Block A then processed → moves to (0, 0, 0), but its data was already lost
+
+**Fix Applied in `CubeGrid.ts:removeLayerAndShift()`:**
+
+Added sort before processing to ensure lower Y blocks are moved first:
+
+```typescript
+// Shift blocks above down by 1
+// IMPORTANT: Sort by Y ascending so we process lower blocks first
+// This prevents overwriting blocks that haven't been moved yet
+toShift.sort((a, b) => a.point.y - b.point.y);
+
+for (const {key, data, point} of toShift) {
+    this.blocks.delete(key);
+    const newY = point.y - 1;
+    this.set(point.x, newY, point.z, {...data, position: {x: point.x, y: newY, z: point.z}});
+}
+```
+
+**Verification:** Ran game with 14+ layer clears via Puppeteer automation - zero warnings, block count always multiple of 4.
+
+**Result:** ✅ Layer clearing now correctly preserves all blocks during shift operation
+
+</details>

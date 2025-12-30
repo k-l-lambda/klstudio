@@ -239,6 +239,10 @@ export class CubeGrid {
 		}
 
 		// Shift blocks above down by 1
+		// IMPORTANT: Sort by Y ascending so we process lower blocks first
+		// This prevents overwriting blocks that haven't been moved yet
+		toShift.sort((a, b) => a.point.y - b.point.y);
+
 		for (const {key, data, point} of toShift) {
 			this.blocks.delete(key);
 			const newY = point.y - 1;

@@ -1528,3 +1528,67 @@ if (exterior["-x"]) {
 **Result:** ✅ Systematic and maintainable geometry generation with proper corner handling for all configurations
 
 </details>
+
+<details>
+<summary>DRY Refactoring: Canonical Axis Transform System (2025-12-30)</summary>
+
+> 观察到很多逻辑都是重复了三个轴向，以及正负方向，它们之间的区别只在于坐标轴的置换。想办法合并这些逻辑的处理，进一步减小代码量。
+
+**Issue:** The nine-grid geometry system had 24 nearly identical functions (6 faces × 2 types × 2 for inner/outer) with logic repeated for each axis direction.
+
+**Solution:** Introduced a canonical coordinate system with axis transforms:
+
+1. **AxisConfig interface** with full basis specification:
+   ```typescript
+   interface AxisConfig {
+       wAxis: number;  // Main axis (perpendicular to face): 0=X, 1=Y, 2=Z
+       uAxis: number;  // First tangent axis
+       vAxis: number;  // Second tangent axis
+       wSign: number;  // Direction along wAxis: +1 or -1
+       uSign: number;  // Direction for basis handedness
+       vSign: number;  // Direction for basis handedness
+   }
+   ```
+
+2. **Permutation parity calculation** for correct winding:
+   ```typescript
+   function permutationParity(a: number, b: number, c: number): number {
+       // Returns +1 for even permutation of [0,1,2], -1 for odd
+   }
+
+   function isMirrored(cfg: AxisConfig): boolean {
+       const signProduct = cfg.uSign * cfg.vSign * cfg.wSign;
+       const parity = permutationParity(cfg.uAxis, cfg.vAxis, cfg.wAxis);
+       return signProduct * parity < 0;
+   }
+   ```
+
+3. **Canonical emit methods** in GeometryBuilder:
+   - `emitQuadCanonical()` - transforms (u,v,w) to world, flips winding for mirrored bases
+   - `emitTriCanonical()` - same for triangles
+
+4. **Four unified canonical builders** replace 24 individual functions:
+   - `buildFaceCanonical()` - exterior face with center + 4 edges + 4 corners
+   - `buildCornerCanonical()` - corner triangles with dynamic geometry
+   - `buildInnerFaceCanonical()` - inner face for closing geometry
+   - `buildInnerCornerCanonical()` - inner corner with three-way junction support
+
+5. **Helper functions** for flag extraction:
+   - `getPerpDirs(face)` - get perpendicular face directions
+   - `getExteriorFlags(face, exterior)` - convert to (extU, extV) tuples
+   - `getNeighborFlags(face, exterior)` - convert to (neighborU, neighborV) tuples
+
+**Code Reduction:**
+- Before: ~2800 lines with 24 duplicate functions
+- After: ~1500 lines with 4 canonical builders
+- **~46% reduction in code size**
+
+**gpt-5.2 Review Feedback:**
+- Identified permutation parity bug in `isMirrored` - **Fixed**
+- Suggested module separation (axisTransform.ts, canonicalBuilders.ts)
+- Suggested unit tests for axis transforms
+- Suggested avoiding per-vertex allocations in hot paths
+
+**Result:** ✅ Significantly reduced code duplication while maintaining correct geometry generation
+
+</details>

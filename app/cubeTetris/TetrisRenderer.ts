@@ -64,25 +64,102 @@ const BEVEL_MAJOR = 0.716;  // major axis component
 const BEVEL_MINOR = 0.698;  // minor axis component
 
 
-/**
- * Corner types for nine-grid geometry
- */
-enum CornerType {
-	OUTER_CONVEX,    // Outer convex corner: both edges are exterior
-	SIDE_EXTEND_A,   // Side extension: edge A is exterior, edge B has neighbor
-	SIDE_EXTEND_B,   // Side extension: edge A has neighbor, edge B is exterior
-	INNER_CONCAVE,   // Inner concave corner: both edges have neighbors
+// ============================================================================
+// Axis Transform System
+// ============================================================================
+// Each face is defined by:
+// - wAxis: the axis perpendicular to the face (0=X, 1=Y, 2=Z)
+// - sign: +1 or -1 indicating direction along wAxis
+// - uAxis, vAxis: the two axes forming the face plane
+//
+// Canonical coordinates (u, v, w) map to world coordinates (x, y, z):
+// - u, v are coordinates on the face plane
+// - w is the coordinate perpendicular to the face
+// ============================================================================
+
+interface AxisConfig {
+	wAxis: number;  // Main axis (perpendicular to face): 0=X, 1=Y, 2=Z
+	uAxis: number;  // First tangent axis
+	vAxis: number;  // Second tangent axis
+	wSign: number;  // Direction along wAxis: +1 or -1
+	uSign: number;  // Direction along uAxis: +1 or -1 (for basis handedness)
+	vSign: number;  // Direction along vAxis: +1 or -1 (for basis handedness)
 }
 
+// Axis configurations for each face direction
+// The (u, v, w) basis forms a right-handed coordinate system when det > 0
+const AXIS_CONFIGS: Record<FaceDir, AxisConfig> = {
+	"+y": {wAxis: 1, uAxis: 0, vAxis: 2, wSign: +1, uSign: +1, vSign: +1},  // Y-up: u=+X, v=+Z
+	"-y": {wAxis: 1, uAxis: 0, vAxis: 2, wSign: -1, uSign: +1, vSign: -1},  // Y-down: u=+X, v=-Z
+	"+z": {wAxis: 2, uAxis: 0, vAxis: 1, wSign: +1, uSign: +1, vSign: +1},  // Z-front: u=+X, v=+Y
+	"-z": {wAxis: 2, uAxis: 0, vAxis: 1, wSign: -1, uSign: -1, vSign: +1},  // Z-back: u=-X, v=+Y
+	"+x": {wAxis: 0, uAxis: 2, vAxis: 1, wSign: +1, uSign: -1, vSign: +1},  // X-right: u=-Z, v=+Y
+	"-x": {wAxis: 0, uAxis: 2, vAxis: 1, wSign: -1, uSign: +1, vSign: +1},  // X-left: u=+Z, v=+Y
+};
 
 /**
- * Determine corner type based on edge exterior states
+ * Calculate permutation parity of three axis indices
+ * Returns +1 for even permutation of [0,1,2], -1 for odd
  */
-function getCornerType(exteriorA: boolean, exteriorB: boolean): CornerType {
-	if (exteriorA && exteriorB) return CornerType.OUTER_CONVEX;
-	if (exteriorA && !exteriorB) return CornerType.SIDE_EXTEND_A;
-	if (!exteriorA && exteriorB) return CornerType.SIDE_EXTEND_B;
-	return CornerType.INNER_CONCAVE;
+function permutationParity(a: number, b: number, c: number): number {
+	const perm = [a, b, c];
+	let inversions = 0;
+	for (let i = 0; i < 3; i++) {
+		for (let j = i + 1; j < 3; j++) {
+			if (perm[i] > perm[j]) inversions++;
+		}
+	}
+	return (inversions % 2 === 0) ? +1 : -1;
+}
+
+/**
+ * Check if the basis is mirrored (left-handed)
+ * Returns true if we need to flip winding order for CCW faces
+ * Takes into account both sign product AND axis permutation parity
+ */
+function isMirrored(cfg: AxisConfig): boolean {
+	// Determinant = sign product × permutation parity
+	// For a right-handed basis, det = +1; for left-handed, det = -1
+	const signProduct = cfg.uSign * cfg.vSign * cfg.wSign;
+	const parity = permutationParity(cfg.uAxis, cfg.vAxis, cfg.wAxis);
+	return signProduct * parity < 0;
+}
+
+/**
+ * Convert canonical (u, v, w) coordinates to world [x, y, z] array
+ */
+function toWorld(ox: number, oy: number, oz: number, u: number, v: number, w: number, cfg: AxisConfig): number[] {
+	const result = [ox, oy, oz];
+	result[cfg.uAxis] += u * cfg.uSign;
+	result[cfg.vAxis] += v * cfg.vSign;
+	result[cfg.wAxis] += w * cfg.wSign;
+	return result;
+}
+
+/**
+ * Convert canonical normal (nu, nv, nw) to world normal [nx, ny, nz]
+ */
+function normalToWorld(nu: number, nv: number, nw: number, cfg: AxisConfig): number[] {
+	const result = [0, 0, 0];
+	result[cfg.uAxis] = nu * cfg.uSign;
+	result[cfg.vAxis] = nv * cfg.vSign;
+	result[cfg.wAxis] = nw * cfg.wSign;
+	return result;
+}
+
+/**
+ * Get perpendicular face directions for a given face (the 4 edge directions)
+ */
+function getPerpDirs(face: FaceDir): {uPos: FaceDir; uNeg: FaceDir; vPos: FaceDir; vNeg: FaceDir} {
+	const cfg = AXIS_CONFIGS[face];
+	const axisToDir: Record<number, [FaceDir, FaceDir]> = {
+		0: ["+x", "-x"],
+		1: ["+y", "-y"],
+		2: ["+z", "-z"],
+	};
+	const [uPos, uNeg] = axisToDir[cfg.uAxis];
+	const [vPos, vNeg] = axisToDir[cfg.vAxis];
+	return {uPos, uNeg, vPos, vNeg};
 }
 
 
@@ -106,6 +183,60 @@ class GeometryBuilder {
 		this.vertices.push(...v0, ...v1, ...v2);
 		this.normals.push(...normal, ...normal, ...normal);
 		this.indices.push(baseIdx, baseIdx + 1, baseIdx + 2);
+	}
+
+	/**
+	 * Emit a quad in canonical (u, v, w) coordinates, transformed to world space
+	 * Vertices are specified in CW order when viewed from +w direction in canonical space
+	 * For non-mirrored transforms, we flip to get CCW in world space (front-facing)
+	 * For mirrored transforms, the transform itself flips winding, so we don't flip
+	 */
+	emitQuadCanonical(
+		ox: number, oy: number, oz: number,
+		cfg: AxisConfig,
+		p0: [number, number, number], p1: [number, number, number],
+		p2: [number, number, number], p3: [number, number, number],
+		normalCanonical: [number, number, number]
+	): void {
+		const v0 = toWorld(ox, oy, oz, p0[0], p0[1], p0[2], cfg);
+		const v1 = toWorld(ox, oy, oz, p1[0], p1[1], p1[2], cfg);
+		const v2 = toWorld(ox, oy, oz, p2[0], p2[1], p2[2], cfg);
+		const v3 = toWorld(ox, oy, oz, p3[0], p3[1], p3[2], cfg);
+		const normal = normalToWorld(normalCanonical[0], normalCanonical[1], normalCanonical[2], cfg);
+
+		if (isMirrored(cfg)) {
+			// Mirrored transform flips winding, so canonical CW becomes world CCW (front-facing)
+			this.addQuad(v0, v1, v2, v3, normal);
+		} else {
+			// Non-mirrored: flip to convert canonical CW to world CCW (front-facing)
+			this.addQuad(v0, v3, v2, v1, normal);
+		}
+	}
+
+	/**
+	 * Emit a triangle in canonical (u, v, w) coordinates, transformed to world space
+	 * Vertices are specified in CW order when viewed from +w direction in canonical space
+	 * For non-mirrored transforms, we flip to get CCW in world space (front-facing)
+	 * For mirrored transforms, the transform itself flips winding, so we don't flip
+	 */
+	emitTriCanonical(
+		ox: number, oy: number, oz: number,
+		cfg: AxisConfig,
+		p0: [number, number, number], p1: [number, number, number], p2: [number, number, number],
+		normalCanonical: [number, number, number]
+	): void {
+		const v0 = toWorld(ox, oy, oz, p0[0], p0[1], p0[2], cfg);
+		const v1 = toWorld(ox, oy, oz, p1[0], p1[1], p1[2], cfg);
+		const v2 = toWorld(ox, oy, oz, p2[0], p2[1], p2[2], cfg);
+		const normal = normalToWorld(normalCanonical[0], normalCanonical[1], normalCanonical[2], cfg);
+
+		if (isMirrored(cfg)) {
+			// Mirrored transform flips winding, so canonical CW becomes world CCW (front-facing)
+			this.addTriangle(v0, v1, v2, normal);
+		} else {
+			// Non-mirrored: flip to convert canonical CW to world CCW (front-facing)
+			this.addTriangle(v0, v2, v1, normal);
+		}
 	}
 
 	build(): THREE.BufferGeometry {
@@ -132,6 +263,353 @@ function triNormal(p1: number[], p2: number[], p3: number[]): number[] {
 }
 
 
+// ============================================================================
+// Canonical Nine-Grid Face Builder
+// ============================================================================
+// Works in canonical (u, v, w) coordinates:
+// - u, v: tangent axes on the face plane
+// - w: perpendicular axis (face normal direction is +w)
+// - Face surface is at w = s (HALF_SIZE)
+// - Perpendicular directions: +u, -u, +v, -v (four edges of the face)
+// ============================================================================
+
+/**
+ * Build exterior face geometry in canonical coordinates
+ * @param builder Geometry builder
+ * @param ox, oy, oz Block center in world coordinates
+ * @param cfg Axis configuration for this face
+ * @param extU Exterior flags for +u/-u directions [+u, -u]
+ * @param extV Exterior flags for +v/-v directions [+v, -v]
+ */
+function buildFaceCanonical(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	cfg: AxisConfig,
+	extU: [boolean, boolean],  // [+u exterior, -u exterior]
+	extV: [boolean, boolean]   // [+v exterior, -v exterior]
+): void {
+	const s = HALF_SIZE;
+	const inner = INNER;
+	const outer = OUTER;
+	const sExt = S_EXT;
+
+	// All coordinates are in canonical (u, v, w) space
+	// Face is at w = +s, normal points in +w direction
+
+	// ========== 1. Center quad ==========
+	// Vertices in CCW order when viewed from +w
+	builder.emitQuadCanonical(ox, oy, oz, cfg,
+		[-inner, +inner, s], [+inner, +inner, s],
+		[+inner, -inner, s], [-inner, -inner, s],
+		[0, 0, 1]  // face normal in +w direction
+	);
+
+	// ========== 2. Four edge strips ==========
+	// -u edge
+	if (extU[1]) {
+		// Bevel surface: from face edge down to outer bevel
+		builder.emitQuadCanonical(ox, oy, oz, cfg,
+			[-inner, +inner, s], [-inner, -inner, s],
+			[-outer, -inner, outer], [-outer, +inner, outer],
+			[-BEVEL_MAJOR, 0, BEVEL_MINOR]
+		);
+	} else {
+		// Flat extension to neighbor
+		builder.emitQuadCanonical(ox, oy, oz, cfg,
+			[-inner, +inner, s], [-inner, -inner, s],
+			[-sExt, -inner, s], [-sExt, +inner, s],
+			[0, 0, 1]
+		);
+	}
+
+	// +u edge
+	if (extU[0]) {
+		builder.emitQuadCanonical(ox, oy, oz, cfg,
+			[+inner, -inner, s], [+inner, +inner, s],
+			[+outer, +inner, outer], [+outer, -inner, outer],
+			[BEVEL_MAJOR, 0, BEVEL_MINOR]
+		);
+	} else {
+		builder.emitQuadCanonical(ox, oy, oz, cfg,
+			[+inner, -inner, s], [+inner, +inner, s],
+			[+sExt, +inner, s], [+sExt, -inner, s],
+			[0, 0, 1]
+		);
+	}
+
+	// -v edge
+	if (extV[1]) {
+		builder.emitQuadCanonical(ox, oy, oz, cfg,
+			[-inner, -inner, s], [+inner, -inner, s],
+			[+outer, -outer, outer], [-outer, -outer, outer],
+			[0, -BEVEL_MAJOR, BEVEL_MINOR]
+		);
+	} else {
+		builder.emitQuadCanonical(ox, oy, oz, cfg,
+			[-inner, -inner, s], [+inner, -inner, s],
+			[+inner, -sExt, s], [-inner, -sExt, s],
+			[0, 0, 1]
+		);
+	}
+
+	// +v edge
+	if (extV[0]) {
+		builder.emitQuadCanonical(ox, oy, oz, cfg,
+			[+inner, +inner, s], [-inner, +inner, s],
+			[-outer, +outer, outer], [+outer, +outer, outer],
+			[0, BEVEL_MAJOR, BEVEL_MINOR]
+		);
+	} else {
+		builder.emitQuadCanonical(ox, oy, oz, cfg,
+			[+inner, +inner, s], [-inner, +inner, s],
+			[-inner, +sExt, s], [+inner, +sExt, s],
+			[0, 0, 1]
+		);
+	}
+
+	// ========== 3. Four corners ==========
+	// Each corner is a quadrant: (±u, ±v)
+	buildCornerCanonical(builder, ox, oy, oz, cfg, -1, -1, extU[1], extV[1]);  // (-u, -v)
+	buildCornerCanonical(builder, ox, oy, oz, cfg, +1, -1, extU[0], extV[1]);  // (+u, -v)
+	buildCornerCanonical(builder, ox, oy, oz, cfg, -1, +1, extU[1], extV[0]);  // (-u, +v)
+	buildCornerCanonical(builder, ox, oy, oz, cfg, +1, +1, extU[0], extV[0]);  // (+u, +v)
+}
+
+
+/**
+ * Build corner geometry in canonical coordinates
+ * Triangulation: a-b-d and a-d-c (shared edge a-d from inner to diagonal outer)
+ * @param signU +1 or -1 for u direction
+ * @param signV +1 or -1 for v direction
+ * @param exteriorU true if exterior in u direction
+ * @param exteriorV true if exterior in v direction
+ */
+function buildCornerCanonical(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	cfg: AxisConfig,
+	signU: number, signV: number,
+	exteriorU: boolean, exteriorV: boolean
+): void {
+	const s = HALF_SIZE;
+	const inner = INNER;
+	const outer = OUTER;
+	const sExt = S_EXT;
+
+	// Point a: inner corner on face (always fixed)
+	const a: [number, number, number] = [signU * inner, signV * inner, s];
+
+	// Point d: diagonal outer corner - coordinates depend on neighbor status
+	const uD = exteriorU ? outer : sExt;
+	const vD = exteriorV ? outer : sExt;
+	// w coordinate: use inner if both neighbors (concave), else outer
+	const wD = (!exteriorU && !exteriorV) ? inner : outer;
+	const d: [number, number, number] = [signU * uD, signV * vD, wD];
+
+	// Point b: on u-direction edge
+	const b: [number, number, number] = exteriorU
+		? [signU * outer, signV * inner, outer]
+		: [signU * sExt, signV * inner, s];
+
+	// Point c: on v-direction edge
+	const c: [number, number, number] = exteriorV
+		? [signU * inner, signV * outer, outer]
+		: [signU * inner, signV * sExt, s];
+
+	// Compute triangle normals in world space for proper lighting
+	const v0 = toWorld(ox, oy, oz, a[0], a[1], a[2], cfg);
+	const v1 = toWorld(ox, oy, oz, b[0], b[1], b[2], cfg);
+	const v2 = toWorld(ox, oy, oz, c[0], c[1], c[2], cfg);
+	const v3 = toWorld(ox, oy, oz, d[0], d[1], d[2], cfg);
+
+	// Determine winding based on sign product and basis handedness
+	// In canonical space, CCW order when signU * signV > 0: a-b-d, a-d-c
+	// When signU * signV < 0: a-d-b, a-c-d
+	const shouldFlip = (signU * signV < 0) !== isMirrored(cfg);
+
+	if (shouldFlip) {
+		// Triangles: a-d-b, a-c-d
+		const n1 = triNormal(v0, v3, v1);
+		const n2 = triNormal(v0, v2, v3);
+		// Ensure normals point outward (positive w component in canonical)
+		if (n1[cfg.wAxis] * cfg.wSign < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		if (n2[cfg.wAxis] * cfg.wSign < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(v0, v3, v1, n1);
+		builder.addTriangle(v0, v2, v3, n2);
+	} else {
+		// Triangles: a-b-d, a-d-c
+		const n1 = triNormal(v0, v1, v3);
+		const n2 = triNormal(v0, v3, v2);
+		if (n1[cfg.wAxis] * cfg.wSign < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		if (n2[cfg.wAxis] * cfg.wSign < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(v0, v1, v3, n1);
+		builder.addTriangle(v0, v3, v2, n2);
+	}
+}
+
+
+// ============================================================================
+// Canonical Inner Face Builder (for closing geometry on neighbor sides)
+// ============================================================================
+
+/**
+ * Build inner face geometry in canonical coordinates
+ * Used when a face has a neighbor (face is hidden, but needs closure geometry)
+ * @param neighborU Neighbor flags for +u/-u directions [+u, -u]
+ * @param neighborV Neighbor flags for +v/-v directions [+v, -v]
+ */
+function buildInnerFaceCanonical(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	cfg: AxisConfig,
+	neighborU: [boolean, boolean],  // [+u neighbor, -u neighbor]
+	neighborV: [boolean, boolean]   // [+v neighbor, -v neighbor]
+): void {
+	const inner = INNER;
+	const outer = OUTER;
+	const sExt = S_EXT;
+
+	// Inner face is at w = sExt (grid midpoint)
+
+	// ========== Center quad ==========
+	builder.emitQuadCanonical(ox, oy, oz, cfg,
+		[-inner, +inner, sExt], [+inner, +inner, sExt],
+		[+inner, -inner, sExt], [-inner, -inner, sExt],
+		[0, 0, 1]
+	);
+
+	// ========== Four edge strips (always flat for inner faces) ==========
+	// -u edge
+	builder.emitQuadCanonical(ox, oy, oz, cfg,
+		[-sExt, +inner, sExt], [-inner, +inner, sExt],
+		[-inner, -inner, sExt], [-sExt, -inner, sExt],
+		[0, 0, 1]
+	);
+
+	// +u edge
+	builder.emitQuadCanonical(ox, oy, oz, cfg,
+		[+inner, +inner, sExt], [+sExt, +inner, sExt],
+		[+sExt, -inner, sExt], [+inner, -inner, sExt],
+		[0, 0, 1]
+	);
+
+	// -v edge
+	builder.emitQuadCanonical(ox, oy, oz, cfg,
+		[-inner, -inner, sExt], [+inner, -inner, sExt],
+		[+inner, -sExt, sExt], [-inner, -sExt, sExt],
+		[0, 0, 1]
+	);
+
+	// +v edge
+	builder.emitQuadCanonical(ox, oy, oz, cfg,
+		[-inner, +sExt, sExt], [+inner, +sExt, sExt],
+		[+inner, +inner, sExt], [-inner, +inner, sExt],
+		[0, 0, 1]
+	);
+
+	// ========== Four corners with dynamic d-point ==========
+	buildInnerCornerCanonical(builder, ox, oy, oz, cfg, -1, -1, neighborU[1], neighborV[1]);
+	buildInnerCornerCanonical(builder, ox, oy, oz, cfg, +1, -1, neighborU[0], neighborV[1]);
+	buildInnerCornerCanonical(builder, ox, oy, oz, cfg, -1, +1, neighborU[1], neighborV[0]);
+	buildInnerCornerCanonical(builder, ox, oy, oz, cfg, +1, +1, neighborU[0], neighborV[0]);
+}
+
+
+/**
+ * Build inner corner geometry in canonical coordinates
+ */
+function buildInnerCornerCanonical(
+	builder: GeometryBuilder,
+	ox: number, oy: number, oz: number,
+	cfg: AxisConfig,
+	signU: number, signV: number,
+	neighborU: boolean, neighborV: boolean
+): void {
+	const inner = INNER;
+	const outer = OUTER;
+	const sExt = S_EXT;
+
+	// Point a: inner corner, or outer when both neighbors exist (three-way junction)
+	const aRadius = (neighborU && neighborV) ? outer : inner;
+	const a: [number, number, number] = [signU * aRadius, signV * aRadius, sExt];
+
+	// Point b: on u-direction edge
+	const b: [number, number, number] = [signU * sExt, signV * inner, sExt];
+
+	// Point c: on v-direction edge
+	const c: [number, number, number] = [signU * inner, signV * sExt, sExt];
+
+	// Point d: diagonal - coordinates depend on neighbor status
+	let uD: number, vD: number, wD: number;
+	if (neighborU && neighborV) {
+		uD = outer; vD = outer; wD = outer;
+	} else if (neighborU) {
+		uD = sExt; vD = inner; wD = sExt;
+	} else if (neighborV) {
+		uD = inner; vD = sExt; wD = sExt;
+	} else {
+		uD = outer; vD = outer; wD = sExt;
+	}
+	const d: [number, number, number] = [signU * uD, signV * vD, wD];
+
+	// Compute triangle normals in world space
+	const v0 = toWorld(ox, oy, oz, a[0], a[1], a[2], cfg);
+	const v1 = toWorld(ox, oy, oz, b[0], b[1], b[2], cfg);
+	const v2 = toWorld(ox, oy, oz, c[0], c[1], c[2], cfg);
+	const v3 = toWorld(ox, oy, oz, d[0], d[1], d[2], cfg);
+
+	// Determine winding based on sign product and basis handedness
+	const shouldFlip = (signU * signV < 0) !== isMirrored(cfg);
+
+	if (shouldFlip) {
+		const n1 = triNormal(v0, v3, v1);
+		const n2 = triNormal(v0, v2, v3);
+		if (n1[cfg.wAxis] * cfg.wSign < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		if (n2[cfg.wAxis] * cfg.wSign < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(v0, v3, v1, n1);
+		builder.addTriangle(v0, v2, v3, n2);
+	} else {
+		const n1 = triNormal(v0, v1, v3);
+		const n2 = triNormal(v0, v3, v2);
+		if (n1[cfg.wAxis] * cfg.wSign < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
+		if (n2[cfg.wAxis] * cfg.wSign < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		builder.addTriangle(v0, v1, v3, n1);
+		builder.addTriangle(v0, v3, v2, n2);
+	}
+}
+
+
+/**
+ * Get perpendicular exterior flags from face direction
+ * Returns [extU, extV] where extU = [+u exterior, -u exterior]
+ */
+function getExteriorFlags(face: FaceDir, exterior: Record<FaceDir, boolean>): {
+	extU: [boolean, boolean];
+	extV: [boolean, boolean];
+} {
+	const perpDirs = getPerpDirs(face);
+	return {
+		extU: [exterior[perpDirs.uPos], exterior[perpDirs.uNeg]],
+		extV: [exterior[perpDirs.vPos], exterior[perpDirs.vNeg]],
+	};
+}
+
+
+/**
+ * Get perpendicular neighbor flags from face direction (inverse of exterior)
+ */
+function getNeighborFlags(face: FaceDir, exterior: Record<FaceDir, boolean>): {
+	neighborU: [boolean, boolean];
+	neighborV: [boolean, boolean];
+} {
+	const perpDirs = getPerpDirs(face);
+	return {
+		neighborU: [!exterior[perpDirs.uPos], !exterior[perpDirs.uNeg]],
+		neighborV: [!exterior[perpDirs.vPos], !exterior[perpDirs.vNeg]],
+	};
+}
+
+
 /**
  * Generate nine-grid geometry for a single face
  * @param builder Geometry builder
@@ -145,1687 +623,12 @@ function buildFaceGeometry(
 	face: FaceDir,
 	exterior: Record<FaceDir, boolean>
 ): void {
-	const s = HALF_SIZE;
-	const inner = INNER;
-	const outer = OUTER;
-	const sExt = S_EXT;
-
-	// Determine coordinate mapping based on face direction
-	// Each face has: main axis (face normal direction), A-axis, B-axis
-	// +Y face: main=Y, A=X, B=Z
-	// -Y face: main=Y, A=X, B=Z (reversed)
-	// +Z face: main=Z, A=X, B=Y
-	// -Z face: main=Z, A=X, B=Y (reversed)
-	// +X face: main=X, A=Z, B=Y
-	// -X face: main=X, A=Z, B=Y (reversed)
-
-	if (face === "+y") {
-		buildFaceYPositive(builder, ox, oy, oz, s, inner, outer, sExt, exterior);
-	}
-	else if (face === "-y") {
-		buildFaceYNegative(builder, ox, oy, oz, s, inner, outer, sExt, exterior);
-	}
-	else if (face === "+z") {
-		buildFaceZPositive(builder, ox, oy, oz, s, inner, outer, sExt, exterior);
-	}
-	else if (face === "-z") {
-		buildFaceZNegative(builder, ox, oy, oz, s, inner, outer, sExt, exterior);
-	}
-	else if (face === "+x") {
-		buildFaceXPositive(builder, ox, oy, oz, s, inner, outer, sExt, exterior);
-	}
-	else if (face === "-x") {
-		buildFaceXNegative(builder, ox, oy, oz, s, inner, outer, sExt, exterior);
-	}
+	const cfg = AXIS_CONFIGS[face];
+	const {extU, extV} = getExteriorFlags(face, exterior);
+	buildFaceCanonical(builder, ox, oy, oz, cfg, extU, extV);
 }
 
 
-/**
- * +Y face (top) nine-grid generation
- * A-axis = X, B-axis = Z
- */
-function buildFaceYPositive(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	s: number, inner: number, outer: number, sExt: number,
-	exterior: Record<FaceDir, boolean>
-): void {
-	const y = oy + s;  // face position
-	const normal: number[] = [0, 1, 0];
-
-	const extPosX = exterior["+x"];
-	const extNegX = exterior["-x"];
-	const extPosZ = exterior["+z"];
-	const extNegZ = exterior["-z"];
-
-	// ========== 1. Center quad ==========
-	builder.addQuad(
-		[ox - inner, y, oz + inner], [ox + inner, y, oz + inner],
-		[ox + inner, y, oz - inner], [ox - inner, y, oz - inner],
-		normal
-	);
-
-	// ========== 2. Four edges ==========
-	// -X edge
-	if (extNegX) {
-		// Bevel surface
-		builder.addQuad(
-			[ox - inner, y, oz + inner], [ox - inner, y, oz - inner],
-			[ox - outer, oy + outer, oz - inner], [ox - outer, oy + outer, oz + inner],
-			[-BEVEL_MAJOR, BEVEL_MINOR, 0]
-		);
-	}
-	else {
-		// Flat extension
-		builder.addQuad(
-			[ox - inner, y, oz + inner], [ox - inner, y, oz - inner],
-			[ox - sExt, y, oz - inner], [ox - sExt, y, oz + inner],
-			normal
-		);
-	}
-
-	// +X edge
-	if (extPosX) {
-		builder.addQuad(
-			[ox + inner, y, oz - inner], [ox + inner, y, oz + inner],
-			[ox + outer, oy + outer, oz + inner], [ox + outer, oy + outer, oz - inner],
-			[BEVEL_MAJOR, BEVEL_MINOR, 0]
-		);
-	}
-	else {
-		builder.addQuad(
-			[ox + inner, y, oz - inner], [ox + inner, y, oz + inner],
-			[ox + sExt, y, oz + inner], [ox + sExt, y, oz - inner],
-			normal
-		);
-	}
-
-	// -Z edge
-	if (extNegZ) {
-		builder.addQuad(
-			[ox - inner, y, oz - inner], [ox + inner, y, oz - inner],
-			[ox + inner, oy + outer, oz - outer], [ox - inner, oy + outer, oz - outer],
-			[0, BEVEL_MINOR, -BEVEL_MAJOR]
-		);
-	}
-	else {
-		builder.addQuad(
-			[ox - inner, y, oz - inner], [ox + inner, y, oz - inner],
-			[ox + inner, y, oz - sExt], [ox - inner, y, oz - sExt],
-			normal
-		);
-	}
-
-	// +Z edge
-	if (extPosZ) {
-		builder.addQuad(
-			[ox + inner, y, oz + inner], [ox - inner, y, oz + inner],
-			[ox - inner, oy + outer, oz + outer], [ox + inner, oy + outer, oz + outer],
-			[0, BEVEL_MINOR, BEVEL_MAJOR]
-		);
-	}
-	else {
-		builder.addQuad(
-			[ox + inner, y, oz + inner], [ox - inner, y, oz + inner],
-			[ox - inner, y, oz + sExt], [ox + inner, y, oz + sExt],
-			normal
-		);
-	}
-
-	// ========== 3. Four corners ==========
-	// (-X, -Z) corner
-	buildCornerYPositive(builder, ox, oy, oz, s, inner, outer, sExt,
-		-1, -1, extNegX, extNegZ);
-
-	// (+X, -Z) corner
-	buildCornerYPositive(builder, ox, oy, oz, s, inner, outer, sExt,
-		+1, -1, extPosX, extNegZ);
-
-	// (-X, +Z) corner
-	buildCornerYPositive(builder, ox, oy, oz, s, inner, outer, sExt,
-		-1, +1, extNegX, extPosZ);
-
-	// (+X, +Z) corner
-	buildCornerYPositive(builder, ox, oy, oz, s, inner, outer, sExt,
-		+1, +1, extPosX, extPosZ);
-}
-
-
-/**
- * +Y face corner generation
- * Triangulation: a-b-d and a-d-c (shared edge a-d from inner to diagonal outer)
- * @param signX X direction sign (+1 or -1)
- * @param signZ Z direction sign (+1 or -1)
- */
-function buildCornerYPositive(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	s: number, inner: number, outer: number, sExt: number,
-	signX: number, signZ: number,
-	exteriorX: boolean, exteriorZ: boolean
-): void {
-	const y = oy + s;
-	const yOuter = oy + outer;
-
-	// Point a: inner corner on face (always fixed)
-	const a: number[] = [ox + signX * inner, y, oz + signZ * inner];
-
-	// Point d: diagonal outer corner - coordinates depend on neighbor status
-	const xD = exteriorX ? outer : sExt;
-	const zD = exteriorZ ? outer : sExt;
-	// Face normal direction: use inner if both neighbors (concave), else outer
-	const yD = (!exteriorX && !exteriorZ) ? (oy + inner) : yOuter;
-	const d: number[] = [ox + signX * xD, yD, oz + signZ * zD];
-
-	// Point b: on X-direction edge
-	// - exterior: on bevel at (xOuter, yOuter, zInner)
-	// - neighbor: on flat at (xExt, y, zInner)
-	const b: number[] = exteriorX
-		? [ox + signX * outer, yOuter, oz + signZ * inner]
-		: [ox + signX * sExt, y, oz + signZ * inner];
-
-	// Point c: on Z-direction edge
-	// - exterior: on bevel at (xInner, yOuter, zOuter)
-	// - neighbor: on flat at (xInner, y, zExt)
-	const c: number[] = exteriorZ
-		? [ox + signX * inner, yOuter, oz + signZ * outer]
-		: [ox + signX * inner, y, oz + signZ * sExt];
-
-	// Winding order depends on sign product
-	// When signX * signZ < 0 (opposite signs): a-b-d, a-d-c
-	// When signX * signZ > 0 (same signs): a-d-b, a-c-d
-	if (signX * signZ < 0) {
-		const n1 = triNormal(a, b, d);
-		if (n1[1] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, b, d, n1);
-
-		const n2 = triNormal(a, d, c);
-		if (n2[1] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, d, c, n2);
-	}
-	else {
-		const n1 = triNormal(a, d, b);
-		if (n1[1] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, d, b, n1);
-
-		const n2 = triNormal(a, c, d);
-		if (n2[1] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, c, d, n2);
-	}
-}
-
-
-/**
- * -Y face (bottom) nine-grid generation
- */
-function buildFaceYNegative(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	s: number, inner: number, outer: number, sExt: number,
-	exterior: Record<FaceDir, boolean>
-): void {
-	const y = oy - s;
-	const normal: number[] = [0, -1, 0];
-
-	const extPosX = exterior["+x"];
-	const extNegX = exterior["-x"];
-	const extPosZ = exterior["+z"];
-	const extNegZ = exterior["-z"];
-
-	// Center
-	builder.addQuad(
-		[ox - inner, y, oz - inner], [ox + inner, y, oz - inner],
-		[ox + inner, y, oz + inner], [ox - inner, y, oz + inner],
-		normal
-	);
-
-	// -X edge
-	if (extNegX) {
-		builder.addQuad(
-			[ox - inner, y, oz - inner], [ox - inner, y, oz + inner],
-			[ox - outer, oy - outer, oz + inner], [ox - outer, oy - outer, oz - inner],
-			[-BEVEL_MAJOR, -BEVEL_MINOR, 0]
-		);
-	}
-	else {
-		builder.addQuad(
-			[ox - inner, y, oz - inner], [ox - inner, y, oz + inner],
-			[ox - sExt, y, oz + inner], [ox - sExt, y, oz - inner],
-			normal
-		);
-	}
-
-	// +X edge
-	if (extPosX) {
-		builder.addQuad(
-			[ox + inner, y, oz + inner], [ox + inner, y, oz - inner],
-			[ox + outer, oy - outer, oz - inner], [ox + outer, oy - outer, oz + inner],
-			[BEVEL_MAJOR, -BEVEL_MINOR, 0]
-		);
-	}
-	else {
-		builder.addQuad(
-			[ox + inner, y, oz + inner], [ox + inner, y, oz - inner],
-			[ox + sExt, y, oz - inner], [ox + sExt, y, oz + inner],
-			normal
-		);
-	}
-
-	// -Z edge
-	if (extNegZ) {
-		builder.addQuad(
-			[ox + inner, y, oz - inner], [ox - inner, y, oz - inner],
-			[ox - inner, oy - outer, oz - outer], [ox + inner, oy - outer, oz - outer],
-			[0, -BEVEL_MINOR, -BEVEL_MAJOR]
-		);
-	}
-	else {
-		builder.addQuad(
-			[ox + inner, y, oz - inner], [ox - inner, y, oz - inner],
-			[ox - inner, y, oz - sExt], [ox + inner, y, oz - sExt],
-			normal
-		);
-	}
-
-	// +Z edge
-	if (extPosZ) {
-		builder.addQuad(
-			[ox - inner, y, oz + inner], [ox + inner, y, oz + inner],
-			[ox + inner, oy - outer, oz + outer], [ox - inner, oy - outer, oz + outer],
-			[0, -BEVEL_MINOR, BEVEL_MAJOR]
-		);
-	}
-	else {
-		builder.addQuad(
-			[ox - inner, y, oz + inner], [ox + inner, y, oz + inner],
-			[ox + inner, y, oz + sExt], [ox - inner, y, oz + sExt],
-			normal
-		);
-	}
-
-	// Four corners
-	buildCornerYNegative(builder, ox, oy, oz, s, inner, outer, sExt, -1, -1, extNegX, extNegZ);
-	buildCornerYNegative(builder, ox, oy, oz, s, inner, outer, sExt, +1, -1, extPosX, extNegZ);
-	buildCornerYNegative(builder, ox, oy, oz, s, inner, outer, sExt, -1, +1, extNegX, extPosZ);
-	buildCornerYNegative(builder, ox, oy, oz, s, inner, outer, sExt, +1, +1, extPosX, extPosZ);
-}
-
-
-function buildCornerYNegative(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	s: number, inner: number, outer: number, sExt: number,
-	signX: number, signZ: number,
-	exteriorX: boolean, exteriorZ: boolean
-): void {
-	const y = oy - s;
-	const yOuter = oy - outer;
-
-	// Point a: inner corner on face (always fixed)
-	const a: number[] = [ox + signX * inner, y, oz + signZ * inner];
-
-	// Point d: diagonal outer corner - coordinates depend on neighbor status
-	const xD = exteriorX ? outer : sExt;
-	const zD = exteriorZ ? outer : sExt;
-	// Face normal direction: use inner if both neighbors (concave), else outer
-	const yD = (!exteriorX && !exteriorZ) ? (oy - inner) : yOuter;
-	const d: number[] = [ox + signX * xD, yD, oz + signZ * zD];
-
-	// Point b: on X-direction edge
-	const b: number[] = exteriorX
-		? [ox + signX * outer, yOuter, oz + signZ * inner]
-		: [ox + signX * sExt, y, oz + signZ * inner];
-
-	// Point c: on Z-direction edge
-	const c: number[] = exteriorZ
-		? [ox + signX * inner, yOuter, oz + signZ * outer]
-		: [ox + signX * inner, y, oz + signZ * sExt];
-
-	// Winding order depends on sign product (opposite to +Y face)
-	if (signX * signZ < 0) {
-		const n1 = triNormal(a, d, b);
-		if (n1[1] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, d, b, n1);
-
-		const n2 = triNormal(a, c, d);
-		if (n2[1] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, c, d, n2);
-	}
-	else {
-		const n1 = triNormal(a, b, d);
-		if (n1[1] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, b, d, n1);
-
-		const n2 = triNormal(a, d, c);
-		if (n2[1] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, d, c, n2);
-	}
-}
-
-
-/**
- * +Z face (front) nine-grid generation
- * A-axis = X, B-axis = Y
- */
-function buildFaceZPositive(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	s: number, inner: number, outer: number, sExt: number,
-	exterior: Record<FaceDir, boolean>
-): void {
-	const z = oz + s;
-	const normal: number[] = [0, 0, 1];
-
-	const extPosX = exterior["+x"];
-	const extNegX = exterior["-x"];
-	const extPosY = exterior["+y"];
-	const extNegY = exterior["-y"];
-
-	// Center
-	builder.addQuad(
-		[ox - inner, oy - inner, z], [ox + inner, oy - inner, z],
-		[ox + inner, oy + inner, z], [ox - inner, oy + inner, z],
-		normal
-	);
-
-	// -X edge
-	if (extNegX) {
-		builder.addQuad(
-			[ox - inner, oy - inner, z], [ox - inner, oy + inner, z],
-			[ox - outer, oy + inner, oz + outer], [ox - outer, oy - inner, oz + outer],
-			[-BEVEL_MAJOR, 0, BEVEL_MINOR]
-		);
-	}
-	else {
-		builder.addQuad(
-			[ox - inner, oy - inner, z], [ox - inner, oy + inner, z],
-			[ox - sExt, oy + inner, z], [ox - sExt, oy - inner, z],
-			normal
-		);
-	}
-
-	// +X edge
-	if (extPosX) {
-		builder.addQuad(
-			[ox + inner, oy + inner, z], [ox + inner, oy - inner, z],
-			[ox + outer, oy - inner, oz + outer], [ox + outer, oy + inner, oz + outer],
-			[BEVEL_MAJOR, 0, BEVEL_MINOR]
-		);
-	}
-	else {
-		builder.addQuad(
-			[ox + inner, oy + inner, z], [ox + inner, oy - inner, z],
-			[ox + sExt, oy - inner, z], [ox + sExt, oy + inner, z],
-			normal
-		);
-	}
-
-	// -Y edge
-	if (extNegY) {
-		builder.addQuad(
-			[ox + inner, oy - inner, z], [ox - inner, oy - inner, z],
-			[ox - inner, oy - outer, oz + outer], [ox + inner, oy - outer, oz + outer],
-			[0, -BEVEL_MAJOR, BEVEL_MINOR]
-		);
-	}
-	else {
-		builder.addQuad(
-			[ox + inner, oy - inner, z], [ox - inner, oy - inner, z],
-			[ox - inner, oy - sExt, z], [ox + inner, oy - sExt, z],
-			normal
-		);
-	}
-
-	// +Y edge
-	if (extPosY) {
-		builder.addQuad(
-			[ox - inner, oy + inner, z], [ox + inner, oy + inner, z],
-			[ox + inner, oy + outer, oz + outer], [ox - inner, oy + outer, oz + outer],
-			[0, BEVEL_MAJOR, BEVEL_MINOR]
-		);
-	}
-	else {
-		builder.addQuad(
-			[ox - inner, oy + inner, z], [ox + inner, oy + inner, z],
-			[ox + inner, oy + sExt, z], [ox - inner, oy + sExt, z],
-			normal
-		);
-	}
-
-	// Four corners
-	buildCornerZPositive(builder, ox, oy, oz, s, inner, outer, sExt, -1, -1, extNegX, extNegY);
-	buildCornerZPositive(builder, ox, oy, oz, s, inner, outer, sExt, +1, -1, extPosX, extNegY);
-	buildCornerZPositive(builder, ox, oy, oz, s, inner, outer, sExt, -1, +1, extNegX, extPosY);
-	buildCornerZPositive(builder, ox, oy, oz, s, inner, outer, sExt, +1, +1, extPosX, extPosY);
-}
-
-
-function buildCornerZPositive(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	s: number, inner: number, outer: number, sExt: number,
-	signX: number, signY: number,
-	exteriorX: boolean, exteriorY: boolean
-): void {
-	const z = oz + s;
-	const zOuter = oz + outer;
-
-	// Point a: inner corner on face (always fixed)
-	const a: number[] = [ox + signX * inner, oy + signY * inner, z];
-
-	// Point d: diagonal outer corner - coordinates depend on neighbor status
-	const xD = exteriorX ? outer : sExt;
-	const yD = exteriorY ? outer : sExt;
-	// Face normal direction: use inner if both neighbors (concave), else outer
-	const zD = (!exteriorX && !exteriorY) ? (oz + inner) : zOuter;
-	const d: number[] = [ox + signX * xD, oy + signY * yD, zD];
-
-	// Point b: on X-direction edge
-	const b: number[] = exteriorX
-		? [ox + signX * outer, oy + signY * inner, zOuter]
-		: [ox + signX * sExt, oy + signY * inner, z];
-
-	// Point c: on Y-direction edge
-	const c: number[] = exteriorY
-		? [ox + signX * inner, oy + signY * outer, zOuter]
-		: [ox + signX * inner, oy + signY * sExt, z];
-
-	// Winding order depends on sign product
-	if (signX * signY > 0) {
-		const n1 = triNormal(a, b, d);
-		if (n1[2] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, b, d, n1);
-
-		const n2 = triNormal(a, d, c);
-		if (n2[2] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, d, c, n2);
-	}
-	else {
-		const n1 = triNormal(a, d, b);
-		if (n1[2] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, d, b, n1);
-
-		const n2 = triNormal(a, c, d);
-		if (n2[2] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, c, d, n2);
-	}
-}
-
-
-/**
- * -Z face (back) nine-grid generation
- */
-function buildFaceZNegative(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	s: number, inner: number, outer: number, sExt: number,
-	exterior: Record<FaceDir, boolean>
-): void {
-	const z = oz - s;
-	const normal: number[] = [0, 0, -1];
-
-	const extPosX = exterior["+x"];
-	const extNegX = exterior["-x"];
-	const extPosY = exterior["+y"];
-	const extNegY = exterior["-y"];
-
-	// Center
-	builder.addQuad(
-		[ox + inner, oy - inner, z], [ox - inner, oy - inner, z],
-		[ox - inner, oy + inner, z], [ox + inner, oy + inner, z],
-		normal
-	);
-
-	// +X edge
-	if (extPosX) {
-		builder.addQuad(
-			[ox + inner, oy - inner, z], [ox + inner, oy + inner, z],
-			[ox + outer, oy + inner, oz - outer], [ox + outer, oy - inner, oz - outer],
-			[BEVEL_MAJOR, 0, -BEVEL_MINOR]
-		);
-	}
-	else {
-		builder.addQuad(
-			[ox + inner, oy - inner, z], [ox + inner, oy + inner, z],
-			[ox + sExt, oy + inner, z], [ox + sExt, oy - inner, z],
-			normal
-		);
-	}
-
-	// -X edge
-	if (extNegX) {
-		builder.addQuad(
-			[ox - inner, oy + inner, z], [ox - inner, oy - inner, z],
-			[ox - outer, oy - inner, oz - outer], [ox - outer, oy + inner, oz - outer],
-			[-BEVEL_MAJOR, 0, -BEVEL_MINOR]
-		);
-	}
-	else {
-		builder.addQuad(
-			[ox - inner, oy + inner, z], [ox - inner, oy - inner, z],
-			[ox - sExt, oy - inner, z], [ox - sExt, oy + inner, z],
-			normal
-		);
-	}
-
-	// -Y edge
-	if (extNegY) {
-		builder.addQuad(
-			[ox - inner, oy - inner, z], [ox + inner, oy - inner, z],
-			[ox + inner, oy - outer, oz - outer], [ox - inner, oy - outer, oz - outer],
-			[0, -BEVEL_MAJOR, -BEVEL_MINOR]
-		);
-	}
-	else {
-		builder.addQuad(
-			[ox - inner, oy - inner, z], [ox + inner, oy - inner, z],
-			[ox + inner, oy - sExt, z], [ox - inner, oy - sExt, z],
-			normal
-		);
-	}
-
-	// +Y edge
-	if (extPosY) {
-		builder.addQuad(
-			[ox + inner, oy + inner, z], [ox - inner, oy + inner, z],
-			[ox - inner, oy + outer, oz - outer], [ox + inner, oy + outer, oz - outer],
-			[0, BEVEL_MAJOR, -BEVEL_MINOR]
-		);
-	}
-	else {
-		builder.addQuad(
-			[ox + inner, oy + inner, z], [ox - inner, oy + inner, z],
-			[ox - inner, oy + sExt, z], [ox + inner, oy + sExt, z],
-			normal
-		);
-	}
-
-	// Four corners
-	buildCornerZNegative(builder, ox, oy, oz, s, inner, outer, sExt, -1, -1, extNegX, extNegY);
-	buildCornerZNegative(builder, ox, oy, oz, s, inner, outer, sExt, +1, -1, extPosX, extNegY);
-	buildCornerZNegative(builder, ox, oy, oz, s, inner, outer, sExt, -1, +1, extNegX, extPosY);
-	buildCornerZNegative(builder, ox, oy, oz, s, inner, outer, sExt, +1, +1, extPosX, extPosY);
-}
-
-
-function buildCornerZNegative(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	s: number, inner: number, outer: number, sExt: number,
-	signX: number, signY: number,
-	exteriorX: boolean, exteriorY: boolean
-): void {
-	const z = oz - s;
-	const zOuter = oz - outer;
-
-	// Point a: inner corner on face (always fixed)
-	const a: number[] = [ox + signX * inner, oy + signY * inner, z];
-
-	// Point d: diagonal outer corner - coordinates depend on neighbor status
-	const xD = exteriorX ? outer : sExt;
-	const yD = exteriorY ? outer : sExt;
-	// Face normal direction: use inner if both neighbors (concave), else outer
-	const zD = (!exteriorX && !exteriorY) ? (oz - inner) : zOuter;
-	const d: number[] = [ox + signX * xD, oy + signY * yD, zD];
-
-	// Point b: on X-direction edge
-	const b: number[] = exteriorX
-		? [ox + signX * outer, oy + signY * inner, zOuter]
-		: [ox + signX * sExt, oy + signY * inner, z];
-
-	// Point c: on Y-direction edge
-	const c: number[] = exteriorY
-		? [ox + signX * inner, oy + signY * outer, zOuter]
-		: [ox + signX * inner, oy + signY * sExt, z];
-
-	// Winding order depends on sign product (opposite to +Z face)
-	if (signX * signY > 0) {
-		const n1 = triNormal(a, d, b);
-		if (n1[2] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, d, b, n1);
-
-		const n2 = triNormal(a, c, d);
-		if (n2[2] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, c, d, n2);
-	}
-	else {
-		const n1 = triNormal(a, b, d);
-		if (n1[2] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, b, d, n1);
-
-		const n2 = triNormal(a, d, c);
-		if (n2[2] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, d, c, n2);
-	}
-}
-
-
-/**
- * +X face (right) nine-grid generation
- * A-axis = Z, B-axis = Y
- */
-function buildFaceXPositive(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	s: number, inner: number, outer: number, sExt: number,
-	exterior: Record<FaceDir, boolean>
-): void {
-	const x = ox + s;
-	const normal: number[] = [1, 0, 0];
-
-	const extPosZ = exterior["+z"];
-	const extNegZ = exterior["-z"];
-	const extPosY = exterior["+y"];
-	const extNegY = exterior["-y"];
-
-	// Center
-	builder.addQuad(
-		[x, oy - inner, oz + inner], [x, oy - inner, oz - inner],
-		[x, oy + inner, oz - inner], [x, oy + inner, oz + inner],
-		normal
-	);
-
-	// +Z edge
-	if (extPosZ) {
-		builder.addQuad(
-			[x, oy - inner, oz + inner], [x, oy + inner, oz + inner],
-			[ox + outer, oy + inner, oz + outer], [ox + outer, oy - inner, oz + outer],
-			[BEVEL_MINOR, 0, BEVEL_MAJOR]
-		);
-	}
-	else {
-		builder.addQuad(
-			[x, oy - inner, oz + inner], [x, oy + inner, oz + inner],
-			[x, oy + inner, oz + sExt], [x, oy - inner, oz + sExt],
-			normal
-		);
-	}
-
-	// -Z edge
-	if (extNegZ) {
-		builder.addQuad(
-			[x, oy + inner, oz - inner], [x, oy - inner, oz - inner],
-			[ox + outer, oy - inner, oz - outer], [ox + outer, oy + inner, oz - outer],
-			[BEVEL_MINOR, 0, -BEVEL_MAJOR]
-		);
-	}
-	else {
-		builder.addQuad(
-			[x, oy + inner, oz - inner], [x, oy - inner, oz - inner],
-			[x, oy - inner, oz - sExt], [x, oy + inner, oz - sExt],
-			normal
-		);
-	}
-
-	// -Y edge
-	if (extNegY) {
-		builder.addQuad(
-			[x, oy - inner, oz - inner], [x, oy - inner, oz + inner],
-			[ox + outer, oy - outer, oz + inner], [ox + outer, oy - outer, oz - inner],
-			[BEVEL_MINOR, -BEVEL_MAJOR, 0]
-		);
-	}
-	else {
-		builder.addQuad(
-			[x, oy - inner, oz - inner], [x, oy - inner, oz + inner],
-			[x, oy - sExt, oz + inner], [x, oy - sExt, oz - inner],
-			normal
-		);
-	}
-
-	// +Y edge
-	if (extPosY) {
-		builder.addQuad(
-			[x, oy + inner, oz + inner], [x, oy + inner, oz - inner],
-			[ox + outer, oy + outer, oz - inner], [ox + outer, oy + outer, oz + inner],
-			[BEVEL_MINOR, BEVEL_MAJOR, 0]
-		);
-	}
-	else {
-		builder.addQuad(
-			[x, oy + inner, oz + inner], [x, oy + inner, oz - inner],
-			[x, oy + sExt, oz - inner], [x, oy + sExt, oz + inner],
-			normal
-		);
-	}
-
-	// Four corners
-	buildCornerXPositive(builder, ox, oy, oz, s, inner, outer, sExt, -1, -1, extNegZ, extNegY);
-	buildCornerXPositive(builder, ox, oy, oz, s, inner, outer, sExt, +1, -1, extPosZ, extNegY);
-	buildCornerXPositive(builder, ox, oy, oz, s, inner, outer, sExt, -1, +1, extNegZ, extPosY);
-	buildCornerXPositive(builder, ox, oy, oz, s, inner, outer, sExt, +1, +1, extPosZ, extPosY);
-}
-
-
-function buildCornerXPositive(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	s: number, inner: number, outer: number, sExt: number,
-	signZ: number, signY: number,
-	exteriorZ: boolean, exteriorY: boolean
-): void {
-	const x = ox + s;
-	const xOuter = ox + outer;
-
-	// Point a: inner corner on face (always fixed)
-	const a: number[] = [x, oy + signY * inner, oz + signZ * inner];
-
-	// Point d: diagonal outer corner - coordinates depend on neighbor status
-	const yD = exteriorY ? outer : sExt;
-	const zD = exteriorZ ? outer : sExt;
-	// Face normal direction: use inner if both neighbors (concave), else outer
-	const xD = (!exteriorY && !exteriorZ) ? (ox + inner) : xOuter;
-	const d: number[] = [xD, oy + signY * yD, oz + signZ * zD];
-
-	// Point b: on Z-direction edge
-	const b: number[] = exteriorZ
-		? [xOuter, oy + signY * inner, oz + signZ * outer]
-		: [x, oy + signY * inner, oz + signZ * sExt];
-
-	// Point c: on Y-direction edge
-	const c: number[] = exteriorY
-		? [xOuter, oy + signY * outer, oz + signZ * inner]
-		: [x, oy + signY * sExt, oz + signZ * inner];
-
-	// Winding order depends on sign product
-	if (signZ * signY < 0) {
-		const n1 = triNormal(a, b, d);
-		if (n1[0] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, b, d, n1);
-
-		const n2 = triNormal(a, d, c);
-		if (n2[0] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, d, c, n2);
-	}
-	else {
-		const n1 = triNormal(a, d, b);
-		if (n1[0] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, d, b, n1);
-
-		const n2 = triNormal(a, c, d);
-		if (n2[0] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, c, d, n2);
-	}
-}
-
-
-/**
- * -X face (left) nine-grid generation
- */
-function buildFaceXNegative(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	s: number, inner: number, outer: number, sExt: number,
-	exterior: Record<FaceDir, boolean>
-): void {
-	const x = ox - s;
-	const normal: number[] = [-1, 0, 0];
-
-	const extPosZ = exterior["+z"];
-	const extNegZ = exterior["-z"];
-	const extPosY = exterior["+y"];
-	const extNegY = exterior["-y"];
-
-	// Center
-	builder.addQuad(
-		[x, oy - inner, oz - inner], [x, oy - inner, oz + inner],
-		[x, oy + inner, oz + inner], [x, oy + inner, oz - inner],
-		normal
-	);
-
-	// -Z edge
-	if (extNegZ) {
-		builder.addQuad(
-			[x, oy - inner, oz - inner], [x, oy + inner, oz - inner],
-			[ox - outer, oy + inner, oz - outer], [ox - outer, oy - inner, oz - outer],
-			[-BEVEL_MINOR, 0, -BEVEL_MAJOR]
-		);
-	}
-	else {
-		builder.addQuad(
-			[x, oy - inner, oz - inner], [x, oy + inner, oz - inner],
-			[x, oy + inner, oz - sExt], [x, oy - inner, oz - sExt],
-			normal
-		);
-	}
-
-	// +Z edge
-	if (extPosZ) {
-		builder.addQuad(
-			[x, oy + inner, oz + inner], [x, oy - inner, oz + inner],
-			[ox - outer, oy - inner, oz + outer], [ox - outer, oy + inner, oz + outer],
-			[-BEVEL_MINOR, 0, BEVEL_MAJOR]
-		);
-	}
-	else {
-		builder.addQuad(
-			[x, oy + inner, oz + inner], [x, oy - inner, oz + inner],
-			[x, oy - inner, oz + sExt], [x, oy + inner, oz + sExt],
-			normal
-		);
-	}
-
-	// -Y edge
-	if (extNegY) {
-		builder.addQuad(
-			[x, oy - inner, oz + inner], [x, oy - inner, oz - inner],
-			[ox - outer, oy - outer, oz - inner], [ox - outer, oy - outer, oz + inner],
-			[-BEVEL_MINOR, -BEVEL_MAJOR, 0]
-		);
-	}
-	else {
-		builder.addQuad(
-			[x, oy - inner, oz + inner], [x, oy - inner, oz - inner],
-			[x, oy - sExt, oz - inner], [x, oy - sExt, oz + inner],
-			normal
-		);
-	}
-
-	// +Y edge
-	if (extPosY) {
-		builder.addQuad(
-			[x, oy + inner, oz - inner], [x, oy + inner, oz + inner],
-			[ox - outer, oy + outer, oz + inner], [ox - outer, oy + outer, oz - inner],
-			[-BEVEL_MINOR, BEVEL_MAJOR, 0]
-		);
-	}
-	else {
-		builder.addQuad(
-			[x, oy + inner, oz - inner], [x, oy + inner, oz + inner],
-			[x, oy + sExt, oz + inner], [x, oy + sExt, oz - inner],
-			normal
-		);
-	}
-
-	// Four corners
-	buildCornerXNegative(builder, ox, oy, oz, s, inner, outer, sExt, -1, -1, extNegZ, extNegY);
-	buildCornerXNegative(builder, ox, oy, oz, s, inner, outer, sExt, +1, -1, extPosZ, extNegY);
-	buildCornerXNegative(builder, ox, oy, oz, s, inner, outer, sExt, -1, +1, extNegZ, extPosY);
-	buildCornerXNegative(builder, ox, oy, oz, s, inner, outer, sExt, +1, +1, extPosZ, extPosY);
-}
-
-
-function buildCornerXNegative(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	s: number, inner: number, outer: number, sExt: number,
-	signZ: number, signY: number,
-	exteriorZ: boolean, exteriorY: boolean
-): void {
-	const x = ox - s;
-	const xOuter = ox - outer;
-
-	// Point a: inner corner on face (always fixed)
-	const a: number[] = [x, oy + signY * inner, oz + signZ * inner];
-
-	// Point d: diagonal outer corner - coordinates depend on neighbor status
-	const yD = exteriorY ? outer : sExt;
-	const zD = exteriorZ ? outer : sExt;
-	// Face normal direction: use inner if both neighbors (concave), else outer
-	const xD = (!exteriorY && !exteriorZ) ? (ox - inner) : xOuter;
-	const d: number[] = [xD, oy + signY * yD, oz + signZ * zD];
-
-	// Point b: on Z-direction edge
-	const b: number[] = exteriorZ
-		? [xOuter, oy + signY * inner, oz + signZ * outer]
-		: [x, oy + signY * inner, oz + signZ * sExt];
-
-	// Point c: on Y-direction edge
-	const c: number[] = exteriorY
-		? [xOuter, oy + signY * outer, oz + signZ * inner]
-		: [x, oy + signY * sExt, oz + signZ * inner];
-
-	// Winding order depends on sign product (opposite to +X face)
-	if (signZ * signY < 0) {
-		const n1 = triNormal(a, d, b);
-		if (n1[0] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, d, b, n1);
-
-		const n2 = triNormal(a, c, d);
-		if (n2[0] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, c, d, n2);
-	}
-	else {
-		const n1 = triNormal(a, b, d);
-		if (n1[0] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, b, d, n1);
-
-		const n2 = triNormal(a, d, c);
-		if (n2[0] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, d, c, n2);
-	}
-}
-
-
-// ============================================================
-// Inner Face Functions (for closing geometry on neighbor sides)
-// ============================================================
-
-/**
- * +Y inner face corner with dynamic d-point
- * For +Y face: A-axis = X, B-axis = Z
- */
-function buildInnerCornerYPositive(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	inner: number, outer: number, sExt: number,
-	signX: number, signZ: number,
-	neighborX: boolean, neighborZ: boolean
-): void {
-	const y = oy + sExt;
-
-	// Point a: inner corner, or outer when both neighbors exist (three-way junction)
-	const aRadius = (neighborX && neighborZ) ? outer : inner;
-	const a: number[] = [ox + signX * aRadius, y, oz + signZ * aRadius];
-
-	// Point b: on X-direction edge
-	const b: number[] = [ox + signX * sExt, y, oz + signZ * inner];
-
-	// Point c: on Z-direction edge
-	const c: number[] = [ox + signX * inner, y, oz + signZ * sExt];
-
-	// Point d: diagonal - coordinates depend on neighbor status
-	let xD: number, yD: number, zD: number;
-	if (neighborX && neighborZ) {
-		xD = outer;
-		yD = outer;
-		zD = outer;
-	} else if (neighborX) {
-		xD = sExt;
-		yD = sExt;
-		zD = inner;
-	} else if (neighborZ) {
-		xD = inner;
-		yD = sExt;
-		zD = sExt;
-	} else {
-		xD = outer;
-		yD = sExt;
-		zD = outer;
-	}
-	const d: number[] = [ox + signX * xD, oy + yD, oz + signZ * zD];
-
-	// Winding order
-	if (signX * signZ < 0) {
-		const n1 = triNormal(a, b, d);
-		if (n1[1] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, b, d, n1);
-
-		const n2 = triNormal(a, d, c);
-		if (n2[1] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, d, c, n2);
-	} else {
-		const n1 = triNormal(a, d, b);
-		if (n1[1] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, d, b, n1);
-
-		const n2 = triNormal(a, c, d);
-		if (n2[1] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, c, d, n2);
-	}
-}
-
-
-/**
- * +Y inner face (when +Y has neighbor)
- * Flat face at y = oy + sExt, extends based on perpendicular neighbors
- */
-function buildInnerFaceYPositive(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	inner: number, outer: number, sExt: number,
-	neighborXPos: boolean, neighborXNeg: boolean,
-	neighborZPos: boolean, neighborZNeg: boolean
-): void {
-	const y = oy + sExt;
-	const normal: number[] = [0, 1, 0];
-
-	// Center quad - always present
-	builder.addQuad(
-		[ox - inner, y, oz + inner], [ox + inner, y, oz + inner],
-		[ox + inner, y, oz - inner], [ox - inner, y, oz - inner],
-		normal
-	);
-
-	// +X edge (always present for nine-grid)
-	builder.addQuad(
-		[ox + inner, y, oz + inner], [ox + sExt, y, oz + inner],
-		[ox + sExt, y, oz - inner], [ox + inner, y, oz - inner],
-		normal
-	);
-
-	// -X edge (always present)
-	builder.addQuad(
-		[ox - sExt, y, oz + inner], [ox - inner, y, oz + inner],
-		[ox - inner, y, oz - inner], [ox - sExt, y, oz - inner],
-		normal
-	);
-
-	// +Z edge (always present)
-	builder.addQuad(
-		[ox - inner, y, oz + sExt], [ox + inner, y, oz + sExt],
-		[ox + inner, y, oz + inner], [ox - inner, y, oz + inner],
-		normal
-	);
-
-	// -Z edge (always present)
-	builder.addQuad(
-		[ox - inner, y, oz - inner], [ox + inner, y, oz - inner],
-		[ox + inner, y, oz - sExt], [ox - inner, y, oz - sExt],
-		normal
-	);
-
-	// Four corners with dynamic d-point
-	buildInnerCornerYPositive(builder, ox, oy, oz, inner, outer, sExt, +1, +1, neighborXPos, neighborZPos);
-	buildInnerCornerYPositive(builder, ox, oy, oz, inner, outer, sExt, +1, -1, neighborXPos, neighborZNeg);
-	buildInnerCornerYPositive(builder, ox, oy, oz, inner, outer, sExt, -1, +1, neighborXNeg, neighborZPos);
-	buildInnerCornerYPositive(builder, ox, oy, oz, inner, outer, sExt, -1, -1, neighborXNeg, neighborZNeg);
-}
-
-/**
- * -Y inner face corner with dynamic d-point
- */
-function buildInnerCornerYNegative(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	inner: number, outer: number, sExt: number,
-	signX: number, signZ: number,
-	neighborX: boolean, neighborZ: boolean
-): void {
-	const y = oy - sExt;
-
-	// Point a: inner corner, or outer when both neighbors exist (three-way junction)
-	const aRadius = (neighborX && neighborZ) ? outer : inner;
-	const a: number[] = [ox + signX * aRadius, y, oz + signZ * aRadius];
-
-	// Point b: on X-direction edge
-	const b: number[] = [ox + signX * sExt, y, oz + signZ * inner];
-
-	// Point c: on Z-direction edge
-	const c: number[] = [ox + signX * inner, y, oz + signZ * sExt];
-
-	// Point d: diagonal - coordinates depend on neighbor status
-	let xD: number, yD: number, zD: number;
-	if (neighborX && neighborZ) {
-		xD = outer;
-		yD = outer;
-		zD = outer;
-	} else if (neighborX) {
-		xD = sExt;
-		yD = sExt;
-		zD = inner;
-	} else if (neighborZ) {
-		xD = inner;
-		yD = sExt;
-		zD = sExt;
-	} else {
-		xD = outer;
-		yD = sExt;
-		zD = outer;
-	}
-	const d: number[] = [ox + signX * xD, oy - yD, oz + signZ * zD];
-
-	// Winding order (opposite to +Y)
-	if (signX * signZ < 0) {
-		const n1 = triNormal(a, d, b);
-		if (n1[1] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, d, b, n1);
-
-		const n2 = triNormal(a, c, d);
-		if (n2[1] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, c, d, n2);
-	} else {
-		const n1 = triNormal(a, b, d);
-		if (n1[1] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, b, d, n1);
-
-		const n2 = triNormal(a, d, c);
-		if (n2[1] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, d, c, n2);
-	}
-}
-
-
-/**
- * -Y inner face (when -Y has neighbor)
- */
-function buildInnerFaceYNegative(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	inner: number, outer: number, sExt: number,
-	neighborXPos: boolean, neighborXNeg: boolean,
-	neighborZPos: boolean, neighborZNeg: boolean
-): void {
-	const y = oy - sExt;
-	const normal: number[] = [0, -1, 0];
-
-	// Center quad
-	builder.addQuad(
-		[ox - inner, y, oz - inner], [ox + inner, y, oz - inner],
-		[ox + inner, y, oz + inner], [ox - inner, y, oz + inner],
-		normal
-	);
-
-	// +X edge
-	builder.addQuad(
-		[ox + inner, y, oz - inner], [ox + sExt, y, oz - inner],
-		[ox + sExt, y, oz + inner], [ox + inner, y, oz + inner],
-		normal
-	);
-
-	// -X edge
-	builder.addQuad(
-		[ox - sExt, y, oz - inner], [ox - inner, y, oz - inner],
-		[ox - inner, y, oz + inner], [ox - sExt, y, oz + inner],
-		normal
-	);
-
-	// +Z edge
-	builder.addQuad(
-		[ox - inner, y, oz + inner], [ox + inner, y, oz + inner],
-		[ox + inner, y, oz + sExt], [ox - inner, y, oz + sExt],
-		normal
-	);
-
-	// -Z edge
-	builder.addQuad(
-		[ox - inner, y, oz - sExt], [ox + inner, y, oz - sExt],
-		[ox + inner, y, oz - inner], [ox - inner, y, oz - inner],
-		normal
-	);
-
-	// Four corners with dynamic d-point
-	buildInnerCornerYNegative(builder, ox, oy, oz, inner, outer, sExt, +1, +1, neighborXPos, neighborZPos);
-	buildInnerCornerYNegative(builder, ox, oy, oz, inner, outer, sExt, +1, -1, neighborXPos, neighborZNeg);
-	buildInnerCornerYNegative(builder, ox, oy, oz, inner, outer, sExt, -1, +1, neighborXNeg, neighborZPos);
-	buildInnerCornerYNegative(builder, ox, oy, oz, inner, outer, sExt, -1, -1, neighborXNeg, neighborZNeg);
-}
-
-/**
- * +Z inner face corner with dynamic d-point
- * d-point coordinates depend on neighbor status:
- * - Both exterior: (outer, outer, ext)
- * - X has neighbor: (ext, inner, ext)
- * - Y has neighbor: (inner, ext, ext)
- * - Both have neighbors: (outer, outer, outer)
- */
-function buildInnerCornerZPositive(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	inner: number, outer: number, sExt: number,
-	signX: number, signY: number,
-	neighborX: boolean, neighborY: boolean
-): void {
-	const z = oz + sExt;
-
-	// Point a: inner corner, or outer when both neighbors exist (three-way junction)
-	const aRadius = (neighborX && neighborY) ? outer : inner;
-	const a: number[] = [ox + signX * aRadius, oy + signY * aRadius, z];
-
-	// Point b: on X-direction edge
-	const b: number[] = [ox + signX * sExt, oy + signY * inner, z];
-
-	// Point c: on Y-direction edge
-	const c: number[] = [ox + signX * inner, oy + signY * sExt, z];
-
-	// Point d: diagonal - coordinates depend on neighbor status
-	let xD: number, yD: number, zD: number;
-	if (neighborX && neighborY) {
-		// Both have neighbors: d goes to true corner
-		xD = outer;
-		yD = outer;
-		zD = outer;
-	} else if (neighborX) {
-		// X has neighbor: extend toward X, shrink Y
-		xD = sExt;
-		yD = inner;
-		zD = sExt;
-	} else if (neighborY) {
-		// Y has neighbor: extend toward Y, shrink X
-		xD = inner;
-		yD = sExt;
-		zD = sExt;
-	} else {
-		// Both exterior: bevel corner
-		xD = outer;
-		yD = outer;
-		zD = sExt;
-	}
-	const d: number[] = [ox + signX * xD, oy + signY * yD, oz + zD];
-
-	// Winding order depends on sign product (same as exterior +Z corners)
-	if (signX * signY > 0) {
-		const n1 = triNormal(a, b, d);
-		if (n1[2] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, b, d, n1);
-
-		const n2 = triNormal(a, d, c);
-		if (n2[2] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, d, c, n2);
-	} else {
-		const n1 = triNormal(a, d, b);
-		if (n1[2] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, d, b, n1);
-
-		const n2 = triNormal(a, c, d);
-		if (n2[2] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, c, d, n2);
-	}
-}
-
-
-/**
- * +Z inner face (when +Z has neighbor)
- */
-function buildInnerFaceZPositive(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	inner: number, outer: number, sExt: number,
-	neighborXPos: boolean, neighborXNeg: boolean,
-	neighborYPos: boolean, neighborYNeg: boolean
-): void {
-	const z = oz + sExt;
-	const normal: number[] = [0, 0, 1];
-
-	// Center quad
-	builder.addQuad(
-		[ox - inner, oy - inner, z], [ox + inner, oy - inner, z],
-		[ox + inner, oy + inner, z], [ox - inner, oy + inner, z],
-		normal
-	);
-
-	// +X edge
-	builder.addQuad(
-		[ox + inner, oy - inner, z], [ox + sExt, oy - inner, z],
-		[ox + sExt, oy + inner, z], [ox + inner, oy + inner, z],
-		normal
-	);
-
-	// -X edge
-	builder.addQuad(
-		[ox - sExt, oy - inner, z], [ox - inner, oy - inner, z],
-		[ox - inner, oy + inner, z], [ox - sExt, oy + inner, z],
-		normal
-	);
-
-	// +Y edge
-	builder.addQuad(
-		[ox - inner, oy + inner, z], [ox + inner, oy + inner, z],
-		[ox + inner, oy + sExt, z], [ox - inner, oy + sExt, z],
-		normal
-	);
-
-	// -Y edge
-	builder.addQuad(
-		[ox - inner, oy - sExt, z], [ox + inner, oy - sExt, z],
-		[ox + inner, oy - inner, z], [ox - inner, oy - inner, z],
-		normal
-	);
-
-	// Four corners with dynamic d-point
-	buildInnerCornerZPositive(builder, ox, oy, oz, inner, outer, sExt, +1, +1, neighborXPos, neighborYPos);
-	buildInnerCornerZPositive(builder, ox, oy, oz, inner, outer, sExt, +1, -1, neighborXPos, neighborYNeg);
-	buildInnerCornerZPositive(builder, ox, oy, oz, inner, outer, sExt, -1, +1, neighborXNeg, neighborYPos);
-	buildInnerCornerZPositive(builder, ox, oy, oz, inner, outer, sExt, -1, -1, neighborXNeg, neighborYNeg);
-}
-
-/**
- * -Z inner face corner with dynamic d-point
- */
-function buildInnerCornerZNegative(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	inner: number, outer: number, sExt: number,
-	signX: number, signY: number,
-	neighborX: boolean, neighborY: boolean
-): void {
-	const z = oz - sExt;
-
-	// Point a: inner corner, or outer when both neighbors exist (three-way junction)
-	const aRadius = (neighborX && neighborY) ? outer : inner;
-	const a: number[] = [ox + signX * aRadius, oy + signY * aRadius, z];
-
-	// Point b: on X-direction edge
-	const b: number[] = [ox + signX * sExt, oy + signY * inner, z];
-
-	// Point c: on Y-direction edge
-	const c: number[] = [ox + signX * inner, oy + signY * sExt, z];
-
-	// Point d: diagonal - coordinates depend on neighbor status
-	let xD: number, yD: number, zD: number;
-	if (neighborX && neighborY) {
-		xD = outer;
-		yD = outer;
-		zD = outer;
-	} else if (neighborX) {
-		xD = sExt;
-		yD = inner;
-		zD = sExt;
-	} else if (neighborY) {
-		xD = inner;
-		yD = sExt;
-		zD = sExt;
-	} else {
-		xD = outer;
-		yD = outer;
-		zD = sExt;
-	}
-	const d: number[] = [ox + signX * xD, oy + signY * yD, oz - zD];
-
-	// Winding order (opposite to +Z)
-	if (signX * signY > 0) {
-		const n1 = triNormal(a, d, b);
-		if (n1[2] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, d, b, n1);
-
-		const n2 = triNormal(a, c, d);
-		if (n2[2] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, c, d, n2);
-	} else {
-		const n1 = triNormal(a, b, d);
-		if (n1[2] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, b, d, n1);
-
-		const n2 = triNormal(a, d, c);
-		if (n2[2] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, d, c, n2);
-	}
-}
-
-
-/**
- * -Z inner face (when -Z has neighbor)
- */
-function buildInnerFaceZNegative(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	inner: number, outer: number, sExt: number,
-	neighborXPos: boolean, neighborXNeg: boolean,
-	neighborYPos: boolean, neighborYNeg: boolean
-): void {
-	const z = oz - sExt;
-	const normal: number[] = [0, 0, -1];
-
-	// Center quad
-	builder.addQuad(
-		[ox + inner, oy - inner, z], [ox - inner, oy - inner, z],
-		[ox - inner, oy + inner, z], [ox + inner, oy + inner, z],
-		normal
-	);
-
-	// +X edge
-	builder.addQuad(
-		[ox + sExt, oy - inner, z], [ox + inner, oy - inner, z],
-		[ox + inner, oy + inner, z], [ox + sExt, oy + inner, z],
-		normal
-	);
-
-	// -X edge
-	builder.addQuad(
-		[ox - inner, oy - inner, z], [ox - sExt, oy - inner, z],
-		[ox - sExt, oy + inner, z], [ox - inner, oy + inner, z],
-		normal
-	);
-
-	// +Y edge
-	builder.addQuad(
-		[ox + inner, oy + inner, z], [ox - inner, oy + inner, z],
-		[ox - inner, oy + sExt, z], [ox + inner, oy + sExt, z],
-		normal
-	);
-
-	// -Y edge
-	builder.addQuad(
-		[ox + inner, oy - sExt, z], [ox - inner, oy - sExt, z],
-		[ox - inner, oy - inner, z], [ox + inner, oy - inner, z],
-		normal
-	);
-
-	// Four corners with dynamic d-point
-	buildInnerCornerZNegative(builder, ox, oy, oz, inner, outer, sExt, +1, +1, neighborXPos, neighborYPos);
-	buildInnerCornerZNegative(builder, ox, oy, oz, inner, outer, sExt, +1, -1, neighborXPos, neighborYNeg);
-	buildInnerCornerZNegative(builder, ox, oy, oz, inner, outer, sExt, -1, +1, neighborXNeg, neighborYPos);
-	buildInnerCornerZNegative(builder, ox, oy, oz, inner, outer, sExt, -1, -1, neighborXNeg, neighborYNeg);
-}
-
-/**
- * +X inner face corner with dynamic d-point
- * For +X face: A-axis = Z, B-axis = Y
- */
-function buildInnerCornerXPositive(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	inner: number, outer: number, sExt: number,
-	signZ: number, signY: number,
-	neighborZ: boolean, neighborY: boolean
-): void {
-	const x = ox + sExt;
-
-	// Point a: inner corner, or outer when both neighbors exist (three-way junction)
-	const aRadius = (neighborZ && neighborY) ? outer : inner;
-	const a: number[] = [x, oy + signY * aRadius, oz + signZ * aRadius];
-
-	// Point b: on Z-direction edge
-	const b: number[] = [x, oy + signY * inner, oz + signZ * sExt];
-
-	// Point c: on Y-direction edge
-	const c: number[] = [x, oy + signY * sExt, oz + signZ * inner];
-
-	// Point d: diagonal - coordinates depend on neighbor status
-	let xD: number, yD: number, zD: number;
-	if (neighborZ && neighborY) {
-		xD = outer;
-		yD = outer;
-		zD = outer;
-	} else if (neighborZ) {
-		xD = sExt;
-		yD = inner;
-		zD = sExt;
-	} else if (neighborY) {
-		xD = sExt;
-		yD = sExt;
-		zD = inner;
-	} else {
-		xD = sExt;
-		yD = outer;
-		zD = outer;
-	}
-	const d: number[] = [ox + xD, oy + signY * yD, oz + signZ * zD];
-
-	// Winding order
-	if (signZ * signY < 0) {
-		const n1 = triNormal(a, b, d);
-		if (n1[0] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, b, d, n1);
-
-		const n2 = triNormal(a, d, c);
-		if (n2[0] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, d, c, n2);
-	} else {
-		const n1 = triNormal(a, d, b);
-		if (n1[0] < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, d, b, n1);
-
-		const n2 = triNormal(a, c, d);
-		if (n2[0] < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, c, d, n2);
-	}
-}
-
-
-/**
- * +X inner face (when +X has neighbor)
- */
-function buildInnerFaceXPositive(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	inner: number, outer: number, sExt: number,
-	neighborZPos: boolean, neighborZNeg: boolean,
-	neighborYPos: boolean, neighborYNeg: boolean
-): void {
-	const x = ox + sExt;
-	const normal: number[] = [1, 0, 0];
-
-	// Center quad
-	builder.addQuad(
-		[x, oy - inner, oz + inner], [x, oy - inner, oz - inner],
-		[x, oy + inner, oz - inner], [x, oy + inner, oz + inner],
-		normal
-	);
-
-	// +Z edge
-	builder.addQuad(
-		[x, oy - inner, oz + sExt], [x, oy - inner, oz + inner],
-		[x, oy + inner, oz + inner], [x, oy + inner, oz + sExt],
-		normal
-	);
-
-	// -Z edge
-	builder.addQuad(
-		[x, oy - inner, oz - inner], [x, oy - inner, oz - sExt],
-		[x, oy + inner, oz - sExt], [x, oy + inner, oz - inner],
-		normal
-	);
-
-	// +Y edge
-	builder.addQuad(
-		[x, oy + inner, oz + inner], [x, oy + inner, oz - inner],
-		[x, oy + sExt, oz - inner], [x, oy + sExt, oz + inner],
-		normal
-	);
-
-	// -Y edge
-	builder.addQuad(
-		[x, oy - sExt, oz + inner], [x, oy - sExt, oz - inner],
-		[x, oy - inner, oz - inner], [x, oy - inner, oz + inner],
-		normal
-	);
-
-	// Four corners with dynamic d-point
-	buildInnerCornerXPositive(builder, ox, oy, oz, inner, outer, sExt, +1, +1, neighborZPos, neighborYPos);
-	buildInnerCornerXPositive(builder, ox, oy, oz, inner, outer, sExt, +1, -1, neighborZPos, neighborYNeg);
-	buildInnerCornerXPositive(builder, ox, oy, oz, inner, outer, sExt, -1, +1, neighborZNeg, neighborYPos);
-	buildInnerCornerXPositive(builder, ox, oy, oz, inner, outer, sExt, -1, -1, neighborZNeg, neighborYNeg);
-}
-
-/**
- * -X inner face corner with dynamic d-point
- */
-function buildInnerCornerXNegative(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	inner: number, outer: number, sExt: number,
-	signZ: number, signY: number,
-	neighborZ: boolean, neighborY: boolean
-): void {
-	const x = ox - sExt;
-
-	// Point a: inner corner, or outer when both neighbors exist (three-way junction)
-	const aRadius = (neighborZ && neighborY) ? outer : inner;
-	const a: number[] = [x, oy + signY * aRadius, oz + signZ * aRadius];
-
-	// Point b: on Z-direction edge
-	const b: number[] = [x, oy + signY * inner, oz + signZ * sExt];
-
-	// Point c: on Y-direction edge
-	const c: number[] = [x, oy + signY * sExt, oz + signZ * inner];
-
-	// Point d: diagonal - coordinates depend on neighbor status
-	let xD: number, yD: number, zD: number;
-	if (neighborZ && neighborY) {
-		xD = outer;
-		yD = outer;
-		zD = outer;
-	} else if (neighborZ) {
-		xD = sExt;
-		yD = inner;
-		zD = sExt;
-	} else if (neighborY) {
-		xD = sExt;
-		yD = sExt;
-		zD = inner;
-	} else {
-		xD = sExt;
-		yD = outer;
-		zD = outer;
-	}
-	const d: number[] = [ox - xD, oy + signY * yD, oz + signZ * zD];
-
-	// Winding order (opposite to +X)
-	if (signZ * signY < 0) {
-		const n1 = triNormal(a, d, b);
-		if (n1[0] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, d, b, n1);
-
-		const n2 = triNormal(a, c, d);
-		if (n2[0] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, c, d, n2);
-	} else {
-		const n1 = triNormal(a, b, d);
-		if (n1[0] > 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		builder.addTriangle(a, b, d, n1);
-
-		const n2 = triNormal(a, d, c);
-		if (n2[0] > 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
-		builder.addTriangle(a, d, c, n2);
-	}
-}
-
-
-/**
- * -X inner face (when -X has neighbor)
- */
-function buildInnerFaceXNegative(
-	builder: GeometryBuilder,
-	ox: number, oy: number, oz: number,
-	inner: number, outer: number, sExt: number,
-	neighborZPos: boolean, neighborZNeg: boolean,
-	neighborYPos: boolean, neighborYNeg: boolean
-): void {
-	const x = ox - sExt;
-	const normal: number[] = [-1, 0, 0];
-
-	// Center quad
-	builder.addQuad(
-		[x, oy - inner, oz - inner], [x, oy - inner, oz + inner],
-		[x, oy + inner, oz + inner], [x, oy + inner, oz - inner],
-		normal
-	);
-
-	// +Z edge
-	builder.addQuad(
-		[x, oy - inner, oz + inner], [x, oy - inner, oz + sExt],
-		[x, oy + inner, oz + sExt], [x, oy + inner, oz + inner],
-		normal
-	);
-
-	// -Z edge
-	builder.addQuad(
-		[x, oy - inner, oz - sExt], [x, oy - inner, oz - inner],
-		[x, oy + inner, oz - inner], [x, oy + inner, oz - sExt],
-		normal
-	);
-
-	// +Y edge
-	builder.addQuad(
-		[x, oy + inner, oz - inner], [x, oy + inner, oz + inner],
-		[x, oy + sExt, oz + inner], [x, oy + sExt, oz - inner],
-		normal
-	);
-
-	// -Y edge
-	builder.addQuad(
-		[x, oy - sExt, oz - inner], [x, oy - sExt, oz + inner],
-		[x, oy - inner, oz + inner], [x, oy - inner, oz - inner],
-		normal
-	);
-
-	// Four corners with dynamic d-point
-	buildInnerCornerXNegative(builder, ox, oy, oz, inner, outer, sExt, +1, +1, neighborZPos, neighborYPos);
-	buildInnerCornerXNegative(builder, ox, oy, oz, inner, outer, sExt, +1, -1, neighborZPos, neighborYNeg);
-	buildInnerCornerXNegative(builder, ox, oy, oz, inner, outer, sExt, -1, +1, neighborZNeg, neighborYPos);
-	buildInnerCornerXNegative(builder, ox, oy, oz, inner, outer, sExt, -1, -1, neighborZNeg, neighborYNeg);
-}
 
 /**
  * Build inner face geometry for a face that has a neighbor
@@ -1836,34 +639,16 @@ function buildInnerFaceGeometry(
 	face: FaceDir,
 	neighbors: Record<FaceDir, boolean>
 ): void {
-	const inner = INNER;
-	const outer = OUTER;
-	const sExt = S_EXT;
-
-	if (face === "+y") {
-		buildInnerFaceYPositive(builder, ox, oy, oz, inner, outer, sExt,
-			neighbors["+x"], neighbors["-x"], neighbors["+z"], neighbors["-z"]);
-	}
-	else if (face === "-y") {
-		buildInnerFaceYNegative(builder, ox, oy, oz, inner, outer, sExt,
-			neighbors["+x"], neighbors["-x"], neighbors["+z"], neighbors["-z"]);
-	}
-	else if (face === "+z") {
-		buildInnerFaceZPositive(builder, ox, oy, oz, inner, outer, sExt,
-			neighbors["+x"], neighbors["-x"], neighbors["+y"], neighbors["-y"]);
-	}
-	else if (face === "-z") {
-		buildInnerFaceZNegative(builder, ox, oy, oz, inner, outer, sExt,
-			neighbors["+x"], neighbors["-x"], neighbors["+y"], neighbors["-y"]);
-	}
-	else if (face === "+x") {
-		buildInnerFaceXPositive(builder, ox, oy, oz, inner, outer, sExt,
-			neighbors["+z"], neighbors["-z"], neighbors["+y"], neighbors["-y"]);
-	}
-	else if (face === "-x") {
-		buildInnerFaceXNegative(builder, ox, oy, oz, inner, outer, sExt,
-			neighbors["+z"], neighbors["-z"], neighbors["+y"], neighbors["-y"]);
-	}
+	const cfg = AXIS_CONFIGS[face];
+	const {neighborU, neighborV} = getNeighborFlags(face, {
+		"+x": !neighbors["+x"],
+		"-x": !neighbors["-x"],
+		"+y": !neighbors["+y"],
+		"-y": !neighbors["-y"],
+		"+z": !neighbors["+z"],
+		"-z": !neighbors["-z"],
+	});
+	buildInnerFaceCanonical(builder, ox, oy, oz, cfg, neighborU, neighborV);
 }
 
 
@@ -1934,9 +719,6 @@ export function createBlockGeometryFromMask(faceMask: number): THREE.BufferGeome
  */
 export function createUnifiedPieceGeometry(blocks: Point3D[]): THREE.BufferGeometry {
 	const builder = new GeometryBuilder();
-	const inner = INNER;
-	const outer = OUTER;
-	const sExt = S_EXT;
 
 	// Build a set of block positions for quick neighbor lookup
 	const blockSet = new Set<string>();
@@ -1982,99 +764,27 @@ export function createUnifiedPieceGeometry(blocks: Point3D[]): THREE.BufferGeome
 			"-z": !exterior["-z"],
 		};
 
-		// For +Y inner face corners (when +Y has neighbor)
-		if (neighbors["+y"]) {
-			if (neighbors["+x"] && neighbors["+z"]) {
-				buildInnerCornerYPositive(builder, block.x, block.y, block.z, inner, outer, sExt, +1, +1, true, true);
-			}
-			if (neighbors["+x"] && neighbors["-z"]) {
-				buildInnerCornerYPositive(builder, block.x, block.y, block.z, inner, outer, sExt, +1, -1, true, true);
-			}
-			if (neighbors["-x"] && neighbors["+z"]) {
-				buildInnerCornerYPositive(builder, block.x, block.y, block.z, inner, outer, sExt, -1, +1, true, true);
-			}
-			if (neighbors["-x"] && neighbors["-z"]) {
-				buildInnerCornerYPositive(builder, block.x, block.y, block.z, inner, outer, sExt, -1, -1, true, true);
-			}
-		}
+		// Build three-way junction corners using canonical inner corner builder
+		// For each face that has a neighbor, check if both perpendicular directions also have neighbors
+		for (const face of FACE_DIRS) {
+			if (!neighbors[face]) continue;  // Skip if this face is exterior
 
-		// For -Y inner face corners (when -Y has neighbor)
-		if (neighbors["-y"]) {
-			if (neighbors["+x"] && neighbors["+z"]) {
-				buildInnerCornerYNegative(builder, block.x, block.y, block.z, inner, outer, sExt, +1, +1, true, true);
-			}
-			if (neighbors["+x"] && neighbors["-z"]) {
-				buildInnerCornerYNegative(builder, block.x, block.y, block.z, inner, outer, sExt, +1, -1, true, true);
-			}
-			if (neighbors["-x"] && neighbors["+z"]) {
-				buildInnerCornerYNegative(builder, block.x, block.y, block.z, inner, outer, sExt, -1, +1, true, true);
-			}
-			if (neighbors["-x"] && neighbors["-z"]) {
-				buildInnerCornerYNegative(builder, block.x, block.y, block.z, inner, outer, sExt, -1, -1, true, true);
-			}
-		}
+			const cfg = AXIS_CONFIGS[face];
+			const perpDirs = getPerpDirs(face);
 
-		// For +Z inner face corners (when +Z has neighbor)
-		if (neighbors["+z"]) {
-			if (neighbors["+x"] && neighbors["+y"]) {
-				buildInnerCornerZPositive(builder, block.x, block.y, block.z, inner, outer, sExt, +1, +1, true, true);
-			}
-			if (neighbors["+x"] && neighbors["-y"]) {
-				buildInnerCornerZPositive(builder, block.x, block.y, block.z, inner, outer, sExt, +1, -1, true, true);
-			}
-			if (neighbors["-x"] && neighbors["+y"]) {
-				buildInnerCornerZPositive(builder, block.x, block.y, block.z, inner, outer, sExt, -1, +1, true, true);
-			}
-			if (neighbors["-x"] && neighbors["-y"]) {
-				buildInnerCornerZPositive(builder, block.x, block.y, block.z, inner, outer, sExt, -1, -1, true, true);
-			}
-		}
+			// Check all 4 corner combinations for this face
+			const cornerCombos: Array<{signU: number; signV: number; uDir: FaceDir; vDir: FaceDir}> = [
+				{signU: +1, signV: +1, uDir: perpDirs.uPos, vDir: perpDirs.vPos},
+				{signU: +1, signV: -1, uDir: perpDirs.uPos, vDir: perpDirs.vNeg},
+				{signU: -1, signV: +1, uDir: perpDirs.uNeg, vDir: perpDirs.vPos},
+				{signU: -1, signV: -1, uDir: perpDirs.uNeg, vDir: perpDirs.vNeg},
+			];
 
-		// For -Z inner face corners (when -Z has neighbor)
-		if (neighbors["-z"]) {
-			if (neighbors["+x"] && neighbors["+y"]) {
-				buildInnerCornerZNegative(builder, block.x, block.y, block.z, inner, outer, sExt, +1, +1, true, true);
-			}
-			if (neighbors["+x"] && neighbors["-y"]) {
-				buildInnerCornerZNegative(builder, block.x, block.y, block.z, inner, outer, sExt, +1, -1, true, true);
-			}
-			if (neighbors["-x"] && neighbors["+y"]) {
-				buildInnerCornerZNegative(builder, block.x, block.y, block.z, inner, outer, sExt, -1, +1, true, true);
-			}
-			if (neighbors["-x"] && neighbors["-y"]) {
-				buildInnerCornerZNegative(builder, block.x, block.y, block.z, inner, outer, sExt, -1, -1, true, true);
-			}
-		}
-
-		// For +X inner face corners (when +X has neighbor)
-		if (neighbors["+x"]) {
-			if (neighbors["+z"] && neighbors["+y"]) {
-				buildInnerCornerXPositive(builder, block.x, block.y, block.z, inner, outer, sExt, +1, +1, true, true);
-			}
-			if (neighbors["+z"] && neighbors["-y"]) {
-				buildInnerCornerXPositive(builder, block.x, block.y, block.z, inner, outer, sExt, +1, -1, true, true);
-			}
-			if (neighbors["-z"] && neighbors["+y"]) {
-				buildInnerCornerXPositive(builder, block.x, block.y, block.z, inner, outer, sExt, -1, +1, true, true);
-			}
-			if (neighbors["-z"] && neighbors["-y"]) {
-				buildInnerCornerXPositive(builder, block.x, block.y, block.z, inner, outer, sExt, -1, -1, true, true);
-			}
-		}
-
-		// For -X inner face corners (when -X has neighbor)
-		if (neighbors["-x"]) {
-			if (neighbors["+z"] && neighbors["+y"]) {
-				buildInnerCornerXNegative(builder, block.x, block.y, block.z, inner, outer, sExt, +1, +1, true, true);
-			}
-			if (neighbors["+z"] && neighbors["-y"]) {
-				buildInnerCornerXNegative(builder, block.x, block.y, block.z, inner, outer, sExt, +1, -1, true, true);
-			}
-			if (neighbors["-z"] && neighbors["+y"]) {
-				buildInnerCornerXNegative(builder, block.x, block.y, block.z, inner, outer, sExt, -1, +1, true, true);
-			}
-			if (neighbors["-z"] && neighbors["-y"]) {
-				buildInnerCornerXNegative(builder, block.x, block.y, block.z, inner, outer, sExt, -1, -1, true, true);
+			for (const {signU, signV, uDir, vDir} of cornerCombos) {
+				// Only draw if both perpendicular directions also have neighbors (three-way junction)
+				if (neighbors[uDir] && neighbors[vDir]) {
+					buildInnerCornerCanonical(builder, block.x, block.y, block.z, cfg, signU, signV, true, true);
+				}
 			}
 		}
 	}

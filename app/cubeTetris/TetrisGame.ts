@@ -6,7 +6,7 @@
 import type {GameState, GameConfig, Point3D} from "./types";
 import {CubeGrid} from "./CubeGrid";
 import {TetrisPiece} from "./TetrisPiece";
-import {GAME_CONFIG, SCORE_PER_LINE, SCORE_MULTIPLIER} from "./constants";
+import {GAME_CONFIG, LINE_SCORES} from "./constants";
 
 
 const HIGH_SCORE_KEY = "cubeTetris.highScore";
@@ -50,6 +50,7 @@ export class TetrisGame {
 			score: 0,
 			level: 1,
 			linesCleared: 0,
+			piecesDropped: 0,
 			gameOver: false,
 			paused: false,
 		};
@@ -146,6 +147,7 @@ export class TetrisGame {
 			score: 0,
 			level: 1,
 			linesCleared: 0,
+			piecesDropped: 0,
 			gameOver: false,
 			paused: false,
 		};
@@ -404,6 +406,9 @@ export class TetrisGame {
 			this.board.set(point.x, point.y, point.z, data);
 		}
 
+		// Increment pieces dropped counter (before emit so UI gets updated value)
+		this._state.piecesDropped++;
+
 		this.emit("pieceLocked", {piece: this._currentPiece});
 
 		// Check for completed layers and start animation if any
@@ -479,8 +484,8 @@ export class TetrisGame {
 
 		// Update score
 		const lines = this._clearingLayers.length;
-		const multiplier = SCORE_MULTIPLIER[Math.min(lines, SCORE_MULTIPLIER.length - 1)];
-		const points = SCORE_PER_LINE * multiplier * this._state.level;
+		const baseScore = LINE_SCORES[Math.min(lines, LINE_SCORES.length - 1)];
+		const points = baseScore * this._state.level;
 
 		this._state.score += points;
 		this._state.linesCleared += lines;

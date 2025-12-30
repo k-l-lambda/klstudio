@@ -17,8 +17,12 @@
 					<span class="value">{{ state.level }}</span>
 				</div>
 				<div class="stat">
-					<span class="label">Lines</span>
+					<span class="label">Layers</span>
 					<span class="value">{{ state.linesCleared }}</span>
+				</div>
+				<div class="stat">
+					<span class="label">Pieces</span>
+					<span class="value">{{ state.piecesDropped }}</span>
 				</div>
 			</div>
 
@@ -91,6 +95,7 @@
 					score: 0,
 					level: 1,
 					linesCleared: 0,
+					piecesDropped: 0,
 					gameOver: false,
 					paused: false,
 				},
@@ -138,7 +143,10 @@
 				});
 				this.game.on("pieceMoved", () => this.updateVisuals());
 				this.game.on("pieceRotated", () => this.updateVisuals());
-				this.game.on("pieceLocked", () => this.updateVisuals());
+				this.game.on("pieceLocked", () => {
+					this.updateVisuals();
+					this.updateState();  // Update piecesDropped counter
+				});
 				this.game.on("layersClearStart", (event) => {
 					// Start the clearing animation
 					const {blocks} = event.data;

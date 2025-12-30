@@ -26,6 +26,7 @@ export interface GameState {
 	score: number;
 	level: number;
 	linesCleared: number;
+	piecesDropped: number;
 	gameOver: boolean;
 	paused: boolean;
 }

@@ -157,9 +157,8 @@ export const KEY_BINDINGS = {
 };
 
 
-// Scoring
-export const SCORE_PER_LINE = 100;
-export const SCORE_MULTIPLIER = [0, 1, 3, 5, 8]; // 0, 1, 2, 3, 4 lines
+// Scoring - direct scores for 0, 1, 2, 3, 4+ lines cleared
+export const LINE_SCORES = [0, 1, 4, 9, 25];
 
 
 /**

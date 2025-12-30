@@ -149,6 +149,7 @@ function normalToWorld(nu: number, nv: number, nw: number, cfg: AxisConfig): num
 
 /**
  * Get perpendicular face directions for a given face (the 4 edge directions)
+ * Accounts for uSign/vSign to correctly map canonical +u/-u/+v/-v to world directions
  */
 function getPerpDirs(face: FaceDir): {uPos: FaceDir; uNeg: FaceDir; vPos: FaceDir; vNeg: FaceDir} {
 	const cfg = AXIS_CONFIGS[face];
@@ -157,8 +158,14 @@ function getPerpDirs(face: FaceDir): {uPos: FaceDir; uNeg: FaceDir; vPos: FaceDi
 		1: ["+y", "-y"],
 		2: ["+z", "-z"],
 	};
-	const [uPos, uNeg] = axisToDir[cfg.uAxis];
-	const [vPos, vNeg] = axisToDir[cfg.vAxis];
+	// Get base positive/negative directions for each axis
+	const [uAxisPos, uAxisNeg] = axisToDir[cfg.uAxis];
+	const [vAxisPos, vAxisNeg] = axisToDir[cfg.vAxis];
+	// Apply sign: if sign is negative, swap positive and negative directions
+	const uPos = cfg.uSign > 0 ? uAxisPos : uAxisNeg;
+	const uNeg = cfg.uSign > 0 ? uAxisNeg : uAxisPos;
+	const vPos = cfg.vSign > 0 ? vAxisPos : vAxisNeg;
+	const vNeg = cfg.vSign > 0 ? vAxisNeg : vAxisPos;
 	return {uPos, uNeg, vPos, vNeg};
 }
 

@@ -70,7 +70,8 @@ export class AiController {
 	private targetState: TargetState | null = null;
 	private moveDelay: number = 100; // ms between moves
 	private lastMoveTime: number = 0;
-	private rotationsApplied: boolean = false;
+	private rotationSteps: {axis: "x" | "y" | "z", times: 1 | -1}[] = [];  // Expanded to single 90° steps
+	private rotationIndex: number = 0;  // Current step in rotation sequence
 	private enabled: boolean = false;
 
 
@@ -114,7 +115,7 @@ export class AiController {
 	onPieceSpawned(): void {
 		if (this.enabled) {
 			this.computeTarget();
-			this.rotationsApplied = false;
+			this.rotationIndex = 0;
 		}
 	}
 
@@ -134,23 +135,16 @@ export class AiController {
 		const piece = this.game.currentPiece;
 		const target = this.targetState;
 
-		// First apply rotations if not done yet
-		if (!this.rotationsApplied) {
-			let rotationFailed = false;
-			for (const rot of target.rotations) {
-				if (!this.game.rotatePiece(rot.axis, rot.times)) {
-					rotationFailed = true;
-					break;
-				}
-			}
-			this.rotationsApplied = true;
-			this.lastMoveTime = timestamp;
-
-			// If rotation failed, recompute target for new orientation
-			if (rotationFailed) {
+		// First apply rotations one step at a time (each step is 90°)
+		if (this.rotationIndex < this.rotationSteps.length) {
+			const rot = this.rotationSteps[this.rotationIndex];
+			if (!this.game.rotatePiece(rot.axis, rot.times)) {
+				// Rotation failed, recompute target
 				this.computeTarget();
-				this.rotationsApplied = true;  // Skip rotation for new target
+			} else {
+				this.rotationIndex++;
 			}
+			this.lastMoveTime = timestamp;
 			return;
 		}
 
@@ -163,7 +157,6 @@ export class AiController {
 			if (!this.game.moveRight()) {
 				// Can't move right, recompute target
 				this.computeTarget();
-				this.rotationsApplied = true;
 			}
 			this.lastMoveTime = timestamp;
 			return;
@@ -171,7 +164,6 @@ export class AiController {
 			if (!this.game.moveLeft()) {
 				// Can't move left, recompute target
 				this.computeTarget();
-				this.rotationsApplied = true;
 			}
 			this.lastMoveTime = timestamp;
 			return;
@@ -182,7 +174,6 @@ export class AiController {
 			if (!this.game.moveBackward()) {
 				// Can't move backward, recompute target
 				this.computeTarget();
-				this.rotationsApplied = true;
 			}
 			this.lastMoveTime = timestamp;
 			return;
@@ -190,7 +181,6 @@ export class AiController {
 			if (!this.game.moveForward()) {
 				// Can't move forward, recompute target
 				this.computeTarget();
-				this.rotationsApplied = true;
 			}
 			this.lastMoveTime = timestamp;
 			return;
@@ -209,6 +199,8 @@ export class AiController {
 		const piece = this.game.currentPiece;
 		if (!piece) {
 			this.targetState = null;
+			this.rotationSteps = [];
+			this.rotationIndex = 0;
 			return;
 		}
 
@@ -253,9 +245,33 @@ export class AiController {
 			const topCount = Math.min(3, candidates.length);
 			const randomIndex = Math.floor(Math.random() * topCount);
 			this.targetState = candidates[randomIndex];
+
+			// Expand rotations into individual 90° steps
+			this.rotationSteps = this.expandRotations(this.targetState.rotations);
+			this.rotationIndex = 0;
 		} else {
 			this.targetState = null;
+			this.rotationSteps = [];
+			this.rotationIndex = 0;
 		}
+	}
+
+
+	/**
+	 * Expand rotation sequence into individual 90° steps
+	 * e.g., {axis: "x", times: 2} -> [{axis: "x", times: 1}, {axis: "x", times: 1}]
+	 * e.g., {axis: "y", times: -1} -> [{axis: "y", times: -1}]
+	 */
+	private expandRotations(rotations: {axis: "x" | "y" | "z", times: number}[]): {axis: "x" | "y" | "z", times: 1 | -1}[] {
+		const steps: {axis: "x" | "y" | "z", times: 1 | -1}[] = [];
+		for (const rot of rotations) {
+			const count = Math.abs(rot.times);
+			const direction: 1 | -1 = rot.times > 0 ? 1 : -1;
+			for (let i = 0; i < count; i++) {
+				steps.push({axis: rot.axis, times: direction});
+			}
+		}
+		return steps;
 	}
 
 

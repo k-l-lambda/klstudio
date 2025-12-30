@@ -1594,43 +1594,39 @@ if (exterior["-x"]) {
 </details>
 
 <details>
-<summary>Level and Drop Interval Formula Update (2025-12-30)</summary>
+<summary>Level Formula Update - Based on Layers (2025-12-30)</summary>
 
-> 让我们定义level=floor(log2(pieces))-2，最小值为0，下落间隔定义为1000/(level+1)^0.5
+> 隐藏Pieces UI，定义level=floor(log2(layers+1))，下落间隔定义为1000/(level+1)^0.5
 
 **Changes Made:**
 
-1. **Level calculation** (`TetrisGame.ts:lockPiece()`):
-   - Old: `level = floor(linesCleared / 10) + 1` (starts at 1, +1 per 10 layers)
-   - New: `level = max(0, floor(log2(piecesDropped)) - 2)` (starts at 0, logarithmic growth)
+1. **Hidden Pieces UI** (`cube-tetris.vue`):
+   - Commented out the Pieces stat display
 
-2. **Drop interval** (`TetrisGame.ts:update()` and `dropInterval` getter):
-   - Old: `max(100, 1000 - (level - 1) * 50)` ms (linear decrease)
-   - New: `1000 / sqrt(level + 1)` ms (square root decrease)
-
-3. **Score multiplier** (`TetrisGame.ts:completeClearingAnimation()`):
-   - Changed from `baseScore * level` to `baseScore * (level + 1)` since level now starts at 0
+2. **Level calculation** (`TetrisGame.ts:completeClearingAnimation()`):
+   - Old: `level = max(0, floor(log2(piecesDropped)) - 2)` (based on pieces)
+   - New: `level = floor(log2(linesCleared + 1))` (based on layers)
+   - Moved level update from `lockPiece()` to `completeClearingAnimation()`
 
 **Level Progression Table:**
 
-| Pieces | Level | Drop Interval | Score Multiplier |
+| Layers | Level | Drop Interval | Score Multiplier |
 |--------|-------|---------------|------------------|
-| 1-7 | 0 | 1000ms | ×1 |
-| 8-15 | 1 | 707ms | ×2 |
-| 16-31 | 2 | 577ms | ×3 |
-| 32-63 | 3 | 500ms | ×4 |
-| 64-127 | 4 | 447ms | ×5 |
-| 128-255 | 5 | 408ms | ×6 |
-| 256-511 | 6 | 378ms | ×7 |
-| 512-1023 | 7 | 354ms | ×8 |
-| 1024+ | 8+ | ~333ms+ | ×9+ |
+| 0 | 0 | 1000ms | ×1 |
+| 1-2 | 1 | 707ms | ×2 |
+| 3-6 | 2 | 577ms | ×3 |
+| 7-14 | 3 | 500ms | ×4 |
+| 15-30 | 4 | 447ms | ×5 |
+| 31-62 | 5 | 408ms | ×6 |
+| 63-126 | 6 | 378ms | ×7 |
+| 127-254 | 7 | 354ms | ×8 |
+| 255+ | 8+ | ~333ms+ | ×9+ |
 
 **Characteristics:**
-- First 7 pieces are Level 0 (beginner protection period)
-- Pieces required to level up doubles each time (exponential growth)
-- Drop speed decreases smoothly (square root function)
-- Even at high levels, drop interval doesn't become extreme
+- Level 0 until first layer cleared
+- Layers required to level up doubles each time (exponential growth)
+- More intuitive: level progression tied to visible achievement (cleared layers)
 
-**Result:** ✅ Level progression now based on pieces dropped with logarithmic scaling
+**Result:** ✅ Level progression now based on layers cleared with logarithmic scaling
 
 </details>

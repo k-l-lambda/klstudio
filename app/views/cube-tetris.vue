@@ -13,16 +13,12 @@
 					<span class="value">{{ state.score }}</span>
 				</div>
 				<div class="stat">
-					<span class="label">Level</span>
-					<span class="value">{{ state.level }}</span>
-				</div>
-				<div class="stat">
 					<span class="label">Layers</span>
 					<span class="value">{{ state.linesCleared }}</span>
 				</div>
 				<div class="stat">
-					<span class="label">Pieces</span>
-					<span class="value">{{ state.piecesDropped }}</span>
+					<span class="label">Level</span>
+					<span class="value">{{ state.level }}</span>
 				</div>
 			</div>
 

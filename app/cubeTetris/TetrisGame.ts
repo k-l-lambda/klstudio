@@ -409,11 +409,6 @@ export class TetrisGame {
 		// Increment pieces dropped counter (before emit so UI gets updated value)
 		this._state.piecesDropped++;
 
-		// Update level based on pieces dropped: level = floor(log2(pieces)) - 2, min 0
-		if (this._state.piecesDropped > 0) {
-			this._state.level = Math.max(0, Math.floor(Math.log2(this._state.piecesDropped)) - 2);
-		}
-
 		this.emit("pieceLocked", {piece: this._currentPiece});
 
 		// Check for completed layers and start animation if any
@@ -494,6 +489,9 @@ export class TetrisGame {
 
 		this._state.score += points;
 		this._state.linesCleared += lines;
+
+		// Update level based on layers cleared: level = floor(log2(layers + 1))
+		this._state.level = Math.floor(Math.log2(this._state.linesCleared + 1));
 
 		this.emit("layersCleared", {layers: this._clearingLayers, score: points});
 		this.emit("scoreChanged", {score: this._state.score, level: this._state.level});

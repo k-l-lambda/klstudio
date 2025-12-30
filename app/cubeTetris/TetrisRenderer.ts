@@ -826,6 +826,9 @@ export class TetrisRenderer {
 	private ghostGroup: THREE.Group;
 	private boundaryGroup: THREE.Group;
 
+	// Track individual board block meshes by coordinate key
+	private boardBlockMeshes: Map<string, THREE.Mesh> = new Map();
+
 	private blockGeometry: THREE.BufferGeometry;
 	private ghostMaterial: THREE.MeshStandardMaterial;
 
@@ -849,9 +852,8 @@ export class TetrisRenderer {
 	private cameraTargetHeight: number = 5;
 	private lastFrameTime: number = 0;
 
-	// Layer clearing animation
-	private clearingBlocks: Map<string, {mesh: THREE.Mesh; remain: number; originalColor: THREE.Color}> = new Map();
-	private clearingGroup: THREE.Group;
+	// Layer clearing animation (references existing meshes in boardBlockMeshes)
+	private clearingBlocks: Map<string, {remain: number; originalColor: THREE.Color}> = new Map();
 	private readonly CLEAR_DURATION = 0.4;  // 0.4 seconds like original
 	private readonly FLASH_INTERVAL = 0.08; // Flash every 80ms like original
 
@@ -897,13 +899,11 @@ export class TetrisRenderer {
 		this.pieceGroup = new THREE.Group();
 		this.ghostGroup = new THREE.Group();
 		this.boundaryGroup = new THREE.Group();
-		this.clearingGroup = new THREE.Group();
 
 		this.scene.add(this.boardGroup);
 		this.scene.add(this.pieceGroup);
 		this.scene.add(this.ghostGroup);
 		this.scene.add(this.boundaryGroup);
-		this.scene.add(this.clearingGroup);
 
 		// Shared geometry and materials - use beveled cube
 		this.blockGeometry = createBeveledCubeGeometry();
@@ -1042,23 +1042,37 @@ export class TetrisRenderer {
 
 	/**
 	 * Update the board visualization
+	 * Maintains boardBlockMeshes map for individual block tracking
 	 */
 	updateBoard(board: CubeGrid): void {
-		// Clear existing board meshes
-		while (this.boardGroup.children.length > 0) {
-			const child = this.boardGroup.children[0];
-			this.boardGroup.remove(child);
-			if (child instanceof THREE.Mesh) {
-				(child.material as THREE.Material).dispose();
+		// Build set of current board block keys
+		const currentKeys = new Set<string>();
+		for (const {point} of board.toPointList()) {
+			currentKeys.add(coordKey(point.x, point.y, point.z));
+		}
+
+		// Remove meshes that are no longer in the board (unless being cleared)
+		for (const [key, mesh] of this.boardBlockMeshes) {
+			if (!currentKeys.has(key) && !this.clearingBlocks.has(key)) {
+				this.boardGroup.remove(mesh);
+				(mesh.material as THREE.Material).dispose();
+				this.boardBlockMeshes.delete(key);
 			}
 		}
 
-		// Add blocks from board using their stored faceMask
+		// Add/update meshes for current board blocks
 		for (const {point, data} of board.toPointList()) {
+			const key = coordKey(point.x, point.y, point.z);
+
+			// Skip if already exists or being cleared
+			if (this.boardBlockMeshes.has(key)) continue;
+			if (this.clearingBlocks.has(key)) continue;
+
 			const faceMask = data.faceMask ?? FACE_MASK.ALL;
 			const mesh = this.createBlockMesh(data.color, faceMask);
 			mesh.position.set(point.x, point.y, point.z);
 			this.boardGroup.add(mesh);
+			this.boardBlockMeshes.set(key, mesh);
 		}
 	}
 
@@ -1272,7 +1286,7 @@ export class TetrisRenderer {
 		disposeGroup(this.pieceGroup, true);  // Uses cached piece geometries
 		disposeGroup(this.ghostGroup, true);  // Uses cached piece geometries
 		disposeGroup(this.boundaryGroup);
-		disposeGroup(this.clearingGroup);
+		this.boardBlockMeshes.clear();
 		this.clearingBlocks.clear();
 
 		// Dispose controls and renderer
@@ -1379,10 +1393,11 @@ export class TetrisRenderer {
 
 	/**
 	 * Start clearing animation for blocks at specified positions
+	 * Uses existing meshes from boardBlockMeshes instead of creating new ones
 	 * @param blocks Array of block positions to animate (with color and faceMask)
 	 */
 	startClearingAnimation(blocks: Array<{point: Point3D; color: string; faceMask?: number}>): void {
-		for (const {point, color, faceMask} of blocks) {
+		for (const {point, color} of blocks) {
 			const key = coordKey(point.x, point.y, point.z);
 
 			// Skip if already animating this block
@@ -1390,31 +1405,23 @@ export class TetrisRenderer {
 				continue;
 			}
 
-			// Get or create cached geometry for this faceMask
-			const mask = faceMask ?? FACE_MASK.ALL;
-			let geometry = this.blockGeometryCache.get(mask);
-			if (!geometry) {
-				geometry = createBlockGeometryFromMask(mask);
-				this.blockGeometryCache.set(mask, geometry);
+			// Find existing mesh in boardBlockMeshes
+			const mesh = this.boardBlockMeshes.get(key);
+			if (!mesh) {
+				// Block not found in board, skip
+				continue;
 			}
 
-			// Create mesh for clearing block
+			// Get original color from the mesh material or parameter
+			const material = mesh.material as THREE.MeshStandardMaterial;
 			const originalColor = new THREE.Color(color);
-			const material = new THREE.MeshStandardMaterial({
-				color: originalColor,
-				metalness: 0.3,
-				roughness: 0.4,
-				emissive: new THREE.Color(0xffffff),
-				emissiveIntensity: 0,
-			});
-			const mesh = new THREE.Mesh(geometry, material);
-			mesh.position.set(point.x, point.y, point.z);
-			mesh.castShadow = true;
-			mesh.receiveShadow = true;
 
-			this.clearingGroup.add(mesh);
+			// Enable emissive for flash effect
+			material.emissive = new THREE.Color(0xffffff);
+			material.emissiveIntensity = 0;
+
+			// Track clearing state (mesh is already in boardBlockMeshes)
 			this.clearingBlocks.set(key, {
-				mesh,
 				remain: this.CLEAR_DURATION,
 				originalColor,
 			});
@@ -1433,9 +1440,17 @@ export class TetrisRenderer {
 		const toRemove: string[] = [];
 
 		for (const [key, data] of this.clearingBlocks) {
+			// Get mesh from boardBlockMeshes
+			const mesh = this.boardBlockMeshes.get(key);
+			if (!mesh) {
+				// Mesh was removed externally, clean up
+				toRemove.push(key);
+				continue;
+			}
+
 			// Calculate flash state (alternates every FLASH_INTERVAL)
 			const flashPhase = Math.floor(data.remain / this.FLASH_INTERVAL) % 2;
-			const material = data.mesh.material as THREE.MeshStandardMaterial;
+			const material = mesh.material as THREE.MeshStandardMaterial;
 
 			if (flashPhase === 0) {
 				// Bright flash (white-ish)
@@ -1455,15 +1470,15 @@ export class TetrisRenderer {
 			}
 		}
 
-		// Remove finished blocks
+		// Remove finished blocks from board
 		for (const key of toRemove) {
-			const data = this.clearingBlocks.get(key);
-			if (data) {
-				this.clearingGroup.remove(data.mesh);
-				data.mesh.geometry?.dispose();
-				(data.mesh.material as THREE.Material).dispose();
-				this.clearingBlocks.delete(key);
+			const mesh = this.boardBlockMeshes.get(key);
+			if (mesh) {
+				this.boardGroup.remove(mesh);
+				(mesh.material as THREE.Material).dispose();
+				this.boardBlockMeshes.delete(key);
 			}
+			this.clearingBlocks.delete(key);
 		}
 
 		return this.clearingBlocks.size > 0;

@@ -409,6 +409,11 @@ export class TetrisGame {
 		// Increment pieces dropped counter (before emit so UI gets updated value)
 		this._state.piecesDropped++;
 
+		// Update level based on pieces dropped: level = floor(log2(pieces)) - 2, min 0
+		if (this._state.piecesDropped > 0) {
+			this._state.level = Math.max(0, Math.floor(Math.log2(this._state.piecesDropped)) - 2);
+		}
+
 		this.emit("pieceLocked", {piece: this._currentPiece});
 
 		// Check for completed layers and start animation if any
@@ -485,13 +490,10 @@ export class TetrisGame {
 		// Update score
 		const lines = this._clearingLayers.length;
 		const baseScore = LINE_SCORES[Math.min(lines, LINE_SCORES.length - 1)];
-		const points = baseScore * this._state.level;
+		const points = baseScore * (this._state.level + 1);
 
 		this._state.score += points;
 		this._state.linesCleared += lines;
-
-		// Level up every 10 lines
-		this._state.level = Math.floor(this._state.linesCleared / 10) + 1;
 
 		this.emit("layersCleared", {layers: this._clearingLayers, score: points});
 		this.emit("scoreChanged", {score: this._state.score, level: this._state.level});
@@ -555,11 +557,8 @@ export class TetrisGame {
 			return;
 		}
 
-		// Calculate drop interval based on level
-		const dropInterval = Math.max(
-			100,
-			this.config.dropInterval - (this._state.level - 1) * 50
-		);
+		// Calculate drop interval based on level: 1000 / sqrt(level + 1)
+		const dropInterval = 1000 / Math.sqrt(this._state.level + 1);
 
 		if (timestamp - this._lastDropTime >= dropInterval) {
 			this.dropOne();
@@ -604,7 +603,7 @@ export class TetrisGame {
 	 * Get current drop interval in ms
 	 */
 	get dropInterval(): number {
-		return Math.max(100, this.config.dropInterval - (this._state.level - 1) * 50);
+		return 1000 / Math.sqrt(this._state.level + 1);
 	}
 
 

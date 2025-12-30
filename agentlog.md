@@ -1592,3 +1592,45 @@ if (exterior["-x"]) {
 **Result:** ✅ Significantly reduced code duplication while maintaining correct geometry generation
 
 </details>
+
+<details>
+<summary>Level and Drop Interval Formula Update (2025-12-30)</summary>
+
+> 让我们定义level=floor(log2(pieces))-2，最小值为0，下落间隔定义为1000/(level+1)^0.5
+
+**Changes Made:**
+
+1. **Level calculation** (`TetrisGame.ts:lockPiece()`):
+   - Old: `level = floor(linesCleared / 10) + 1` (starts at 1, +1 per 10 layers)
+   - New: `level = max(0, floor(log2(piecesDropped)) - 2)` (starts at 0, logarithmic growth)
+
+2. **Drop interval** (`TetrisGame.ts:update()` and `dropInterval` getter):
+   - Old: `max(100, 1000 - (level - 1) * 50)` ms (linear decrease)
+   - New: `1000 / sqrt(level + 1)` ms (square root decrease)
+
+3. **Score multiplier** (`TetrisGame.ts:completeClearingAnimation()`):
+   - Changed from `baseScore * level` to `baseScore * (level + 1)` since level now starts at 0
+
+**Level Progression Table:**
+
+| Pieces | Level | Drop Interval | Score Multiplier |
+|--------|-------|---------------|------------------|
+| 1-7 | 0 | 1000ms | ×1 |
+| 8-15 | 1 | 707ms | ×2 |
+| 16-31 | 2 | 577ms | ×3 |
+| 32-63 | 3 | 500ms | ×4 |
+| 64-127 | 4 | 447ms | ×5 |
+| 128-255 | 5 | 408ms | ×6 |
+| 256-511 | 6 | 378ms | ×7 |
+| 512-1023 | 7 | 354ms | ×8 |
+| 1024+ | 8+ | ~333ms+ | ×9+ |
+
+**Characteristics:**
+- First 7 pieces are Level 0 (beginner protection period)
+- Pieces required to level up doubles each time (exponential growth)
+- Drop speed decreases smoothly (square root function)
+- Even at high levels, drop interval doesn't become extreme
+
+**Result:** ✅ Level progression now based on pieces dropped with logarithmic scaling
+
+</details>

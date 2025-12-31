@@ -847,6 +847,8 @@ export class TetrisRenderer {
 	private autoRotateAngle: number = 0;
 	private pieceCentroid: {x: number; z: number} | null = null;  // Current piece center of gravity
 	private pieceSpawnTime: number = 0;  // Timestamp when piece spawned (for camera delay)
+	private cameraAngularVelocity: number = 0;  // Current angular velocity for smooth inertia
+	private ghostMinY: number = Infinity;  // Ghost brick's lowest Y position
 	private boardCenter: THREE.Vector3;
 
 	// Camera height following
@@ -1198,10 +1200,15 @@ export class TetrisRenderer {
 
 		// Auto-rotate camera if enabled
 		if (this.autoRotate) {
-			// Calculate target angle based on piece centroid
-			// Skip centroid targeting for first 0.4s after piece spawn (keep inertial rotation)
+			// Calculate target angular velocity based on piece centroid
+			// Conditions for centroid targeting:
+			// 1. After 0.4s since piece spawn
+			// 2. Ghost's lowest Y < heap's highest Y (piece is below existing blocks)
 			const timeSinceSpawn = performance.now() - this.pieceSpawnTime;
-			if (this.pieceCentroid && timeSinceSpawn > 400) {
+			const ghostNearHeap = this.ghostMinY < this.heapMaxY;
+			let targetVelocity = this.autoRotateSpeed * 0.005;  // Default inertial speed
+
+			if (this.pieceCentroid && timeSinceSpawn > 400 && ghostNearHeap) {
 				// Vector from board center to piece centroid
 				const dx = this.pieceCentroid.x - this.boardCenter.x;
 				const dz = this.pieceCentroid.z - this.boardCenter.z;
@@ -1213,17 +1220,22 @@ export class TetrisRenderer {
 				const distance = Math.sqrt(dx * dx + dz * dz);
 				const rotateSpeed = Math.max(0.3, distance * 0.8);
 
-				// Smooth transition to target angle
+				// Calculate angle difference
 				let angleDiff = targetAngle - this.autoRotateAngle;
 				// Normalize to [-PI, PI]
 				while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
 				while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
 
-				this.autoRotateAngle += angleDiff * rotateSpeed * 0.02;
-			} else {
-				// Inertial rotation during pause period
-				this.autoRotateAngle += this.autoRotateSpeed * 0.005;
+				// Target velocity based on angle difference
+				targetVelocity = angleDiff * rotateSpeed * 0.02;
 			}
+
+			// Smooth interpolation of angular velocity (inertia)
+			const inertiaFactor = 0.08;  // Lower = more inertia
+			this.cameraAngularVelocity += (targetVelocity - this.cameraAngularVelocity) * inertiaFactor;
+
+			// Apply velocity to angle
+			this.autoRotateAngle += this.cameraAngularVelocity;
 
 			const radius = 12;
 			const height = this.cameraTargetHeight + 5;
@@ -1383,6 +1395,14 @@ export class TetrisRenderer {
 	 */
 	onPieceSpawned(): void {
 		this.pieceSpawnTime = performance.now();
+	}
+
+
+	/**
+	 * Set ghost brick's minimum Y position for camera control
+	 */
+	setGhostMinY(minY: number): void {
+		this.ghostMinY = minY;
 	}
 
 

@@ -228,7 +228,7 @@
 				const boardBounds = this.game.board.getBounds();
 				this.renderer.setHeapMaxY(boardBounds.maxY);
 
-				// Update piece centroid for AI camera targeting
+				// Update piece centroid and ghost position for AI camera targeting
 				if (this.aiMode && this.game.currentPiece) {
 					const blocks = this.game.currentPiece.getWorldBlocks();
 					const centroid = {
@@ -236,8 +236,17 @@
 						z: blocks.reduce((sum, b) => sum + b.point.z, 0) / blocks.length,
 					};
 					this.renderer.setPieceCentroid(centroid);
+
+					// Calculate ghost's minimum Y position
+					const ghostPos = this.game.getGhostPosition();
+					if (ghostPos) {
+						const localBlocks = this.game.currentPiece.getLocalBlocks();
+						const ghostMinY = Math.min(...localBlocks.map(b => b.y + ghostPos.y));
+						this.renderer.setGhostMinY(ghostMinY);
+					}
 				} else {
 					this.renderer.setPieceCentroid(null);
+					this.renderer.setGhostMinY(Infinity);
 				}
 			},
 

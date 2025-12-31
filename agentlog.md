@@ -1673,3 +1673,63 @@ for (const {key, data, point} of toShift) {
 **Result:** ✅ Layer clearing now correctly preserves all blocks during shift operation
 
 </details>
+
+
+## 2025/12/31
+
+
+<summary>AI Camera Enhancement - Centroid-Based Targeting (2025-12-31)</summary>
+
+> Enhance AI playing camera scheduling. Cancel the constant rotation setting. Calculate the brick's center of gravity (x, z) coordinates, set the camera's target viewing angle to align with the vector from origin to the centroid, rotation speed proportional to the distance from centroid to origin. The first 0.4s for every dropping brick, keep inertial rotation instead of centroid targeting.
+
+<details>
+**Implementation:**
+
+1. **TetrisRenderer.ts - New properties and methods:**
+   - `pieceCentroid: {x: number; z: number} | null` - Current piece center of gravity
+   - `pieceSpawnTime: number` - Timestamp when piece spawned (for camera delay)
+   - `setPieceCentroid(centroid)` - Set current piece centroid for camera targeting
+   - `onPieceSpawned()` - Reset camera control delay timer
+
+2. **Modified auto-rotate logic in `render()`:**
+   ```typescript
+   const timeSinceSpawn = performance.now() - this.pieceSpawnTime;
+   if (this.pieceCentroid && timeSinceSpawn > 400) {
+       // Vector from board center to piece centroid
+       const dx = this.pieceCentroid.x - this.boardCenter.x;
+       const dz = this.pieceCentroid.z - this.boardCenter.z;
+
+       // Target angle aligns with centroid direction
+       const targetAngle = Math.atan2(dz, dx);
+
+       // Rotation speed proportional to distance from center
+       const distance = Math.sqrt(dx * dx + dz * dz);
+       const rotateSpeed = Math.max(0.3, distance * 0.8);
+
+       // Smooth transition to target angle
+       let angleDiff = targetAngle - this.autoRotateAngle;
+       // Normalize to [-PI, PI]
+       while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+       while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+
+       this.autoRotateAngle += angleDiff * rotateSpeed * 0.02;
+   } else {
+       // Inertial rotation during pause period
+       this.autoRotateAngle += this.autoRotateSpeed * 0.005;
+   }
+   ```
+
+3. **cube-tetris.vue - Centroid calculation:**
+   - In `updateVisuals()`: Calculate centroid from `getWorldBlocks()` and pass to renderer
+   - In `pieceSpawned` event: Call `renderer.onPieceSpawned()` to reset delay timer
+
+**Behavior:**
+- Camera no longer rotates at constant speed
+- Camera angle aligns with vector from board center to piece centroid
+- Rotation speed increases when piece is further from center
+- First 0.4s after piece spawn: slow inertial rotation (gives player time to see new piece)
+- After 0.4s: smooth transition to centroid-targeting mode
+
+**Result:** ✅ Camera dynamically follows piece position with smooth transitions
+
+</details>

@@ -845,6 +845,8 @@ export class TetrisRenderer {
 	private autoRotate: boolean = false;
 	private autoRotateSpeed: number = 0.3;
 	private autoRotateAngle: number = 0;
+	private pieceCentroid: {x: number; z: number} | null = null;  // Current piece center of gravity
+	private pieceSpawnTime: number = 0;  // Timestamp when piece spawned (for camera delay)
 	private boardCenter: THREE.Vector3;
 
 	// Camera height following
@@ -1196,7 +1198,33 @@ export class TetrisRenderer {
 
 		// Auto-rotate camera if enabled
 		if (this.autoRotate) {
-			this.autoRotateAngle += this.autoRotateSpeed * 0.01;
+			// Calculate target angle based on piece centroid
+			// Skip centroid targeting for first 0.4s after piece spawn (keep inertial rotation)
+			const timeSinceSpawn = performance.now() - this.pieceSpawnTime;
+			if (this.pieceCentroid && timeSinceSpawn > 400) {
+				// Vector from board center to piece centroid
+				const dx = this.pieceCentroid.x - this.boardCenter.x;
+				const dz = this.pieceCentroid.z - this.boardCenter.z;
+
+				// Target angle aligns with centroid direction
+				const targetAngle = Math.atan2(dz, dx);
+
+				// Rotation speed proportional to distance from center
+				const distance = Math.sqrt(dx * dx + dz * dz);
+				const rotateSpeed = Math.max(0.3, distance * 0.8);
+
+				// Smooth transition to target angle
+				let angleDiff = targetAngle - this.autoRotateAngle;
+				// Normalize to [-PI, PI]
+				while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+				while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+
+				this.autoRotateAngle += angleDiff * rotateSpeed * 0.02;
+			} else {
+				// Inertial rotation during pause period
+				this.autoRotateAngle += this.autoRotateSpeed * 0.005;
+			}
+
 			const radius = 12;
 			const height = this.cameraTargetHeight + 5;
 			this.camera.position.x = this.boardCenter.x + Math.cos(this.autoRotateAngle) * radius;
@@ -1339,6 +1367,22 @@ export class TetrisRenderer {
 	 */
 	isAutoRotating(): boolean {
 		return this.autoRotate;
+	}
+
+
+	/**
+	 * Set current piece centroid for camera targeting
+	 */
+	setPieceCentroid(centroid: {x: number; z: number} | null): void {
+		this.pieceCentroid = centroid;
+	}
+
+
+	/**
+	 * Notify that a new piece has spawned (resets camera control delay)
+	 */
+	onPieceSpawned(): void {
+		this.pieceSpawnTime = performance.now();
 	}
 
 

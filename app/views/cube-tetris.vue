@@ -136,6 +136,7 @@
 				this.game.on("pieceSpawned", () => {
 					this.updateVisuals();
 					this.aiController.onPieceSpawned();
+					this.renderer.onPieceSpawned();  // Reset camera control delay
 				});
 				this.game.on("pieceMoved", () => this.updateVisuals());
 				this.game.on("pieceRotated", () => this.updateVisuals());
@@ -226,6 +227,18 @@
 				// Update camera height tracking
 				const boardBounds = this.game.board.getBounds();
 				this.renderer.setHeapMaxY(boardBounds.maxY);
+
+				// Update piece centroid for AI camera targeting
+				if (this.aiMode && this.game.currentPiece) {
+					const blocks = this.game.currentPiece.getWorldBlocks();
+					const centroid = {
+						x: blocks.reduce((sum, b) => sum + b.point.x, 0) / blocks.length,
+						z: blocks.reduce((sum, b) => sum + b.point.z, 0) / blocks.length,
+					};
+					this.renderer.setPieceCentroid(centroid);
+				} else {
+					this.renderer.setPieceCentroid(null);
+				}
 			},
 
 

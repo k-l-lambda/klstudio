@@ -73,6 +73,7 @@
 	import {TetrisGame} from "../cubeTetris/TetrisGame";
 	import {TetrisRenderer} from "../cubeTetris/TetrisRenderer";
 	import {AiController} from "../cubeTetris/AiController";
+	import {AudioManager} from "../cubeTetris/AudioManager";
 	import {KEY_BINDINGS} from "../cubeTetris/constants";
 
 
@@ -85,6 +86,7 @@
 				game: null,
 				renderer: null,
 				aiController: null,
+				audioManager: null,
 				aiMode: true,  // Start in AI demo mode
 				highScore: 0,
 				state: {
@@ -128,6 +130,9 @@
 				// Create AI controller
 				this.aiController = markRaw(new AiController(this.game));
 
+				// Create audio manager
+				this.audioManager = markRaw(new AudioManager());
+
 				// Listen to game events
 				this.game.on("scoreChanged", () => this.updateState());
 				this.game.on("newHighScore", (event) => {
@@ -143,15 +148,18 @@
 				this.game.on("pieceLocked", () => {
 					this.updateVisuals();
 					this.updateState();  // Update piecesDropped counter
+					this.audioManager.play("brickFreeze");
 				});
 				this.game.on("layersClearStart", (event) => {
 					// Start the clearing animation
 					const {blocks} = event.data;
 					this.renderer.startClearingAnimation(blocks);
+					this.audioManager.play("layerClear");
 				});
 				this.game.on("layersCleared", () => this.updateVisuals());
 				this.game.on("gameOver", () => {
 					this.updateState();
+					this.audioManager.play("gameOver");
 					// Auto restart in AI mode after delay
 					if (this.aiMode) {
 						setTimeout(() => {
@@ -418,6 +426,10 @@
 				if (this.renderer) {
 					this.renderer.dispose();
 					this.renderer = null;
+				}
+				if (this.audioManager) {
+					this.audioManager.dispose();
+					this.audioManager = null;
 				}
 				this.game = null;
 				this.aiController = null;

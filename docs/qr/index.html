@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <script src="./qrcode.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #4169E1;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 24px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #eee;
+        }
+        .btn {
+            padding: 10px 18px;
+            border: 1px solid #4169E1;
+            background: white;
+            color: #4169E1;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            background: #4169E1;
+            color: white;
+        }
+        .btn-primary {
+            background: #4169E1;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #3050C0;
+        }
+        .config-panel {
+            display: none;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .config-panel.show {
+            display: block;
+        }
+        .config-panel h3 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #333;
+        }
+        .config-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .config-row .field {
+            flex: 1;
+        }
+        .config-row label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .config-row input,
+        .config-row select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+        }
+        .config-row input:focus,
+        .config-row select:focus {
+            outline: none;
+            border-color: #4169E1;
+        }
+        .config-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .config-actions .btn {
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+        #text-editor {
+            width: 100%;
+            min-height: 300px;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            resize: vertical;
+            background: #fafafa;
+        }
+        #text-editor:focus {
+            outline: none;
+            border-color: #4169E1;
+            background: white;
+        }
+        .editor-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #888;
+        }
+        .qr-section {
+            display: flex;
+            gap: 24px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #eee;
+        }
+        .qr-container {
+            flex-shrink: 0;
+            text-align: center;
+        }
+        #qrcode {
+            display: inline-block;
+            padding: 12px;
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            min-width: 224px;
+            min-height: 224px;
+        }
+        .qr-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .qr-info h3 {
+            margin: 0 0 8px 0;
+            color: #333;
+        }
+        .qr-info p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .qr-status {
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: #e8f5e9;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #2e7d32;
+        }
+        .qr-status.warning {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        .qr-status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <h1>QR Code Generator</h1>
+    <p class="subtitle">Generate QR codes for terminal commands</p>
+
+    <div class="container">
+        <div class="toolbar">
+            <button class="btn btn-primary" onclick="toggleConfigPanel()">Generate Wrapper Command</button>
+            <button class="btn" onclick="clearEditor()">Clear</button>
+        </div>
+
+        <div class="config-panel" id="config-panel">
+            <h3>Claude Wrapper Configuration</h3>
+            <div class="config-row">
+                <div class="field">
+                    <label>Base URL</label>
+                    <input type="text" id="cfg-base-url" list="base-url-list" value="" placeholder="https://api.anthropic.com/">
+                    <datalist id="base-url-list">
+                        <option value="https://api.anthropic.com/">Anthropic (Official)</option>
+                        <option value="https://openrouter.ai/api/v1/">OpenRouter</option>
+                        <option value="https://api.together.xyz/v1/">Together AI</option>
+                        <option value="https://api.ppinfra.com/anthropic/">PPInfra</option>
+                    </datalist>
+                </div>
+                <div class="field">
+                    <label>Model</label>
+                    <input type="text" id="cfg-model" list="model-list" value="" placeholder="claude-sonnet-4-5-20250929">
+                    <datalist id="model-list">
+                        <option value="claude-opus-4-5-20251101">Opus 4.5</option>
+                        <option value="claude-sonnet-4-5-20250929">Sonnet 4.5</option>
+                        <option value="claude-haiku-4-5-20251001">Haiku 4.5</option>
+                    </datalist>
+                </div>
+            </div>
+            <div class="config-row">
+                <div class="field">
+                    <label>Auth Token / API Key</label>
+                    <input type="text" id="cfg-auth-token" placeholder="sk-ant-xxx or sk_xxx">
+                </div>
+            </div>
+            <div class="config-actions">
+                <button class="btn btn-primary" onclick="generateWrapperCommand()">Insert Command</button>
+                <button class="btn" onclick="toggleConfigPanel()">Cancel</button>
+            </div>
+        </div>
+
+        <textarea id="text-editor" placeholder="Enter any text here to generate QR code...&#10;&#10;Tip: Click 'Generate Wrapper Command' to create a Claude CLI configuration script." oninput="updateQR()"></textarea>
+
+        <div class="editor-info">
+            <span id="char-count">0 characters</span>
+            <span id="qr-capacity">QR capacity: ~2953 bytes</span>
+        </div>
+
+        <div class="qr-section">
+            <div class="qr-container">
+                <div id="qrcode"></div>
+            </div>
+            <div class="qr-info">
+                <h3>Scan with Anthroid</h3>
+                <p>The scanned text will be inserted into the terminal input, ready for you to review and execute.</p>
+                <div class="qr-status" id="qr-status">Ready to generate</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WRAPPER_TEMPLATE = `set_wrapper __BASE_URL__ __AUTH_TOKEN__ __MODEL__`;
+
+        let qrCodeInstance = null;
+
+        function toggleConfigPanel() {
+            const panel = document.getElementById('config-panel');
+            panel.classList.toggle('show');
+        }
+
+        function generateWrapperCommand() {
+            const baseUrl = document.getElementById('cfg-base-url').value || 'https://api.anthropic.com/';
+            const authToken = document.getElementById('cfg-auth-token').value || '__YOUR_API_KEY__';
+            const model = document.getElementById('cfg-model').value || 'claude-sonnet-4-5-20250929';
+
+            let command = WRAPPER_TEMPLATE
+                .replace('__BASE_URL__', baseUrl)
+                .replace('__AUTH_TOKEN__', authToken)
+                .replace('__MODEL__', model);
+
+            document.getElementById('text-editor').value = command;
+            toggleConfigPanel();
+            updateQR();
+        }
+
+        function clearEditor() {
+            document.getElementById('text-editor').value = '';
+            updateQR();
+        }
+
+        function updateQR() {
+            const text = document.getElementById('text-editor').value;
+            const charCount = text.length;
+
+            document.getElementById('char-count').textContent = `${charCount} characters`;
+
+            const qrContainer = document.getElementById('qrcode');
+            const statusEl = document.getElementById('qr-status');
+
+            // Clear previous QR
+            qrContainer.innerHTML = '';
+            qrCodeInstance = null;
+
+            if (!text) {
+                statusEl.textContent = 'Enter text to generate QR code';
+                statusEl.className = 'qr-status';
+                return;
+            }
+
+            // QR code capacity check (version 40, L error correction ~2953 bytes)
+            if (charCount > 2953) {
+                statusEl.textContent = `Text too long (${charCount} > 2953 bytes). Try reducing content.`;
+                statusEl.className = 'qr-status error';
+                return;
+            }
+
+            try {
+                qrCodeInstance = new QRCode(qrContainer, {
+                    text: text,
+                    width: 200,
+                    height: 200,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: charCount > 1500 ? QRCode.CorrectLevel.L : QRCode.CorrectLevel.M
+                });
+
+                if (charCount > 1500) {
+                    statusEl.textContent = `QR generated (${charCount} chars) - Low error correction`;
+                    statusEl.className = 'qr-status warning';
+                } else {
+                    statusEl.textContent = `QR generated (${charCount} chars)`;
+                    statusEl.className = 'qr-status';
+                }
+            } catch (error) {
+                statusEl.textContent = 'Error generating QR code: ' + error.message;
+                statusEl.className = 'qr-status error';
+            }
+        }
+
+        // Initialize
+        updateQR();
+    </script>
+</body>
+</html>

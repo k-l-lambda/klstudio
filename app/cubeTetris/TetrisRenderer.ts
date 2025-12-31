@@ -1049,25 +1049,43 @@ export class TetrisRenderer {
 	 * Maintains boardBlockMeshes map for individual block tracking
 	 */
 	updateBoard(board: CubeGrid): void {
-		// Build set of current board block keys
-		const currentKeys = new Set<string>();
-		for (const {point} of board.toPointList()) {
-			currentKeys.add(coordKey(point.x, point.y, point.z));
+		// Build map of current board blocks with their data
+		const currentBlocks = new Map<string, {point: Point3D; data: BlockData}>();
+		for (const {point, data} of board.toPointList()) {
+			currentBlocks.set(coordKey(point.x, point.y, point.z), {point, data});
 		}
 
 		// Remove meshes that are no longer in the board (unless being cleared)
+		// Also remove meshes where the block data has changed (different color/faceMask)
 		for (const [key, mesh] of this.boardBlockMeshes) {
-			if (!currentKeys.has(key) && !this.clearingBlocks.has(key)) {
+			if (this.clearingBlocks.has(key)) continue;
+
+			const blockData = currentBlocks.get(key);
+			if (!blockData) {
+				// Block no longer exists at this position
 				this.boardGroup.remove(mesh);
 				(mesh.material as THREE.Material).dispose();
 				this.boardBlockMeshes.delete(key);
+			} else {
+				// Check if color or faceMask changed - if so, recreate mesh
+				const material = mesh.material as THREE.MeshStandardMaterial;
+				const currentColor = new THREE.Color(blockData.data.color);
+				const currentFaceMask = blockData.data.faceMask ?? FACE_MASK.ALL;
+
+				// Get stored faceMask from mesh userData
+				const storedFaceMask = (mesh.userData as {faceMask?: number}).faceMask ?? FACE_MASK.ALL;
+
+				if (!material.color.equals(currentColor) || storedFaceMask !== currentFaceMask) {
+					// Data changed, remove old mesh (will be recreated below)
+					this.boardGroup.remove(mesh);
+					(mesh.material as THREE.Material).dispose();
+					this.boardBlockMeshes.delete(key);
+				}
 			}
 		}
 
-		// Add/update meshes for current board blocks
-		for (const {point, data} of board.toPointList()) {
-			const key = coordKey(point.x, point.y, point.z);
-
+		// Add meshes for blocks that don't have one
+		for (const [key, {point, data}] of currentBlocks) {
 			// Skip if already exists or being cleared
 			if (this.boardBlockMeshes.has(key)) continue;
 			if (this.clearingBlocks.has(key)) continue;
@@ -1075,6 +1093,8 @@ export class TetrisRenderer {
 			const faceMask = data.faceMask ?? FACE_MASK.ALL;
 			const mesh = this.createBlockMesh(data.color, faceMask);
 			mesh.position.set(point.x, point.y, point.z);
+			// Store faceMask in userData for change detection
+			mesh.userData = {faceMask};
 			this.boardGroup.add(mesh);
 			this.boardBlockMeshes.set(key, mesh);
 		}

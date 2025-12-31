@@ -1733,3 +1733,176 @@ for (const {key, data, point} of toShift) {
 **Result:** ✅ Camera dynamically follows piece position with smooth transitions
 
 </details>
+
+<details>
+<summary>Fix Block Geometry Change After Layer Clearing (2025-12-31)</summary>
+
+> It seems block's geometry changed after clearing
+
+**Issue:** After clearing layers, block geometry would change incorrectly. Faces that should become visible remained hidden.
+
+**Root Cause:** When layers are cleared and blocks shift down:
+- Each block's `faceMask` (which controls which faces are rendered) was calculated based on same-piece neighbors
+- After clearing, some same-piece neighbors may be removed (they were in the cleared layer)
+- But the `faceMask` was not updated, so faces that should now be visible remained hidden
+
+**Fix Applied in `TetrisGame.ts`:**
+
+Added `updateFaceMasksAfterClearing()` method called after `removeLayerAndShift()`:
+```typescript
+private updateFaceMasksAfterClearing(): void {
+    const faceDirections = [
+        {mask: FACE_MASK.POS_X, dx: 1, dy: 0, dz: 0},
+        {mask: FACE_MASK.NEG_X, dx: -1, dy: 0, dz: 0},
+        {mask: FACE_MASK.POS_Y, dx: 0, dy: 1, dz: 0},
+        {mask: FACE_MASK.NEG_Y, dx: 0, dy: -1, dz: 0},
+        {mask: FACE_MASK.POS_Z, dx: 0, dy: 0, dz: 1},
+        {mask: FACE_MASK.NEG_Z, dx: 0, dy: 0, dz: -1},
+    ];
+
+    for (const {point, data} of this.board.toPointList()) {
+        let faceMask = data.faceMask ?? FACE_MASK.ALL;
+        for (const dir of faceDirections) {
+            // If face is hidden but no neighbor exists, show it
+            if ((faceMask & dir.mask) === 0) {
+                const neighbor = this.board.get(point.x + dir.dx, point.y + dir.dy, point.z + dir.dz);
+                if (!neighbor) {
+                    faceMask |= dir.mask;
+                }
+            }
+        }
+        data.faceMask = faceMask;
+    }
+}
+```
+
+Also removed debug logging that was added during investigation.
+
+**Result:** ✅ Block geometry is correctly updated after layer clearing - faces that lose their neighbors become visible
+
+</details>
+
+<details>
+<summary>Fix Block Color Change After Multi-Layer Clearing (2025-12-31)</summary>
+
+> Still has bug, it seems some blocks color changed after clearing
+
+**Issue:** When multiple layers were cleared simultaneously, some blocks would end up with wrong colors.
+
+**Root Cause (identified by GPT-5.2):** The `completeClearingAnimation()` was calling `removeLayerAndShift()` sequentially for each layer with ORIGINAL Y values:
+```typescript
+// BUG: Sequential calls with original Y values
+for (const y of this._clearingLayers) {
+    this.board.removeLayerAndShift(y);
+}
+```
+
+When clearing layers [1, 0]:
+1. `removeLayerAndShift(1)` shifts blocks above y=1 down by 1
+2. `removeLayerAndShift(0)` then shifts blocks above y=0 down by 1
+
+This can cause destination collisions where two blocks end up being written to the same position, with the later write overwriting the earlier one (including color data).
+
+**Fix Applied:**
+
+Added new method `removeLayersAndShift()` in `CubeGrid.ts` that clears all layers in one pass:
+```typescript
+removeLayersAndShift(layers: number[]): void {
+    const sortedLayers = [...layers].sort((a, b) => a - b);
+    const layerSet = new Set(sortedLayers);
+
+    for (const [key, data] of this.blocks) {
+        const point = parseCoordKey(key);
+        if (layerSet.has(point.y)) {
+            // Block in cleared layer - remove it
+            toRemove.push(key);
+        } else {
+            // Count cleared layers below this block
+            let dropDistance = 0;
+            for (const layerY of sortedLayers) {
+                if (layerY < point.y) dropDistance++;
+            }
+            if (dropDistance > 0) {
+                toShift.push({key, data, point, dropDistance});
+            }
+        }
+    }
+    // Remove all cleared, then shift remaining by their drop distance
+}
+```
+
+Updated `TetrisGame.ts`:
+```typescript
+// Before (BUG):
+for (const y of this._clearingLayers) {
+    this.board.removeLayerAndShift(y);
+}
+
+// After (FIXED):
+this.board.removeLayersAndShift(this._clearingLayers);
+```
+
+**Result:** ✅ Block colors are preserved correctly after multi-layer clearing
+
+</details>
+
+<details>
+<summary>Fix Renderer Not Detecting Block Data Changes (2025-12-31)</summary>
+
+> Color changed bug still exist.
+
+**Issue:** Block colors still changed incorrectly after layer clearing, even with the multi-layer fix.
+
+**Root Cause:** The renderer's `updateBoard()` method skipped creating a new mesh if one already existed at that position:
+```typescript
+if (this.boardBlockMeshes.has(key)) continue;  // BUG: doesn't check if data changed!
+```
+
+After layer clearing, when Block B shifts into position (0,2,0) that was previously occupied by Block A:
+- The old mesh (Block A's red color) still exists at that key
+- The code skips because mesh exists
+- Result: Block B shows Block A's color!
+
+**Fix Applied in `TetrisRenderer.ts:updateBoard()`:**
+
+Now checks if the existing mesh's color/faceMask matches the current block data:
+```typescript
+updateBoard(board: CubeGrid): void {
+    const currentBlocks = new Map<string, {point: Point3D; data: BlockData}>();
+    for (const {point, data} of board.toPointList()) {
+        currentBlocks.set(coordKey(point.x, point.y, point.z), {point, data});
+    }
+
+    for (const [key, mesh] of this.boardBlockMeshes) {
+        if (this.clearingBlocks.has(key)) continue;
+
+        const blockData = currentBlocks.get(key);
+        if (!blockData) {
+            // Remove: block no longer exists
+            this.boardBlockMeshes.delete(key);
+        } else {
+            // Check if color or faceMask changed
+            const material = mesh.material as THREE.MeshStandardMaterial;
+            const currentColor = new THREE.Color(blockData.data.color);
+            const storedFaceMask = mesh.userData.faceMask ?? FACE_MASK.ALL;
+
+            if (!material.color.equals(currentColor) || storedFaceMask !== currentFaceMask) {
+                // Data changed, recreate mesh
+                this.boardBlockMeshes.delete(key);
+            }
+        }
+    }
+
+    // Create meshes for blocks that need one
+    for (const [key, {point, data}] of currentBlocks) {
+        if (this.boardBlockMeshes.has(key)) continue;
+        const mesh = this.createBlockMesh(data.color, faceMask);
+        mesh.userData = {faceMask};  // Store for future change detection
+        this.boardBlockMeshes.set(key, mesh);
+    }
+}
+```
+
+**Result:** ✅ Renderer now detects when a different block occupies a position and recreates the mesh with correct color
+
+</details>

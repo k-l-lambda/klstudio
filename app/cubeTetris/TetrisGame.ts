@@ -6,7 +6,7 @@
 import type {GameState, GameConfig, Point3D} from "./types";
 import {CubeGrid} from "./CubeGrid";
 import {TetrisPiece} from "./TetrisPiece";
-import {GAME_CONFIG, LINE_SCORES} from "./constants";
+import {GAME_CONFIG, LINE_SCORES, FACE_MASK} from "./constants";
 
 
 const HIGH_SCORE_KEY = "cubeTetris.highScore";
@@ -474,13 +474,12 @@ export class TetrisGame {
 			return;
 		}
 
-		// Sort from top to bottom for correct shifting
-		this._clearingLayers.sort((a, b) => b - a);
+		// Clear all layers at once (avoids sequential shift bugs)
+		this.board.removeLayersAndShift(this._clearingLayers);
 
-		// Clear layers
-		for (const y of this._clearingLayers) {
-			this.board.removeLayerAndShift(y);
-		}
+		// After clearing, update faceMasks for remaining blocks
+		// Some faces that were hidden (same-piece neighbor) may now have no neighbor at all
+		this.updateFaceMasksAfterClearing();
 
 		// Update score
 		const lines = this._clearingLayers.length;
@@ -503,6 +502,46 @@ export class TetrisGame {
 
 		// Now spawn next piece
 		this.spawnNextPiece();
+	}
+
+
+	/**
+	 * Update faceMasks for all blocks after layer clearing
+	 * When a block's same-piece neighbor is removed, that face should become visible
+	 */
+	private updateFaceMasksAfterClearing(): void {
+		// Face direction mappings: bit mask -> neighbor offset
+		const faceDirections: Array<{mask: number; dx: number; dy: number; dz: number}> = [
+			{mask: FACE_MASK.POS_X, dx: 1, dy: 0, dz: 0},
+			{mask: FACE_MASK.NEG_X, dx: -1, dy: 0, dz: 0},
+			{mask: FACE_MASK.POS_Y, dx: 0, dy: 1, dz: 0},
+			{mask: FACE_MASK.NEG_Y, dx: 0, dy: -1, dz: 0},
+			{mask: FACE_MASK.POS_Z, dx: 0, dy: 0, dz: 1},
+			{mask: FACE_MASK.NEG_Z, dx: 0, dy: 0, dz: -1},
+		];
+
+		// For each block, check if any hidden face now has no neighbor
+		for (const {point, data} of this.board.toPointList()) {
+			let faceMask = data.faceMask ?? FACE_MASK.ALL;
+
+			for (const dir of faceDirections) {
+				// If this face is hidden (bit = 0)
+				if ((faceMask & dir.mask) === 0) {
+					// Check if there's actually a neighbor there
+					const neighbor = this.board.get(
+						point.x + dir.dx,
+						point.y + dir.dy,
+						point.z + dir.dz
+					);
+					// If no neighbor exists, show this face
+					if (!neighbor) {
+						faceMask |= dir.mask;
+					}
+				}
+			}
+
+			data.faceMask = faceMask;
+		}
 	}
 
 

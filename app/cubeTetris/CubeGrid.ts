@@ -249,4 +249,58 @@ export class CubeGrid {
 			this.set(point.x, newY, point.z, {...data, position: {x: point.x, y: newY, z: point.z}});
 		}
 	}
+
+
+	/**
+	 * Remove multiple layers at once and shift blocks above down correctly
+	 * This avoids the bug of sequential single-layer removal causing overwrites
+	 * @param layers Array of Y levels to remove (can be in any order)
+	 */
+	removeLayersAndShift(layers: number[]): void {
+		if (layers.length === 0) return;
+
+		// Sort layers ascending for efficient processing
+		const sortedLayers = [...layers].sort((a, b) => a - b);
+		const layerSet = new Set(sortedLayers);
+
+		// Collect blocks to remove and shift
+		const toRemove: string[] = [];
+		const toShift: Array<{key: string; data: BlockData; point: Point3D; dropDistance: number}> = [];
+
+		for (const [key, data] of this.blocks) {
+			const point = parseCoordKey(key);
+			if (layerSet.has(point.y)) {
+				// Block is in a layer being cleared
+				toRemove.push(key);
+			} else {
+				// Count how many cleared layers are below this block
+				let dropDistance = 0;
+				for (const layerY of sortedLayers) {
+					if (layerY < point.y) {
+						dropDistance++;
+					} else {
+						break; // Since sortedLayers is ascending, no more layers below
+					}
+				}
+				if (dropDistance > 0) {
+					toShift.push({key, data, point, dropDistance});
+				}
+			}
+		}
+
+		// Remove all cleared blocks
+		for (const key of toRemove) {
+			this.blocks.delete(key);
+		}
+
+		// Shift remaining blocks down by their drop distance
+		// Sort by Y ascending to avoid overwrites
+		toShift.sort((a, b) => a.point.y - b.point.y);
+
+		for (const {key, data, point, dropDistance} of toShift) {
+			this.blocks.delete(key);
+			const newY = point.y - dropDistance;
+			this.set(point.x, newY, point.z, {...data, position: {x: point.x, y: newY, z: point.z}});
+		}
+	}
 }

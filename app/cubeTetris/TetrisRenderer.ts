@@ -914,7 +914,7 @@ export class TetrisRenderer {
 		this.ghostMaterial = new THREE.MeshStandardMaterial({
 			color: 0xffffff,
 			transparent: true,
-			opacity: 0.15,
+			opacity: 0.35,
 			wireframe: false,
 		});
 

@@ -235,14 +235,21 @@
 					this.renderer.updatePiece(this.game.currentPiece, visualY);
 				}
 
-				// Hide ghost during clearing animation only (keep during drop)
-				if (this.game.isClearingAnimation) {
+				// Hide ghost during clearing animation or when piece is close to landing
+				// Show with low opacity during drop animation
+				const ghostPos = this.game.getGhostPosition();
+				const piecePos = this.game.currentPiece?.position;
+				// Use visual Y during drop animation, otherwise use logical Y
+				const currentY = this.game.isDropping ? this.game.dropVisualY : piecePos?.y;
+				const yDistance = currentY !== undefined && ghostPos ? currentY - ghostPos.y : Infinity;
+
+				if (this.game.isClearingAnimation || yDistance < 4) {
 					this.renderer.updateGhost(null, null);
+				} else if (this.game.isDropping) {
+					// Low opacity during drop animation
+					this.renderer.updateGhost(this.game.currentPiece, ghostPos, 0.15);
 				} else {
-					this.renderer.updateGhost(
-						this.game.currentPiece,
-						this.game.getGhostPosition()
-					);
+					this.renderer.updateGhost(this.game.currentPiece, ghostPos);
 				}
 
 				// Update camera height tracking
@@ -259,7 +266,6 @@
 					this.renderer.setPieceCentroid(centroid);
 
 					// Calculate ghost's minimum Y position
-					const ghostPos = this.game.getGhostPosition();
 					if (ghostPos) {
 						const localBlocks = this.game.currentPiece.getLocalBlocks();
 						const ghostMinY = Math.min(...localBlocks.map(b => b.y + ghostPos.y));

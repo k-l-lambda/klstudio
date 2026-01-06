@@ -1256,8 +1256,11 @@ export class TetrisRenderer {
 
 	/**
 	 * Update ghost piece visualization (drop preview) using unified mesh
+	 * @param piece The piece to render as ghost
+	 * @param ghostPosition The position for the ghost
+	 * @param opacity Optional opacity override (default: 0.35)
 	 */
-	updateGhost(piece: TetrisPiece | null, ghostPosition: Point3D | null): void {
+	updateGhost(piece: TetrisPiece | null, ghostPosition: Point3D | null, opacity?: number): void {
 		// Clear existing ghost meshes (don't dispose geometry - it's cached)
 		while (this.ghostGroup.children.length > 0) {
 			const child = this.ghostGroup.children[0];
@@ -1265,6 +1268,9 @@ export class TetrisRenderer {
 		}
 
 		if (!piece || !ghostPosition) return;
+
+		// Update ghost material opacity
+		this.ghostMaterial.opacity = opacity ?? 0.35;
 
 		// Get local blocks (already rotated by CubeGrid)
 		const localBlocks = piece.getLocalBlocks();

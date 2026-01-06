@@ -967,12 +967,11 @@ export class TetrisRenderer {
 		boundaryLines.position.set(boardWidth / 2 - 0.5, boardHeight / 2 - 0.5, boardDepth / 2 - 0.5);
 		this.boundaryGroup.add(boundaryLines);
 
-		// Corner posts - thicker and more visible
-		const postGeometry = new THREE.CylinderGeometry(0.08, 0.08, boardHeight, 8);
-		const postMaterial = new THREE.MeshStandardMaterial({
+		// 4 vertical corner lines instead of cylinder posts
+		const cornerLineMaterial = new THREE.LineBasicMaterial({
 			color: 0x6688bb,
-			metalness: 0.5,
-			roughness: 0.3,
+			transparent: true,
+			opacity: 0.8,
 		});
 
 		const corners = [
@@ -980,9 +979,13 @@ export class TetrisRenderer {
 		];
 
 		for (const [x, z] of corners) {
-			const post = new THREE.Mesh(postGeometry, postMaterial);
-			post.position.set(x - 0.5, boardHeight / 2 - 0.5, z - 0.5);
-			this.boundaryGroup.add(post);
+			const points = [
+				new THREE.Vector3(x - 0.5, -0.5, z - 0.5),
+				new THREE.Vector3(x - 0.5, boardHeight - 0.5, z - 0.5)
+			];
+			const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+			const line = new THREE.Line(lineGeometry, cornerLineMaterial);
+			this.boundaryGroup.add(line);
 		}
 	}
 

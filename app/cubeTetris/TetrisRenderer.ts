@@ -987,6 +987,103 @@ export class TetrisRenderer {
 			const line = new THREE.Line(lineGeometry, cornerLineMaterial);
 			this.boundaryGroup.add(line);
 		}
+
+		// Add 4 walls with Fresnel effect
+		this.setupWalls();
+	}
+
+
+	/**
+	 * Setup 4 walls with Fresnel effect material
+	 * Transparent when viewed head-on, visible when viewed at grazing angles
+	 */
+	private setupWalls(): void {
+		const {boardWidth, boardDepth, boardHeight} = this.config;
+
+		// Fresnel shader material
+		const fresnelMaterial = new THREE.ShaderMaterial({
+			uniforms: {
+				uColor: {value: new THREE.Color(0x4488cc)},
+				uFresnelPower: {value: 2.5},
+				uOpacityBase: {value: 0.01},
+				uOpacityFresnel: {value: 0.15},
+			},
+			vertexShader: `
+				varying vec3 vNormal;
+				varying vec3 vViewDir;
+
+				void main() {
+					vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+					vNormal = normalize(normalMatrix * normal);
+					vViewDir = normalize(cameraPosition - worldPosition.xyz);
+					gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+				}
+			`,
+			fragmentShader: `
+				uniform vec3 uColor;
+				uniform float uFresnelPower;
+				uniform float uOpacityBase;
+				uniform float uOpacityFresnel;
+
+				varying vec3 vNormal;
+				varying vec3 vViewDir;
+
+				void main() {
+					// Fresnel effect: 1.0 when viewing at grazing angle, 0.0 when head-on
+					float fresnel = 1.0 - abs(dot(vNormal, vViewDir));
+					fresnel = pow(fresnel, uFresnelPower);
+
+					// Combine base opacity with fresnel-based opacity
+					float opacity = uOpacityBase + fresnel * uOpacityFresnel;
+
+					// Add slight glow at edges
+					vec3 color = uColor + fresnel * 0.3;
+
+					gl_FragColor = vec4(color, opacity);
+				}
+			`,
+			transparent: true,
+			side: THREE.DoubleSide,
+			depthWrite: false,
+		});
+
+		// Wall dimensions
+		const wallHeight = boardHeight;
+
+		// Front wall (-Z)
+		const frontWall = new THREE.Mesh(
+			new THREE.PlaneGeometry(boardWidth, wallHeight),
+			fresnelMaterial
+		);
+		frontWall.position.set(boardWidth / 2 - 0.5, wallHeight / 2 - 0.5, -0.5);
+		this.boundaryGroup.add(frontWall);
+
+		// Back wall (+Z)
+		const backWall = new THREE.Mesh(
+			new THREE.PlaneGeometry(boardWidth, wallHeight),
+			fresnelMaterial.clone()
+		);
+		backWall.position.set(boardWidth / 2 - 0.5, wallHeight / 2 - 0.5, boardDepth - 0.5);
+		backWall.rotation.y = Math.PI;
+		this.boundaryGroup.add(backWall);
+
+		// Left wall (-X)
+		const leftWall = new THREE.Mesh(
+			new THREE.PlaneGeometry(boardDepth, wallHeight),
+			fresnelMaterial.clone()
+		);
+		leftWall.position.set(-0.5, wallHeight / 2 - 0.5, boardDepth / 2 - 0.5);
+		leftWall.rotation.y = Math.PI / 2;
+		this.boundaryGroup.add(leftWall);
+
+		// Right wall (+X)
+		const rightWall = new THREE.Mesh(
+			new THREE.PlaneGeometry(boardDepth, wallHeight),
+			fresnelMaterial.clone()
+		);
+		rightWall.position.set(boardWidth - 0.5, wallHeight / 2 - 0.5, boardDepth / 2 - 0.5);
+		rightWall.rotation.y = -Math.PI / 2;
+		this.boundaryGroup.add(rightWall);
 	}
 
 

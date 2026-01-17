@@ -5,3 +5,4 @@ userData/
 *.local
 *.log
 bak/
+.vs/

@@ -106,7 +106,8 @@ const listenPage = page => {
 const main = async () => {
 	const pathToExtension = [
 		"HoverZoom",
-		"Proxy-SwitchySharp",
+		//"Proxy-SwitchySharp",
+		"Proxy-SwitchyOmega",
 		"Stylus",
 	].map(dir => path.join(process.cwd(), "extensions/", dir)).join(",");
 
@@ -114,6 +115,7 @@ const main = async () => {
 		headless: false,
 		defaultViewport: null,
 		userDataDir: "userData",
+		executablePath: process.env.CHROME_PATH || "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
 		args: [
 			"--disable-web-security",
 			`--disable-extensions-except=${pathToExtension}`,

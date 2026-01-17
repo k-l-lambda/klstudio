@@ -2,7 +2,7 @@
 import fs from "fs";
 import path from "path";
 
-import dotenvEx from "dotenv-expand";
+import { expand } from "dotenv-expand";
 import dotenv from "dotenv";
 
 
@@ -26,5 +26,5 @@ const dotenvFiles = [
 
 dotenvFiles.forEach(path => {
 	if (fs.existsSync(path))
-		dotenvEx(dotenv.config({ path }));
+		expand(dotenv.config({ path }));
 });

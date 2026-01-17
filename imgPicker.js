@@ -115,7 +115,6 @@ const main = async () => {
 		headless: false,
 		defaultViewport: null,
 		userDataDir: "userData",
-		executablePath: process.env.CHROME_PATH || "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
 		args: [
 			"--disable-web-security",
 			`--disable-extensions-except=${pathToExtension}`,
@@ -132,7 +131,12 @@ const main = async () => {
 	const pages = await browser.pages();
 	pages.forEach(listenPage);
 
-	pages[0].goto("chrome-search://local-ntp/local-ntp.html");
+	// Use about:blank instead of chrome-search URL which causes ERR_INVALID_URL in newer Chrome
+	if (pages[0]) {
+		pages[0].goto("about:blank").catch(err => {
+			console.warn('Failed to navigate to initial page:', err.message);
+		});
+	}
 };
 
 

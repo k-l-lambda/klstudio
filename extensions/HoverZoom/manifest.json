@@ -1,16 +1,29 @@
 {
+   "action": {
+      "default_icon": {
+         "19": "images/icon19.png"
+      },
+      "default_popup": "html/popup.html",
+      "default_title": "Hover Zoom+"
+   },
    "author": "Oleg Anashkin",
    "background": {
-      "persistent": true,
-      "scripts": [ "js/libs/backgroundScriptsAPIBridge.js", "js/common.js", "js/background.js" ]
+      "scripts": [ "js/tools.js", "js/common.js", "js/background.js" ],
+      "service_worker": "js/background.js"
+   },
+   "browser_specific_settings": {
+      "gecko": {
+         "id": "{92e6fe1c-6e1d-44e1-8bc6-d309e59406af}",
+         "strict_min_version": "130.0"
+      }
    },
    "content_scripts": [ {
       "all_frames": true,
-      "js": [ "js/libs/jquery-3.2.1.js", "js/libs/contentScriptsAPIBridge.js", "js/tools.js", "js/plugins.js", "plugins/default.js", "js/hoverzoom.js", "js/hls.js", "js/findMatchingBracket.js" ],
+      "js": [ "js/jquery-3.7.1.js", "js/tools.js", "js/common.js", "js/plugins.js", "plugins/default.js", "js/hoverzoom.js", "js/hls.js", "js/findMatchingBracket.js" ],
       "matches": [ "\u003Call_urls>" ]
    }, {
       "all_frames": true,
-      "js": [ "plugins/alicdn_a.js", "plugins/aws_a.js", "plugins/bilibili_a.js", "plugins/bing_a.js", "plugins/blogspot_a.js", "plugins/chan_a.js", "plugins/clippituser_a.js", "plugins/cloudapp_a.js", "plugins/cloudflare_a.js", "plugins/cloudfront_a.js", "plugins/cloudinary_a.js", "plugins/dailymotion_a.js", "plugins/deviantart_a.js", "plugins/douyin_a.js", "plugins/drupal_a.js", "plugins/ebay_a.js", "plugins/facebook_a.js", "plugins/flickr_a.js", "plugins/focus_a.js", "plugins/gallery_a.js", "plugins/google_a.js", "plugins/grailed_a.js", "plugins/gravatar_a.js", "plugins/imagebam_a.js", "plugins/imagefap_a.js", "plugins/imageshack_a.js", "plugins/imgflip_a.js", "plugins/imgur_a.js", "plugins/instagram_a.js", "plugins/ipboard_a.js", "plugins/itaku_a.js", "plugins/kick_a.js", "plugins/lensdump_a.js", "plugins/mediawiki_a.js", "plugins/medium_a.js", "plugins/niconico_a.js", "plugins/omegle_a.js", "plugins/photoshop_a.js", "plugins/prestashop_a.js", "plugins/rule34video_a.js", "plugins/screencast_a.js", "plugins/scryfall_a.js", "plugins/sendvid_a.js", "plugins/squarespace_a.js", "plugins/streamable_a.js", "plugins/streaminone_a.js", "plugins/tcgplayer_a.js", "plugins/tiktok_a.js", "plugins/tumblr_a.js", "plugins/twitch_a.js", "plugins/twitter_a.js", "plugins/vbulletin_a.js", "plugins/vimeo_a.js", "plugins/vine_a.js", "plugins/wixstatic_a.js", "plugins/wordpress_a.js", "plugins/xhamster_a.js", "plugins/ylilauta_a.js", "plugins/youtube_a.js" ],
+      "js": [ "plugins/alicdn_a.js", "plugins/aws_a.js", "plugins/bilibili_a.js", "plugins/bing_a.js", "plugins/blogspot_a.js", "plugins/chan_a.js", "plugins/clippituser_a.js", "plugins/cloudapp_a.js", "plugins/cloudflare_a.js", "plugins/cloudfront_a.js", "plugins/cloudinary_a.js", "plugins/dailymotion_a.js", "plugins/deviantart_a.js", "plugins/douyin_a.js", "plugins/drupal_a.js", "plugins/ebay_a.js", "plugins/facebook_a.js", "plugins/flickr_a.js", "plugins/focus_a.js", "plugins/gallery_a.js", "plugins/google_a.js", "plugins/grailed_a.js", "plugins/gravatar_a.js", "plugins/imagebam_a.js", "plugins/imagefap_a.js", "plugins/imageshack_a.js", "plugins/imgflip_a.js", "plugins/imgur_a.js", "plugins/instagram_a.js", "plugins/ipboard_a.js", "plugins/itaku_a.js", "plugins/kick_a.js", "plugins/lensdump_a.js", "plugins/media_a.js", "plugins/media-amazon_a.js", "plugins/mediawiki_a.js", "plugins/medium_a.js", "plugins/niconico_a.js", "plugins/omegle_a.js", "plugins/photoshop_a.js", "plugins/prestashop_a.js", "plugins/rule34video_a.js", "plugins/screencast_a.js", "plugins/scryfall_a.js", "plugins/sendvid_a.js", "plugins/squarespace_a.js", "plugins/streamable_a.js", "plugins/streaminone_a.js", "plugins/tcgplayer_a.js", "plugins/tiktok_a.js", "plugins/tumblr_a.js", "plugins/twitch_a.js", "plugins/twitter_a.js", "plugins/vbulletin_a.js", "plugins/vimeo_a.js", "plugins/vine_a.js", "plugins/wixstatic_a.js", "plugins/wordpress_a.js", "plugins/xhamster_a.js", "plugins/ylilauta_a.js", "plugins/youtube_a.js" ],
       "matches": [ "\u003Call_urls>" ]
    }, {
       "js": [ "plugins/facebook.js" ],
@@ -47,7 +60,7 @@
       "matches": [ "*://*.baidu.com/*" ]
    }, {
       "js": [ "plugins/amazon.js" ],
-      "matches": [ "*://*.amazon.com/*", "*://*.amazon.com.au/*", "*://*.amazon.com.br/*", "*://*.amazon.com.mx/*", "*://*.amazon.com.tr/*", "*://*.amazon.ae/*", "*://*.amazon.ca/*", "*://*.amazon.cn/*", "*://*.amazon.de/*", "*://*.amazon.es/*", "*://*.amazon.fr/*", "*://*.amazon.co.jp/*", "*://*.amazon.co.uk/*", "*://*.amazon.in/*", "*://*.amazon.it/*", "*://*.amazon.nl/*", "*://*.amazon.sg/*" ]
+      "matches": [ "*://*.amazon.com/*", "*://*.amazon.com.au/*", "*://*.amazon.com.br/*", "*://*.amazon.com.mx/*", "*://*.amazon.com.tr/*", "*://*.amazon.ae/*", "*://*.amazon.ca/*", "*://*.amazon.cn/*", "*://*.amazon.de/*", "*://*.amazon.eg/*", "*://*.amazon.es/*", "*://*.amazon.fr/*", "*://*.amazon.co.jp/*", "*://*.amazon.co.uk/*", "*://*.amazon.in/*", "*://*.amazon.it/*", "*://*.amazon.nl/*", "*://*.amazon.sg/*" ]
    }, {
       "js": [ "plugins/windowslive.js" ],
       "matches": [ "*://*.photos.live.com/*" ]
@@ -71,10 +84,13 @@
       "matches": [ "*://*.gamespot.com/*" ]
    }, {
       "js": [ "plugins/twitter.js" ],
-      "matches": [ "*://*.twitter.com/*", "*://*.tweetdeck.com/*" ]
+      "matches": [ "*://*.x.com/*", "*://*.twitter.com/*", "*://*.tweetdeck.com/*" ]
    }, {
       "js": [ "plugins/twitpic.js" ],
       "matches": [ "*://*.twitter.com/*" ]
+   }, {
+      "js": [ "plugins/gifbin.js" ],
+      "matches": [ "*://gifbin.com/*" ]
    }, {
       "js": [ "plugins/ravelry.js" ],
       "matches": [ "*://*.ravelry.com/*" ]
@@ -217,9 +233,6 @@
       "js": [ "plugins/quickmeme.js" ],
       "matches": [ "*://*.feedly.com/*", "*://*.reddit.com/*" ]
    }, {
-      "js": [ "plugins/yande.js" ],
-      "matches": [ "*://yande.re/*" ]
-   }, {
       "js": [ "plugins/inkbunny.js" ],
       "matches": [ "*://*.inkbunny.net/*" ]
    }, {
@@ -302,7 +315,7 @@
       "matches": [ "*://*.boardgamegeek.com/*", "*://*.rpggeek.com/*", "*://*.videogamegeek.com/*" ]
    }, {
       "js": [ "plugins/e621.js" ],
-      "matches": [ "*://*.e621.net/*", "*://*.e926.net/*", "*://danbooru.donmai.us/*" ]
+      "matches": [ "*://*.e621.net/*", "*://*.e6ai.net/*", "*://*.e926.net/*", "*://danbooru.donmai.us/*" ]
    }, {
       "js": [ "plugins/jootix.js" ],
       "matches": [ "*://*.jootix.com/*" ]
@@ -334,6 +347,9 @@
    }, {
       "js": [ "plugins/furaffinity.js" ],
       "matches": [ "*://*.furaffinity.net/*" ]
+   }, {
+      "js": [ "plugins/furrynetwork.js" ],
+      "matches": [ "*://*.furrynetwork.com/*" ]
    }, {
       "js": [ "plugins/alicdn.js" ],
       "matches": [ "*://*.taobao.com/*", "*://*.tmall.com/*" ]
@@ -451,6 +467,9 @@
    }, {
       "js": [ "plugins/artstation.js" ],
       "matches": [ "*://*.artstation.com/*" ]
+   }, {
+      "js": [ "plugins/artfol.js" ],
+      "matches": [ "*://*.artfol.co/*" ]
    }, {
       "js": [ "plugins/artsper.js" ],
       "matches": [ "*://*.artsper.com/*" ]
@@ -680,6 +699,10 @@
       "js": [ "plugins/qwant.js" ],
       "matches": [ "*://*.qwant.com/*" ]
    }, {
+      "js": [ "js/duckduckgoInject.js" ],
+      "matches": [ "*://*.duckduckgo.com/*" ],
+      "run_at": "document_start"
+   }, {
       "js": [ "plugins/duckduckgo.js" ],
       "matches": [ "*://*.duckduckgo.com/*" ]
    }, {
@@ -789,6 +812,9 @@
       "js": [ "plugins/head-fi.js" ],
       "matches": [ "*://*.head-fi.org/*" ]
    }, {
+      "js": [ "plugins/etejo.js" ],
+      "matches": [ "*://*.etejo.com/*" ]
+   }, {
       "js": [ "plugins/wildcritters.js" ],
       "matches": [ "*://*.wildcritters.ws/*" ]
    }, {
@@ -821,6 +847,9 @@
    }, {
       "js": [ "plugins/kleinanzeigen.js" ],
       "matches": [ "*://*.kleinanzeigen.de/*" ]
+   }, {
+      "js": [ "plugins/tenor.js" ],
+      "matches": [ "*://*.tenor.com/*" ]
    }, {
       "js": [ "plugins/trakttv.js" ],
       "matches": [ "*://*.trakt.tv/*" ]
@@ -860,10 +889,138 @@
    }, {
       "js": [ "plugins/bluesky.js" ],
       "matches": [ "*://*.bsky.app/*" ]
+   }, {
+      "js": [ "plugins/onzemondial.js" ],
+      "matches": [ "*://*.onzemondial.com/*" ]
+   }, {
+      "js": [ "plugins/cineserie.js" ],
+      "matches": [ "*://*.cineserie.com/*" ]
+   }, {
+      "js": [ "plugins/opendata92.js" ],
+      "matches": [ "*://*.opendata.hauts-de-seine.fr/*" ]
+   }, {
+      "js": [ "plugins/nature.js" ],
+      "matches": [ "*://*.nature.com/*" ]
+   }, {
+      "js": [ "plugins/galerie9art.js" ],
+      "matches": [ "*://*.galerie9art.fr/*" ]
+   }, {
+      "js": [ "plugins/worldatlas.js" ],
+      "matches": [ "*://*.worldatlas.com/*" ]
+   }, {
+      "js": [ "plugins/kotnauction.js" ],
+      "matches": [ "*://*.kotnauction.com/*" ]
+   }, {
+      "js": [ "plugins/techradar.js" ],
+      "matches": [ "*://*.techradar.com/*" ]
+   }, {
+      "js": [ "plugins/feedly.js" ],
+      "matches": [ "*://*.feedly.com/*" ]
+   }, {
+      "js": [ "plugins/inoreader.js" ],
+      "matches": [ "*://*.inoreader.com/*" ]
+   }, {
+      "js": [ "plugins/unsplash.js" ],
+      "matches": [ "*://*.unsplash.com/*" ]
+   }, {
+      "js": [ "plugins/usarmy.js" ],
+      "matches": [ "*://*.defense.gov/*", "*://*.mil/*" ]
+   }, {
+      "js": [ "plugins/lacroix.js" ],
+      "matches": [ "*://*.la-croix.com/*" ]
+   }, {
+      "js": [ "plugins/routard.js" ],
+      "matches": [ "*://*.routard.com/*" ]
+   }, {
+      "js": [ "plugins/podcasts_apple.js" ],
+      "matches": [ "*://podcasts.apple.com/*" ]
+   }, {
+      "js": [ "plugins/apple.js" ],
+      "matches": [ "*://apps.apple.com/*", "*://books.apple.com/*", "*://music.apple.com/*" ]
+   }, {
+      "js": [ "plugins/monuments_nationaux.js" ],
+      "matches": [ "*://*.monuments-nationaux.fr/*" ]
+   }, {
+      "js": [ "plugins/physorg.js" ],
+      "matches": [ "*://*.phys.org/*", "*://*.medicalxpress.com/*", "*://*.sciencex.com/*", "*://*.techxplore.com/*" ]
+   }, {
+      "js": [ "plugins/spotify.js" ],
+      "matches": [ "*://*.spotify.com/*" ]
+   }, {
+      "js": [ "plugins/songkick.js" ],
+      "matches": [ "*://*.songkick.com/*" ]
+   }, {
+      "js": [ "plugins/nextdoor.js" ],
+      "matches": [ "*://*.nextdoor.com/*" ]
+   }, {
+      "js": [ "plugins/polona.js" ],
+      "matches": [ "*://*.polona.pl/*" ]
+   }, {
+      "js": [ "plugins/raindrop.js" ],
+      "matches": [ "*://*.raindrop.io/*" ]
+   }, {
+      "js": [ "plugins/stackoverflow.js" ],
+      "matches": [ "*://*.stackoverflow.com/*" ]
+   }, {
+      "js": [ "plugins/uinotes.js" ],
+      "matches": [ "*://*.uinotes.com/*" ]
+   }, {
+      "js": [ "plugins/meiye.js" ],
+      "matches": [ "*://*.meiye.art/*" ]
+   }, {
+      "js": [ "plugins/lummi.js" ],
+      "matches": [ "*://*.lummi.ai/*" ]
+   }, {
+      "js": [ "plugins/brave.js" ],
+      "matches": [ "*://*.search.brave.com/*" ]
+   }, {
+      "js": [ "plugins/civitai.js" ],
+      "matches": [ "*://*.civitai.com/*", "*://*.civitai.green/*" ]
+   }, {
+      "js": [ "plugins/jike.js" ],
+      "matches": [ "*://*.ui.cn/*" ]
+   }, {
+      "js": [ "plugins/bidspotter.js" ],
+      "matches": [ "*://*.bidspotter.com/*" ]
+   }, {
+      "js": [ "plugins/nexusmods.js" ],
+      "matches": [ "*://*.nexusmods.com/*" ]
+   }, {
+      "js": [ "plugins/aliexpress.js" ],
+      "matches": [ "*://*.aliexpress.com/*" ]
+   }, {
+      "js": [ "plugins/yupoo.js" ],
+      "matches": [ "*://*.yupoo.com/*" ]
+   }, {
+      "js": [ "plugins/pokellector.js" ],
+      "matches": [ "*://*.pokellector.com/*" ]
+   }, {
+      "js": [ "plugins/cosmos.js" ],
+      "matches": [ "*://*.cosmos.so/*" ]
+   }, {
+      "js": [ "plugins/printables.js" ],
+      "matches": [ "*://*.printables.com/*" ]
+   }, {
+      "js": [ "plugins/erome.js" ],
+      "matches": [ "*://*.erome.com/*" ]
+   }, {
+      "js": [ "plugins/otempo.js" ],
+      "matches": [ "*://*.otempo.com.br/*" ]
+   }, {
+      "js": [ "plugins/listal.js" ],
+      "matches": [ "*://*.listal.com/*" ]
    } ],
+   "declarative_net_request": {
+      "rule_resources": [ {
+         "enabled": true,
+         "id": "ruleset",
+         "path": "ruleset.json"
+      } ]
+   },
    "default_locale": "en",
    "description": "__MSG_extDescription__",
    "homepage_url": "https://github.com/extesy/hoverzoom/",
+   "host_permissions": [ "*://*/*" ],
    "icons": {
       "128": "images/icon128.png",
       "16": "images/icon16.png",
@@ -871,25 +1028,26 @@
       "48": "images/icon48.png"
    },
    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw5YRrJPTDaMIOnMiHein4u7kbu/unOdWPeleV78QmH5AHGCxiG+v7waeYwP9G+vhJLCl2S8in0eD+at3UBs1ic58XLeYrpyJsjQIXZ+Uwf4YgvaQFAnqE2f5Trs1gSsIRBNFAbLyLZjy8CExjGqFQ9KY2lSy7A29mGpszaSFo2Pd1KBYJs4PMCwvgJHE+ovcZogDwxo0YGMKatjMQ7oS7zhyl6vJivqayYuBFPQt/xzNA/tzgtTKJJIjgIgTKo49vW8zHkULNPWIS+jPz6fKdsTWMOGUaxYLcRv3GSKU2wUvniDg3j6iHoWg0izgJDZ/nowdC9C6Hzv8+k7LChwuqQIDAQAB",
-   "manifest_version": 2,
-   "minimum_chrome_version": "22",
+   "manifest_version": 3,
+   "minimum_chrome_version": "130",
    "name": "__MSG_extName__",
-   "optional_permissions": [ "downloads", "history", "tabs", "webRequest", "webRequestBlocking" ],
+   "optional_permissions": [ "downloads", "history" ],
    "options_ui": {
-      "chrome_style": false,
       "open_in_tab": true,
       "page": "html/options.html"
    },
-   "page_action": {
-      "default_icon": {
-         "19": "images/icon19.png"
-      },
-      "default_popup": "html/popup.html",
-      "default_title": "Hover Zoom+"
-   },
-   "permissions": [ "*://*/*", "unlimitedStorage" ],
+   "permissions": [ "declarativeNetRequest", "scripting", "storage", "tabs", "unlimitedStorage" ],
    "short_name": "__MSG_extShortName__",
    "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "1.0.214.2",
-   "web_accessible_resources": [ "images/loading.gif", "images/spectrogram.png", "js/libs/gumby.js", "js/libs/jquery-3.2.1.js", "js/libs/jquery.mobile.custom.js", "js/libs/modernizr-2.7.1.js", "js/common.js", "js/options.js" ]
+   "version": "1.1.10",
+   "web_accessible_resources": [ {
+      "matches": [ "\u003Call_urls>" ],
+      "resources": [ "images/loading.gif", "images/spectrogram.png", "js/jquery-3.7.1.js", "js/gumby.js", "js/tools.js", "js/common.js", "js/options.js" ]
+   }, {
+      "matches": [ "*://*.duckduckgo.com/*" ],
+      "resources": [ "js/duckduckgoInjected.js" ]
+   }, {
+      "matches": [ "*://*.google.ad/*", "*://*.google.ae/*", "*://*.google.am/*", "*://*.google.as/*", "*://*.google.at/*", "*://*.google.az/*", "*://*.google.ba/*", "*://*.google.be/*", "*://*.google.bg/*", "*://*.google.bi/*", "*://*.google.bj/*", "*://*.google.bs/*", "*://*.google.ca/*", "*://*.google.cat/*", "*://*.google.cd/*", "*://*.google.cf/*", "*://*.google.cg/*", "*://*.google.ch/*", "*://*.google.ci/*", "*://*.google.cl/*", "*://*.google.cn/*", "*://*.google.co.bw/*", "*://*.google.co.ck/*", "*://*.google.co.cr/*", "*://*.google.co.id/*", "*://*.google.co.il/*", "*://*.google.co.in/*", "*://*.google.co.jp/*", "*://*.google.co.ke/*", "*://*.google.co.kr/*", "*://*.google.co.ls/*", "*://*.google.co.ma/*", "*://*.google.co.mz/*", "*://*.google.co.nz/*", "*://*.google.co.th/*", "*://*.google.co.tz/*", "*://*.google.co.ug/*", "*://*.google.co.uk/*", "*://*.google.co.uz/*", "*://*.google.co.ve/*", "*://*.google.co.vi/*", "*://*.google.co.za/*", "*://*.google.co.zm/*", "*://*.google.co.zw/*", "*://*.google.com.af/*", "*://*.google.com.ag/*", "*://*.google.com.ai/*", "*://*.google.com.ar/*", "*://*.google.com.au/*", "*://*.google.com.bd/*", "*://*.google.com.bh/*", "*://*.google.com.bn/*", "*://*.google.com.bo/*", "*://*.google.com.br/*", "*://*.google.com.by/*", "*://*.google.com.bz/*", "*://*.google.com.co/*", "*://*.google.com.cu/*", "*://*.google.com.cy/*", "*://*.google.com.do/*", "*://*.google.com.ec/*", "*://*.google.com.eg/*", "*://*.google.com.et/*", "*://*.google.com.fj/*", "*://*.google.com.gh/*", "*://*.google.com.gi/*", "*://*.google.com.gt/*", "*://*.google.com.hk/*", "*://*.google.com.jm/*", "*://*.google.com.kh/*", "*://*.google.com.kw/*", "*://*.google.com.lb/*", "*://*.google.com.ly/*", "*://*.google.com.mt/*", "*://*.google.com.mx/*", "*://*.google.com.my/*", "*://*.google.com.na/*", "*://*.google.com.nf/*", "*://*.google.com.ng/*", "*://*.google.com.ni/*", "*://*.google.com.np/*", "*://*.google.com.om/*", "*://*.google.com.pa/*", "*://*.google.com.pe/*", "*://*.google.com.ph/*", "*://*.google.com.pk/*", "*://*.google.com.pr/*", "*://*.google.com.py/*", "*://*.google.com.qa/*", "*://*.google.com.sa/*", "*://*.google.com.sb/*", "*://*.google.com.sg/*", "*://*.google.com.sl/*", "*://*.google.com.sv/*", "*://*.google.com.tj/*", "*://*.google.com.tr/*", "*://*.google.com.tw/*", "*://*.google.com.ua/*", "*://*.google.com.uy/*", "*://*.google.com.vc/*", "*://*.google.com.vn/*", "*://*.google.com/*", "*://*.google.cz/*", "*://*.google.de/*", "*://*.google.dj/*", "*://*.google.dk/*", "*://*.google.dm/*", "*://*.google.dz/*", "*://*.google.ee/*", "*://*.google.es/*", "*://*.google.fi/*", "*://*.google.fm/*", "*://*.google.fr/*", "*://*.google.ga/*", "*://*.google.ge/*", "*://*.google.gg/*", "*://*.google.gl/*", "*://*.google.gm/*", "*://*.google.gp/*", "*://*.google.gr/*", "*://*.google.gy/*", "*://*.google.hn/*", "*://*.google.hr/*", "*://*.google.ht/*", "*://*.google.hu/*", "*://*.google.ie/*", "*://*.google.im/*", "*://*.google.is/*", "*://*.google.it.ao/*", "*://*.google.it/*", "*://*.google.je/*", "*://*.google.jo/*", "*://*.google.kg/*", "*://*.google.ki/*", "*://*.google.kz/*", "*://*.google.la/*", "*://*.google.li/*", "*://*.google.lk/*", "*://*.google.lt/*", "*://*.google.lu/*", "*://*.google.lv/*", "*://*.google.md/*", "*://*.google.me/*", "*://*.google.mg/*", "*://*.google.mk/*", "*://*.google.mn/*", "*://*.google.ms/*", "*://*.google.mu/*", "*://*.google.mv/*", "*://*.google.mw/*", "*://*.google.nl/*", "*://*.google.no/*", "*://*.google.nr/*", "*://*.google.nu/*", "*://*.google.pl/*", "*://*.google.pn/*", "*://*.google.ps/*", "*://*.google.pt/*", "*://*.google.ro/*", "*://*.google.rs/*", "*://*.google.ru/*", "*://*.google.rw/*", "*://*.google.sc/*", "*://*.google.se/*", "*://*.google.sh/*", "*://*.google.si/*", "*://*.google.sk/*", "*://*.google.sm/*", "*://*.google.sn/*", "*://*.google.st/*", "*://*.google.td/*", "*://*.google.tg/*", "*://*.google.tk/*", "*://*.google.tl/*", "*://*.google.tm/*", "*://*.google.to/*", "*://*.google.tt/*", "*://*.google.vg/*", "*://*.google.vu/*", "*://*.google.ws/*" ],
+      "resources": [ "js/hoverZoomXHROpen.js" ]
+   } ]
 }

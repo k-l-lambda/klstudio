@@ -17,7 +17,7 @@ const CUBE3 = 3 ** 3;
 
 const POSITIONS : vector3[] = Array(CUBE3).fill(null).map((_, i) => [i % 3 - 1, Math.floor(i / 3) % 3 - 1, Math.floor(i / 9) - 1]);
 
-const UNIT_SCALE = 0.92;
+const UNIT_SCALE = 0.98;  // 0.02 spacing between cubes (like reference)
 
 const RIGHT_ANGLE = Math.PI / 2;
 const GRAPH_RELEASE_SPEED = Math.PI / 60;

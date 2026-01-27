@@ -21,14 +21,59 @@
 
 
 
+	// Colors from reference (Standard Rubik's Scheme)
+	// Order: 0=Left(-X), 1=Right(+X), 2=Down(-Y), 3=Up(+Y), 4=Back(-Z), 5=Front(+Z), 6=Base
+
+	// Base material (black plastic) - used for internal faces
+	const baseMaterial = new THREE.MeshStandardMaterial({
+		color: 0x111111,
+		roughness: 0.6,
+		metalness: 0.1,
+	});
+
+	// Helper to create colored face material
+	const createFaceMat = (color) => new THREE.MeshStandardMaterial({
+		color: color,
+		roughness: 0.2,
+		metalness: 0.0,
+		polygonOffset: true,
+		polygonOffsetFactor: -1,  // Pull forward to prevent z-fighting
+	});
+
 	const BASIC_MATERIALS = [
-		//"green", "blue", "orange", "red", "white", "yellow", "black",
-		"#f90", "#d00", "#ff2", "white", "blue", "#0e0", "black",
-	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
+		createFaceMat(0xff5900),  // Left (Orange)
+		createFaceMat(0xb90000),  // Right (Red)
+		createFaceMat(0xffd500),  // Down (Yellow)
+		createFaceMat(0xffffff),  // Up (White)
+		createFaceMat(0x0045ad),  // Back (Blue)
+		createFaceMat(0x009b48),  // Front (Green)
+		baseMaterial,             // Base (internal plastic)
+	];
+
+	// Highlight materials
+	const baseHighlightMaterial = new THREE.MeshStandardMaterial({
+		color: 0x333333,
+		roughness: 0.5,
+		metalness: 0.1,
+	});
+
+	const createHighlightMat = (color) => new THREE.MeshStandardMaterial({
+		color: color,
+		roughness: 0.15,
+		metalness: 0.0,
+		polygonOffset: true,
+		polygonOffsetFactor: -1,
+	});
 
 	const BASIC_HIGHLIGHT_MATERIALS = [
-		"#fc6", "#d66", "#ff8", "#ccc", "#44f", "#6e6", "#222",
-	].map(color => new THREE.MeshBasicMaterial({color: new THREE.Color(color)}));
+		createHighlightMat(0xff8844),  // Left highlight
+		createHighlightMat(0xdd4444),  // Right highlight
+		createHighlightMat(0xffee66),  // Down highlight
+		createHighlightMat(0xeeeeee),  // Up highlight
+		createHighlightMat(0x4477dd),  // Back highlight
+		createHighlightMat(0x44bb66),  // Front highlight
+		baseHighlightMaterial,         // Base highlight
+	];
 
 
 	const vectorToAxis = vector => {
@@ -106,9 +151,9 @@
 		},
 
 
-        beforeUnmount () {
-            this.rendererActive = false;
-        },
+		beforeUnmount () {
+			this.rendererActive = false;
+		},
 
 
 		methods: {
@@ -124,6 +169,18 @@
 				this.camera.lookAt(0, 0, 0);
 
 				this.scene = markRaw(new THREE.Scene());
+
+				// Lighting matching reference demo
+				const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+				this.scene.add(ambientLight);
+
+				const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+				dirLight.position.set(10, 20, 10);
+				this.scene.add(dirLight);
+
+				const backLight = new THREE.DirectionalLight(0xffffff, 0.5);
+				backLight.position.set(-10, -10, -10);
+				this.scene.add(backLight);
 			},
 
 
@@ -220,11 +277,18 @@
 
 							break;
 						case 0:
-							this.cube.cubeMeshes.forEach(mesh => mesh.material = this.material);
+							// Clear all highlights
+							this.cube.cubeMeshes.forEach(mesh => {
+								if (mesh.setHighlight) mesh.setHighlight(false);
+							});
+							// Set highlight on hovered face
 							const axis = this.raycastAxis(event);
 							if (Number.isInteger(axis)) {
 								const faceIndices = this.cube.algebra.faceIndicesFromAxis(axis);
-								faceIndices.forEach(index => this.cube.cubeMeshes[index].material = this.highlightMaterial);
+								faceIndices.forEach(index => {
+									const mesh = this.cube.cubeMeshes[index];
+									if (mesh.setHighlight) mesh.setHighlight(true);
+								});
 							}
 
 							break;

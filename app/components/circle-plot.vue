@@ -71,7 +71,7 @@
 			// Load as script tag to avoid ESM transformation issues
 			if (!window.Plotly) {
 				await new Promise((resolve, reject) => {
-					const script = document.createElement('script');
+					const script = document.createElement("script");
 					script.src = plotlyUrl;
 					script.onload = resolve;
 					script.onerror = reject;

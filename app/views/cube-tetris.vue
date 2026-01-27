@@ -93,7 +93,7 @@
 		name: "cube-tetris",
 
 
-		data() {
+		data () {
 			return {
 				game: null,
 				renderer: null,
@@ -114,7 +114,7 @@
 		},
 
 
-		mounted() {
+		mounted () {
 			this.initGame();
 
 			// Focus container for keyboard input
@@ -126,14 +126,14 @@
 		},
 
 
-		beforeUnmount() {
+		beforeUnmount () {
 			window.removeEventListener("resize", this.onResize);
 			this.cleanup();
 		},
 
 
 		methods: {
-			initGame() {
+			initGame () {
 				// Create game (use markRaw to prevent Vue reactivity proxy issues with Three.js)
 				this.game = markRaw(new TetrisGame());
 
@@ -176,9 +176,9 @@
 					// Auto restart in AI mode after delay
 					if (this.aiMode) {
 						setTimeout(() => {
-							if (this.aiMode && this.game) {
+							if (this.aiMode && this.game) 
 								this.restart();
-							}
+							
 						}, 2000);
 					}
 				});
@@ -198,9 +198,9 @@
 					this.aiController.update(time);
 
 					// Update visuals during drop animation
-					if (this.game.isDropping) {
+					if (this.game.isDropping) 
 						this.updateVisuals();
-					}
+					
 
 					// Check if clearing animation finished
 					if (this.game.isClearingAnimation && !this.renderer.isClearingAnimation()) {
@@ -212,24 +212,24 @@
 			},
 
 
-			updateState() {
+			updateState () {
 				if (!this.game) return;
 				this.state = {...this.game.state};
 			},
 
 
-			updateVisuals() {
+			updateVisuals () {
 				if (!this.game || !this.renderer) return;
 
 				// Don't update board during clearing animation (let clearing effect show)
-				if (!this.game.isClearingAnimation) {
+				if (!this.game.isClearingAnimation) 
 					this.renderer.updateBoard(this.game.board);
-				}
+				
 
 				// Hide piece during clearing animation (it's already locked to board)
-				if (this.game.isClearingAnimation) {
+				if (this.game.isClearingAnimation) 
 					this.renderer.updatePiece(null);
-				} else {
+				else {
 					// Use visual Y position during drop animation
 					const visualY = this.game.isDropping ? this.game.dropVisualY : undefined;
 					this.renderer.updatePiece(this.game.currentPiece, visualY);
@@ -243,14 +243,15 @@
 				const currentY = this.game.isDropping ? this.game.dropVisualY : piecePos?.y;
 				const yDistance = currentY !== undefined && ghostPos ? currentY - ghostPos.y : Infinity;
 
-				if (this.game.isClearingAnimation || yDistance < 4) {
+				if (this.game.isClearingAnimation || yDistance < 4) 
 					this.renderer.updateGhost(null, null);
-				} else if (this.game.isDropping) {
+				else if (this.game.isDropping) {
 					// Low opacity during drop animation
 					this.renderer.updateGhost(this.game.currentPiece, ghostPos, 0.15);
-				} else {
-					this.renderer.updateGhost(this.game.currentPiece, ghostPos);
 				}
+				else 
+					this.renderer.updateGhost(this.game.currentPiece, ghostPos);
+				
 
 				// Update camera height tracking
 				const boardBounds = this.game.board.getBounds();
@@ -271,42 +272,43 @@
 						const ghostMinY = Math.min(...localBlocks.map(b => b.y + ghostPos.y));
 						this.renderer.setGhostMinY(ghostMinY);
 					}
-				} else {
+				}
+				else {
 					this.renderer.setPieceCentroid(null);
 					this.renderer.setGhostMinY(Infinity);
 				}
 			},
 
 
-			toggleAiMode() {
+			toggleAiMode () {
 				this.setAiMode(!this.aiMode);
 			},
 
 
-			toggleMute() {
-				if (this.audioManager) {
+			toggleMute () {
+				if (this.audioManager) 
 					this.muted = this.audioManager.toggleMute();
-				}
+				
 			},
 
 
-			setAiMode(enabled) {
+			setAiMode (enabled) {
 				this.aiMode = enabled;
 				if (this.aiController) {
 					this.aiController.setEnabled(enabled);
 					this.aiController.setMoveDelay(enabled ? 200 : 100);
 				}
-				if (this.renderer) {
+				if (this.renderer) 
 					this.renderer.setAutoRotate(enabled, 0.2);
-				}
+				
 				// Focus container when switching to manual mode
-				if (!enabled) {
+				if (!enabled) 
 					this.$refs.container.focus();
-				}
+				
 			},
 
 
-			onKeyDown(event) {
+			onKeyDown (event) {
 				if (!this.game) return;
 
 				// Allow pause in any mode
@@ -325,37 +327,48 @@
 				if (KEY_BINDINGS.moveLeft.includes(code)) {
 					event.preventDefault();
 					this.moveCameraRelative("left");
-				} else if (KEY_BINDINGS.moveRight.includes(code)) {
+				}
+				else if (KEY_BINDINGS.moveRight.includes(code)) {
 					event.preventDefault();
 					this.moveCameraRelative("right");
-				} else if (KEY_BINDINGS.moveForward.includes(code)) {
+				}
+				else if (KEY_BINDINGS.moveForward.includes(code)) {
 					event.preventDefault();
 					this.moveCameraRelative("forward");
-				} else if (KEY_BINDINGS.moveBackward.includes(code)) {
+				}
+				else if (KEY_BINDINGS.moveBackward.includes(code)) {
 					event.preventDefault();
 					this.moveCameraRelative("backward");
-				} else if (KEY_BINDINGS.drop.includes(code)) {
+				}
+				else if (KEY_BINDINGS.drop.includes(code)) {
 					event.preventDefault();
 					this.game.hardDrop();
-				} else if (KEY_BINDINGS.rotateYPos.includes(code)) {
+				}
+				else if (KEY_BINDINGS.rotateYPos.includes(code)) {
 					event.preventDefault();
 					this.game.rotatePiece("y", 1);
-				} else if (KEY_BINDINGS.rotateYNeg.includes(code)) {
+				}
+				else if (KEY_BINDINGS.rotateYNeg.includes(code)) {
 					event.preventDefault();
 					this.game.rotatePiece("y", -1);
-				} else if (KEY_BINDINGS.rotateXPos.includes(code)) {
+				}
+				else if (KEY_BINDINGS.rotateXPos.includes(code)) {
 					event.preventDefault();
 					this.game.rotatePiece("x", 1);
-				} else if (KEY_BINDINGS.rotateXNeg.includes(code)) {
+				}
+				else if (KEY_BINDINGS.rotateXNeg.includes(code)) {
 					event.preventDefault();
 					this.game.rotatePiece("x", -1);
-				} else if (KEY_BINDINGS.rotateZPos.includes(code)) {
+				}
+				else if (KEY_BINDINGS.rotateZPos.includes(code)) {
 					event.preventDefault();
 					this.game.rotatePiece("z", 1);
-				} else if (KEY_BINDINGS.rotateZNeg.includes(code)) {
+				}
+				else if (KEY_BINDINGS.rotateZNeg.includes(code)) {
 					event.preventDefault();
 					this.game.rotatePiece("z", -1);
-				} else if (KEY_BINDINGS.restart.includes(code)) {
+				}
+				else if (KEY_BINDINGS.restart.includes(code)) {
 					event.preventDefault();
 					this.restart();
 				}
@@ -367,7 +380,7 @@
 			/**
 			 * Move piece relative to camera view direction
 			 */
-			moveCameraRelative(direction) {
+			moveCameraRelative (direction) {
 				if (!this.renderer || !this.game) return;
 
 				const camera = this.renderer.getCamera();
@@ -398,19 +411,22 @@
 					backward = () => this.game.moveLeft();
 					left = () => this.game.moveForward();   // -Z when facing +X
 					right = () => this.game.moveBackward(); // +Z when facing +X
-				} else if (degrees >= 45 && degrees < 135) {
+				}
+				else if (degrees >= 45 && degrees < 135) {
 					// Camera looking toward +Z
 					forward = () => this.game.moveBackward();
 					backward = () => this.game.moveForward();
 					left = () => this.game.moveRight();     // +X when facing +Z
 					right = () => this.game.moveLeft();     // -X when facing +Z
-				} else if (degrees >= 135 && degrees < 225) {
+				}
+				else if (degrees >= 135 && degrees < 225) {
 					// Camera looking toward -X
 					forward = () => this.game.moveLeft();
 					backward = () => this.game.moveRight();
 					left = () => this.game.moveBackward();  // +Z when facing -X
 					right = () => this.game.moveForward();  // -Z when facing -X
-				} else {
+				}
+				else {
 					// Camera looking toward -Z (225-315)
 					forward = () => this.game.moveForward();
 					backward = () => this.game.moveBackward();
@@ -420,15 +436,15 @@
 
 				// Execute the mapped movement
 				switch (direction) {
-					case "forward": forward(); break;
-					case "backward": backward(); break;
-					case "left": left(); break;
-					case "right": right(); break;
+				case "forward": forward(); break;
+				case "backward": backward(); break;
+				case "left": left(); break;
+				case "right": right(); break;
 				}
 			},
 
 
-			onResize() {
+			onResize () {
 				if (!this.renderer || !this.$refs.container) return;
 
 				const rect = this.$refs.container.getBoundingClientRect();
@@ -436,19 +452,19 @@
 			},
 
 
-			restart() {
+			restart () {
 				if (!this.game) return;
 
 				this.game.start();
 				this.updateState();
 				this.updateVisuals();
-				if (!this.aiMode) {
+				if (!this.aiMode) 
 					this.$refs.container.focus();
-				}
+				
 			},
 
 
-			cleanup() {
+			cleanup () {
 				if (this.renderer) {
 					this.renderer.dispose();
 					this.renderer = null;

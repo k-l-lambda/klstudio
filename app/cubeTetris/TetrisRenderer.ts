@@ -101,13 +101,13 @@ const AXIS_CONFIGS: Record<FaceDir, AxisConfig> = {
  * Calculate permutation parity of three axis indices
  * Returns +1 for even permutation of [0,1,2], -1 for odd
  */
-function permutationParity(a: number, b: number, c: number): number {
+function permutationParity (a: number, b: number, c: number): number {
 	const perm = [a, b, c];
 	let inversions = 0;
 	for (let i = 0; i < 3; i++) {
-		for (let j = i + 1; j < 3; j++) {
+		for (let j = i + 1; j < 3; j++) 
 			if (perm[i] > perm[j]) inversions++;
-		}
+		
 	}
 	return (inversions % 2 === 0) ? +1 : -1;
 }
@@ -117,7 +117,7 @@ function permutationParity(a: number, b: number, c: number): number {
  * Returns true if we need to flip winding order for CCW faces
  * Takes into account both sign product AND axis permutation parity
  */
-function isMirrored(cfg: AxisConfig): boolean {
+function isMirrored (cfg: AxisConfig): boolean {
 	// Determinant = sign product × permutation parity
 	// For a right-handed basis, det = +1; for left-handed, det = -1
 	const signProduct = cfg.uSign * cfg.vSign * cfg.wSign;
@@ -128,7 +128,7 @@ function isMirrored(cfg: AxisConfig): boolean {
 /**
  * Convert canonical (u, v, w) coordinates to world [x, y, z] array
  */
-function toWorld(ox: number, oy: number, oz: number, u: number, v: number, w: number, cfg: AxisConfig): number[] {
+function toWorld (ox: number, oy: number, oz: number, u: number, v: number, w: number, cfg: AxisConfig): number[] {
 	const result = [ox, oy, oz];
 	result[cfg.uAxis] += u * cfg.uSign;
 	result[cfg.vAxis] += v * cfg.vSign;
@@ -139,7 +139,7 @@ function toWorld(ox: number, oy: number, oz: number, u: number, v: number, w: nu
 /**
  * Convert canonical normal (nu, nv, nw) to world normal [nx, ny, nz]
  */
-function normalToWorld(nu: number, nv: number, nw: number, cfg: AxisConfig): number[] {
+function normalToWorld (nu: number, nv: number, nw: number, cfg: AxisConfig): number[] {
 	const result = [0, 0, 0];
 	result[cfg.uAxis] = nu * cfg.uSign;
 	result[cfg.vAxis] = nv * cfg.vSign;
@@ -151,7 +151,7 @@ function normalToWorld(nu: number, nv: number, nw: number, cfg: AxisConfig): num
  * Get perpendicular face directions for a given face (the 4 edge directions)
  * Accounts for uSign/vSign to correctly map canonical +u/-u/+v/-v to world directions
  */
-function getPerpDirs(face: FaceDir): {uPos: FaceDir; uNeg: FaceDir; vPos: FaceDir; vNeg: FaceDir} {
+function getPerpDirs (face: FaceDir): {uPos: FaceDir; uNeg: FaceDir; vPos: FaceDir; vNeg: FaceDir} {
 	const cfg = AXIS_CONFIGS[face];
 	const axisToDir: Record<number, [FaceDir, FaceDir]> = {
 		0: ["+x", "-x"],
@@ -178,14 +178,14 @@ class GeometryBuilder {
 	normals: number[] = [];
 	indices: number[] = [];
 
-	addQuad(v0: number[], v1: number[], v2: number[], v3: number[], normal: number[]): void {
+	addQuad (v0: number[], v1: number[], v2: number[], v3: number[], normal: number[]): void {
 		const baseIdx = this.vertices.length / 3;
 		this.vertices.push(...v0, ...v1, ...v2, ...v3);
 		this.normals.push(...normal, ...normal, ...normal, ...normal);
 		this.indices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
 	}
 
-	addTriangle(v0: number[], v1: number[], v2: number[], normal: number[]): void {
+	addTriangle (v0: number[], v1: number[], v2: number[], normal: number[]): void {
 		const baseIdx = this.vertices.length / 3;
 		this.vertices.push(...v0, ...v1, ...v2);
 		this.normals.push(...normal, ...normal, ...normal);
@@ -198,12 +198,12 @@ class GeometryBuilder {
 	 * For non-mirrored transforms, we flip to get CCW in world space (front-facing)
 	 * For mirrored transforms, the transform itself flips winding, so we don't flip
 	 */
-	emitQuadCanonical(
+	emitQuadCanonical (
 		ox: number, oy: number, oz: number,
 		cfg: AxisConfig,
 		p0: [number, number, number], p1: [number, number, number],
 		p2: [number, number, number], p3: [number, number, number],
-		normalCanonical: [number, number, number]
+		normalCanonical: [number, number, number],
 	): void {
 		const v0 = toWorld(ox, oy, oz, p0[0], p0[1], p0[2], cfg);
 		const v1 = toWorld(ox, oy, oz, p1[0], p1[1], p1[2], cfg);
@@ -214,7 +214,8 @@ class GeometryBuilder {
 		if (isMirrored(cfg)) {
 			// Mirrored transform flips winding, so canonical CW becomes world CCW (front-facing)
 			this.addQuad(v0, v1, v2, v3, normal);
-		} else {
+		}
+		else {
 			// Non-mirrored: flip to convert canonical CW to world CCW (front-facing)
 			this.addQuad(v0, v3, v2, v1, normal);
 		}
@@ -226,11 +227,11 @@ class GeometryBuilder {
 	 * For non-mirrored transforms, we flip to get CCW in world space (front-facing)
 	 * For mirrored transforms, the transform itself flips winding, so we don't flip
 	 */
-	emitTriCanonical(
+	emitTriCanonical (
 		ox: number, oy: number, oz: number,
 		cfg: AxisConfig,
 		p0: [number, number, number], p1: [number, number, number], p2: [number, number, number],
-		normalCanonical: [number, number, number]
+		normalCanonical: [number, number, number],
 	): void {
 		const v0 = toWorld(ox, oy, oz, p0[0], p0[1], p0[2], cfg);
 		const v1 = toWorld(ox, oy, oz, p1[0], p1[1], p1[2], cfg);
@@ -240,13 +241,14 @@ class GeometryBuilder {
 		if (isMirrored(cfg)) {
 			// Mirrored transform flips winding, so canonical CW becomes world CCW (front-facing)
 			this.addTriangle(v0, v1, v2, normal);
-		} else {
+		}
+		else {
 			// Non-mirrored: flip to convert canonical CW to world CCW (front-facing)
 			this.addTriangle(v0, v2, v1, normal);
 		}
 	}
 
-	build(): THREE.BufferGeometry {
+	build (): THREE.BufferGeometry {
 		const geometry = new THREE.BufferGeometry();
 		geometry.setAttribute("position", new THREE.Float32BufferAttribute(this.vertices, 3));
 		geometry.setAttribute("normal", new THREE.Float32BufferAttribute(this.normals, 3));
@@ -259,7 +261,7 @@ class GeometryBuilder {
 /**
  * Compute triangle normal via cross product (shared helper for all corner builders)
  */
-function triNormal(p1: number[], p2: number[], p3: number[]): number[] {
+function triNormal (p1: number[], p2: number[], p3: number[]): number[] {
 	const ab = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
 	const ac = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
 	const nx = ab[1] * ac[2] - ab[2] * ac[1];
@@ -288,12 +290,12 @@ function triNormal(p1: number[], p2: number[], p3: number[]): number[] {
  * @param extU Exterior flags for +u/-u directions [+u, -u]
  * @param extV Exterior flags for +v/-v directions [+v, -v]
  */
-function buildFaceCanonical(
+function buildFaceCanonical (
 	builder: GeometryBuilder,
 	ox: number, oy: number, oz: number,
 	cfg: AxisConfig,
 	extU: [boolean, boolean],  // [+u exterior, -u exterior]
-	extV: [boolean, boolean]   // [+v exterior, -v exterior]
+	extV: [boolean, boolean],   // [+v exterior, -v exterior]
 ): void {
 	const s = HALF_SIZE;
 	const inner = INNER;
@@ -308,7 +310,7 @@ function buildFaceCanonical(
 	builder.emitQuadCanonical(ox, oy, oz, cfg,
 		[-inner, +inner, s], [+inner, +inner, s],
 		[+inner, -inner, s], [-inner, -inner, s],
-		[0, 0, 1]  // face normal in +w direction
+		[0, 0, 1],  // face normal in +w direction
 	);
 
 	// ========== 2. Four edge strips ==========
@@ -318,14 +320,15 @@ function buildFaceCanonical(
 		builder.emitQuadCanonical(ox, oy, oz, cfg,
 			[-inner, +inner, s], [-inner, -inner, s],
 			[-outer, -inner, outer], [-outer, +inner, outer],
-			[-BEVEL_MAJOR, 0, BEVEL_MINOR]
+			[-BEVEL_MAJOR, 0, BEVEL_MINOR],
 		);
-	} else {
+	}
+	else {
 		// Flat extension to neighbor
 		builder.emitQuadCanonical(ox, oy, oz, cfg,
 			[-inner, +inner, s], [-inner, -inner, s],
 			[-sExt, -inner, s], [-sExt, +inner, s],
-			[0, 0, 1]
+			[0, 0, 1],
 		);
 	}
 
@@ -334,13 +337,14 @@ function buildFaceCanonical(
 		builder.emitQuadCanonical(ox, oy, oz, cfg,
 			[+inner, -inner, s], [+inner, +inner, s],
 			[+outer, +inner, outer], [+outer, -inner, outer],
-			[BEVEL_MAJOR, 0, BEVEL_MINOR]
+			[BEVEL_MAJOR, 0, BEVEL_MINOR],
 		);
-	} else {
+	}
+	else {
 		builder.emitQuadCanonical(ox, oy, oz, cfg,
 			[+inner, -inner, s], [+inner, +inner, s],
 			[+sExt, +inner, s], [+sExt, -inner, s],
-			[0, 0, 1]
+			[0, 0, 1],
 		);
 	}
 
@@ -349,13 +353,14 @@ function buildFaceCanonical(
 		builder.emitQuadCanonical(ox, oy, oz, cfg,
 			[-inner, -inner, s], [+inner, -inner, s],
 			[+outer, -outer, outer], [-outer, -outer, outer],
-			[0, -BEVEL_MAJOR, BEVEL_MINOR]
+			[0, -BEVEL_MAJOR, BEVEL_MINOR],
 		);
-	} else {
+	}
+	else {
 		builder.emitQuadCanonical(ox, oy, oz, cfg,
 			[-inner, -inner, s], [+inner, -inner, s],
 			[+inner, -sExt, s], [-inner, -sExt, s],
-			[0, 0, 1]
+			[0, 0, 1],
 		);
 	}
 
@@ -364,13 +369,14 @@ function buildFaceCanonical(
 		builder.emitQuadCanonical(ox, oy, oz, cfg,
 			[+inner, +inner, s], [-inner, +inner, s],
 			[-outer, +outer, outer], [+outer, +outer, outer],
-			[0, BEVEL_MAJOR, BEVEL_MINOR]
+			[0, BEVEL_MAJOR, BEVEL_MINOR],
 		);
-	} else {
+	}
+	else {
 		builder.emitQuadCanonical(ox, oy, oz, cfg,
 			[+inner, +inner, s], [-inner, +inner, s],
 			[-inner, +sExt, s], [+inner, +sExt, s],
-			[0, 0, 1]
+			[0, 0, 1],
 		);
 	}
 
@@ -391,12 +397,12 @@ function buildFaceCanonical(
  * @param exteriorU true if exterior in u direction
  * @param exteriorV true if exterior in v direction
  */
-function buildCornerCanonical(
+function buildCornerCanonical (
 	builder: GeometryBuilder,
 	ox: number, oy: number, oz: number,
 	cfg: AxisConfig,
 	signU: number, signV: number,
-	exteriorU: boolean, exteriorV: boolean
+	exteriorU: boolean, exteriorV: boolean,
 ): void {
 	const s = HALF_SIZE;
 	const inner = INNER;
@@ -439,16 +445,25 @@ function buildCornerCanonical(
 		const n1 = triNormal(v0, v3, v1);
 		const n2 = triNormal(v0, v2, v3);
 		// Ensure normals point outward (positive w component in canonical)
-		if (n1[cfg.wAxis] * cfg.wSign < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		if (n2[cfg.wAxis] * cfg.wSign < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		if (n1[cfg.wAxis] * cfg.wSign < 0) {
+			n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; 
+		}
+		if (n2[cfg.wAxis] * cfg.wSign < 0) {
+			n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; 
+		}
 		builder.addTriangle(v0, v3, v1, n1);
 		builder.addTriangle(v0, v2, v3, n2);
-	} else {
+	}
+	else {
 		// Triangles: a-b-d, a-d-c
 		const n1 = triNormal(v0, v1, v3);
 		const n2 = triNormal(v0, v3, v2);
-		if (n1[cfg.wAxis] * cfg.wSign < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		if (n2[cfg.wAxis] * cfg.wSign < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		if (n1[cfg.wAxis] * cfg.wSign < 0) {
+			n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; 
+		}
+		if (n2[cfg.wAxis] * cfg.wSign < 0) {
+			n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; 
+		}
 		builder.addTriangle(v0, v1, v3, n1);
 		builder.addTriangle(v0, v3, v2, n2);
 	}
@@ -465,12 +480,12 @@ function buildCornerCanonical(
  * @param neighborU Neighbor flags for +u/-u directions [+u, -u]
  * @param neighborV Neighbor flags for +v/-v directions [+v, -v]
  */
-function buildInnerFaceCanonical(
+function buildInnerFaceCanonical (
 	builder: GeometryBuilder,
 	ox: number, oy: number, oz: number,
 	cfg: AxisConfig,
 	neighborU: [boolean, boolean],  // [+u neighbor, -u neighbor]
-	neighborV: [boolean, boolean]   // [+v neighbor, -v neighbor]
+	neighborV: [boolean, boolean],   // [+v neighbor, -v neighbor]
 ): void {
 	const inner = INNER;
 	const outer = OUTER;
@@ -482,7 +497,7 @@ function buildInnerFaceCanonical(
 	builder.emitQuadCanonical(ox, oy, oz, cfg,
 		[-inner, +inner, sExt], [+inner, +inner, sExt],
 		[+inner, -inner, sExt], [-inner, -inner, sExt],
-		[0, 0, 1]
+		[0, 0, 1],
 	);
 
 	// ========== Four edge strips (always flat for inner faces) ==========
@@ -490,28 +505,28 @@ function buildInnerFaceCanonical(
 	builder.emitQuadCanonical(ox, oy, oz, cfg,
 		[-sExt, +inner, sExt], [-inner, +inner, sExt],
 		[-inner, -inner, sExt], [-sExt, -inner, sExt],
-		[0, 0, 1]
+		[0, 0, 1],
 	);
 
 	// +u edge
 	builder.emitQuadCanonical(ox, oy, oz, cfg,
 		[+inner, +inner, sExt], [+sExt, +inner, sExt],
 		[+sExt, -inner, sExt], [+inner, -inner, sExt],
-		[0, 0, 1]
+		[0, 0, 1],
 	);
 
 	// -v edge
 	builder.emitQuadCanonical(ox, oy, oz, cfg,
 		[-inner, -inner, sExt], [+inner, -inner, sExt],
 		[+inner, -sExt, sExt], [-inner, -sExt, sExt],
-		[0, 0, 1]
+		[0, 0, 1],
 	);
 
 	// +v edge
 	builder.emitQuadCanonical(ox, oy, oz, cfg,
 		[-inner, +sExt, sExt], [+inner, +sExt, sExt],
 		[+inner, +inner, sExt], [-inner, +inner, sExt],
-		[0, 0, 1]
+		[0, 0, 1],
 	);
 
 	// ========== Four corners with dynamic d-point ==========
@@ -525,12 +540,12 @@ function buildInnerFaceCanonical(
 /**
  * Build inner corner geometry in canonical coordinates
  */
-function buildInnerCornerCanonical(
+function buildInnerCornerCanonical (
 	builder: GeometryBuilder,
 	ox: number, oy: number, oz: number,
 	cfg: AxisConfig,
 	signU: number, signV: number,
-	neighborU: boolean, neighborV: boolean
+	neighborU: boolean, neighborV: boolean,
 ): void {
 	const inner = INNER;
 	const outer = OUTER;
@@ -550,11 +565,14 @@ function buildInnerCornerCanonical(
 	let uD: number, vD: number, wD: number;
 	if (neighborU && neighborV) {
 		uD = outer; vD = outer; wD = outer;
-	} else if (neighborU) {
+	}
+	else if (neighborU) {
 		uD = sExt; vD = inner; wD = sExt;
-	} else if (neighborV) {
+	}
+	else if (neighborV) {
 		uD = inner; vD = sExt; wD = sExt;
-	} else {
+	}
+	else {
 		uD = outer; vD = outer; wD = sExt;
 	}
 	const d: [number, number, number] = [signU * uD, signV * vD, wD];
@@ -571,15 +589,24 @@ function buildInnerCornerCanonical(
 	if (shouldFlip) {
 		const n1 = triNormal(v0, v3, v1);
 		const n2 = triNormal(v0, v2, v3);
-		if (n1[cfg.wAxis] * cfg.wSign < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		if (n2[cfg.wAxis] * cfg.wSign < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		if (n1[cfg.wAxis] * cfg.wSign < 0) {
+			n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; 
+		}
+		if (n2[cfg.wAxis] * cfg.wSign < 0) {
+			n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; 
+		}
 		builder.addTriangle(v0, v3, v1, n1);
 		builder.addTriangle(v0, v2, v3, n2);
-	} else {
+	}
+	else {
 		const n1 = triNormal(v0, v1, v3);
 		const n2 = triNormal(v0, v3, v2);
-		if (n1[cfg.wAxis] * cfg.wSign < 0) { n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; }
-		if (n2[cfg.wAxis] * cfg.wSign < 0) { n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; }
+		if (n1[cfg.wAxis] * cfg.wSign < 0) {
+			n1[0] = -n1[0]; n1[1] = -n1[1]; n1[2] = -n1[2]; 
+		}
+		if (n2[cfg.wAxis] * cfg.wSign < 0) {
+			n2[0] = -n2[0]; n2[1] = -n2[1]; n2[2] = -n2[2]; 
+		}
 		builder.addTriangle(v0, v1, v3, n1);
 		builder.addTriangle(v0, v3, v2, n2);
 	}
@@ -590,7 +617,7 @@ function buildInnerCornerCanonical(
  * Get perpendicular exterior flags from face direction
  * Returns [extU, extV] where extU = [+u exterior, -u exterior]
  */
-function getExteriorFlags(face: FaceDir, exterior: Record<FaceDir, boolean>): {
+function getExteriorFlags (face: FaceDir, exterior: Record<FaceDir, boolean>): {
 	extU: [boolean, boolean];
 	extV: [boolean, boolean];
 } {
@@ -605,7 +632,7 @@ function getExteriorFlags(face: FaceDir, exterior: Record<FaceDir, boolean>): {
 /**
  * Get perpendicular neighbor flags from face direction (inverse of exterior)
  */
-function getNeighborFlags(face: FaceDir, exterior: Record<FaceDir, boolean>): {
+function getNeighborFlags (face: FaceDir, exterior: Record<FaceDir, boolean>): {
 	neighborU: [boolean, boolean];
 	neighborV: [boolean, boolean];
 } {
@@ -624,11 +651,11 @@ function getNeighborFlags(face: FaceDir, exterior: Record<FaceDir, boolean>): {
  * @param face Face direction
  * @param exterior Neighbor state record
  */
-function buildFaceGeometry(
+function buildFaceGeometry (
 	builder: GeometryBuilder,
 	ox: number, oy: number, oz: number,
 	face: FaceDir,
-	exterior: Record<FaceDir, boolean>
+	exterior: Record<FaceDir, boolean>,
 ): void {
 	const cfg = AXIS_CONFIGS[face];
 	const {extU, extV} = getExteriorFlags(face, exterior);
@@ -640,11 +667,11 @@ function buildFaceGeometry(
 /**
  * Build inner face geometry for a face that has a neighbor
  */
-function buildInnerFaceGeometry(
+function buildInnerFaceGeometry (
 	builder: GeometryBuilder,
 	ox: number, oy: number, oz: number,
 	face: FaceDir,
-	neighbors: Record<FaceDir, boolean>
+	neighbors: Record<FaceDir, boolean>,
 ): void {
 	const cfg = AXIS_CONFIGS[face];
 	const {neighborU, neighborV} = getNeighborFlags(face, {
@@ -663,7 +690,7 @@ function buildInnerFaceGeometry(
  * Generate a cache key from block positions
  * Sorts positions to ensure same shape always gets same key
  */
-function geometryCacheKey(blocks: Point3D[]): string {
+function geometryCacheKey (blocks: Point3D[]): string {
 	// Sort by y, then x, then z for consistent ordering
 	const sorted = [...blocks].sort((a, b) => {
 		if (a.y !== b.y) return a.y - b.y;
@@ -679,7 +706,7 @@ function geometryCacheKey(blocks: Point3D[]): string {
  * Uses the nine-grid system for proper corner handling.
  * FaceMask bits: +x=1, -x=2, +y=4, -y=8, +z=16, -z=32
  */
-export function createBlockGeometryFromMask(faceMask: number): THREE.BufferGeometry {
+export function createBlockGeometryFromMask (faceMask: number): THREE.BufferGeometry {
 	const builder = new GeometryBuilder();
 
 	// Determine which faces are exterior (exposed)
@@ -724,14 +751,14 @@ export function createBlockGeometryFromMask(faceMask: number): THREE.BufferGeome
  * Internal faces between adjacent cubes are removed.
  * Special case: corners where all 3 directions have neighbors are still drawn.
  */
-export function createUnifiedPieceGeometry(blocks: Point3D[]): THREE.BufferGeometry {
+export function createUnifiedPieceGeometry (blocks: Point3D[]): THREE.BufferGeometry {
 	const builder = new GeometryBuilder();
 
 	// Build a set of block positions for quick neighbor lookup
 	const blockSet = new Set<string>();
-	for (const block of blocks) {
+	for (const block of blocks) 
 		blockSet.add(coordKey(block.x, block.y, block.z));
-	}
+	
 
 	// Check if a neighbor exists in the given direction
 	const hasNeighbor = (block: Point3D, dir: FaceDir): boolean => {
@@ -754,9 +781,9 @@ export function createUnifiedPieceGeometry(blocks: Point3D[]): THREE.BufferGeome
 
 		// Build each exterior face using nine-grid system
 		for (const face of FACE_DIRS) {
-			if (exterior[face]) {
+			if (exterior[face]) 
 				buildFaceGeometry(builder, block.x, block.y, block.z, face, exterior);
-			}
+			
 		}
 
 		// Special case: draw corners where all 3 directions have neighbors
@@ -789,9 +816,9 @@ export function createUnifiedPieceGeometry(blocks: Point3D[]): THREE.BufferGeome
 
 			for (const {signU, signV, uDir, vDir} of cornerCombos) {
 				// Only draw if both perpendicular directions also have neighbors (three-way junction)
-				if (neighbors[uDir] && neighbors[vDir]) {
+				if (neighbors[uDir] && neighbors[vDir]) 
 					buildInnerCornerCanonical(builder, block.x, block.y, block.z, cfg, signU, signV, true, true);
-				}
+				
 			}
 		}
 	}
@@ -803,7 +830,7 @@ export function createUnifiedPieceGeometry(blocks: Point3D[]): THREE.BufferGeome
 /**
  * Create beveled cube geometry for a single cube (used for board blocks)
  */
-function createBeveledCubeGeometry(): THREE.BufferGeometry {
+function createBeveledCubeGeometry (): THREE.BufferGeometry {
 	// Use unified piece geometry with a single block
 	return createUnifiedPieceGeometry([{x: 0, y: 0, z: 0}]);
 }
@@ -862,7 +889,7 @@ export class TetrisRenderer {
 	private readonly FLASH_INTERVAL = 0.08; // Flash every 80ms like original
 
 
-	constructor(canvas: HTMLCanvasElement, config?: Partial<GameConfig>) {
+	constructor (canvas: HTMLCanvasElement, config?: Partial<GameConfig>) {
 		this.canvas = canvas;
 		this.config = {...GAME_CONFIG, ...config};
 
@@ -879,12 +906,12 @@ export class TetrisRenderer {
 		this.boardCenter = new THREE.Vector3(
 			this.config.boardWidth / 2 - 0.5,
 			this.config.boardHeight / 4,
-			this.config.boardDepth / 2 - 0.5
+			this.config.boardDepth / 2 - 0.5,
 		);
 		this.camera.position.set(
 			this.boardCenter.x + 8,
 			this.boardCenter.y + 6,
-			this.boardCenter.z + 8
+			this.boardCenter.z + 8,
 		);
 		this.camera.lookAt(this.boardCenter);
 
@@ -931,7 +958,7 @@ export class TetrisRenderer {
 	/**
 	 * Setup lighting
 	 */
-	private setupLighting(): void {
+	private setupLighting (): void {
 		// Ambient light
 		const ambient = new THREE.AmbientLight(0xffffff, 0.4);
 		this.scene.add(ambient);
@@ -952,7 +979,7 @@ export class TetrisRenderer {
 	/**
 	 * Setup game boundary visualization
 	 */
-	private setupBoundary(): void {
+	private setupBoundary (): void {
 		const {boardWidth, boardDepth, boardHeight} = this.config;
 
 		// Create wireframe box for boundary - more visible like original
@@ -975,13 +1002,13 @@ export class TetrisRenderer {
 		});
 
 		const corners = [
-			[0, 0], [boardWidth, 0], [0, boardDepth], [boardWidth, boardDepth]
+			[0, 0], [boardWidth, 0], [0, boardDepth], [boardWidth, boardDepth],
 		];
 
 		for (const [x, z] of corners) {
 			const points = [
 				new THREE.Vector3(x - 0.5, -0.5, z - 0.5),
-				new THREE.Vector3(x - 0.5, boardHeight - 0.5, z - 0.5)
+				new THREE.Vector3(x - 0.5, boardHeight - 0.5, z - 0.5),
 			];
 			const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
 			const line = new THREE.Line(lineGeometry, cornerLineMaterial);
@@ -997,7 +1024,7 @@ export class TetrisRenderer {
 	 * Setup 4 walls with Fresnel effect material
 	 * Transparent when viewed head-on, visible when viewed at grazing angles
 	 */
-	private setupWalls(): void {
+	private setupWalls (): void {
 		const {boardWidth, boardDepth, boardHeight} = this.config;
 
 		// Fresnel shader material
@@ -1053,7 +1080,7 @@ export class TetrisRenderer {
 		// Front wall (-Z)
 		const frontWall = new THREE.Mesh(
 			new THREE.PlaneGeometry(boardWidth, wallHeight),
-			fresnelMaterial
+			fresnelMaterial,
 		);
 		frontWall.position.set(boardWidth / 2 - 0.5, wallHeight / 2 - 0.5, -0.5);
 		this.boundaryGroup.add(frontWall);
@@ -1061,7 +1088,7 @@ export class TetrisRenderer {
 		// Back wall (+Z)
 		const backWall = new THREE.Mesh(
 			new THREE.PlaneGeometry(boardWidth, wallHeight),
-			fresnelMaterial.clone()
+			fresnelMaterial.clone(),
 		);
 		backWall.position.set(boardWidth / 2 - 0.5, wallHeight / 2 - 0.5, boardDepth - 0.5);
 		backWall.rotation.y = Math.PI;
@@ -1070,7 +1097,7 @@ export class TetrisRenderer {
 		// Left wall (-X)
 		const leftWall = new THREE.Mesh(
 			new THREE.PlaneGeometry(boardDepth, wallHeight),
-			fresnelMaterial.clone()
+			fresnelMaterial.clone(),
 		);
 		leftWall.position.set(-0.5, wallHeight / 2 - 0.5, boardDepth / 2 - 0.5);
 		leftWall.rotation.y = Math.PI / 2;
@@ -1079,7 +1106,7 @@ export class TetrisRenderer {
 		// Right wall (+X)
 		const rightWall = new THREE.Mesh(
 			new THREE.PlaneGeometry(boardDepth, wallHeight),
-			fresnelMaterial.clone()
+			fresnelMaterial.clone(),
 		);
 		rightWall.position.set(boardWidth - 0.5, wallHeight / 2 - 0.5, boardDepth / 2 - 0.5);
 		rightWall.rotation.y = -Math.PI / 2;
@@ -1090,7 +1117,7 @@ export class TetrisRenderer {
 	/**
 	 * Setup floor/grid visualization
 	 */
-	private setupFloor(): void {
+	private setupFloor (): void {
 		const {boardWidth, boardDepth} = this.config;
 
 		// Grid helper
@@ -1098,7 +1125,7 @@ export class TetrisRenderer {
 			Math.max(boardWidth, boardDepth),
 			Math.max(boardWidth, boardDepth),
 			0x444444,
-			0x333333
+			0x333333,
 		);
 		gridHelper.position.set(boardWidth / 2 - 0.5, -0.5, boardDepth / 2 - 0.5);
 		this.scene.add(gridHelper);
@@ -1123,7 +1150,7 @@ export class TetrisRenderer {
 	 * @param color Block color
 	 * @param faceMask Bitmask of exposed faces (default: all faces = 63)
 	 */
-	private createBlockMesh(color: string, faceMask: number = FACE_MASK.ALL): THREE.Mesh {
+	private createBlockMesh (color: string, faceMask: number = FACE_MASK.ALL): THREE.Mesh {
 		const material = new THREE.MeshStandardMaterial({
 			color: new THREE.Color(color),
 			metalness: 0.3,
@@ -1148,12 +1175,12 @@ export class TetrisRenderer {
 	 * Update the board visualization
 	 * Maintains boardBlockMeshes map for individual block tracking
 	 */
-	updateBoard(board: CubeGrid): void {
+	updateBoard (board: CubeGrid): void {
 		// Build map of current board blocks with their data
 		const currentBlocks = new Map<string, {point: Point3D; data: BlockData}>();
-		for (const {point, data} of board.toPointList()) {
+		for (const {point, data} of board.toPointList()) 
 			currentBlocks.set(coordKey(point.x, point.y, point.z), {point, data});
-		}
+		
 
 		// Remove meshes that are no longer in the board (unless being cleared)
 		// Also remove meshes where the block data has changed (different color/faceMask)
@@ -1166,7 +1193,8 @@ export class TetrisRenderer {
 				this.boardGroup.remove(mesh);
 				(mesh.material as THREE.Material).dispose();
 				this.boardBlockMeshes.delete(key);
-			} else {
+			}
+			else {
 				// Check if color or faceMask changed - if so, recreate mesh
 				const material = mesh.material as THREE.MeshStandardMaterial;
 				const currentColor = new THREE.Color(blockData.data.color);
@@ -1206,7 +1234,7 @@ export class TetrisRenderer {
 	 * @param piece The piece to render
 	 * @param visualY Optional Y position override for animation
 	 */
-	updatePiece(piece: TetrisPiece | null, visualY?: number): void {
+	updatePiece (piece: TetrisPiece | null, visualY?: number): void {
 		// Clear existing piece meshes (only dispose material, geometry is cached)
 		while (this.pieceGroup.children.length > 0) {
 			const child = this.pieceGroup.children[0];
@@ -1260,7 +1288,7 @@ export class TetrisRenderer {
 	 * @param ghostPosition The position for the ghost
 	 * @param opacity Optional opacity override (default: 0.35)
 	 */
-	updateGhost(piece: TetrisPiece | null, ghostPosition: Point3D | null, opacity?: number): void {
+	updateGhost (piece: TetrisPiece | null, ghostPosition: Point3D | null, opacity?: number): void {
 		// Clear existing ghost meshes (don't dispose geometry - it's cached)
 		while (this.ghostGroup.children.length > 0) {
 			const child = this.ghostGroup.children[0];
@@ -1297,7 +1325,7 @@ export class TetrisRenderer {
 	/**
 	 * Resize handler
 	 */
-	resize(width: number, height: number): void {
+	resize (width: number, height: number): void {
 		this.camera.aspect = width / height;
 		this.camera.updateProjectionMatrix();
 		this.renderer.setSize(width, height);
@@ -1308,7 +1336,7 @@ export class TetrisRenderer {
 	/**
 	 * Render a single frame
 	 */
-	render(time: number = 0): void {
+	render (time: number = 0): void {
 		if (this.isDisposed) return;
 
 		// Calculate elapsed time in seconds
@@ -1370,7 +1398,8 @@ export class TetrisRenderer {
 			this.camera.position.y = height;
 			this.camera.lookAt(this.boardCenter);
 			this.controls.target.copy(this.boardCenter);
-		} else {
+		}
+		else {
 			// In manual mode, also update orbit controls target
 			this.controls.target.y = this.cameraTargetHeight;
 		}
@@ -1383,7 +1412,7 @@ export class TetrisRenderer {
 	/**
 	 * Start animation loop
 	 */
-	startAnimationLoop(onFrame?: (time: number) => void): void {
+	startAnimationLoop (onFrame?: (time: number) => void): void {
 		const animate = (time: number) => {
 			if (this.isDisposed) return;
 
@@ -1399,7 +1428,7 @@ export class TetrisRenderer {
 	/**
 	 * Stop animation loop
 	 */
-	stopAnimationLoop(): void {
+	stopAnimationLoop (): void {
 		if (this.animationFrameId !== null) {
 			cancelAnimationFrame(this.animationFrameId);
 			this.animationFrameId = null;
@@ -1410,7 +1439,7 @@ export class TetrisRenderer {
 	/**
 	 * Cleanup resources
 	 */
-	dispose(): void {
+	dispose (): void {
 		this.isDisposed = true;
 		this.stopAnimationLoop();
 
@@ -1419,15 +1448,15 @@ export class TetrisRenderer {
 		this.ghostMaterial.dispose();
 
 		// Dispose cached piece geometries
-		for (const geometry of this.geometryCache.values()) {
+		for (const geometry of this.geometryCache.values()) 
 			geometry.dispose();
-		}
+		
 		this.geometryCache.clear();
 
 		// Dispose cached block geometries
-		for (const geometry of this.blockGeometryCache.values()) {
+		for (const geometry of this.blockGeometryCache.values()) 
 			geometry.dispose();
-		}
+		
 		this.blockGeometryCache.clear();
 
 		// Dispose all meshes in groups
@@ -1435,14 +1464,14 @@ export class TetrisRenderer {
 			group.traverse((child) => {
 				if (child instanceof THREE.Mesh) {
 					// Skip geometry disposal for groups using cached geometry
-					if (!skipGeometry) {
+					if (!skipGeometry) 
 						child.geometry?.dispose();
-					}
-					if (child.material instanceof THREE.Material) {
+					
+					if (child.material instanceof THREE.Material) 
 						child.material.dispose();
-					} else if (Array.isArray(child.material)) {
+					 else if (Array.isArray(child.material)) 
 						child.material.forEach(m => m.dispose());
-					}
+					
 				}
 			});
 			group.clear();
@@ -1464,7 +1493,7 @@ export class TetrisRenderer {
 	/**
 	 * Get camera for external access
 	 */
-	getCamera(): THREE.PerspectiveCamera {
+	getCamera (): THREE.PerspectiveCamera {
 		return this.camera;
 	}
 
@@ -1472,7 +1501,7 @@ export class TetrisRenderer {
 	/**
 	 * Get scene for external access
 	 */
-	getScene(): THREE.Scene {
+	getScene (): THREE.Scene {
 		return this.scene;
 	}
 
@@ -1480,7 +1509,7 @@ export class TetrisRenderer {
 	/**
 	 * Get board center for camera-relative controls
 	 */
-	getBoardCenter(): THREE.Vector3 {
+	getBoardCenter (): THREE.Vector3 {
 		return this.boardCenter.clone();
 	}
 
@@ -1488,22 +1517,23 @@ export class TetrisRenderer {
 	/**
 	 * Enable/disable auto-rotate camera for demo mode
 	 */
-	setAutoRotate(enabled: boolean, speed: number = 0.3): void {
+	setAutoRotate (enabled: boolean, speed: number = 0.3): void {
 		this.autoRotate = enabled;
 		this.autoRotateSpeed = speed;
 		if (enabled) {
 			// Disable user controls during auto-rotate
 			this.controls.enabled = false;
-		} else {
-			this.controls.enabled = true;
 		}
+		else 
+			this.controls.enabled = true;
+		
 	}
 
 
 	/**
 	 * Check if auto-rotate is enabled
 	 */
-	isAutoRotating(): boolean {
+	isAutoRotating (): boolean {
 		return this.autoRotate;
 	}
 
@@ -1511,7 +1541,7 @@ export class TetrisRenderer {
 	/**
 	 * Set current piece centroid for camera targeting
 	 */
-	setPieceCentroid(centroid: {x: number; z: number} | null): void {
+	setPieceCentroid (centroid: {x: number; z: number} | null): void {
 		this.pieceCentroid = centroid;
 	}
 
@@ -1519,7 +1549,7 @@ export class TetrisRenderer {
 	/**
 	 * Notify that a new piece has spawned (resets camera control delay)
 	 */
-	onPieceSpawned(): void {
+	onPieceSpawned (): void {
 		this.pieceSpawnTime = performance.now();
 	}
 
@@ -1527,7 +1557,7 @@ export class TetrisRenderer {
 	/**
 	 * Set ghost brick's minimum Y position for camera control
 	 */
-	setGhostMinY(minY: number): void {
+	setGhostMinY (minY: number): void {
 		this.ghostMinY = minY;
 	}
 
@@ -1536,7 +1566,7 @@ export class TetrisRenderer {
 	 * Calculate ideal camera height based on heap
 	 * Ported from original CubeTetris TetrisPool:idealCameraHeight()
 	 */
-	private idealCameraHeight(): number {
+	private idealCameraHeight (): number {
 		const minHeight = 5;  // Minimum camera height
 		const maxHeight = this.config.boardHeight;
 
@@ -1555,7 +1585,7 @@ export class TetrisRenderer {
 	 * Update camera height to smoothly follow the ideal height
 	 * Ported from original CubeTetris TetrisPool update logic
 	 */
-	private updateCameraHeight(elapsed: number): void {
+	private updateCameraHeight (elapsed: number): void {
 		const ideal = this.idealCameraHeight();
 		const differ = ideal - this.cameraTargetHeight;
 
@@ -1565,9 +1595,9 @@ export class TetrisRenderer {
 		let delta = (differ > 0 ? 1 : -1) * elapsed * speed;
 
 		// Snap to ideal if we'd overshoot
-		if (Math.abs(delta) > Math.abs(differ)) {
+		if (Math.abs(delta) > Math.abs(differ)) 
 			delta = differ;
-		}
+		
 
 		this.cameraTargetHeight += delta;
 	}
@@ -1576,7 +1606,7 @@ export class TetrisRenderer {
 	/**
 	 * Update heap max Y (call this when board changes)
 	 */
-	setHeapMaxY(maxY: number): void {
+	setHeapMaxY (maxY: number): void {
 		this.heapMaxY = maxY;
 	}
 
@@ -1586,14 +1616,14 @@ export class TetrisRenderer {
 	 * Uses existing meshes from boardBlockMeshes instead of creating new ones
 	 * @param blocks Array of block positions to animate (with color and faceMask)
 	 */
-	startClearingAnimation(blocks: Array<{point: Point3D; color: string; faceMask?: number}>): void {
+	startClearingAnimation (blocks: Array<{point: Point3D; color: string; faceMask?: number}>): void {
 		for (const {point, color} of blocks) {
 			const key = coordKey(point.x, point.y, point.z);
 
 			// Skip if already animating this block
-			if (this.clearingBlocks.has(key)) {
+			if (this.clearingBlocks.has(key)) 
 				continue;
-			}
+			
 
 			// Find existing mesh in boardBlockMeshes
 			const mesh = this.boardBlockMeshes.get(key);
@@ -1624,7 +1654,7 @@ export class TetrisRenderer {
 	 * @param elapsed Time elapsed since last frame in seconds
 	 * @returns true if animation is still ongoing, false if all clearing is done
 	 */
-	updateClearingAnimation(elapsed: number): boolean {
+	updateClearingAnimation (elapsed: number): boolean {
 		if (this.clearingBlocks.size === 0) return false;
 
 		const toRemove: string[] = [];
@@ -1646,7 +1676,8 @@ export class TetrisRenderer {
 				// Bright flash (white-ish)
 				material.emissiveIntensity = 0.8;
 				material.color.setRGB(1, 1, 1);
-			} else {
+			}
+			else {
 				// Original color
 				material.emissiveIntensity = 0.2;
 				material.color.copy(data.originalColor);
@@ -1655,9 +1686,9 @@ export class TetrisRenderer {
 			// Update remaining time
 			data.remain -= elapsed;
 
-			if (data.remain <= 0) {
+			if (data.remain <= 0) 
 				toRemove.push(key);
-			}
+			
 		}
 
 		// Remove finished blocks from board
@@ -1678,7 +1709,7 @@ export class TetrisRenderer {
 	/**
 	 * Check if clearing animation is currently active
 	 */
-	isClearingAnimation(): boolean {
+	isClearingAnimation (): boolean {
 		return this.clearingBlocks.size > 0;
 	}
 }

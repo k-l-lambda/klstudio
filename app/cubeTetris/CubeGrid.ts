@@ -15,7 +15,7 @@ import {coordKey, parseCoordKey, round} from "./constants";
 export class CubeGrid {
 	private blocks: Map<string, BlockData>;
 
-	constructor() {
+	constructor () {
 		this.blocks = new Map();
 	}
 
@@ -23,7 +23,7 @@ export class CubeGrid {
 	/**
 	 * Clear all blocks from the grid
 	 */
-	clear(): void {
+	clear (): void {
 		this.blocks.clear();
 	}
 
@@ -31,7 +31,7 @@ export class CubeGrid {
 	/**
 	 * Get block at coordinates
 	 */
-	get(x: number, y: number, z: number): BlockData | null {
+	get (x: number, y: number, z: number): BlockData | null {
 		return this.blocks.get(coordKey(x, y, z)) ?? null;
 	}
 
@@ -40,20 +40,20 @@ export class CubeGrid {
 	 * Set block at coordinates
 	 * Pass null to remove a block
 	 */
-	set(x: number, y: number, z: number, data: BlockData | null): void {
+	set (x: number, y: number, z: number, data: BlockData | null): void {
 		const key = coordKey(x, y, z);
-		if (data === null) {
+		if (data === null) 
 			this.blocks.delete(key);
-		} else {
+		 else 
 			this.blocks.set(key, data);
-		}
+		
 	}
 
 
 	/**
 	 * Check if a block exists at coordinates
 	 */
-	has(x: number, y: number, z: number): boolean {
+	has (x: number, y: number, z: number): boolean {
 		return this.blocks.has(coordKey(x, y, z));
 	}
 
@@ -61,7 +61,7 @@ export class CubeGrid {
 	/**
 	 * Get bounds of all blocks
 	 */
-	getBounds(): Bounds {
+	getBounds (): Bounds {
 		let minX = 0, maxX = 0, minY = 0, maxY = 0, minZ = 0, maxZ = 0;
 		let first = true;
 
@@ -72,7 +72,8 @@ export class CubeGrid {
 				minY = maxY = y;
 				minZ = maxZ = z;
 				first = false;
-			} else {
+			}
+			else {
 				minX = Math.min(minX, x);
 				maxX = Math.max(maxX, x);
 				minY = Math.min(minY, y);
@@ -89,7 +90,7 @@ export class CubeGrid {
 	/**
 	 * Convert grid to list of points with data
 	 */
-	toPointList(): Array<{point: Point3D; data: BlockData}> {
+	toPointList (): Array<{point: Point3D; data: BlockData}> {
 		const points: Array<{point: Point3D; data: BlockData}> = [];
 
 		for (const [key, data] of this.blocks) {
@@ -106,7 +107,7 @@ export class CubeGrid {
 	/**
 	 * Get all entries as an iterable
 	 */
-	entries(): IterableIterator<[string, BlockData]> {
+	entries (): IterableIterator<[string, BlockData]> {
 		return this.blocks.entries();
 	}
 
@@ -114,7 +115,7 @@ export class CubeGrid {
 	/**
 	 * Get number of blocks in grid
 	 */
-	get size(): number {
+	get size (): number {
 		return this.blocks.size;
 	}
 
@@ -125,7 +126,7 @@ export class CubeGrid {
 	 * @param axis - Rotation axis ('x', 'y', or 'z')
 	 * @param times - Number of 90-degree rotations (positive = counterclockwise when looking along axis toward origin)
 	 */
-	rotate(axis: "x" | "y" | "z", times: number = 1): CubeGrid {
+	rotate (axis: "x" | "y" | "z", times: number = 1): CubeGrid {
 		const rotated = new CubeGrid();
 
 		// Normalize times to 0-3
@@ -147,21 +148,21 @@ export class CubeGrid {
 				let newX = x, newY = y, newZ = z;
 
 				switch (axis) {
-					case "x":
-						// Rotate around X axis: (y, z) -> (-z, y)
-						newY = -z;
-						newZ = y;
-						break;
-					case "y":
-						// Rotate around Y axis: (x, z) -> (z, -x)
-						newX = z;
-						newZ = -x;
-						break;
-					case "z":
-						// Rotate around Z axis: (x, y) -> (-y, x)
-						newX = -y;
-						newY = x;
-						break;
+				case "x":
+					// Rotate around X axis: (y, z) -> (-z, y)
+					newY = -z;
+					newZ = y;
+					break;
+				case "y":
+					// Rotate around Y axis: (x, z) -> (z, -x)
+					newX = z;
+					newZ = -x;
+					break;
+				case "z":
+					// Rotate around Z axis: (x, y) -> (-y, x)
+					newX = -y;
+					newY = x;
+					break;
 				}
 
 				x = round(newX);
@@ -179,11 +180,11 @@ export class CubeGrid {
 	/**
 	 * Clone this grid
 	 */
-	clone(): CubeGrid {
+	clone (): CubeGrid {
 		const cloned = new CubeGrid();
-		for (const [key, data] of this.blocks) {
+		for (const [key, data] of this.blocks) 
 			cloned.blocks.set(key, {...data});
-		}
+		
 		return cloned;
 	}
 
@@ -191,13 +192,13 @@ export class CubeGrid {
 	/**
 	 * Count blocks at a specific Y level
 	 */
-	countAtY(y: number): number {
+	countAtY (y: number): number {
 		let count = 0;
 		for (const key of this.blocks.keys()) {
 			const point = parseCoordKey(key);
-			if (point.y === y) {
+			if (point.y === y) 
 				count++;
-			}
+			
 		}
 		return count;
 	}
@@ -206,7 +207,7 @@ export class CubeGrid {
 	/**
 	 * Get all Y levels that have blocks
 	 */
-	getOccupiedYLevels(): number[] {
+	getOccupiedYLevels (): number[] {
 		const levels = new Set<number>();
 		for (const key of this.blocks.keys()) {
 			const {y} = parseCoordKey(key);
@@ -219,24 +220,24 @@ export class CubeGrid {
 	/**
 	 * Remove all blocks at a specific Y level and shift blocks above down
 	 */
-	removeLayerAndShift(y: number): void {
+	removeLayerAndShift (y: number): void {
 		// Remove blocks at this Y level
 		const toRemove: string[] = [];
 		const toShift: Array<{key: string; data: BlockData; point: Point3D}> = [];
 
 		for (const [key, data] of this.blocks) {
 			const point = parseCoordKey(key);
-			if (point.y === y) {
+			if (point.y === y) 
 				toRemove.push(key);
-			} else if (point.y > y) {
+			 else if (point.y > y) 
 				toShift.push({key, data, point});
-			}
+			
 		}
 
 		// Remove the layer
-		for (const key of toRemove) {
+		for (const key of toRemove) 
 			this.blocks.delete(key);
-		}
+		
 
 		// Shift blocks above down by 1
 		// IMPORTANT: Sort by Y ascending so we process lower blocks first
@@ -256,7 +257,7 @@ export class CubeGrid {
 	 * This avoids the bug of sequential single-layer removal causing overwrites
 	 * @param layers Array of Y levels to remove (can be in any order)
 	 */
-	removeLayersAndShift(layers: number[]): void {
+	removeLayersAndShift (layers: number[]): void {
 		if (layers.length === 0) return;
 
 		// Sort layers ascending for efficient processing
@@ -272,26 +273,27 @@ export class CubeGrid {
 			if (layerSet.has(point.y)) {
 				// Block is in a layer being cleared
 				toRemove.push(key);
-			} else {
+			}
+			else {
 				// Count how many cleared layers are below this block
 				let dropDistance = 0;
 				for (const layerY of sortedLayers) {
-					if (layerY < point.y) {
+					if (layerY < point.y) 
 						dropDistance++;
-					} else {
+					 else 
 						break; // Since sortedLayers is ascending, no more layers below
-					}
+					
 				}
-				if (dropDistance > 0) {
+				if (dropDistance > 0) 
 					toShift.push({key, data, point, dropDistance});
-				}
+				
 			}
 		}
 
 		// Remove all cleared blocks
-		for (const key of toRemove) {
+		for (const key of toRemove) 
 			this.blocks.delete(key);
-		}
+		
 
 		// Shift remaining blocks down by their drop distance
 		// Sort by Y ascending to avoid overwrites

@@ -93,13 +93,15 @@
 					try {
 						const res = await fetch(source);
 						this.score = await res.text();
-					} catch (error) {
+					}
+					catch (error) {
 						console.error("Failed to load score:", error);
 						this.score = null;
 					}
-				} else {
-					this.score = null;
 				}
+				else 
+					this.score = null;
+				
 			},
 
 

@@ -164,7 +164,7 @@ export const LINE_SCORES = [0, 1, 4, 9, 25];
 /**
  * Helper: Round a number (matching Lua round behavior)
  */
-export function round(n: number): number {
+export function round (n: number): number {
 	const result = Math.floor(Math.abs(n) + 0.5);
 	return n < 0 ? -result : result;
 }
@@ -173,7 +173,7 @@ export function round(n: number): number {
 /**
  * Helper: Generate a key string from coordinates
  */
-export function coordKey(x: number, y: number, z: number): string {
+export function coordKey (x: number, y: number, z: number): string {
 	return `${x},${y},${z}`;
 }
 
@@ -181,7 +181,7 @@ export function coordKey(x: number, y: number, z: number): string {
 /**
  * Helper: Parse a coordinate key back to Point3D
  */
-export function parseCoordKey(key: string): Point3D {
+export function parseCoordKey (key: string): Point3D {
 	const [x, y, z] = key.split(",").map(Number);
 	return {x, y, z};
 }

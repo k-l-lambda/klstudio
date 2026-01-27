@@ -173,6 +173,6 @@
 
 	.viewer
 	{
-		background-color: #444;
+		background: radial-gradient(circle at center, #3a3a3a 0%, #1a1a1a 100%);
 	}
 </style>

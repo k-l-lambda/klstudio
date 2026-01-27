@@ -9,11 +9,11 @@ import {routes} from "./router";
 
 
 const router = createRouter({
-    history: createWebHashHistory(),
-    routes: [
-        ...routes,
-        {path: "/", redirect: "/globe-cube3"},
-    ],
+	history: createWebHashHistory(),
+	routes: [
+		...routes,
+		{path: "/", redirect: "/globe-cube3"},
+	],
 });
 
 

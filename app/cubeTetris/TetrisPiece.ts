@@ -27,7 +27,7 @@ export class TetrisPiece {
 	private _rotationState: RotationState;
 	readonly definition: PieceDefinition;
 
-	constructor(definition: PieceDefinition, startPosition?: Point3D) {
+	constructor (definition: PieceDefinition, startPosition?: Point3D) {
 		this.definition = definition;
 		this.grid = new CubeGrid();
 		this._position = startPosition ?? {x: 0, y: 0, z: 0};
@@ -41,7 +41,7 @@ export class TetrisPiece {
 	/**
 	 * Initialize blocks from piece definition
 	 */
-	private initializeBlocks(): void {
+	private initializeBlocks (): void {
 		this.grid.clear();
 		for (const block of this.definition.blocks) {
 			this.grid.set(block.x, block.y, block.z, {
@@ -55,7 +55,7 @@ export class TetrisPiece {
 	/**
 	 * Get current position
 	 */
-	get position(): Point3D {
+	get position (): Point3D {
 		return {...this._position};
 	}
 
@@ -63,7 +63,7 @@ export class TetrisPiece {
 	/**
 	 * Set position
 	 */
-	set position(pos: Point3D) {
+	set position (pos: Point3D) {
 		this._position = {...pos};
 	}
 
@@ -71,7 +71,7 @@ export class TetrisPiece {
 	/**
 	 * Get piece color
 	 */
-	get color(): string {
+	get color (): string {
 		return this.definition.color;
 	}
 
@@ -80,15 +80,15 @@ export class TetrisPiece {
 	 * Get all world-space block positions with faceMask calculated
 	 * faceMask indicates which faces are exposed (no neighbor within piece)
 	 */
-	getWorldBlocks(): Array<{point: Point3D; data: BlockData}> {
+	getWorldBlocks (): Array<{point: Point3D; data: BlockData}> {
 		const blocks: Array<{point: Point3D; data: BlockData}> = [];
 		const localBlocks = this.grid.toPointList();
 
 		// Build a set for quick neighbor lookup within the piece
 		const blockSet = new Set<string>();
-		for (const {point} of localBlocks) {
+		for (const {point} of localBlocks) 
 			blockSet.add(coordKey(point.x, point.y, point.z));
-		}
+		
 
 		for (const {point, data} of localBlocks) {
 			// Calculate faceMask based on neighbors within the piece
@@ -120,7 +120,7 @@ export class TetrisPiece {
 	/**
 	 * Get all local-space block positions (relative to piece origin)
 	 */
-	getLocalBlocks(): Point3D[] {
+	getLocalBlocks (): Point3D[] {
 		return this.grid.toPointList().map(({point}) => ({...point}));
 	}
 
@@ -129,7 +129,7 @@ export class TetrisPiece {
 	 * Get base (unrotated) block positions from definition
 	 * Used for geometry caching - only 8 unique shapes
 	 */
-	getBaseBlocks(): Point3D[] {
+	getBaseBlocks (): Point3D[] {
 		return this.definition.blocks.map(b => ({...b}));
 	}
 
@@ -138,7 +138,7 @@ export class TetrisPiece {
 	 * Get rotation state for rendering
 	 * Returns rotation angles in radians for each axis
 	 */
-	getRotationAngles(): {x: number; y: number; z: number} {
+	getRotationAngles (): {x: number; y: number; z: number} {
 		const halfPi = Math.PI / 2;
 		return {
 			x: this._rotationState.x * halfPi,
@@ -151,7 +151,7 @@ export class TetrisPiece {
 	/**
 	 * Move the piece
 	 */
-	move(dx: number, dy: number, dz: number): void {
+	move (dx: number, dy: number, dz: number): void {
 		this._position.x += dx;
 		this._position.y += dy;
 		this._position.z += dz;
@@ -161,7 +161,7 @@ export class TetrisPiece {
 	/**
 	 * Move left (-X)
 	 */
-	moveLeft(): void {
+	moveLeft (): void {
 		this.move(-1, 0, 0);
 	}
 
@@ -169,7 +169,7 @@ export class TetrisPiece {
 	/**
 	 * Move right (+X)
 	 */
-	moveRight(): void {
+	moveRight (): void {
 		this.move(1, 0, 0);
 	}
 
@@ -177,7 +177,7 @@ export class TetrisPiece {
 	/**
 	 * Move forward (-Z)
 	 */
-	moveForward(): void {
+	moveForward (): void {
 		this.move(0, 0, -1);
 	}
 
@@ -185,7 +185,7 @@ export class TetrisPiece {
 	/**
 	 * Move backward (+Z)
 	 */
-	moveBackward(): void {
+	moveBackward (): void {
 		this.move(0, 0, 1);
 	}
 
@@ -193,7 +193,7 @@ export class TetrisPiece {
 	/**
 	 * Move down (-Y)
 	 */
-	moveDown(): void {
+	moveDown (): void {
 		this.move(0, -1, 0);
 	}
 
@@ -201,7 +201,7 @@ export class TetrisPiece {
 	/**
 	 * Rotate the piece 90 degrees around an axis
 	 */
-	rotate(axis: "x" | "y" | "z", times: number = 1): void {
+	rotate (axis: "x" | "y" | "z", times: number = 1): void {
 		this.grid = this.grid.rotate(axis, times);
 		// Track rotation state for rendering
 		this._rotationState[axis] = (this._rotationState[axis] + times) % 4;
@@ -212,7 +212,7 @@ export class TetrisPiece {
 	/**
 	 * Rotate around X axis (pitch)
 	 */
-	rotateX(times: number = 1): void {
+	rotateX (times: number = 1): void {
 		this.rotate("x", times);
 	}
 
@@ -220,7 +220,7 @@ export class TetrisPiece {
 	/**
 	 * Rotate around Y axis (yaw)
 	 */
-	rotateY(times: number = 1): void {
+	rotateY (times: number = 1): void {
 		this.rotate("y", times);
 	}
 
@@ -228,7 +228,7 @@ export class TetrisPiece {
 	/**
 	 * Rotate around Z axis (roll)
 	 */
-	rotateZ(times: number = 1): void {
+	rotateZ (times: number = 1): void {
 		this.rotate("z", times);
 	}
 
@@ -236,7 +236,7 @@ export class TetrisPiece {
 	/**
 	 * Get bounding box in world coordinates
 	 */
-	getWorldBounds(): {min: Point3D; max: Point3D} {
+	getWorldBounds (): {min: Point3D; max: Point3D} {
 		const bounds = this.grid.getBounds();
 		return {
 			min: {
@@ -256,7 +256,7 @@ export class TetrisPiece {
 	/**
 	 * Clone this piece
 	 */
-	clone(): TetrisPiece {
+	clone (): TetrisPiece {
 		const cloned = new TetrisPiece(this.definition, {...this._position});
 		cloned.grid = this.grid.clone();
 		cloned._rotationState = {...this._rotationState};
@@ -267,7 +267,7 @@ export class TetrisPiece {
 	/**
 	 * Create a random piece
 	 */
-	static createRandom(startPosition?: Point3D): TetrisPiece {
+	static createRandom (startPosition?: Point3D): TetrisPiece {
 		const index = Math.floor(Math.random() * PIECE_DEFINITIONS.length);
 		return new TetrisPiece(PIECE_DEFINITIONS[index], startPosition);
 	}
@@ -276,7 +276,7 @@ export class TetrisPiece {
 	/**
 	 * Create a piece by name
 	 */
-	static createByName(name: string, startPosition?: Point3D): TetrisPiece | null {
+	static createByName (name: string, startPosition?: Point3D): TetrisPiece | null {
 		const definition = PIECE_DEFINITIONS.find(d => d.name === name);
 		if (!definition) return null;
 		return new TetrisPiece(definition, startPosition);

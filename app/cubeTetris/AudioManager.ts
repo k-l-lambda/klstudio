@@ -32,7 +32,7 @@ export class AudioManager {
 	private _initialized: boolean = false;
 
 
-	constructor() {
+	constructor () {
 		// Preload all sounds
 		this.preloadSounds();
 	}
@@ -41,7 +41,7 @@ export class AudioManager {
 	/**
 	 * Preload all sound files
 	 */
-	private preloadSounds(): void {
+	private preloadSounds (): void {
 		for (const [name, config] of Object.entries(SOUND_CONFIG)) {
 			const audio = new Audio(config.url);
 			audio.preload = "auto";
@@ -55,7 +55,7 @@ export class AudioManager {
 	/**
 	 * Play a sound effect
 	 */
-	play(sound: SoundType): void {
+	play (sound: SoundType): void {
 		if (this._muted || !this._initialized) return;
 
 		const audio = this.sounds.get(sound);
@@ -73,11 +73,11 @@ export class AudioManager {
 	/**
 	 * Get/set muted state
 	 */
-	get muted(): boolean {
+	get muted (): boolean {
 		return this._muted;
 	}
 
-	set muted(value: boolean) {
+	set muted (value: boolean) {
 		this._muted = value;
 	}
 
@@ -85,7 +85,7 @@ export class AudioManager {
 	/**
 	 * Toggle mute state
 	 */
-	toggleMute(): boolean {
+	toggleMute (): boolean {
 		this._muted = !this._muted;
 		return this._muted;
 	}
@@ -94,24 +94,24 @@ export class AudioManager {
 	/**
 	 * Get/set master volume (0.0 - 1.0)
 	 */
-	get masterVolume(): number {
+	get masterVolume (): number {
 		return this._masterVolume;
 	}
 
-	set masterVolume(value: number) {
+	set masterVolume (value: number) {
 		this._masterVolume = Math.max(0, Math.min(1, value));
 
 		// Update volume on all preloaded sounds
-		for (const [name, audio] of this.sounds) {
+		for (const [name, audio] of this.sounds) 
 			audio.volume = SOUND_CONFIG[name].volume * this._masterVolume;
-		}
+		
 	}
 
 
 	/**
 	 * Dispose of audio resources
 	 */
-	dispose(): void {
+	dispose (): void {
 		for (const audio of this.sounds.values()) {
 			audio.pause();
 			audio.src = "";

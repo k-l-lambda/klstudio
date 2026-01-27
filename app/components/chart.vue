@@ -45,9 +45,9 @@
 			},
 
 			handleResize () {
-				if (this.chartInstance) {
+				if (this.chartInstance) 
 					this.chartInstance.resize();
-				}
+				
 			},
 
 			updateChart () {
@@ -92,14 +92,14 @@
 					};
 
 					// Apply smooth setting from theme if available
-					if (chartType === "line") {
+					if (chartType === "line") 
 						seriesData.smooth = theme.line?.smooth !== undefined ? theme.line.smooth : true;
-					}
+					
 
 					// Apply markLine if present
-					if (this.sourceData.markLine) {
+					if (this.sourceData.markLine) 
 						seriesData.markLine = this.sourceData.markLine;
-					}
+					
 
 					series.push(seriesData);
 				}
@@ -150,12 +150,12 @@
 				};
 
 				// Apply width and height if specified
-				if (this.sourceData.width) {
+				if (this.sourceData.width) 
 					this.$refs.chartContainer.style.width = `${this.sourceData.width}px`;
-				}
-				if (this.sourceData.height) {
+				
+				if (this.sourceData.height) 
 					this.$refs.chartContainer.style.height = this.sourceData.height;
-				}
+				
 
 				return option;
 			},
@@ -180,9 +180,9 @@
 
 		beforeUnmount () {
 			window.removeEventListener("resize", this.handleResize);
-			if (this.chartInstance) {
+			if (this.chartInstance) 
 				this.chartInstance.dispose();
-			}
+			
 		},
 	};
 </script>

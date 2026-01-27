@@ -43,7 +43,7 @@ export class TetrisGame {
 	private _dropTargetY: number = 0;
 	private _dropVisualY: number = 0;  // Current visual Y position during drop
 
-	constructor(config?: Partial<GameConfig>) {
+	constructor (config?: Partial<GameConfig>) {
 		this.config = {...GAME_CONFIG, ...config};
 		this.board = new CubeGrid();
 		this._state = {
@@ -61,7 +61,7 @@ export class TetrisGame {
 	/**
 	 * Get current piece
 	 */
-	get currentPiece(): TetrisPiece | null {
+	get currentPiece (): TetrisPiece | null {
 		return this._currentPiece;
 	}
 
@@ -69,7 +69,7 @@ export class TetrisGame {
 	/**
 	 * Get next piece (for preview)
 	 */
-	get nextPiece(): TetrisPiece | null {
+	get nextPiece (): TetrisPiece | null {
 		return this._nextPiece;
 	}
 
@@ -77,7 +77,7 @@ export class TetrisGame {
 	/**
 	 * Get game state
 	 */
-	get state(): GameState {
+	get state (): GameState {
 		return {...this._state};
 	}
 
@@ -85,7 +85,7 @@ export class TetrisGame {
 	/**
 	 * Get high score
 	 */
-	get highScore(): number {
+	get highScore (): number {
 		return this._highScore;
 	}
 
@@ -93,7 +93,7 @@ export class TetrisGame {
 	/**
 	 * Check if drop animation is in progress
 	 */
-	get isDropping(): boolean {
+	get isDropping (): boolean {
 		return this._isDropping;
 	}
 
@@ -102,10 +102,10 @@ export class TetrisGame {
 	 * Get current visual Y position during drop animation
 	 * Returns piece's actual Y if not dropping
 	 */
-	get dropVisualY(): number {
-		if (this._isDropping) {
+	get dropVisualY (): number {
+		if (this._isDropping) 
 			return this._dropVisualY;
-		}
+		
 		return this._currentPiece?.position.y ?? 0;
 	}
 
@@ -113,10 +113,10 @@ export class TetrisGame {
 	/**
 	 * Add event listener
 	 */
-	on(type: GameEventType, callback: (event: GameEvent) => void): void {
-		if (!this._eventListeners.has(type)) {
+	on (type: GameEventType, callback: (event: GameEvent) => void): void {
+		if (!this._eventListeners.has(type)) 
 			this._eventListeners.set(type, new Set());
-		}
+		
 		this._eventListeners.get(type)!.add(callback);
 	}
 
@@ -124,7 +124,7 @@ export class TetrisGame {
 	/**
 	 * Remove event listener
 	 */
-	off(type: GameEventType, callback: (event: GameEvent) => void): void {
+	off (type: GameEventType, callback: (event: GameEvent) => void): void {
 		this._eventListeners.get(type)?.delete(callback);
 	}
 
@@ -132,7 +132,7 @@ export class TetrisGame {
 	/**
 	 * Emit an event
 	 */
-	private emit(type: GameEventType, data?: unknown): void {
+	private emit (type: GameEventType, data?: unknown): void {
 		const event: GameEvent = {type, data};
 		this._eventListeners.get(type)?.forEach(cb => cb(event));
 	}
@@ -141,7 +141,7 @@ export class TetrisGame {
 	/**
 	 * Start or restart the game
 	 */
-	start(): void {
+	start (): void {
 		this.board.clear();
 		this._state = {
 			score: 0,
@@ -162,19 +162,19 @@ export class TetrisGame {
 	/**
 	 * Pause/unpause the game
 	 */
-	togglePause(): void {
+	togglePause (): void {
 		if (this._state.gameOver) return;
 		this._state.paused = !this._state.paused;
-		if (!this._state.paused) {
+		if (!this._state.paused) 
 			this._lastDropTime = 0;  // Reset on next update
-		}
+		
 	}
 
 
 	/**
 	 * Create a new random piece at spawn position
 	 */
-	private createPiece(): TetrisPiece {
+	private createPiece (): TetrisPiece {
 		const spawnPos: Point3D = {
 			x: Math.floor(this.config.boardWidth / 2),
 			y: this.config.boardHeight - 1,
@@ -187,29 +187,30 @@ export class TetrisGame {
 	/**
 	 * Spawn the next piece
 	 */
-	private spawnNextPiece(): void {
+	private spawnNextPiece (): void {
 		this._currentPiece = this._nextPiece;
 		this._nextPiece = this.createPiece();
 
 		// Center the piece
-		if (this._currentPiece) {
+		if (this._currentPiece) 
 			this.centerPiece(this._currentPiece);
-		}
+		
 
 		// Check if spawn position is valid
 		if (this._currentPiece && !this.isValidPosition(this._currentPiece)) {
 			this._state.gameOver = true;
 			this.emit("gameOver");
-		} else {
-			this.emit("pieceSpawned", {piece: this._currentPiece});
 		}
+		else 
+			this.emit("pieceSpawned", {piece: this._currentPiece});
+		
 	}
 
 
 	/**
 	 * Center piece horizontally
 	 */
-	private centerPiece(piece: TetrisPiece): void {
+	private centerPiece (piece: TetrisPiece): void {
 		const bounds = piece.getWorldBounds();
 		const pieceWidth = bounds.max.x - bounds.min.x + 1;
 		const pieceDepth = bounds.max.z - bounds.min.z + 1;
@@ -228,7 +229,7 @@ export class TetrisGame {
 	/**
 	 * Check if piece position is valid (no collisions, within bounds)
 	 */
-	isValidPosition(piece: TetrisPiece): boolean {
+	isValidPosition (piece: TetrisPiece): boolean {
 		const blocks = piece.getWorldBlocks();
 
 		for (const {point} of blocks) {
@@ -251,7 +252,7 @@ export class TetrisGame {
 	 * Try to move the current piece
 	 * Returns true if successful
 	 */
-	movePiece(dx: number, dy: number, dz: number): boolean {
+	movePiece (dx: number, dy: number, dz: number): boolean {
 		if (!this._currentPiece || this._state.gameOver || this._state.paused) return false;
 
 		const testPiece = this._currentPiece.clone();
@@ -270,7 +271,7 @@ export class TetrisGame {
 	/**
 	 * Move piece left
 	 */
-	moveLeft(): boolean {
+	moveLeft (): boolean {
 		return this.movePiece(-1, 0, 0);
 	}
 
@@ -278,7 +279,7 @@ export class TetrisGame {
 	/**
 	 * Move piece right
 	 */
-	moveRight(): boolean {
+	moveRight (): boolean {
 		return this.movePiece(1, 0, 0);
 	}
 
@@ -286,7 +287,7 @@ export class TetrisGame {
 	/**
 	 * Move piece forward
 	 */
-	moveForward(): boolean {
+	moveForward (): boolean {
 		return this.movePiece(0, 0, -1);
 	}
 
@@ -294,7 +295,7 @@ export class TetrisGame {
 	/**
 	 * Move piece backward
 	 */
-	moveBackward(): boolean {
+	moveBackward (): boolean {
 		return this.movePiece(0, 0, 1);
 	}
 
@@ -302,7 +303,7 @@ export class TetrisGame {
 	/**
 	 * Try to rotate the current piece
 	 */
-	rotatePiece(axis: "x" | "y" | "z", times: number = 1): boolean {
+	rotatePiece (axis: "x" | "y" | "z", times: number = 1): boolean {
 		if (!this._currentPiece || this._state.gameOver || this._state.paused) return false;
 
 		const testPiece = this._currentPiece.clone();
@@ -345,12 +346,12 @@ export class TetrisGame {
 	 * Drop piece down one step
 	 * Returns true if piece moved, false if it locked
 	 */
-	dropOne(): boolean {
+	dropOne (): boolean {
 		if (!this._currentPiece || this._state.gameOver || this._state.paused) return false;
 
-		if (this.movePiece(0, -1, 0)) {
+		if (this.movePiece(0, -1, 0)) 
 			return true;
-		}
+		
 
 		// Piece can't move down - lock it
 		this.lockPiece();
@@ -361,7 +362,7 @@ export class TetrisGame {
 	/**
 	 * Hard drop - start drop animation to target position
 	 */
-	hardDrop(): void {
+	hardDrop (): void {
 		if (!this._currentPiece || this._state.gameOver || this._state.paused) return;
 		if (this._isDropping) return;  // Already dropping
 
@@ -393,7 +394,7 @@ export class TetrisGame {
 	/**
 	 * Lock the current piece to the board
 	 */
-	private lockPiece(): void {
+	private lockPiece (): void {
 		if (!this._currentPiece) return;
 
 		// Get blocks from piece with their piece-internal faceMask
@@ -402,9 +403,9 @@ export class TetrisGame {
 
 		// Add all blocks to the board with their piece-internal faceMasks intact
 		// Blocks from different pieces keep their individual geometry/appearance
-		for (const {point, data} of newBlocks) {
+		for (const {point, data} of newBlocks) 
 			this.board.set(point.x, point.y, point.z, data);
-		}
+		
 
 		// Increment pieces dropped counter (before emit so UI gets updated value)
 		this._state.piecesDropped++;
@@ -440,7 +441,8 @@ export class TetrisGame {
 			this.emit("layersClearStart", {layers: fullLayers, blocks: clearingBlocks});
 
 			// Don't spawn next piece yet - wait for animation to complete
-		} else {
+		}
+		else {
 			// No layers to clear, spawn next piece immediately
 			this.spawnNextPiece();
 		}
@@ -451,15 +453,15 @@ export class TetrisGame {
 	 * Detect completed layers (without removing them)
 	 * Returns array of Y levels that are full
 	 */
-	private detectFullLayers(): number[] {
+	private detectFullLayers (): number[] {
 		const fullLayers: number[] = [];
 		const blocksPerLayer = this.config.boardWidth * this.config.boardDepth;
 
 		// Check all Y levels
 		for (let y = 0; y < this.config.boardHeight; y++) {
-			if (this.board.countAtY(y) === blocksPerLayer) {
+			if (this.board.countAtY(y) === blocksPerLayer) 
 				fullLayers.push(y);
-			}
+			
 		}
 
 		return fullLayers;
@@ -469,10 +471,10 @@ export class TetrisGame {
 	/**
 	 * Complete the layer clearing (call after animation finishes)
 	 */
-	completeClearingAnimation(): void {
-		if (!this._isClearingAnimation || this._clearingLayers.length === 0) {
+	completeClearingAnimation (): void {
+		if (!this._isClearingAnimation || this._clearingLayers.length === 0) 
 			return;
-		}
+		
 
 		// Clear all layers at once (avoids sequential shift bugs)
 		this.board.removeLayersAndShift(this._clearingLayers);
@@ -509,7 +511,7 @@ export class TetrisGame {
 	 * Update faceMasks for all blocks after layer clearing
 	 * When a block's same-piece neighbor is removed, that face should become visible
 	 */
-	private updateFaceMasksAfterClearing(): void {
+	private updateFaceMasksAfterClearing (): void {
 		// Face direction mappings: bit mask -> neighbor offset
 		const faceDirections: Array<{mask: number; dx: number; dy: number; dz: number}> = [
 			{mask: FACE_MASK.POS_X, dx: 1, dy: 0, dz: 0},
@@ -531,12 +533,12 @@ export class TetrisGame {
 					const neighbor = this.board.get(
 						point.x + dir.dx,
 						point.y + dir.dy,
-						point.z + dir.dz
+						point.z + dir.dz,
 					);
 					// If no neighbor exists, show this face
-					if (!neighbor) {
+					if (!neighbor) 
 						faceMask |= dir.mask;
-					}
+					
 				}
 			}
 
@@ -548,7 +550,7 @@ export class TetrisGame {
 	/**
 	 * Check if clearing animation is in progress
 	 */
-	get isClearingAnimation(): boolean {
+	get isClearingAnimation (): boolean {
 		return this._isClearingAnimation;
 	}
 
@@ -556,7 +558,7 @@ export class TetrisGame {
 	/**
 	 * Calculate where piece would land (ghost position)
 	 */
-	getGhostPosition(): Point3D | null {
+	getGhostPosition (): Point3D | null {
 		if (!this._currentPiece) return null;
 
 		const ghost = this._currentPiece.clone();
@@ -578,7 +580,7 @@ export class TetrisGame {
 	/**
 	 * Update game state (call in animation loop)
 	 */
-	update(timestamp: number): void {
+	update (timestamp: number): void {
 		// Skip updates during clearing animation, game over, or pause
 		if (this._state.gameOver || this._state.paused || this._isClearingAnimation || !this._currentPiece) return;
 
@@ -608,7 +610,7 @@ export class TetrisGame {
 	 * Update drop animation
 	 */
 	private _lastDropAnimTime: number = 0;
-	private updateDropAnimation(timestamp: number): void {
+	private updateDropAnimation (timestamp: number): void {
 		if (!this._isDropping) return;
 
 		// Calculate elapsed time
@@ -639,7 +641,7 @@ export class TetrisGame {
 	/**
 	 * Get current drop interval in ms
 	 */
-	get dropInterval(): number {
+	get dropInterval (): number {
 		return 1000 / Math.sqrt(this._state.level + 1);
 	}
 
@@ -647,11 +649,12 @@ export class TetrisGame {
 	/**
 	 * Load high score from localStorage
 	 */
-	private loadHighScore(): number {
+	private loadHighScore (): number {
 		try {
 			const stored = localStorage.getItem(HIGH_SCORE_KEY);
 			return stored ? parseInt(stored, 10) || 0 : 0;
-		} catch {
+		}
+		catch {
 			return 0;
 		}
 	}
@@ -660,10 +663,11 @@ export class TetrisGame {
 	/**
 	 * Save high score to localStorage
 	 */
-	private saveHighScore(): void {
+	private saveHighScore (): void {
 		try {
 			localStorage.setItem(HIGH_SCORE_KEY, String(this._highScore));
-		} catch {
+		}
+		catch {
 			// Ignore storage errors
 		}
 	}
@@ -672,7 +676,7 @@ export class TetrisGame {
 	/**
 	 * Check and update high score if current score is higher
 	 */
-	private checkHighScore(): void {
+	private checkHighScore (): void {
 		if (this._state.score > this._highScore) {
 			this._highScore = this._state.score;
 			this.saveHighScore();

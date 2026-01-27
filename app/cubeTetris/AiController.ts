@@ -75,7 +75,7 @@ export class AiController {
 	private enabled: boolean = false;
 
 
-	constructor(game: TetrisGame) {
+	constructor (game: TetrisGame) {
 		this.game = game;
 	}
 
@@ -83,20 +83,20 @@ export class AiController {
 	/**
 	 * Enable/disable AI control
 	 */
-	setEnabled(enabled: boolean): void {
+	setEnabled (enabled: boolean): void {
 		this.enabled = enabled;
-		if (enabled) {
+		if (enabled) 
 			this.computeTarget();
-		} else {
+		 else 
 			this.targetState = null;
-		}
+		
 	}
 
 
 	/**
 	 * Check if AI is enabled
 	 */
-	isEnabled(): boolean {
+	isEnabled (): boolean {
 		return this.enabled;
 	}
 
@@ -104,7 +104,7 @@ export class AiController {
 	/**
 	 * Set move delay (lower = faster AI)
 	 */
-	setMoveDelay(delay: number): void {
+	setMoveDelay (delay: number): void {
 		this.moveDelay = delay;
 	}
 
@@ -112,7 +112,7 @@ export class AiController {
 	/**
 	 * Called when a new piece spawns
 	 */
-	onPieceSpawned(): void {
+	onPieceSpawned (): void {
 		if (this.enabled) {
 			this.computeTarget();
 			this.rotationIndex = 0;
@@ -123,7 +123,7 @@ export class AiController {
 	/**
 	 * Update AI (call from game loop)
 	 */
-	update(timestamp: number): void {
+	update (timestamp: number): void {
 		if (!this.enabled || !this.targetState || !this.game.currentPiece) return;
 		if (this.game.state.paused || this.game.state.gameOver) return;
 		if (this.game.isClearingAnimation) return;  // Skip during layer clearing
@@ -141,9 +141,10 @@ export class AiController {
 			if (!this.game.rotatePiece(rot.axis, rot.times)) {
 				// Rotation failed, recompute target
 				this.computeTarget();
-			} else {
-				this.rotationIndex++;
 			}
+			else 
+				this.rotationIndex++;
+			
 			this.lastMoveTime = timestamp;
 			return;
 		}
@@ -160,7 +161,8 @@ export class AiController {
 			}
 			this.lastMoveTime = timestamp;
 			return;
-		} else if (currentX > target.x) {
+		}
+		else if (currentX > target.x) {
 			if (!this.game.moveLeft()) {
 				// Can't move left, recompute target
 				this.computeTarget();
@@ -177,7 +179,8 @@ export class AiController {
 			}
 			this.lastMoveTime = timestamp;
 			return;
-		} else if (currentZ > target.z) {
+		}
+		else if (currentZ > target.z) {
 			if (!this.game.moveForward()) {
 				// Can't move forward, recompute target
 				this.computeTarget();
@@ -195,7 +198,7 @@ export class AiController {
 	/**
 	 * Compute optimal target state for current piece
 	 */
-	private computeTarget(): void {
+	private computeTarget (): void {
 		const piece = this.game.currentPiece;
 		if (!piece) {
 			this.targetState = null;
@@ -210,9 +213,9 @@ export class AiController {
 		for (const rotations of REGULAR_ORIENTATIONS) {
 			// Clone piece and apply rotations
 			const testPiece = piece.clone();
-			for (const rot of rotations) {
+			for (const rot of rotations) 
 				testPiece.rotate(rot.axis, rot.times);
-			}
+			
 
 			const bounds = testPiece.getWorldBounds();
 			const pieceWidth = bounds.max.x - bounds.min.x + 1;
@@ -249,7 +252,8 @@ export class AiController {
 			// Expand rotations into individual 90° steps
 			this.rotationSteps = this.expandRotations(this.targetState.rotations);
 			this.rotationIndex = 0;
-		} else {
+		}
+		else {
 			this.targetState = null;
 			this.rotationSteps = [];
 			this.rotationIndex = 0;
@@ -262,14 +266,14 @@ export class AiController {
 	 * e.g., {axis: "x", times: 2} -> [{axis: "x", times: 1}, {axis: "x", times: 1}]
 	 * e.g., {axis: "y", times: -1} -> [{axis: "y", times: -1}]
 	 */
-	private expandRotations(rotations: {axis: "x" | "y" | "z", times: number}[]): {axis: "x" | "y" | "z", times: 1 | -1}[] {
+	private expandRotations (rotations: {axis: "x" | "y" | "z", times: number}[]): {axis: "x" | "y" | "z", times: 1 | -1}[] {
 		const steps: {axis: "x" | "y" | "z", times: 1 | -1}[] = [];
 		for (const rot of rotations) {
 			const count = Math.abs(rot.times);
 			const direction: 1 | -1 = rot.times > 0 ? 1 : -1;
-			for (let i = 0; i < count; i++) {
+			for (let i = 0; i < count; i++) 
 				steps.push({axis: rot.axis, times: direction});
-			}
+			
 		}
 		return steps;
 	}
@@ -279,7 +283,7 @@ export class AiController {
 	 * Evaluate a position for the piece
 	 * Lower score = better position
 	 */
-	private evaluatePosition(piece: TetrisPiece, offsetX: number, offsetZ: number): number {
+	private evaluatePosition (piece: TetrisPiece, offsetX: number, offsetZ: number): number {
 		// Clone piece and position it
 		const testPiece = piece.clone();
 		testPiece.position = {
@@ -304,9 +308,9 @@ export class AiController {
 
 		// Height score (prefer lower positions)
 		let totalHeight = 0;
-		for (const {point} of blocks) {
+		for (const {point} of blocks) 
 			totalHeight += point.y;
-		}
+		
 		score += (totalHeight * totalHeight) / 36;
 
 		// Count exposed side faces
@@ -324,7 +328,7 @@ export class AiController {
 	/**
 	 * Check if position is valid (no collisions)
 	 */
-	private isValidPosition(piece: TetrisPiece): boolean {
+	private isValidPosition (piece: TetrisPiece): boolean {
 		const blocks = piece.getWorldBlocks();
 
 		for (const {point} of blocks) {
@@ -346,14 +350,14 @@ export class AiController {
 	/**
 	 * Count exposed side faces (horizontal neighbors that are empty)
 	 */
-	private countSideFaces(piece: TetrisPiece): number {
+	private countSideFaces (piece: TetrisPiece): number {
 		const blocks = piece.getWorldBlocks();
 		const blockSet = new Set<string>();
 
 		// Build set of piece block positions
-		for (const {point} of blocks) {
+		for (const {point} of blocks) 
 			blockSet.add(`${point.x},${point.y},${point.z}`);
-		}
+		
 
 		let count = 0;
 		const directions = [
@@ -380,16 +384,16 @@ export class AiController {
 				}
 
 				// Check if there's a board block there (contact is good)
-				if (this.game.board.has(nx, point.y, nz)) {
+				if (this.game.board.has(nx, point.y, nz)) 
 					continue;
-				}
+				
 
 				// Empty space - penalize more if there's nothing below it
-				if (point.y > 0 && !this.game.board.has(nx, point.y - 1, nz)) {
+				if (point.y > 0 && !this.game.board.has(nx, point.y - 1, nz)) 
 					count += 1.6;
-				} else {
+				 else 
 					count += 1;
-				}
+				
 			}
 		}
 
@@ -401,14 +405,14 @@ export class AiController {
 	 * Count hole space (empty spaces directly beneath piece blocks)
 	 * A "hole" is an empty space that will be trapped under the piece
 	 */
-	private countHoleSpace(piece: TetrisPiece): number {
+	private countHoleSpace (piece: TetrisPiece): number {
 		const blocks = piece.getWorldBlocks();
 		const blockSet = new Set<string>();
 
 		// Build set of piece block positions
-		for (const {point} of blocks) {
+		for (const {point} of blocks) 
 			blockSet.add(`${point.x},${point.y},${point.z}`);
-		}
+		
 
 		let count = 0;
 
@@ -427,9 +431,9 @@ export class AiController {
 					continue;
 				}
 				// Stop if we hit a board block
-				if (this.game.board.has(point.x, y, point.z)) {
+				if (this.game.board.has(point.x, y, point.z)) 
 					break;
-				}
+				
 				// Empty space = hole
 				count++;
 				y--;

@@ -214,7 +214,7 @@
 					shader.fragmentShader = shader.fragmentShader.replace(
 						"#include <output_fragment>",
 						`${fresnelShaderChunk}
-						#include <output_fragment>`
+						#include <output_fragment>`,
 					);
 				};
 
@@ -252,7 +252,7 @@
 					new THREE.Vector2(size.x, size.y),
 					0.4,   // strength
 					0.5,   // radius
-					0.7    // threshold
+					0.7,    // threshold
 				));
 				this.composer.addPass(bloomPass);
 				this.bloomPass = bloomPass;
@@ -297,9 +297,9 @@
 
 			onAfterRender () {
 				// Use post-processing composer for final render
-				if (this.composer) {
+				if (this.composer) 
 					this.composer.render();
-				}
+				
 			},
 
 
@@ -345,12 +345,12 @@
 				// Update post-processing on resize
 				if (this.composer && value) {
 					this.composer.setSize(value.width, value.height);
-					if (this.fxaaPass) {
+					if (this.fxaaPass) 
 						this.fxaaPass.uniforms["resolution"].value.set(1 / value.width, 1 / value.height);
-					}
-					if (this.bloomPass) {
+					
+					if (this.bloomPass) 
 						this.bloomPass.resolution.set(value.width, value.height);
-					}
+					
 				}
 			},
 		},

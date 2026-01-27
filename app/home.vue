@@ -22,7 +22,7 @@
 					:class="{focus: app.focus}"
 					@click="onClickApp(app)"
 				>
-                    <router-link class="cover" :to="app.focus ? '/' : app.path" @click.stop="">
+					<router-link class="cover" :to="app.focus ? '/' : app.path" @click.stop="">
 						<img :src="app.coverURL" />
 					</router-link>
 					<div class="description">
@@ -43,14 +43,14 @@
 </template>
 
 <script>
-    import {defineAsyncComponent} from "vue";
+	import {defineAsyncComponent} from "vue";
 
 	import {animationDelay} from "./delay";
 
 
 
 	// Import all cover images using Vite's glob import
-	const coverImages = import.meta.glob('./assets/app-covers/*', {eager: true, import: 'default'});
+	const coverImages = import.meta.glob("./assets/app-covers/*", {eager: true, import: "default"});
 
 	class App {
 		constructor (router, fields) {
@@ -87,7 +87,7 @@
 			_title: "Cube Tetris",
 			path: "/cube-tetris",
 			cover: "cube-tetris.png",
-			description: `<p>A 3D reconstruction of the classical Tetris game.</p>`,
+			description: "<p>A 3D reconstruction of the classical Tetris game.</p>",
 		},
 		{
 			name: "Chess Lab",

@@ -1906,3 +1906,68 @@ updateBoard(board: CubeGrid): void {
 **Result:** ✅ Renderer now detects when a different block occupies a position and recreates the mesh with correct color
 
 </details>
+
+
+## 2025/01/27
+
+
+<details>
+<summary>Cube3-Player Rendering Enhancement (2025-01-27)</summary>
+
+> Optimize the rendering effect of cube3-player to match the reference gist demo.
+
+**Reference:** https://gist.github.com/k-l-lambda/2d1ab02201ec147e9a427f4e278bcd53
+
+**Issue:** The cube3-player component used basic materials without proper lighting or rounded corners.
+
+**Changes Made:**
+
+1. **RoundedBoxGeometry for rounded corners** (`app/cubeMesh.js`):
+   - Replaced BoxGeometry with RoundedBoxGeometry (radius 0.08, segments 4)
+   - Provides smooth beveled edges matching reference demo
+
+2. **Custom ShaderMaterial with normal-based face coloring**:
+   - Created `createNormalColorMaterial()` function
+   - Colors faces based on fragment normal direction (dominant axis)
+   - Solves RoundedBoxGeometry's material group issues where beveled edges showed wrong colors
+   - Each cubie gets its own shader with face colors based on its position in the 3x3x3 grid
+
+3. **Object-space vs view-space normal fix**:
+   - Initial bug: Shader used view-space normals for face color, causing colors to change when cube rotated
+   - Fix: Pass object-space normals (`vObjectNormal`) for face color determination
+   - Continue using view-space normals (`vNormal`) for lighting calculations
+
+4. **Enhanced specular highlights**:
+   - Two-light setup: main light (top-right-front) + back fill light
+   - Higher specular intensity (0.8) and shininess (64)
+   - Fresnel rim effect for edge glow
+
+5. **Highlight system update** (`app/components/cube3.vue`):
+   - Changed from material swapping to shader uniform toggle
+   - Each mesh has `setHighlight(bool)` method
+   - Highlight boosts brightness via shader uniform
+
+6. **Materials update** (`app/components/cube3.vue`):
+   - Changed from MeshBasicMaterial to MeshStandardMaterial
+   - Added 3-point lighting (ambient + directional + backlight)
+   - Gradient background on cube3-player view
+
+**Files Modified:**
+- `app/cubeMesh.js` - New shader-based mesh generation
+- `app/components/cube3.vue` - Materials, lighting, highlight system
+- `app/views/cube3-player.vue` - Background gradient
+
+**Result:** ✅ Cube now has rounded corners, correct face colors, proper lighting with specular highlights
+
+</details>
+
+<details>
+<summary>Dependabot Branch Merges (2025-01-27)</summary>
+
+**Merged into develop branch:**
+- `dependabot/npm_and_yarn/lodash-4.17.23` - lodash 4.17.21 → 4.17.23
+- `dependabot/npm_and_yarn/vite-5.4.21` - vite 5.4.11 → 5.4.21
+
+**Result:** ✅ Dependencies updated, dev server running without errors
+
+</details>

@@ -1972,7 +1972,8 @@ updateBoard(board: CubeGrid): void {
 
 </details>
 
-## Relativity Flight — 2D relativistic space simulation
+<details>
+<summary>Relativity Flight — 2D relativistic space simulation</summary>
 
 Added a new interactive view "Relativity Flight" (`/#/relativity-flight`): a 2D space flight simulation applying real special relativity physics.
 
@@ -1983,3 +1984,20 @@ Added a new interactive view "Relativity Flight" (`/#/relativity-flight`): a 2D 
 - `app/router.ts` — Added `/relativity-flight` route.
 
 **Key physics:** Rapidity rate `arctanh(0.9)/5 ≈ 0.2944/s` (0.9c in 5s), C=1000 game units/s, max rapidity 6.0.
+
+</details>
+
+<details>
+<summary>Einstein Flight — Rename + Galilean Mode + Portrait Orientation</summary>
+
+Renamed "Relativity Flight" → "Einstein Flight" and added major gameplay features.
+
+**Rename:** `relativityFlight/` → `einsteinFlight/`, `relativity-flight.vue` → `einstein-flight.vue`, route `/einstein-flight`.
+
+**Galilean mode (default):** Classical physics with no relativistic effects. Direct speed control (accel = C × RAPIDITY_RATE ≈ 294 u/s²), max speed 5c, γ=1 always. Stars rendered with raw positions, no contraction/aberration/Doppler. HUD shows v/c, raw speed, speed bar scaled to 5c with c-threshold marker.
+
+**Portrait orientation:** Ship always points UP on screen. Star field rotated by `(π/2 - heading)` around screen center each frame. Circular culling replaces rectangular culling to support rotation.
+
+**Mode toggle:** Button (top-left) + M key. `game.setMode()` converts velocity state between modes (clamps to <c when switching to Einstein). Einstein mode retains full relativistic rendering (Lorentz contraction, aberration, Doppler shift, beaming).
+
+</details>

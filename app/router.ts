@@ -170,9 +170,9 @@ export const routes = [
 		component: () => import(/* webpackChunkName: "cube-tetris-test", */ "./views/cube-tetris-test.vue"),
 	},
 	{
-		path: "/relativity-flight",
-		name: "Relativity Flight",
-		component: () => import(/* webpackChunkName: "relativity-flight" */ "./views/relativity-flight.vue"),
+		path: "/einstein-flight",
+		name: "Einstein Flight",
+		component: () => import(/* webpackChunkName: "einstein-flight" */ "./views/einstein-flight.vue"),
 	},
 ];
 

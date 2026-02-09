@@ -14,3 +14,4 @@ docs
 public/mlmodels/*
 /certificates/
 /nul
+/dist

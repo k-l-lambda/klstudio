@@ -1,12 +1,19 @@
 <template>
 	<div
-		class="relativity-flight"
+		class="einstein-flight"
 		@keydown="onKeyDown"
 		@keyup="onKeyUp"
 		tabindex="0"
 		ref="container"
 	>
 		<canvas ref="canvas" />
+
+		<button
+			:class="['mode-btn', {active: mode === 'einstein'}]"
+			@click="toggleMode"
+		>
+			{{ mode === 'einstein' ? 'Einstein' : 'Galileo' }}
+		</button>
 
 		<div class="controls-hint">
 			<div class="hint-section">
@@ -21,24 +28,29 @@
 				<strong>Steer</strong>
 				<span>A/D / ←/→</span>
 			</div>
+			<div class="hint-section">
+				<strong>Mode</strong>
+				<span>M</span>
+			</div>
 		</div>
 	</div>
 </template>
 
 <script>
 	import {markRaw} from "vue";
-	import {Game} from "../relativityFlight/Game";
-	import {Renderer} from "../relativityFlight/Renderer";
+	import {Game} from "../einsteinFlight/Game";
+	import {Renderer} from "../einsteinFlight/Renderer";
 
 
 	export default {
-		name: "relativity-flight",
+		name: "einstein-flight",
 
 
 		data () {
 			return {
 				game: null,
 				renderer: null,
+				mode: "galilean",
 				inputState: {
 					accelerate: false,
 					decelerate: false,
@@ -98,8 +110,19 @@
 				case "ArrowRight":
 					this.inputState.steerRight = pressed;
 					return true;
+				case "KeyM":
+					if (pressed) this.toggleMode();
+					return true;
 				}
 				return false;
+			},
+
+
+			toggleMode () {
+				this.mode = this.mode === "galilean" ? "einstein" : "galilean";
+				if (this.game) {
+					this.game.setMode(this.mode);
+				}
 			},
 
 
@@ -113,7 +136,7 @@
 </script>
 
 <style scoped>
-	.relativity-flight {
+	.einstein-flight {
 		position: relative;
 		width: 100%;
 		height: 100vh;
@@ -128,6 +151,33 @@
 		left: 0;
 		width: 100%;
 		height: 100%;
+	}
+
+	.mode-btn {
+		position: absolute;
+		top: 16px;
+		left: 16px;
+		background: rgba(60, 60, 100, 0.8);
+		color: #aaa;
+		border: 1px solid #446;
+		border-radius: 4px;
+		padding: 4px 12px;
+		font-family: "Courier New", monospace;
+		font-size: 13px;
+		cursor: pointer;
+		z-index: 1;
+		transition: background 0.2s, color 0.2s;
+	}
+
+	.mode-btn:hover {
+		background: rgba(80, 80, 130, 0.9);
+		color: #ddd;
+	}
+
+	.mode-btn.active {
+		background: rgba(0, 120, 180, 0.8);
+		color: #fff;
+		border-color: rgba(0, 220, 255, 0.5);
 	}
 
 	.controls-hint {

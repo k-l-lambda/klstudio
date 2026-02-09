@@ -1,5 +1,5 @@
-// Relativistic 2D space flight simulation — core game engine
-// Applies special relativity: Lorentz contraction, aberration, Doppler shift
+// 2D space flight simulation — core game engine
+// Supports Einstein mode (special relativity) and Galilean mode (classical physics)
 
 export interface InputState {
 	accelerate: boolean;
@@ -25,11 +25,19 @@ export interface TransformedStar {
 	alpha: number;
 }
 
+export type PhysicsMode = "galilean" | "einstein";
+
 // Speed of light in game units/s
-const C = 1000;
+export const C = 1000;
 
 // Rapidity rate: arctanh(0.9) / 5 ≈ 0.2944/s — reach 0.9c in 5 seconds
 const RAPIDITY_RATE = Math.atanh(0.9) / 5;
+
+// Galilean acceleration matches rapidity rate at low speed
+const GALILEAN_ACCEL = C * RAPIDITY_RATE;
+
+// Maximum speed in Galilean mode (5c)
+const GALILEAN_MAX_SPEED = C * 5;
 
 // Steering rate in radians/s
 const STEER_RATE = 2.0;
@@ -133,7 +141,11 @@ export class Game {
 	shipX = 0;
 	shipY = 0;
 	heading = 0; // radians, 0 = right (+x)
-	rapidity = 0; // φ = arctanh(v/c)
+	rapidity = 0; // φ = arctanh(v/c) — Einstein mode
+	speed = 0; // raw velocity in game units/s — Galilean mode
+
+	// Physics mode
+	mode: PhysicsMode = "galilean";
 
 	// Star field cache
 	private cellCache = new Map<string, Star[]>();
@@ -147,19 +159,27 @@ export class Game {
 		return this.beta;
 	}
 
+	setMode (newMode: PhysicsMode): void {
+		if (newMode === this.mode) return;
+
+		if (newMode === "einstein") {
+			// Convert Galilean speed to rapidity; clamp to < c
+			const clampedBeta = Math.min(this.speed / C, Math.tanh(MAX_RAPIDITY));
+			this.rapidity = Math.atanh(clampedBeta);
+		}
+		else {
+			// Convert rapidity to raw speed
+			this.speed = this.velocity;
+		}
+
+		this.mode = newMode;
+	}
+
 	update (dt: number, input: InputState): void {
 		// Cap dt to avoid spiral of death
 		if (dt > 0.05) dt = 0.05;
 
-		// Update rapidity
-		if (input.accelerate) {
-			this.rapidity = Math.min(MAX_RAPIDITY, this.rapidity + RAPIDITY_RATE * dt);
-		}
-		else if (input.decelerate) {
-			this.rapidity = Math.max(0, this.rapidity - RAPIDITY_RATE * dt);
-		}
-
-		// Steering
+		// Steering (same for both modes)
 		if (input.steerLeft) {
 			this.heading -= STEER_RATE * dt;
 		}
@@ -170,10 +190,33 @@ export class Game {
 		// Normalize heading
 		this.heading = ((this.heading % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
 
-		// Derive velocity quantities
-		this.beta = Math.tanh(this.rapidity);
-		this.gamma = Math.cosh(this.rapidity);
-		this.velocity = C * this.beta;
+		if (this.mode === "einstein") {
+			// Update rapidity
+			if (input.accelerate) {
+				this.rapidity = Math.min(MAX_RAPIDITY, this.rapidity + RAPIDITY_RATE * dt);
+			}
+			else if (input.decelerate) {
+				this.rapidity = Math.max(0, this.rapidity - RAPIDITY_RATE * dt);
+			}
+
+			// Derive velocity quantities
+			this.beta = Math.tanh(this.rapidity);
+			this.gamma = Math.cosh(this.rapidity);
+			this.velocity = C * this.beta;
+		}
+		else {
+			// Galilean: direct speed manipulation
+			if (input.accelerate) {
+				this.speed = Math.min(GALILEAN_MAX_SPEED, this.speed + GALILEAN_ACCEL * dt);
+			}
+			else if (input.decelerate) {
+				this.speed = Math.max(0, this.speed - GALILEAN_ACCEL * dt);
+			}
+
+			this.velocity = this.speed;
+			this.beta = this.speed / C;
+			this.gamma = 1;
+		}
 
 		// Move ship in rest frame
 		this.shipX += this.velocity * Math.cos(this.heading) * dt;
@@ -184,16 +227,19 @@ export class Game {
 		const halfW = viewW / 2;
 		const halfH = viewH / 2;
 
-		// Buffer region accounts for Lorentz contraction pulling in distant stars
-		const buffer = this.gamma * 1.5;
-		const rangeX = halfW * buffer + CELL_SIZE;
-		const rangeY = halfH * buffer + CELL_SIZE;
+		// Use circular range for rotation support
+		const viewRadius = Math.sqrt(halfW * halfW + halfH * halfH);
+
+		// Buffer region accounts for Lorentz contraction pulling in distant stars (Einstein)
+		// or just generous padding (Galilean)
+		const buffer = this.mode === "einstein" ? this.gamma * 1.5 : 1.5;
+		const range = viewRadius * buffer + CELL_SIZE;
 
 		// Determine which cells to load
-		const minCX = Math.floor((this.shipX - rangeX) / CELL_SIZE);
-		const maxCX = Math.floor((this.shipX + rangeX) / CELL_SIZE);
-		const minCY = Math.floor((this.shipY - rangeY) / CELL_SIZE);
-		const maxCY = Math.floor((this.shipY + rangeY) / CELL_SIZE);
+		const minCX = Math.floor((this.shipX - range) / CELL_SIZE);
+		const maxCX = Math.floor((this.shipX + range) / CELL_SIZE);
+		const minCY = Math.floor((this.shipY - range) / CELL_SIZE);
+		const maxCY = Math.floor((this.shipY + range) / CELL_SIZE);
 
 		// Load/generate needed cells
 		const neededKeys = new Set<string>();
@@ -216,6 +262,44 @@ export class Game {
 			}
 		}
 
+		// Circular culling radius (screen diagonal + margin)
+		const cullRadius = viewRadius + 50;
+		const cullRadiusSq = cullRadius * cullRadius;
+
+		if (this.mode === "galilean") {
+			return this.getVisibleStarsGalilean(halfW, halfH, cullRadiusSq);
+		}
+
+		return this.getVisibleStarsEinstein(halfW, halfH, cullRadiusSq);
+	}
+
+	private getVisibleStarsGalilean (halfW: number, halfH: number, cullRadiusSq: number): TransformedStar[] {
+		const result: TransformedStar[] = [];
+
+		for (const stars of this.cellCache.values()) {
+			for (const star of stars) {
+				const dx = star.x - this.shipX;
+				const dy = star.y - this.shipY;
+
+				// Circular culling
+				if (dx * dx + dy * dy > cullRadiusSq) continue;
+
+				result.push({
+					screenX: halfW + dx,
+					screenY: halfH + dy,
+					radius: star.baseRadius,
+					r: star.baseColor[0],
+					g: star.baseColor[1],
+					b: star.baseColor[2],
+					alpha: 1,
+				});
+			}
+		}
+
+		return result;
+	}
+
+	private getVisibleStarsEinstein (halfW: number, halfH: number, cullRadiusSq: number): TransformedStar[] {
 		// Velocity direction
 		const vDirX = Math.cos(this.heading);
 		const vDirY = Math.sin(this.heading);
@@ -223,17 +307,17 @@ export class Game {
 		const pDirX = -vDirY;
 		const pDirY = vDirX;
 
-		const β = this.beta;
-		const γ = this.gamma;
-		const isMoving = β > 1e-6;
+		const beta = this.beta;
+		const gamma = this.gamma;
+		const isMoving = beta > 1e-6;
 
 		const result: TransformedStar[] = [];
 
 		for (const stars of this.cellCache.values()) {
 			for (const star of stars) {
 				// Rest-frame displacement from ship
-				let dx = star.x - this.shipX;
-				let dy = star.y - this.shipY;
+				const dx = star.x - this.shipX;
+				const dy = star.y - this.shipY;
 
 				let screenX: number;
 				let screenY: number;
@@ -246,7 +330,7 @@ export class Game {
 					const dPerp = dx * pDirX + dy * pDirY;
 
 					// Lorentz contraction along velocity direction
-					const dParContracted = dPar / γ;
+					const dParContracted = dPar / gamma;
 
 					// Angle from velocity direction (before aberration)
 					const dist = Math.sqrt(dParContracted * dParContracted + dPerp * dPerp);
@@ -255,7 +339,7 @@ export class Game {
 					const cosAlpha = dParContracted / dist;
 
 					// Relativistic aberration
-					const cosAlphaPrime = (cosAlpha - β) / (1 - β * cosAlpha);
+					const cosAlphaPrime = (cosAlpha - beta) / (1 - beta * cosAlpha);
 					const sinAlphaPrime = Math.sqrt(Math.max(0, 1 - cosAlphaPrime * cosAlphaPrime));
 
 					// Preserve the sign of the perpendicular component
@@ -271,7 +355,7 @@ export class Game {
 					screenY = newDPar * vDirY + newDPerp * pDirY;
 
 					// Doppler factor
-					D = 1 / (γ * (1 - β * cosAlpha));
+					D = 1 / (gamma * (1 - beta * cosAlpha));
 
 					// Relativistic beaming: intensity ∝ D³
 					intensity = D * D * D;
@@ -281,10 +365,8 @@ export class Game {
 					screenY = dy;
 				}
 
-				// Check if on screen (with margin)
-				if (Math.abs(screenX) > halfW + 50 || Math.abs(screenY) > halfH + 50) {
-					continue;
-				}
+				// Circular culling
+				if (screenX * screenX + screenY * screenY > cullRadiusSq) continue;
 
 				// Apply Doppler color shift
 				const [sr, sg, sb] = dopplerShiftColor(

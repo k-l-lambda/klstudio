@@ -48,7 +48,7 @@ export class Renderer {
 		// Rotate star field so velocity direction always points UP on screen
 		// heading=0 means +x; screen "up" is -y = angle -π/2
 		// rotation angle: (π/2 - heading) rotates heading to point up
-		const rotAngle = Math.PI / 2 - game.heading;
+		const rotAngle = -Math.PI / 2 - game.heading;
 		const cosA = Math.cos(rotAngle);
 		const sinA = Math.sin(rotAngle);
 		const cx = w / 2;

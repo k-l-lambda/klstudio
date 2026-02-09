@@ -23,7 +23,7 @@ const http = require("http");
 
 const CDP_HOST = "127.0.0.1";
 const CDP_PORT = 9222;
-const DEV_SERVER = "localhost:8080";
+const DEV_SERVER = "localhost:8130";
 
 function fetchJSON(path) {
 	return new Promise((resolve, reject) => {

@@ -5,7 +5,7 @@ This skill launches a headless Chrome, navigates to the dev server, and provides
 
 ## Environment
 
-- **Dev server**: `yarn serve` (Vite, default port 8080)
+- **Dev server**: `yarn serve` (Vite, port 8130 via .env.local)
 - **Chrome debug port**: 9222
 - **Profile dir**: `/tmp/klstudio-chrome-debug`
 - **Screenshots dir**: `/tmp/klstudio-screenshots`
@@ -16,7 +16,7 @@ This skill launches a headless Chrome, navigates to the dev server, and provides
 ### 1. Start the dev server (if not already running)
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 || echo "NOT_RUNNING"
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8130 || echo "NOT_RUNNING"
 ```
 
 If not running, remind the user to start it with `yarn serve` in a separate terminal.
@@ -43,7 +43,7 @@ nohup google-chrome \
   --no-sandbox \
   --window-size=1280,900 \
   --user-data-dir=/tmp/klstudio-chrome-debug \
-  http://localhost:8080 > /tmp/klstudio-chrome-debug/chrome.log 2>&1 &
+  http://localhost:8130 > /tmp/klstudio-chrome-debug/chrome.log 2>&1 &
 
 sleep 2
 ```
@@ -67,7 +67,7 @@ CDP=.claude/skills/chrome-debug/cdp.js
 | Command | Description | Example |
 |---------|-------------|---------|
 | `node $CDP page-id` | Get current page ID | `node $CDP page-id` |
-| `node $CDP navigate <url>` | Navigate to URL | `node $CDP navigate http://localhost:8080/#/rubik` |
+| `node $CDP navigate <url>` | Navigate to URL | `node $CDP navigate http://localhost:8130/#/rubik` |
 | `node $CDP screenshot [path]` | Take screenshot | `node $CDP screenshot /tmp/klstudio-screenshots/test.png` |
 | `node $CDP console [ms]` | Capture console messages after reload | `node $CDP console 5000` |
 | `node $CDP eval <expr>` | Evaluate JS in page | `node $CDP eval document.title` |
@@ -110,6 +110,6 @@ rm -rf /tmp/klstudio-chrome-debug
 - After code changes, Vite HMR should auto-reload; take a new screenshot to verify.
 - If the page is blank or broken, check console messages for errors.
 - Use eval to inspect Vue component state: `node $CDP eval "document.querySelector('#app').__vue_app__"`
-- For routes, navigate to `http://localhost:8080/#/route-name` (Vue Router hash mode).
+- For routes, navigate to `http://localhost:8130/#/route-name` (Vue Router hash mode).
 - Screenshot files can be read with the Read tool for visual inspection.
 - The `console` and `network` commands reload the page and capture for the specified duration.

@@ -1,4 +1,4 @@
-// 2D space flight simulation — core game engine
+// Space flight simulation — core game engine (3D star field, 2D ship movement)
 // Supports Einstein mode (special relativity) and Galilean mode (classical physics)
 
 export interface InputState {
@@ -11,13 +11,15 @@ export interface InputState {
 export interface Star {
 	x: number;
 	y: number;
+	z: number;
 	baseRadius: number;
 	baseColor: [number, number, number]; // RGB 0–255
 }
 
 export interface TransformedStar {
-	screenX: number;
-	screenY: number;
+	x: number;
+	y: number;
+	z: number;
 	radius: number;
 	r: number;
 	g: number;
@@ -45,6 +47,7 @@ const STEER_RATE = 2.0;
 // Star field grid
 const CELL_SIZE = 2000;
 const STARS_PER_CELL = 15;
+const Z_RANGE = 1000;
 
 // Maximum rapidity (prevents numerical issues at extreme γ)
 const MAX_RAPIDITY = 6.0; // tanh(6) ≈ 0.99999
@@ -97,7 +100,8 @@ function generateCell (cx: number, cy: number): Star[] {
 		stars.push({
 			x: originX + rng() * CELL_SIZE,
 			y: originY + rng() * CELL_SIZE,
-			baseRadius: 0.8 + rng() * 2.2, // 0.8–3.0 px
+			z: (rng() - 0.5) * 2 * Z_RANGE,
+			baseRadius: 1.2 + rng() * 3.0, // 1.2–4.2
 			baseColor: STAR_COLORS[Math.floor(rng() * STAR_COLORS.length)],
 		});
 	}
@@ -224,18 +228,12 @@ export class Game {
 	}
 
 	getVisibleStars (viewW: number, viewH: number): TransformedStar[] {
-		const halfW = viewW / 2;
-		const halfH = viewH / 2;
-
-		// Use circular range for rotation support
-		const viewRadius = Math.sqrt(halfW * halfW + halfH * halfH);
-
-		// Buffer region accounts for Lorentz contraction pulling in distant stars (Einstein)
-		// or just generous padding (Galilean)
+		// Generous spherical cull radius — GPU handles frustum clipping
+		const viewRadius = Math.sqrt(viewW * viewW + viewH * viewH) / 2;
 		const buffer = this.mode === "einstein" ? this.gamma * 1.5 : 1.5;
 		const range = viewRadius * buffer + CELL_SIZE;
 
-		// Determine which cells to load
+		// Determine which cells to load (cells are 2D — ship moves in x-y only)
 		const minCX = Math.floor((this.shipX - range) / CELL_SIZE);
 		const maxCX = Math.floor((this.shipX + range) / CELL_SIZE);
 		const minCY = Math.floor((this.shipY - range) / CELL_SIZE);
@@ -262,31 +260,32 @@ export class Game {
 			}
 		}
 
-		// Circular culling radius (screen diagonal + margin)
-		const cullRadius = viewRadius + 50;
-		const cullRadiusSq = cullRadius * cullRadius;
+		// Spherical cull radius for 3D
+		const cullRadiusSq = (range + Z_RANGE) * (range + Z_RANGE);
 
 		if (this.mode === "galilean") {
-			return this.getVisibleStarsGalilean(halfW, halfH, cullRadiusSq);
+			return this.getVisibleStarsGalilean(cullRadiusSq);
 		}
 
-		return this.getVisibleStarsEinstein(halfW, halfH, cullRadiusSq);
+		return this.getVisibleStarsEinstein(cullRadiusSq);
 	}
 
-	private getVisibleStarsGalilean (halfW: number, halfH: number, cullRadiusSq: number): TransformedStar[] {
+	private getVisibleStarsGalilean (cullRadiusSq: number): TransformedStar[] {
 		const result: TransformedStar[] = [];
 
 		for (const stars of this.cellCache.values()) {
 			for (const star of stars) {
 				const dx = star.x - this.shipX;
 				const dy = star.y - this.shipY;
+				const dz = star.z; // ship at z=0
 
-				// Circular culling
-				if (dx * dx + dy * dy > cullRadiusSq) continue;
+				// Spherical culling
+				if (dx * dx + dy * dy + dz * dz > cullRadiusSq) continue;
 
 				result.push({
-					screenX: halfW + dx,
-					screenY: halfH + dy,
+					x: dx,
+					y: dy,
+					z: dz,
 					radius: star.baseRadius,
 					r: star.baseColor[0],
 					g: star.baseColor[1],
@@ -299,11 +298,11 @@ export class Game {
 		return result;
 	}
 
-	private getVisibleStarsEinstein (halfW: number, halfH: number, cullRadiusSq: number): TransformedStar[] {
-		// Velocity direction
+	private getVisibleStarsEinstein (cullRadiusSq: number): TransformedStar[] {
+		// Velocity direction (in x-y plane)
 		const vDirX = Math.cos(this.heading);
 		const vDirY = Math.sin(this.heading);
-		// Perpendicular direction (90° counterclockwise)
+		// In-plane perpendicular direction (90° counterclockwise)
 		const pDirX = -vDirY;
 		const pDirY = vDirX;
 
@@ -318,41 +317,55 @@ export class Game {
 				// Rest-frame displacement from ship
 				const dx = star.x - this.shipX;
 				const dy = star.y - this.shipY;
+				const dz = star.z; // ship at z=0
 
-				let screenX: number;
-				let screenY: number;
+				let outX: number;
+				let outY: number;
+				let outZ: number;
 				let D = 1; // Doppler factor
 				let intensity = 1;
 
 				if (isMoving) {
-					// Decompose into parallel and perpendicular to velocity
+					// Decompose into parallel (along heading in x-y) and perpendicular
 					const dPar = dx * vDirX + dy * vDirY;
-					const dPerp = dx * pDirX + dy * pDirY;
+					const dPerpXY = dx * pDirX + dy * pDirY; // in-plane perpendicular
+					// dz is already the z-perpendicular component
 
 					// Lorentz contraction along velocity direction
 					const dParContracted = dPar / gamma;
 
-					// Angle from velocity direction (before aberration)
-					const dist = Math.sqrt(dParContracted * dParContracted + dPerp * dPerp);
+					// 3D distance after contraction
+					const dist = Math.sqrt(dParContracted * dParContracted + dPerpXY * dPerpXY + dz * dz);
 					if (dist < 1) continue; // Skip if star is essentially at ship
 
 					const cosAlpha = dParContracted / dist;
+					const sinAlpha = Math.sqrt(Math.max(0, 1 - cosAlpha * cosAlpha));
 
 					// Relativistic aberration
 					const cosAlphaPrime = (cosAlpha - beta) / (1 - beta * cosAlpha);
 					const sinAlphaPrime = Math.sqrt(Math.max(0, 1 - cosAlphaPrime * cosAlphaPrime));
 
-					// Preserve the sign of the perpendicular component
-					const sign = dPerp >= 0 ? 1 : -1;
+					// Scale perpendicular components uniformly to preserve their direction
+					// The perpendicular plane has two components: dPerpXY and dz
+					let newDPerpXY: number;
+					let newDZ: number;
+					if (sinAlpha > 1e-10) {
+						const perpScale = sinAlphaPrime / sinAlpha;
+						newDPerpXY = dPerpXY * perpScale;
+						newDZ = dz * perpScale;
+					}
+					else {
+						newDPerpXY = dPerpXY;
+						newDZ = dz;
+					}
 
-					// Reconstruct screen-space position from aberrated angle
-					const aberratedDist = dist; // distance preserved for display
-					const newDPar = cosAlphaPrime * aberratedDist;
-					const newDPerp = sign * sinAlphaPrime * aberratedDist;
+					// Reconstruct 3D position from aberrated angle
+					const newDPar = cosAlphaPrime * dist;
 
-					// Convert back to screen coordinates
-					screenX = newDPar * vDirX + newDPerp * pDirX;
-					screenY = newDPar * vDirY + newDPerp * pDirY;
+					// Convert back to world-relative coordinates
+					outX = newDPar * vDirX + newDPerpXY * pDirX;
+					outY = newDPar * vDirY + newDPerpXY * pDirY;
+					outZ = newDZ;
 
 					// Doppler factor
 					D = 1 / (gamma * (1 - beta * cosAlpha));
@@ -361,12 +374,13 @@ export class Game {
 					intensity = D * D * D;
 				}
 				else {
-					screenX = dx;
-					screenY = dy;
+					outX = dx;
+					outY = dy;
+					outZ = dz;
 				}
 
-				// Circular culling
-				if (screenX * screenX + screenY * screenY > cullRadiusSq) continue;
+				// Spherical culling
+				if (outX * outX + outY * outY + outZ * outZ > cullRadiusSq) continue;
 
 				// Apply Doppler color shift
 				const [sr, sg, sb] = dopplerShiftColor(
@@ -378,8 +392,9 @@ export class Game {
 				const radius = star.baseRadius * Math.max(0.3, Math.min(3, Math.sqrt(intensity)));
 
 				result.push({
-					screenX: halfW + screenX,
-					screenY: halfH + screenY,
+					x: outX,
+					y: outY,
+					z: outZ,
 					radius,
 					r: Math.min(255, sr * Math.max(1, intensity * 0.5)),
 					g: Math.min(255, sg * Math.max(1, intensity * 0.5)),

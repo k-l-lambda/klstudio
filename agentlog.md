@@ -2001,3 +2001,25 @@ Renamed "Relativity Flight" → "Einstein Flight" and added major gameplay featu
 **Mode toggle:** Button (top-left) + M key. `game.setMode()` converts velocity state between modes (clamps to <c when switching to Einstein). Einstein mode retains full relativistic rendering (Lorentz contraction, aberration, Doppler shift, beaming).
 
 </details>
+
+<details>
+<summary>Einstein Flight — WebGL Renderer + 3D Star Field</summary>
+
+Re-implemented the renderer with WebGL and added z-coordinates to stars for depth/parallax with a 30° FoV perspective camera.
+
+**Game.ts changes:**
+- Added `z: number` to `Star` and changed `TransformedStar` from `{screenX, screenY}` to `{x, y, z}` (3D ship-relative positions).
+- `Z_RANGE = 1000`; `generateCell()` adds random z in `[-1000, 1000]`; cell seed stays 2D (ship moves in x-y only).
+- `getVisibleStarsGalilean()`: outputs `dx, dy, dz` relative to ship (ship at z=0).
+- `getVisibleStarsEinstein()`: extended to 3D — perpendicular plane has two components (in-plane + z); aberration scales both uniformly via `sinAlphaPrime/sinAlpha`.
+- `getVisibleStars()`: uses spherical cull radius; GPU handles frustum clipping.
+
+**Renderer.ts — full rewrite:**
+- WebGL canvas for star rendering (`gl.POINTS` with point sprites), additive blending (`SRC_ALPHA, ONE`).
+- Vertex shader: perspective-scaled `gl_PointSize` from `aPosition`, `aColor`, `aSize`.
+- Fragment shader: `gl_PointCoord` radial falloff (bright core + soft glow), discard outside radius.
+- Camera: `mat4LookAt` from origin along `(cos(heading), sin(heading), 0)`, up = `(0,0,1)`; `mat4Perspective` with 30° FoV, near=1, far=10000.
+- Overlay Canvas 2D (created programmatically) for ship triangle + HUD text, reused verbatim from old renderer.
+- Resize handles both canvases with DPR scaling; dispose cleans up WebGL resources + removes overlay.
+
+</details>

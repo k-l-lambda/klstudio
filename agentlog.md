@@ -1,5 +1,19 @@
 
 
+## Relativity Flight — 2D relativistic space simulation
+
+Added a new interactive view "Relativity Flight" (`/#/relativity-flight`): a 2D space flight simulation applying real special relativity physics.
+
+**Files created:**
+- `app/relativityFlight/Game.ts` — Core physics engine: ship state (rapidity-based kinematics), infinite seeded star field, Lorentz contraction, relativistic aberration, Doppler color shifting, and relativistic beaming (D³ intensity).
+- `app/relativityFlight/Renderer.ts` — Canvas 2D renderer: star field with glow effects, ship triangle, HUD (v/c, φ, γ, speed bar), requestAnimationFrame loop with DPI scaling.
+- `app/views/relativity-flight.vue` — Vue component (Options API, following cube-tetris.vue pattern): keyboard input (WASD/arrows), lifecycle management with `markRaw()`.
+- `app/router.ts` — Added `/relativity-flight` route.
+
+**Key physics:** Rapidity rate `arctanh(0.9)/5 ≈ 0.2944/s` (0.9c in 5s), C=1000 game units/s, max rapidity 6.0.
+
+---
+
 > Port this project from Vue 2 to Vue 3 while maintaining all existing functionalities and ensuring compatibility with current TypeScript modules. Try to do a minimal change, keep original code as much as possible. Following the original coding style and project structure.
 
 <details>

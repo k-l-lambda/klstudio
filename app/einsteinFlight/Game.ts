@@ -331,18 +331,17 @@ export class Game {
 					const dPerpXY = dx * pDirX + dy * pDirY; // in-plane perpendicular
 					// dz is already the z-perpendicular component
 
-					// Lorentz contraction along velocity direction
-					const dParContracted = dPar / gamma;
-
-					// 3D distance after contraction
-					const dist = Math.sqrt(dParContracted * dParContracted + dPerpXY * dPerpXY + dz * dz);
+					// Rest-frame distance and angle (NO Lorentz contraction here —
+					// the aberration formula already encodes the full Lorentz transform)
+					const dist = Math.sqrt(dPar * dPar + dPerpXY * dPerpXY + dz * dz);
 					if (dist < 1) continue; // Skip if star is essentially at ship
 
-					const cosAlpha = dParContracted / dist;
+					const cosAlpha = dPar / dist;
 					const sinAlpha = Math.sqrt(Math.max(0, 1 - cosAlpha * cosAlpha));
 
-					// Relativistic aberration
-					const cosAlphaPrime = (cosAlpha - beta) / (1 - beta * cosAlpha);
+					// Relativistic aberration (source frame → observer frame)
+					// Headlight effect: stars concentrate toward forward direction
+					const cosAlphaPrime = (cosAlpha + beta) / (1 + beta * cosAlpha);
 					const sinAlphaPrime = Math.sqrt(Math.max(0, 1 - cosAlphaPrime * cosAlphaPrime));
 
 					// Scale perpendicular components uniformly to preserve their direction
@@ -367,8 +366,8 @@ export class Game {
 					outY = newDPar * vDirY + newDPerpXY * pDirY;
 					outZ = newDZ;
 
-					// Doppler factor
-					D = 1 / (gamma * (1 - beta * cosAlpha));
+					// Doppler factor (rest-frame angle): D = γ(1 + β·cosα)
+					D = gamma * (1 + beta * cosAlpha);
 
 					// Relativistic beaming: intensity ∝ D³
 					intensity = D * D * D;

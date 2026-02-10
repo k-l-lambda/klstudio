@@ -308,6 +308,7 @@ export class Game {
 
 		const beta = this.beta;
 		const gamma = this.gamma;
+		const invGamma = 1 / gamma;
 		const isMoving = beta > 1e-6;
 
 		const result: TransformedStar[] = [];
@@ -328,46 +329,24 @@ export class Game {
 				if (isMoving) {
 					// Decompose into parallel (along heading in x-y) and perpendicular
 					const dPar = dx * vDirX + dy * vDirY;
-					const dPerpXY = dx * pDirX + dy * pDirY; // in-plane perpendicular
-					// dz is already the z-perpendicular component
+					const dPerpXY = dx * pDirX + dy * pDirY;
+					// dz is perpendicular (ship moves in x-y only)
 
-					// Rest-frame distance and angle (NO Lorentz contraction here —
-					// the aberration formula already encodes the full Lorentz transform)
-					const dist = Math.sqrt(dPar * dPar + dPerpXY * dPerpXY + dz * dz);
-					if (dist < 1) continue; // Skip if star is essentially at ship
-
-					const cosAlpha = dPar / dist;
-					const sinAlpha = Math.sqrt(Math.max(0, 1 - cosAlpha * cosAlpha));
-
-					// Relativistic aberration (source frame → observer frame)
-					// Headlight effect: stars concentrate toward forward direction
-					const cosAlphaPrime = (cosAlpha + beta) / (1 + beta * cosAlpha);
-					const sinAlphaPrime = Math.sqrt(Math.max(0, 1 - cosAlphaPrime * cosAlphaPrime));
-
-					// Scale perpendicular components uniformly to preserve their direction
-					// The perpendicular plane has two components: dPerpXY and dz
-					let newDPerpXY: number;
-					let newDZ: number;
-					if (sinAlpha > 1e-10) {
-						const perpScale = sinAlphaPrime / sinAlpha;
-						newDPerpXY = dPerpXY * perpScale;
-						newDZ = dz * perpScale;
-					}
-					else {
-						newDPerpXY = dPerpXY;
-						newDZ = dz;
-					}
-
-					// Reconstruct 3D position from aberrated angle
-					const newDPar = cosAlphaPrime * dist;
+					// Lorentz contraction: linear transformation
+					// Parallel component contracts by 1/γ; perpendicular unchanged
+					const dParPrime = dPar * invGamma;
 
 					// Convert back to world-relative coordinates
-					outX = newDPar * vDirX + newDPerpXY * pDirX;
-					outY = newDPar * vDirY + newDPerpXY * pDirY;
-					outZ = newDZ;
+					outX = dParPrime * vDirX + dPerpXY * pDirX;
+					outY = dParPrime * vDirY + dPerpXY * pDirY;
+					outZ = dz;
 
-					// Doppler factor (rest-frame angle): D = γ(1 + β·cosα)
-					D = gamma * (1 + beta * cosAlpha);
+					// Doppler factor (using rest-frame angle)
+					// D = γ(1 + β·cosα) where cosα = dPar / dist_rest
+					const distSq = dPar * dPar + dPerpXY * dPerpXY + dz * dz;
+					if (distSq < 1) continue;
+					const dist = Math.sqrt(distSq);
+					D = gamma * (1 + beta * dPar / dist);
 
 					// Relativistic beaming: intensity ∝ D³
 					intensity = D * D * D;

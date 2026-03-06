@@ -197,12 +197,37 @@
 
     <div class="container">
         <div class="toolbar">
-            <button class="btn btn-primary" onclick="toggleConfigPanel()">Generate Wrapper Command</button>
+            <button class="btn btn-primary" onclick="toggleConfigPanel('config-panel')">set_wrapper</button>
+            <button class="btn btn-primary" onclick="toggleConfigPanel('gateway-panel')">set-gateway</button>
             <button class="btn" onclick="clearEditor()">Clear</button>
         </div>
 
+        <div class="config-panel" id="gateway-panel">
+            <h3>Gateway Connection (/set-gateway)</h3>
+            <div class="config-row">
+                <div class="field">
+                    <label>Host</label>
+                    <input type="text" id="gw-host" value="" placeholder="some-domain-of-your-gateway">
+                </div>
+                <div class="field">
+                    <label>Port</label>
+                    <input type="text" id="gw-port" value="" placeholder="12345">
+                </div>
+            </div>
+            <div class="config-row">
+                <div class="field">
+                    <label>Token (optional)</label>
+                    <input type="text" id="gw-token" placeholder="Leave empty for auto-auth">
+                </div>
+            </div>
+            <div class="config-actions">
+                <button class="btn btn-primary" onclick="generateGatewayCommand()">Insert Command</button>
+                <button class="btn" onclick="toggleConfigPanel('gateway-panel')">Cancel</button>
+            </div>
+        </div>
+
         <div class="config-panel" id="config-panel">
-            <h3>Claude Wrapper Configuration</h3>
+            <h3>Claude Wrapper Configuration (set_wrapper)</h3>
             <div class="config-row">
                 <div class="field">
                     <label>Base URL</label>
@@ -232,7 +257,7 @@
             </div>
             <div class="config-actions">
                 <button class="btn btn-primary" onclick="generateWrapperCommand()">Insert Command</button>
-                <button class="btn" onclick="toggleConfigPanel()">Cancel</button>
+                <button class="btn" onclick="toggleConfigPanel('config-panel')">Cancel</button>
             </div>
         </div>
 
@@ -260,9 +285,31 @@
 
         let qrCodeInstance = null;
 
-        function toggleConfigPanel() {
-            const panel = document.getElementById('config-panel');
+        function toggleConfigPanel(panelId) {
+            // Close all panels first
+            document.querySelectorAll('.config-panel').forEach(p => {
+                if (p.id !== panelId) p.classList.remove('show');
+            });
+            const panel = document.getElementById(panelId);
             panel.classList.toggle('show');
+        }
+
+        function generateGatewayCommand() {
+            const host = document.getElementById('gw-host').value.trim();
+            const port = document.getElementById('gw-port').value.trim() || '40445';
+            const token = document.getElementById('gw-token').value.trim();
+
+            if (!host) {
+                alert('Host is required');
+                return;
+            }
+
+            let command = `/set-gateway ${host}:${port}`;
+            if (token) command += ` ${token}`;
+
+            document.getElementById('text-editor').value = command;
+            toggleConfigPanel('gateway-panel');
+            updateQR();
         }
 
         function generateWrapperCommand() {

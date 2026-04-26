@@ -547,7 +547,7 @@
 		<div id="sider">
 			<ul id="note-list">
 				<li><a href="#recentPost">Recent Post</a></li>
-				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Awhere%20score%20is%20null%20and%20tags%20is%20null%0Aorder%20by%20date%20desc">Raw</a></li>
+				<li><a href="#sql=select%20path%20from%20file_register%20fr%0Awhere%20not%20exists%20(select%201%20from%20album%20a%20where%20a.hash%20%3D%20fr.hash)%0Aorder%20by%20fr.date%20desc">Raw</a></li>
 				<li><a href="#sql=select%20path%20from%20file_register%20left%20join%20album%20on%20file_register.hash%20%3D%20album.hash%0Aorder%20by%20score%20desc">Score Descend</a></li>
 				<li><a href="#listDir&orderby=-ctime">List Recent Dir</a></li>
 			</ul>

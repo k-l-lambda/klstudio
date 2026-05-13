@@ -1,12 +1,35 @@
 <template>
-	<div class="chart-container" ref="chartContainer"></div>
+	<div class="chart-container" ref="chartContainer" :style="containerStyle">
+		<svg class="chart-svg" :viewBox="`0 0 ${viewWidth} ${viewHeight}`" @click="onClick">
+			<rect class="plot-background" :x="plotLeft" :y="plotTop" :width="plotWidth" :height="plotHeight" />
+			<g class="split-lines">
+				<line v-for="tick of yTicks" :key="tick"
+					:x1="plotLeft" :x2="plotLeft + plotWidth"
+					:y1="yToSvg(tick)" :y2="yToSvg(tick)"
+				/>
+			</g>
+			<g class="mark-lines">
+				<line v-for="(mark, i) of markLines" :key="i"
+					:x1="xToSvg(mark.xAxis)" :x2="xToSvg(mark.xAxis)"
+					:y1="plotTop" :y2="plotTop + plotHeight"
+				/>
+			</g>
+			<polyline v-if="points.length > 1" class="line" :points="polylinePoints" />
+			<g class="points">
+				<circle v-for="point of points" :key="point.index" :cx="point.x" :cy="point.y" r="2.4" />
+			</g>
+			<g class="axes">
+				<line :x1="plotLeft" :x2="plotLeft + plotWidth" :y1="yToSvg(0)" :y2="yToSvg(0)" />
+				<line :x1="plotLeft" :x2="plotLeft" :y1="plotTop" :y2="plotTop + plotHeight" />
+			</g>
+		</svg>
+	</div>
 </template>
 
 <script>
-	import * as echarts from "echarts";
-
 	export default {
 		name: "chart",
+
 
 		props: {
 			type: {
@@ -16,173 +39,171 @@
 			sourceData: Object,
 		},
 
+
 		data () {
 			return {
-				chartInstance: null,
+				viewWidth: 320,
+				viewHeight: 240,
 			};
 		},
 
-		mounted () {
-			this.initChart();
-		},
 
-		methods: {
-			initChart () {
-				if (!this.$refs.chartContainer) return;
-
-				this.chartInstance = echarts.init(this.$refs.chartContainer);
-				this.updateChart();
-
-				// Register events if provided
-				if (this.sourceData.events) {
-					Object.keys(this.sourceData.events).forEach(eventName => {
-						this.chartInstance.on(eventName, this.sourceData.events[eventName]);
-					});
-				}
-
-				// Handle window resize
-				window.addEventListener("resize", this.handleResize);
-			},
-
-			handleResize () {
-				if (this.chartInstance) 
-					this.chartInstance.resize();
-				
-			},
-
-			updateChart () {
-				if (!this.chartInstance || !this.sourceData || !this.sourceData.data) return;
-
-				try {
-					const option = this.buildOption();
-					// Only update if we have a valid option with series
-					if (option && option.series && option.series.length > 0) {
-						// Use notMerge: false (merge mode) to avoid breaking ECharts internal state
-						this.chartInstance.setOption(option, false);
-					}
-				}
-				catch (error) {
-					console.error("Chart update error:", error);
-				}
-			},
-
-			buildOption () {
-				const {data, settings = {}, type, theme = {}, ...customOptions} = this.sourceData;
-
-				if (!data || !data.rows || !data.columns || data.columns.length < 2 || data.rows.length === 0) {
-					console.warn("Chart: Invalid or empty data", data);
-					return null;
-				}
-
-				const chartType = (type || this.type || "line").toLowerCase();
-
-				// Build series from data
-				const series = [];
-				const {rows, columns} = data;
-
-				// Assuming first column is x-axis labels, rest are series data
-				const xAxisData = rows.map(row => row[0]);
-
-				// Each subsequent column is a series
-				for (let i = 1; i < columns.length; i++) {
-					const seriesData = {
-						name: columns[i],
-						type: chartType,  // Always ensure type is set
-						data: rows.map(row => row[i]),
-					};
-
-					// Apply smooth setting from theme if available
-					if (chartType === "line") 
-						seriesData.smooth = theme.line?.smooth !== undefined ? theme.line.smooth : true;
-					
-
-					// Apply markLine if present
-					if (this.sourceData.markLine) 
-						seriesData.markLine = this.sourceData.markLine;
-					
-
-					series.push(seriesData);
-				}
-
-				// Ensure we have at least one series
-				if (series.length === 0) {
-					console.warn("Chart: No series data to display");
-					return null;
-				}
-
-				// Build grid from theme or customOptions
-				const grid = customOptions.grid || theme.grid || {
-					left: "3%",
-					right: "4%",
-					bottom: "3%",
-					containLabel: true,
-				};
-
-				// Build xAxis configuration
-				const xAxisConfig = customOptions.xAxis || {
-					type: settings.xAxisType || "category",
-					data: xAxisData,
-					boundaryGap: chartType !== "line",
-				};
-
-				// Build yAxis configuration
-				const yAxisConfig = customOptions.yAxis || {
-					type: "value",
-				};
-
-				// Build the option object
-				const option = {
-					grid,
-					xAxis: xAxisConfig,
-					yAxis: yAxisConfig,
-					series,
-					tooltip: customOptions.tooltip !== undefined ? customOptions.tooltip : {
-						trigger: "axis",
-						axisPointer: {
-							type: chartType === "line" ? "line" : "shadow",
-						},
-					},
-					legend: customOptions.legend !== false ? {
-						data: columns.slice(1),
-						...customOptions.legend,
-					} : undefined,
-					animation: customOptions.animation !== undefined ? customOptions.animation : true,
-				};
-
-				// Apply width and height if specified
-				if (this.sourceData.width) 
-					this.$refs.chartContainer.style.width = `${this.sourceData.width}px`;
-				
-				if (this.sourceData.height) 
-					this.$refs.chartContainer.style.height = this.sourceData.height;
-				
-
-				return option;
-			},
-
-			getVChart () {
-				// Compatibility method for existing code
+		computed: {
+			containerStyle () {
 				return {
-					echarts: this.chartInstance,
-					resize: () => this.chartInstance?.resize(),
+					width: this.sourceData?.width ? `${this.sourceData.width}px` : null,
+					height: this.sourceData?.height || null,
 				};
+			},
+
+
+			rows () {
+				return this.sourceData?.data?.rows || [];
+			},
+
+
+			xValues () {
+				return this.rows.map(row => Number(row.step ?? row[0])).filter(Number.isFinite);
+			},
+
+
+			yValues () {
+				return this.rows.map(row => Number(row.rate ?? row[1])).filter(Number.isFinite);
+			},
+
+
+			xMin () {
+				return Math.min(0, ...this.xValues);
+			},
+
+
+			xMax () {
+				const max = Math.max(1, ...this.xValues, ...this.markLines.map(mark => mark.xAxis || 0));
+				return max === this.xMin ? this.xMin + 1 : max;
+			},
+
+
+			yMin () {
+				return Number.isFinite(this.sourceData?.yAxis?.min) ? this.sourceData.yAxis.min : Math.min(-1, ...this.yValues);
+			},
+
+
+			yMax () {
+				const max = Number.isFinite(this.sourceData?.yAxis?.max) ? this.sourceData.yAxis.max : Math.max(1, ...this.yValues);
+				return max === this.yMin ? this.yMin + 1 : max;
+			},
+
+
+			plotLeft () {
+				return 8;
+			},
+
+
+			plotTop () {
+				return 8;
+			},
+
+
+			plotWidth () {
+				return this.viewWidth - this.plotLeft - 8;
+			},
+
+
+			plotHeight () {
+				return this.viewHeight - this.plotTop - 8;
+			},
+
+
+			points () {
+				return this.rows
+					.map((row, index) => ({
+						index,
+						xValue: Number(row.step ?? row[0]),
+						yValue: Number(row.rate ?? row[1]),
+						data: row,
+					}))
+					.filter(point => Number.isFinite(point.xValue) && Number.isFinite(point.yValue))
+					.map(point => ({
+						...point,
+						x: this.xToSvg(point.xValue),
+						y: this.yToSvg(point.yValue),
+					}));
+			},
+
+
+			polylinePoints () {
+				return this.points.map(point => `${point.x},${point.y}`).join(" ");
+			},
+
+
+			markLines () {
+				return (this.sourceData?.markLine?.data || []).filter(mark => mark && Number.isFinite(mark.xAxis));
+			},
+
+
+			yTicks () {
+				return [-1, -0.5, 0, 0.5, 1].filter(value => value >= this.yMin && value <= this.yMax);
 			},
 		},
 
-		watch: {
-			sourceData: {
-				handler () {
-					this.updateChart();
-				},
-				deep: true,
-			},
+
+		mounted () {
+			this.resize();
+			window.addEventListener("resize", this.resize);
 		},
+
 
 		beforeUnmount () {
-			window.removeEventListener("resize", this.handleResize);
-			if (this.chartInstance) 
-				this.chartInstance.dispose();
-			
+			window.removeEventListener("resize", this.resize);
+		},
+
+
+		methods: {
+			resize () {
+				const el = this.$refs.chartContainer;
+				if (!el)
+					return;
+
+				this.viewWidth = Math.max(el.clientWidth || 320, 1);
+				this.viewHeight = Math.max(el.clientHeight || 240, 1);
+			},
+
+
+			xToSvg (value) {
+				return this.plotLeft + (value - this.xMin) / (this.xMax - this.xMin) * this.plotWidth;
+			},
+
+
+			yToSvg (value) {
+				return this.plotTop + (this.yMax - value) / (this.yMax - this.yMin) * this.plotHeight;
+			},
+
+
+			onClick (event) {
+				const clickHandler = this.sourceData?.events?.click;
+				if (!clickHandler || !this.points.length)
+					return;
+
+				const rect = event.currentTarget.getBoundingClientRect();
+				const x = (event.clientX - rect.left) * this.viewWidth / rect.width;
+				const xValue = this.xMin + (x - this.plotLeft) / this.plotWidth * (this.xMax - this.xMin);
+				const point = this.points.reduce((best, item) => Math.abs(item.xValue - xValue) < Math.abs(best.xValue - xValue) ? item : best, this.points[0]);
+
+				clickHandler({
+					componentType: "series",
+					seriesType: "line",
+					dataIndex: point.index,
+					data: point.data,
+					value: [point.xValue, point.yValue],
+				});
+			},
+
+
+			getVChart () {
+				return {
+					resize: this.resize,
+				};
+			},
 		},
 	};
 </script>
@@ -193,5 +214,51 @@
 		width: 100%;
 		height: 100%;
 		min-height: 240px;
+	}
+
+	.chart-svg
+	{
+		display: block;
+		width: 100%;
+		height: 100%;
+		cursor: pointer;
+	}
+
+	.plot-background
+	{
+		fill: #fff;
+	}
+
+	.split-lines line
+	{
+		stroke: #ddd;
+		stroke-width: 1;
+	}
+
+	.axes line
+	{
+		stroke: #888;
+		stroke-width: 1;
+	}
+
+	.mark-lines line
+	{
+		stroke: #666;
+		stroke-width: 1;
+		stroke-dasharray: 4 3;
+	}
+
+	.line
+	{
+		fill: none;
+		stroke: #5470c6;
+		stroke-width: 2;
+	}
+
+	.points circle
+	{
+		fill: #5470c6;
+		stroke: white;
+		stroke-width: 1;
 	}
 </style>

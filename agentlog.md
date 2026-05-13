@@ -445,10 +445,45 @@ Updated `vue.config.js` to use Webpack 5's built-in asset modules:
 
 </details>
 
-
-
 <details>
-<summary>GitHub Pages Deployment Fix - Dynamic Image Imports (2025-12-23)</summary>
+<summary>chess-lab chessboardjs Loading Fix (2026-05-13)</summary>
+
+**Issue:** Opening `app/views/chess-lab.vue` could fail with `require is not defined` after the Vite migration.
+
+**Root Cause:** The page used dynamic `import()` to execute `@chrisoakman/chessboardjs/dist/chessboard-1.0.0.js`. That package is a browser-global UMD script, and Vite module transformation could expose its CommonJS `require` path at runtime.
+
+**Fix Applied:**
+- Added `loadScript()` and `loadChessboard()` helpers in `app/views/chess-lab.vue`.
+- Changed chessboardjs loading from direct dynamic execution import to `?url` import plus a `<script>` tag, matching the existing Plotly loading pattern.
+- Kept `window.Chessboard` as the runtime API expected by the existing code.
+
+**Validation:**
+- `./node_modules/.bin/eslint app/views/chess-lab.vue` completed with one existing unused `reactive` warning.
+- `./node_modules/.bin/vite build` completed successfully.
+
+**Follow-up ECharts Removal:**
+- Replaced `app/components/chart.vue` with a lightweight SVG chart tailored to the chess-lab winrate chart.
+- The new component draws a point-and-line chart from `sourceData.data.rows`, supports the current x-axis mark line, resizes via `getVChart().resize()`, and emits a compatible `sourceData.events.click` payload with `componentType: "series"` and `value: [x, y]`.
+- Removed all runtime ECharts imports from app code, avoiding both CommonJS `require` and UMD `this` binding issues under Vite.
+- Verified with `./node_modules/.bin/eslint app/components/chart.vue app/views/chess-lab.vue`; only the existing unused `reactive` warning remains.
+
+**Follow-up ECharts Import Fix:**
+- Browser stack identified the remaining error as `/node_modules/echarts/index.js`, whose line 21 calls CommonJS `require("./lib/echarts")`.
+- Changed `app/components/chart.vue` from `import * as echarts from "echarts"` to `import * as echarts from "echarts/dist/echarts.js"` so Vite loads ECharts' browser build instead of the CommonJS index.
+- Verified with `./node_modules/.bin/eslint app/components/chart.vue app/views/chess-lab.vue app/chessEngines.ts` and `./node_modules/.bin/vite build`.
+
+**Follow-up:**
+- The error persisted after changing chessboardjs alone, so `jquery` dynamic import was also replaced with `?url` plus `<script>` loading.
+- Stockfish worker construction was changed from `new Worker("chess/engines/stockfish.js")` to a Vite-resolved classic worker URL via `new URL("../public/chess/engines/stockfish.js", import.meta.url)`.
+- Rebuilt output now leaves only lodash's guarded `module.require` feature-detection branch inside the chess-lab chunk.
+- Verified with `./node_modules/.bin/eslint app/views/chess-lab.vue app/chessEngines.ts` and `./node_modules/.bin/vite build`.
+
+**Result:** ✅ chessboardjs now loads as a browser script without Vite executing it as an ESM/CommonJS module.
+
+</details>
+
+
+
 
 **Issue:** When deployed to GitHub Pages at `/studio/` path, app cover images failed to load on the home page.
 

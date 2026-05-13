@@ -317,6 +317,33 @@
 	const analyzationLibrary = {};
 
 
+	const loadScript = url => new Promise((resolve, reject) => {
+		const script = document.createElement("script");
+		script.src = url;
+		script.onload = resolve;
+		script.onerror = reject;
+		document.head.appendChild(script);
+	});
+
+
+	const loadJQuery = async () => {
+		if (window.jQuery)
+			return;
+
+		const {default: jqueryUrl} = await import("jquery/dist/jquery.js?url");
+		await loadScript(jqueryUrl);
+	};
+
+
+	const loadChessboard = async () => {
+		if (window.Chessboard)
+			return;
+
+		const {default: chessboardUrl} = await import("@chrisoakman/chessboardjs/dist/chessboard-1.0.0.js?url");
+		await loadScript(chessboardUrl);
+	};
+
+
 
 	export default {
 		name: "chess-lab",
@@ -670,10 +697,8 @@
 
 
 		async mounted () {
-			if (!window.jQuery)
-				window.jQuery = (await import("jquery")).default;
-			if (!window.Chessboard)
-				await import ("@chrisoakman/chessboardjs/dist/chessboard-1.0.0.js");
+			await loadJQuery();
+			await loadChessboard();
 			const Chessboard = window.Chessboard;
 
 			//console.log("Chessboard:", Chessboard);

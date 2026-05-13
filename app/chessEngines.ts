@@ -4,16 +4,19 @@ import {EnginePlayer, EngineAnalyzer, WorkerAnalyzer, WorkerPlayer, RandomPlayer
 
 
 
+const createStockfishWorker = () => new Worker(new URL("../public/chess/engines/stockfish.js", import.meta.url), {type: "classic"});
+
+
 export const analyzers: {[key: string]: () => EngineAnalyzer} = {
 	Stockfish () {
-		return new WorkerAnalyzer(() => new Worker("chess/engines/stockfish.js"), {multiPV: 24});
+		return new WorkerAnalyzer(createStockfishWorker, {multiPV: 24});
 	},
 };
 
 
 export const players: {[key: string]: () => EnginePlayer} = {
 	Stockfish () {
-		return new WorkerPlayer(new Worker("chess/engines/stockfish.js"));
+		return new WorkerPlayer(createStockfishWorker());
 	},
 
 

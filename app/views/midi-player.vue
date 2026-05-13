@@ -33,6 +33,12 @@
 	const playFrameDelay = () => new Promise(resolve => setTimeout(resolve, 15));
 
 
+	const ensureWebAudioReady = async () => {
+		if (MidiAudio.WebAudio.needsWarmup?.())
+			await MidiAudio.WebAudio.awaitWarmup?.();
+	};
+
+
 	const renderPianoRoll = (notation, timeScale, pitchScale) => h("g", {class: "piano-roll-root midi-player-piano-roll"}, notation.notes.map((note, i) => h("g", {
 		key: i,
 		class: "note",
@@ -500,8 +506,14 @@
 					if (this.player.isPlaying)
 						this.player.pause();
 					else
-						this.player.play({nextFrame: playFrameDelay});
+						this.playMidi();
 				}
+			},
+
+
+			async playMidi () {
+				await ensureWebAudioReady();
+				this.player.play({nextFrame: playFrameDelay});
 			},
 		},
 	};

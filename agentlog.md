@@ -426,6 +426,11 @@ Updated `vue.config.js` to use Webpack 5's built-in asset modules:
 - `./node_modules/.bin/vite build` completed successfully.
 - `yarn` was unavailable in the local shell, so validation used local package binaries directly.
 
+**Follow-up Audio Warmup Fix:**
+- Mirrored Starry's MIDI playback warmup flow: before playing, call `MidiAudio.WebAudio.needsWarmup?.()` and await `MidiAudio.WebAudio.awaitWarmup?.()` when needed.
+- `togglePlayer()` now routes playback through async `playMidi()`, while preserving the existing `setTimeout`-based `nextFrame` scheduler.
+- Verified with `./node_modules/.bin/eslint app/views/midi-player.vue` and `./node_modules/.bin/vite build`.
+
 **Follow-up Playback Scheduling Fix:**
 - Passed an explicit `nextFrame` option to `MidiPlayer.play()` from `app/views/midi-player.vue`.
 - The supplied scheduler uses `setTimeout` instead of the player's internal `requestAnimationFrame` default.

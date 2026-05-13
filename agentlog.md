@@ -405,7 +405,31 @@ Updated `vue.config.js` to use Webpack 5's built-in asset modules:
 </details>
 
 
-## 2025/12/23
+## 2026/05/13
+
+<details>
+<summary>midi-player Local MIDI Roll Replacement (2026-05-13)</summary>
+
+**Issue:** `@k-l-lambda/music-widgets` newer versions removed the exported `MidiRoll` Vue component, so `app/views/midi-player.vue` could no longer import it from the package.
+
+**Fix Applied:**
+- Replaced the package `MidiRoll` import with a local `MidiRoll` component inside `app/views/midi-player.vue`.
+- Ported the old MIDI roll behavior from `~/work/music-widgets/source/views/midi-roll.vue`:
+  - SVG piano roll rendering from `player.notation`.
+  - Progress highlighting and active note status.
+  - Click-to-seek and mouse wheel horizontal scrolling.
+  - Pitch/time grid and scale labels.
+- Kept `MIDI`, `MidiPlayer`, and `MidiAudio` imported from `@k-l-lambda/music-widgets`.
+
+**Validation:**
+- `./node_modules/.bin/eslint app --ext .ts,.vue` completed with existing warnings only.
+- `./node_modules/.bin/vite build` completed successfully.
+- `yarn` was unavailable in the local shell, so validation used local package binaries directly.
+
+**Result:** ✅ MIDI player no longer depends on the removed `MidiRoll` export and builds against the updated `music-widgets` package.
+
+</details>
+
 
 
 <details>

@@ -604,7 +604,27 @@ update(timestamp: number): void {
 - Address remaining Vue compat warnings (e.g., `.sync` modifier → `v-model:propName`, `beforeDestroy` → `beforeUnmount`)
 
 
-## 2025/12/27
+<details>
+<summary>spiral-piano MIDI Playback Warmup Sync (2026-05-13)</summary>
+
+**Issue:** The MIDI playback fixes applied to `midi-player.vue` also needed to apply to `app/views/spiral-piano.vue`.
+
+**Fix Applied:**
+- Added the same `setTimeout`-based `nextFrame` scheduler used by `midi-player.vue`.
+- Added the same WebAudio warmup guard before playback:
+  - `MidiAudio.WebAudio.needsWarmup?.()`
+  - `MidiAudio.WebAudio.awaitWarmup?.()`
+- Routed `onPlayFile()` through async `playMidi()` so playback waits for warmup before calling `player.play({nextFrame})`.
+
+**Validation:**
+- `./node_modules/.bin/eslint app/views/spiral-piano.vue` completed successfully.
+- `./node_modules/.bin/vite build` completed successfully.
+
+**Result:** ✅ `spiral-piano.vue` now uses the same warmed-up, timer-driven MIDI playback path as `midi-player.vue`.
+
+</details>
+
+
 
 
 > Use the same tetris types as the original game - each brick should consist of 4 cubes. The mesh geometry should also match the original, not assembled from small cubes. First implement the AI auto-play demo mode from CubeTetris for development testing, then add interactive input controls later. You can commit to git when there are milestones. Continuously improve the game's appearance to match the original game as shown in the reference screenshot.

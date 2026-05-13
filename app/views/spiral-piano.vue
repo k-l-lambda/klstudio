@@ -270,6 +270,13 @@
 			6: "#f000ff",
 		},
 	};*/
+	const playFrameDelay = () => new Promise(resolve => setTimeout(resolve, 15));
+
+
+	const ensureWebAudioReady = async () => {
+		if (MidiAudio.WebAudio.needsWarmup?.())
+			await MidiAudio.WebAudio.awaitWarmup?.();
+	};
 
 
 
@@ -500,10 +507,16 @@
 
 
 			onPlayFile () {
-				if (this.isPlaying) 
+				if (this.isPlaying)
 					this.player.pause();
-				else 
-					this.player.play();
+				else
+					this.playMidi();
+			},
+
+
+			async playMidi () {
+				await ensureWebAudioReady();
+				this.player.play({nextFrame: playFrameDelay});
 			},
 
 

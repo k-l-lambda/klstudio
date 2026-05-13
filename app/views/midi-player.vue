@@ -30,6 +30,7 @@
 		left: 3,
 		right: 1,
 	};
+	const playFrameDelay = () => new Promise(resolve => setTimeout(resolve, 15));
 
 
 	const renderPianoRoll = (notation, timeScale, pitchScale) => h("g", {class: "piano-roll-root midi-player-piano-roll"}, notation.notes.map((note, i) => h("g", {
@@ -499,7 +500,7 @@
 					if (this.player.isPlaying)
 						this.player.pause();
 					else
-						this.player.play();
+						this.player.play({nextFrame: playFrameDelay});
 				}
 			},
 		},
@@ -555,73 +556,73 @@
 		font-style: normal;
 	}
 
-	.midi-roll .scales line
+	:deep(.midi-roll .scales line)
 	{
 		stroke: black;
 		stroke-width: 0.1;
 	}
 
-	.midi-roll .scales text
+	:deep(.midi-roll .scales text)
 	{
 		font-size: 2px;
 		text-anchor: middle;
 		user-select: none;
 	}
 
-	.midi-roll .bar line
+	:deep(.midi-roll .bar line)
 	{
 		stroke: black;
 		stroke-width: 0.01;
 	}
 
-	.midi-roll .pitch-bar line,
-	.midi-roll .time-bar line
+	:deep(.midi-roll .pitch-bar line),
+	:deep(.midi-roll .time-bar line)
 	{
 		stroke: black;
 		stroke-width: 0.06;
 	}
 
-	.midi-roll .pitch-padding
+	:deep(.midi-roll .pitch-padding)
 	{
 		fill: #fffc;
 	}
 
-	.midi-roll .progress rect
+	:deep(.midi-roll .progress rect)
 	{
 		fill: #afa1;
 	}
 
-	.midi-roll .progress line
+	:deep(.midi-roll .progress line)
 	{
 		stroke: #0a0;
 		stroke-width: 0.04;
 	}
 
-	.midi-player-piano-roll .note
+	:deep(.midi-player-piano-roll .note)
 	{
 		cursor: pointer;
 		opacity: 0.6;
 	}
 
-	.midi-player-piano-roll .note:hover rect,
-	.midi-player-piano-roll .note:hover line
+	:deep(.midi-player-piano-roll .note:hover rect),
+	:deep(.midi-player-piano-roll .note:hover line)
 	{
 		opacity: 0.9;
 		stroke: orange;
 		stroke-width: 0.08px;
 	}
 
-	.midi-player-piano-roll .note.on rect
+	:deep(.midi-player-piano-roll .note.on rect)
 	{
 		fill: #2a2;
 	}
 
-	.midi-player-piano-roll .note rect
+	:deep(.midi-player-piano-roll .note rect)
 	{
 		fill: #555;
 	}
 
-	.midi-player-piano-roll .note line
+	:deep(.midi-player-piano-roll .note line)
 	{
 		stroke: #111;
 		stroke-width: 0.12px;

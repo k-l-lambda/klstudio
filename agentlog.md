@@ -426,6 +426,16 @@ Updated `vue.config.js` to use Webpack 5's built-in asset modules:
 - `./node_modules/.bin/vite build` completed successfully.
 - `yarn` was unavailable in the local shell, so validation used local package binaries directly.
 
+**Follow-up Playback Scheduling Fix:**
+- Passed an explicit `nextFrame` option to `MidiPlayer.play()` from `app/views/midi-player.vue`.
+- The supplied scheduler uses `setTimeout` instead of the player's internal `requestAnimationFrame` default.
+- Verified with `./node_modules/.bin/eslint app/views/midi-player.vue` and `./node_modules/.bin/vite build`.
+
+**Follow-up CSS Fix:**
+- Vue 3 scoped CSS no longer matched SVG nodes rendered inside the local child `MidiRoll` component.
+- Converted MIDI roll SVG selectors to `:deep(...)` so scale text, grid lines, progress line, and note styles apply correctly again.
+- Verified with `./node_modules/.bin/eslint app/views/midi-player.vue` and `./node_modules/.bin/vite build`.
+
 **Result:** ✅ MIDI player no longer depends on the removed `MidiRoll` export and builds against the updated `music-widgets` package.
 
 </details>

@@ -459,6 +459,14 @@
 			updatePlayer (midi) {
 				console.log("midi:", midi);
 
+				// Loading a new file acts like a pause: stop the old player and
+				// silence any notes already scheduled into the synth.
+				if (this.player) {
+					this.player.pause();
+					this.player.dispose();
+				}
+				MidiAudio.stopAllNotes();
+
 				this.player = new MidiPlayer(midi, {
 					onMidi: (data, timestamp) => this.onMidi(data, timestamp),
 				});

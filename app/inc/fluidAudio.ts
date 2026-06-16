@@ -1,5 +1,6 @@
 
 import {AudioWorkletNodeSynthesizer, type ISequencer} from "js-synthesizer";
+import {MidiAudio as LegacyMidiAudio} from "@k-l-lambda/music-widgets";
 
 
 
@@ -14,6 +15,11 @@ import {AudioWorkletNodeSynthesizer, type ISequencer} from "js-synthesizer";
 // to FluidSynth's Sequencer via sendEventAt(event, dtMs, isAbsolute=false), i.e.
 // "play in dtMs milliseconds", which preserves the look-ahead timing without
 // reconciling performance.now() against the sequencer's own tick origin.
+//
+// Fallback: the FluidSynth soundfont is large (~14–38 MB) and takes a moment to
+// fetch + decode. While it loads, we fall back to the legacy MIDI.js WebAudio
+// player (a small, locally-bundled acoustic-grand-piano soundfont) so playback is
+// audible immediately. Once FluidSynth is ready we switch to it transparently.
 
 
 // SoundFont location (relative to the served page). Swap this file to upgrade
@@ -35,8 +41,19 @@ let seq: ISequencer | null = null;
 let loaded = false;
 let loadingPromise: Promise<void> | null = null;
 
+// Legacy MIDI.js fallback (single-piano), used until FluidSynth finishes loading.
+let legacyReady = false;
 
-const empty = (): boolean => !loaded;
+
+// True once the (preferred) FluidSynth backend has finished loading.
+const ready = (): boolean => loaded;
+
+// True while FluidSynth is still loading — the UI shows a spinner during this.
+// Note: not "empty"; the legacy fallback may already be producing sound.
+const loading = (): boolean => !loaded && !!loadingPromise;
+
+// Whether any backend can produce sound yet (FluidSynth or the legacy fallback).
+const empty = (): boolean => !loaded && !legacyReady;
 
 
 const loadPlugin = async (): Promise<void> => {
@@ -44,6 +61,16 @@ const loadPlugin = async (): Promise<void> => {
 		return;
 	if (loadingPromise)
 		return loadingPromise;
+
+	// Start the lightweight legacy fallback immediately so playback is audible
+	// while the large FluidSynth soundfont downloads. Failure here is non-fatal.
+	if (LegacyMidiAudio.WebAudio.empty()) {
+		LegacyMidiAudio.loadPlugin({soundfontUrl: "./soundfont/", api: "webaudio"})
+			.then(() => legacyReady = true)
+			.catch((err: unknown) => console.warn("Legacy fallback audio failed to load:", err));
+	}
+	else
+		legacyReady = true;
 
 	loadingPromise = (async () => {
 		audioCtx = new AudioContext();
@@ -66,6 +93,10 @@ const loadPlugin = async (): Promise<void> => {
 		await seq.registerSynthesizer(synth);
 		seq.setTimeScale(1000);		// 1 tick = 1 ms, matching performance.now()
 
+		// Hand off from the fallback: silence any of its lingering notes.
+		if (legacyReady)
+			LegacyMidiAudio.stopAllNotes();
+
 		loaded = true;
 		console.log("FluidSynth soundfont loaded.");
 	})();
@@ -74,10 +105,13 @@ const loadPlugin = async (): Promise<void> => {
 };
 
 
-// Resume the AudioContext; must be called from a user gesture (autoplay policy).
+// Resume audio output; must be called from a user gesture (autoplay policy).
+// Warms up both the FluidSynth AudioContext and the legacy fallback.
 const resume = async (): Promise<void> => {
 	if (audioCtx && audioCtx.state === "suspended")
 		await audioCtx.resume();
+	if (legacyReady && LegacyMidiAudio.WebAudio.needsWarmup?.())
+		await LegacyMidiAudio.WebAudio.awaitWarmup?.();
 };
 
 
@@ -87,23 +121,32 @@ const delayFromNow = (timestamp: number): number => Math.max(0, timestamp - perf
 
 
 const noteOn = (channel: number, note: number, velocity: number, timestamp: number): void => {
-	if (!seq)
+	if (seq) {
+		seq.sendEventAt({type: "noteon", channel, key: note, vel: velocity}, delayFromNow(timestamp), false);
 		return;
-	seq.sendEventAt({type: "noteon", channel, key: note, vel: velocity}, delayFromNow(timestamp), false);
+	}
+	if (legacyReady)
+		LegacyMidiAudio.noteOn(channel, note, velocity, timestamp);
 };
 
 
 const noteOff = (channel: number, note: number, timestamp: number): void => {
-	if (!seq)
+	if (seq) {
+		seq.sendEventAt({type: "noteoff", channel, key: note}, delayFromNow(timestamp), false);
 		return;
-	seq.sendEventAt({type: "noteoff", channel, key: note}, delayFromNow(timestamp), false);
+	}
+	if (legacyReady)
+		LegacyMidiAudio.noteOff(channel, note, timestamp);
 };
 
 
 const programChange = (channel: number, program: number): void => {
-	if (!seq)
+	if (seq) {
+		seq.sendEventAt({type: "programchange", channel, preset: program}, 0, false);
 		return;
-	seq.sendEventAt({type: "programchange", channel, preset: program}, 0, false);
+	}
+	if (legacyReady)
+		LegacyMidiAudio.programChange(channel, program);
 };
 
 
@@ -114,12 +157,16 @@ const stopAllNotes = (): void => {
 		for (let ch = 0; ch < 16; ++ch)
 			synth.midiAllSoundsOff(ch);
 	}
+	if (legacyReady)
+		LegacyMidiAudio.stopAllNotes();
 };
 
 
 
 export default {
 	empty,
+	loading,
+	ready,
 	loadPlugin,
 	resume,
 	noteOn,

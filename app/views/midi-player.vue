@@ -12,6 +12,7 @@
 			<span v-if="name" v-text="name"></span>
 			<button v-if="player" @click="togglePlayer"><i v-if="player">{{player.isPlaying ? "&#xf04c;" : "&#xf04b;"}}</i></button>
 			<ProgressBar v-if="player && player.notation" :cursor.sync="cursorTime" :duration="player.notation.endTime" />
+			<i v-if="audioLoading" class="audio-loading" title="Loading sound library…">&#xf569;</i>
 		</header>
 		<main>
 			<MidiRoll :player="player" :timeScale="viewTimeScale" :height="400" :width="windowSize.width" />
@@ -361,6 +362,7 @@
 				viewTimeScale: 4e-3,
 				name: null,
 				source: null,
+				audioLoading: false,
 				windowSize: {
 					width: 800,
 					height: 800,
@@ -384,8 +386,12 @@
 
 
 		created () {
-			if (MidiAudio.empty())
-				MidiAudio.loadPlugin().then(() => console.log("Soundfont loaded."));
+			if (!MidiAudio.ready()) {
+				this.audioLoading = true;
+				MidiAudio.loadPlugin()
+					.then(() => console.log("Soundfont loaded."))
+					.finally(() => this.audioLoading = false);
+			}
 
 			window.addEventListener("keydown", event => {
 				let handled = true;
@@ -582,6 +588,30 @@
 	{
 		font-family: "IconFas";
 		font-style: normal;
+	}
+
+	.audio-loading
+	{
+		display: inline-block;
+		color: #888;
+		animation: audio-loading-dance 2s infinite;
+	}
+
+	/* Two up-down bounces, then a single full ease-in-out spin, then loop. */
+	@keyframes audio-loading-dance
+	{
+		0%   { transform: translateY(0) rotate(0deg); }
+		/* bounce 1 */
+		8%   { transform: translateY(-0.5em) rotate(0deg); }
+		16%  { transform: translateY(0) rotate(0deg); }
+		/* bounce 2 */
+		24%  { transform: translateY(-0.5em) rotate(0deg); }
+		32%  { transform: translateY(0) rotate(0deg); }
+		/* full spin, eased in and out */
+		40%  { transform: translateY(0) rotate(0deg); animation-timing-function: ease-in-out; }
+		80%  { transform: translateY(0) rotate(360deg); }
+		/* rest before looping */
+		100% { transform: translateY(0) rotate(360deg); }
 	}
 
 	:deep(.midi-roll .scales line)

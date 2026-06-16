@@ -12,6 +12,7 @@
 			<span v-if="name" v-text="name"></span>
 			<button v-if="player" @click="togglePlayer"><i v-if="player">{{player.isPlaying ? "&#xf04c;" : "&#xf04b;"}}</i></button>
 			<ProgressBar v-if="player && player.notation" :cursor.sync="cursorTime" :duration="player.notation.endTime" />
+			<i v-if="audioLoading" class="audio-loading" title="Loading sound library…">&#xf569;</i>
 		</header>
 		<main>
 			<MidiRoll :player="player" :timeScale="viewTimeScale" :height="400" :width="windowSize.width" />
@@ -22,8 +23,9 @@
 <script>
 	import {h} from "vue";
 	import resize from "vue-resize-directive";
-	import {MIDI, MidiPlayer, MidiAudio} from "@k-l-lambda/music-widgets";
+	import {MIDI, MidiPlayer} from "@k-l-lambda/music-widgets";
 
+	import MidiAudio from "../inc/fluidAudio";
 	import ProgressBar from "../components/progress-bar.vue";
 	import StoreInput from "../components/store-input.vue";
 	const PADDINGS = {
@@ -34,8 +36,7 @@
 
 
 	const ensureWebAudioReady = async () => {
-		if (MidiAudio.WebAudio.needsWarmup?.())
-			await MidiAudio.WebAudio.awaitWarmup?.();
+		await MidiAudio.resume();
 	};
 
 
@@ -361,6 +362,7 @@
 				viewTimeScale: 4e-3,
 				name: null,
 				source: null,
+				audioLoading: false,
 				windowSize: {
 					width: 800,
 					height: 800,
@@ -384,8 +386,12 @@
 
 
 		created () {
-			if (MidiAudio.WebAudio.empty())
-				MidiAudio.loadPlugin({soundfontUrl: "./soundfont/", api: "webaudio"}).then(() => console.log("Soundfont loaded."));
+			if (!MidiAudio.ready()) {
+				this.audioLoading = true;
+				MidiAudio.loadPlugin()
+					.then(() => console.log("Soundfont loaded."))
+					.finally(() => this.audioLoading = false);
+			}
 
 			window.addEventListener("keydown", event => {
 				let handled = true;
@@ -417,6 +423,7 @@
 		beforeDestroy () {
 			if (this.player)
 				this.player.pause();
+			MidiAudio.stopAllNotes();
 		},
 
 
@@ -458,6 +465,14 @@
 			updatePlayer (midi) {
 				console.log("midi:", midi);
 
+				// Loading a new file acts like a pause: stop the old player and
+				// silence any notes already scheduled into the synth.
+				if (this.player) {
+					this.player.pause();
+					this.player.dispose();
+				}
+				MidiAudio.stopAllNotes();
+
 				this.player = new MidiPlayer(midi, {
 					onMidi: (data, timestamp) => this.onMidi(data, timestamp),
 				});
@@ -486,25 +501,32 @@
 			onMidi (data, timestamp) {
 				//console.log("onMidi:", data.subtype, timestamp, data);
 
-				if (!MidiAudio.WebAudio.empty()) {
-					switch (data.subtype) {
-					case "noteOn":
-						MidiAudio.noteOn(data.channel, data.noteNumber, data.velocity, timestamp);
+				if (MidiAudio.empty())
+					return;
 
-						break;
-					case "noteOff":
-						MidiAudio.noteOff(data.channel, data.noteNumber, timestamp);
+				switch (data.subtype) {
+				case "noteOn":
+					MidiAudio.noteOn(data.channel, data.noteNumber, data.velocity, timestamp);
 
-						break;
-					}
+					break;
+				case "noteOff":
+					MidiAudio.noteOff(data.channel, data.noteNumber, timestamp);
+
+					break;
+				case "programChange":
+					MidiAudio.programChange(data.channel, data.programNumber);
+
+					break;
 				}
 			},
 
 
 			togglePlayer () {
 				if (this.player) {
-					if (this.player.isPlaying)
+					if (this.player.isPlaying) {
 						this.player.pause();
+						MidiAudio.stopAllNotes();
+					}
 					else
 						this.playMidi();
 				}
@@ -566,6 +588,30 @@
 	{
 		font-family: "IconFas";
 		font-style: normal;
+	}
+
+	.audio-loading
+	{
+		display: inline-block;
+		color: #888;
+		animation: audio-loading-dance 2s infinite;
+	}
+
+	/* Two up-down bounces, then a single full ease-in-out spin, then loop. */
+	@keyframes audio-loading-dance
+	{
+		0%   { transform: translateY(0) rotate(0deg); }
+		/* bounce 1 */
+		8%   { transform: translateY(-0.5em) rotate(0deg); }
+		16%  { transform: translateY(0) rotate(0deg); }
+		/* bounce 2 */
+		24%  { transform: translateY(-0.5em) rotate(0deg); }
+		32%  { transform: translateY(0) rotate(0deg); }
+		/* full spin, eased in and out */
+		40%  { transform: translateY(0) rotate(0deg); animation-timing-function: ease-in-out; }
+		80%  { transform: translateY(0) rotate(360deg); }
+		/* rest before looping */
+		100% { transform: translateY(0) rotate(360deg); }
 	}
 
 	:deep(.midi-roll .scales line)

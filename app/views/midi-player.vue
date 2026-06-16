@@ -22,8 +22,9 @@
 <script>
 	import {h} from "vue";
 	import resize from "vue-resize-directive";
-	import {MIDI, MidiPlayer, MidiAudio} from "@k-l-lambda/music-widgets";
+	import {MIDI, MidiPlayer} from "@k-l-lambda/music-widgets";
 
+	import MidiAudio from "../inc/fluidAudio";
 	import ProgressBar from "../components/progress-bar.vue";
 	import StoreInput from "../components/store-input.vue";
 	const PADDINGS = {
@@ -34,8 +35,7 @@
 
 
 	const ensureWebAudioReady = async () => {
-		if (MidiAudio.WebAudio.needsWarmup?.())
-			await MidiAudio.WebAudio.awaitWarmup?.();
+		await MidiAudio.resume();
 	};
 
 
@@ -384,8 +384,8 @@
 
 
 		created () {
-			if (MidiAudio.WebAudio.empty())
-				MidiAudio.loadPlugin({soundfontUrl: "./soundfont/", api: "webaudio"}).then(() => console.log("Soundfont loaded."));
+			if (MidiAudio.empty())
+				MidiAudio.loadPlugin().then(() => console.log("Soundfont loaded."));
 
 			window.addEventListener("keydown", event => {
 				let handled = true;
@@ -417,6 +417,7 @@
 		beforeDestroy () {
 			if (this.player)
 				this.player.pause();
+			MidiAudio.stopAllNotes();
 		},
 
 
@@ -486,25 +487,32 @@
 			onMidi (data, timestamp) {
 				//console.log("onMidi:", data.subtype, timestamp, data);
 
-				if (!MidiAudio.WebAudio.empty()) {
-					switch (data.subtype) {
-					case "noteOn":
-						MidiAudio.noteOn(data.channel, data.noteNumber, data.velocity, timestamp);
+				if (MidiAudio.empty())
+					return;
 
-						break;
-					case "noteOff":
-						MidiAudio.noteOff(data.channel, data.noteNumber, timestamp);
+				switch (data.subtype) {
+				case "noteOn":
+					MidiAudio.noteOn(data.channel, data.noteNumber, data.velocity, timestamp);
 
-						break;
-					}
+					break;
+				case "noteOff":
+					MidiAudio.noteOff(data.channel, data.noteNumber, timestamp);
+
+					break;
+				case "programChange":
+					MidiAudio.programChange(data.channel, data.programNumber);
+
+					break;
 				}
 			},
 
 
 			togglePlayer () {
 				if (this.player) {
-					if (this.player.isPlaying)
+					if (this.player.isPlaying) {
 						this.player.pause();
+						MidiAudio.stopAllNotes();
+					}
 					else
 						this.playMidi();
 				}

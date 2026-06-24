@@ -23,7 +23,7 @@
 <script>
 	import {h} from "vue";
 	import resize from "vue-resize-directive";
-	import {MIDI, MidiPlayer} from "@k-l-lambda/music-widgets";
+	import {MIDI, MidiPlayer, MidiText} from "@k-l-lambda/music-widgets";
 
 	import MidiAudio from "../inc/fluidAudio";
 	import ProgressBar from "../components/progress-bar.vue";
@@ -483,18 +483,32 @@
 				this.dragHover = false;
 
 				const file = event.dataTransfer.files[0];
-				if (file && ["audio/midi", "audio/mid"].includes(file.type)) 
+				if (!file)
+					return;
+
+				if (["audio/midi", "audio/mid"].includes(file.type))
 					this.loadMidiFile(file);
-				else if (file && file.type === "application/json") {
-					const text = await new Promise(resolve => {
-						const fr = new FileReader();
-						fr.onload = () => resolve(fr.result);
-						fr.readAsText(file);
-					});
+				else if (file.type === "application/json") {
+					const text = await this.readFileText(file);
 					this.name = file.name;
 					const midi = JSON.parse(text);
 					this.updatePlayer(midi);
 				}
+				else if (file.type === "text/plain" || /\.txt$/i.test(file.name)) {
+					const text = await this.readFileText(file);
+					this.name = file.name;
+					const midi = MidiText.textToMidi(text);
+					this.updatePlayer(midi);
+				}
+			},
+
+
+			readFileText (file) {
+				return new Promise(resolve => {
+					const fr = new FileReader();
+					fr.onload = () => resolve(fr.result);
+					fr.readAsText(file);
+				});
 			},
 
 

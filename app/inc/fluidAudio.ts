@@ -168,8 +168,18 @@ const stopAllNotes = (): void => {
 	if (seq)
 		seq.removeAllEvents();		// drop the in-flight look-ahead window
 	if (synth) {
-		for (let ch = 0; ch < 16; ++ch)
+		for (let ch = 0; ch < 16; ++ch) {
+			// Reset the hold pedals BEFORE silencing: removeAllEvents() above may
+			// have discarded a not-yet-played pedal-off (CC64=0) that was waiting
+			// in the look-ahead window, leaving the channel stuck "sustain on".
+			// Any note played afterwards would then hang forever under the phantom
+			// pedal. Explicitly lift sustain (CC64), sostenuto (CC66) and soft
+			// (CC67) so the channel starts clean.
+			synth.midiControl(ch, 64, 0);
+			synth.midiControl(ch, 66, 0);
+			synth.midiControl(ch, 67, 0);
 			synth.midiAllSoundsOff(ch);
+		}
 	}
 	if (legacyReady)
 		LegacyMidiAudio.stopAllNotes();

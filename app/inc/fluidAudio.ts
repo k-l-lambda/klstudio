@@ -150,6 +150,20 @@ const programChange = (channel: number, program: number): void => {
 };
 
 
+// Forward a MIDI control-change event (sustain pedal CC64, volume CC7, pan CC10,
+// expression CC11, etc.) to FluidSynth, which honours them per-channel. The
+// legacy MIDI.js fallback has no CC support, so CC is silently dropped while it
+// is the active backend (only during the brief soundfont load).
+const controlChange = (channel: number, control: number, value: number, timestamp: number): void => {
+	if (seq) {
+		seq.sendEventAt({type: "controlchange", channel, control, value}, delayFromNow(timestamp), false);
+		return;
+	}
+	if (legacyReady && (LegacyMidiAudio as any).controlChange)
+		(LegacyMidiAudio as any).controlChange(channel, control, value, timestamp);
+};
+
+
 const stopAllNotes = (): void => {
 	if (seq)
 		seq.removeAllEvents();		// drop the in-flight look-ahead window
@@ -172,5 +186,6 @@ export default {
 	noteOn,
 	noteOff,
 	programChange,
+	controlChange,
 	stopAllNotes,
 };

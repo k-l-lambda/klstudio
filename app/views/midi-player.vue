@@ -531,6 +531,10 @@
 					MidiAudio.programChange(data.channel, data.programNumber);
 
 					break;
+				case "controller":
+					MidiAudio.controlChange(data.channel, data.controllerType, data.value, timestamp);
+
+					break;
 				}
 			},
 

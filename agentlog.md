@@ -1,6 +1,33 @@
+## 2026-07-17 Hexagon Blocks
+
+## 2026-07-17 Hexagon Blocks follow-up
+
+<details>
+<summary>Rendering, solver, and default board fixes</summary>
+
+- **Rendering:** Matched `viewer.html` parity-aware triangle projection, corrected projected board bounds, and added actual six-triangle candidate previews.
+- **Solver:** Added cooperative async search/cancellation, explicit complete/partial/cancelled results, structural placement validation, parity-safe orientation normalization, and random searches from an empty board.
+- **Default:** Set `std` as the initial board type.
+- **Validation:** Focused test, ESLint, and production build passed. `Changelog.txt` was not modified.
+
+</details>
 
 
-> Port this project from Vue 2 to Vue 3 while maintaining all existing functionalities and ensuring compatibility with current TypeScript modules. Try to do a minimal change, keep original code as much as possible. Following the original coding style and project structure.
+## 2026-07-17 Hexagon Blocks rhombus random fix
+
+- **Issue:** Rhombus randomized searches could hit the time limit through Vue reactive proxy overhead and apply a partial arrangement with gaps.
+- **Fix:** Marked immutable Shape data as raw before solver use and added rhombus completeness/placement-index regression tests.
+- **Validation:** Focused test passed with rhombus 72/72 coverage; ESLint and production build passed.
+
+<details>
+<summary>Issue / Root Cause / Fix / Validation</summary>
+
+- **Issue:** The archived HexagonBlocks Python solver needed to become an interactive K.L. Studio page.
+- **Root Cause:** The repository had no triangular-grid puzzle implementation or browser simulator.
+- **Fix:** Added archive-derived TypeScript geometry/data, exact-cover traversal with random and nearest-result APIs, snapshot history, SVG Vue page, route/gallery registration, and focused console.assert tests.
+- **Validation:** Focused test passed; new files pass ESLint; production build passed. Full repository lint retains pre-existing warnings and generated-data style warnings.
+
+</details>
 
 <details>
 <summary>Modernization summary (based on staged changes)</summary>

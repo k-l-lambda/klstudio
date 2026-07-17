@@ -6,13 +6,13 @@
 					<option v-for="shape of shapeOptions" :key="shape.id" :value="shape.id">{{ shape.name }}</option>
 				</select>
 			</label>
-			<button :disabled="!history.canUndo" @click="undo">Undo</button>
-			<button :disabled="!history.canRedo" @click="redo">Redo</button>
-			<button @click="clearBoard">Clear</button>
-			<button :disabled="searching" @click="runRandom">Random solution</button>
-			<button :disabled="searching" @click="runNearest">Nearest solution</button>
-			<button v-if="searching" @click="cancelSearch">Cancel</button>
-			<label class="photo-button">Recognize photo<input type="file" accept="image/*" @change="selectPhoto" /></label>
+			<button :disabled="!history.canUndo" title="Undo" aria-label="Undo" @click="undo">↩️</button>
+			<button :disabled="!history.canRedo" title="Redo" aria-label="Redo" @click="redo">↪️</button>
+			<button title="Clear board" aria-label="Clear board" @click="clearBoard">🗑️</button>
+			<button :disabled="searching" title="Random solution" aria-label="Random solution" @click="runRandom">🎲</button>
+			<button :disabled="searching" title="Nearest solution" aria-label="Nearest solution" @click="runNearest">🧩</button>
+			<button v-if="searching" title="Cancel" aria-label="Cancel" @click="cancelSearch">✖️</button>
+			<label class="photo-button" title="Recognize photo" aria-label="Recognize photo">📷<input type="file" accept="image/*" @change="selectPhoto" /></label>
 		</header>
 		<section v-if="photoUrl" class="photo-panel" aria-live="polite">
 			<div class="photo-preview">
@@ -61,18 +61,20 @@
 			</section>
 			<aside class="palette">
 				<h2>Blocks</h2>
-				<div v-for="block of availableBlocks" :key="block.id" class="block"
-					:style="{borderColor: block.color}"
-					@pointerdown="startPalettePointer($event, block.id)" @pointermove="moveBlock"
-					@pointerup="finishBlockPointer" @pointercancel="cancelBlockPointer"
-					@click="selectBlockAfterClick(block.id)">
-					<svg class="thumbnail" :viewBox="thumbnailViewBox(block)" aria-hidden="true">
-						<polygon v-for="(point, index) of polygonsForPoints(block.orientations[0].points)" :key="index" :points="point" :style="{fill: block.color}" />
-					</svg>
-					<strong>{{ block.id + 1 }}</strong> {{ block.name }}
+				<div class="palette-grid">
+					<div v-for="block of availableBlocks" :key="block.id" class="block"
+						:style="{borderColor: block.color}"
+						@pointerdown="startPalettePointer($event, block.id)" @pointermove="moveBlock"
+						@pointerup="finishBlockPointer" @pointercancel="cancelBlockPointer"
+						@click="selectBlockAfterClick(block.id)">
+						<svg class="thumbnail" :viewBox="thumbnailViewBox(block)" aria-hidden="true">
+							<polygon v-for="(point, index) of polygonsForPoints(block.orientations[0].points)" :key="index" :points="point" :style="{fill: block.color}" />
+						</svg>
+						<span class="block-label"><strong>{{ block.id + 1 }}</strong>{{ block.name }}</span>
+					</div>
 				</div>
-				<p>{{ coveredCells.size }} / {{ shape.boardPoints.length }} triangles covered</p>
-				<p>Click a placed block to remove it.</p>
+				<p class="palette-note">{{ coveredCells.size }} / {{ shape.boardPoints.length }} triangles covered</p>
+				<p class="palette-note">Click a placed block to remove it.</p>
 			</aside>
 		</div>
 	</div>
@@ -431,6 +433,7 @@
 .hexiamond { min-height: 100%; padding: 1rem; color: #20232a; background: #f5f2e9; }
 .toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; padding-left: 2rem; }
 .toolbar h1 { flex: 1 0 100%; margin: 0 0 .5rem; }
+.toolbar button, .toolbar .photo-button { font-size: 1.15rem; line-height: 1; padding: .35rem .5rem; }
 button, select { padding: .4rem .65rem; border: 1px solid #777; border-radius: .25rem; background: #fff; cursor: pointer; }
 button:disabled { cursor: default; opacity: .45; }
 .photo-button { padding: .4rem .65rem; border: 1px solid #777; border-radius: .25rem; background: #fff; cursor: pointer; }
@@ -458,11 +461,15 @@ button:disabled { cursor: default; opacity: .45; }
 .drag-preview { pointer-events: none; opacity: .72; }
 .drag-preview polygon { fill: currentColor; stroke: #32291c; stroke-width: 1.4; stroke-dasharray: 4 2; }
 .drag-preview.invalid { opacity: .35; }
-.palette { flex: 0 1 230px; padding: 1rem; background: #fffdf7; border: 1px solid #d5cdbc; }
-.palette h2 { margin-top: 0; }
-.block { margin: .4rem 0; padding: .55rem; border: 3px solid; border-radius: .35rem; background: #fff; cursor: grab; touch-action: none; user-select: none; }
-.thumbnail { display: block; width: 100%; height: 90px; margin-bottom: .35rem; overflow: visible; }
+.palette { flex: 0 1 300px; padding: .6rem .7rem; background: #fffdf7; border: 1px solid #d5cdbc; display: flex; flex-direction: column; }
+.palette h2 { margin: 0 0 .5rem; font-size: 1.05rem; }
+.palette-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .4rem; }
+.block { display: flex; align-items: center; gap: .4rem; margin: 0; padding: .3rem .4rem; border: 2px solid; border-radius: .35rem; background: #fff; cursor: grab; touch-action: none; user-select: none; min-width: 0; }
+.thumbnail { flex: 0 0 auto; display: block; width: 38px; height: 38px; overflow: visible; }
 .thumbnail polygon { stroke: #32291c; stroke-width: .7; }
+.block-label { min-width: 0; font-size: .8rem; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.block-label strong { margin-right: .3rem; color: #20232a; }
+.palette-note { margin: .5rem 0 0; font-size: .8rem; color: #5a5346; }
 .status { min-height: 1.4em; }
 @media (max-width: 640px) { .hexiamond { padding: .5rem; } .palette { flex-basis: 100%; } }
 </style>

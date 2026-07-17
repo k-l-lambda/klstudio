@@ -277,13 +277,17 @@
 			commit (message: string): void {
 				this.history.push({placements: this.placements}); this.status = message; 
 			},
-			apply (result: any): void {
+			apply (result: any, nearest = false): void {
 				if (result.status === "cancelled") {
 					this.status = "Search cancelled; current arrangement retained.";
 					return;
 				}
+				if (nearest && !result.complete) {
+					this.status = "No complete nearest solution found within the search limit; current arrangement retained.";
+					return;
+				}
 				this.placements = result.placements;
-				this.commit(result.complete ? "Complete solution found." : `Partial arrangement: ${result.covered}/${this.shape.boardPoints.length} triangles covered.`);
+				this.commit(nearest ? `Complete nearest solution found; moved ${result.movedExisting} existing blocks.` : result.complete ? "Complete solution found." : `Partial arrangement: ${result.covered}/${this.shape.boardPoints.length} triangles covered.`);
 			},
 			async runRandom (): Promise<void> {
 				this.searching = true; this.cancelled = false;
@@ -301,7 +305,7 @@
 				await new Promise(resolve => setTimeout(resolve, 0));
 				try {
 					const result = await nearestSolutionAsync(this.shape as Shape, this.placements, {shouldCancel: () => this.cancelled});
-					if (!this.cancelled) this.apply(result);
+					if (!this.cancelled) this.apply(result, true);
 				}
 				finally {
 					this.searching = false;

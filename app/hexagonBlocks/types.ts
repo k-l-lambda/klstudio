@@ -53,4 +53,6 @@ export interface SolveResult extends Arrangement {
 	remaining: number;
 	nodes: number;
 	cancelled: boolean;
+	movedExisting: number;
+	optimal?: boolean;
 }

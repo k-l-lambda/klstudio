@@ -1,4 +1,8 @@
-## 2026-07-17 Hexagon Blocks
+## 2026-07-17 Hexagon Blocks nearest solver fix
+
+- **Solver:** Nearest searches now treat current placements as preferences, allow blocks to move, and optimize the number of moved existing blocks while requiring a complete tiling.
+- **UI:** Incomplete or cancelled nearest searches no longer overwrite the board; successful results report the moved-block count.
+- **Validation:** Added complete, minimal-movement, and cancellation regressions; focused test, ESLint, and production build passed. `Changelog.txt` was not modified.
 
 ## 2026-07-17 Hexagon Blocks pointer interaction
 

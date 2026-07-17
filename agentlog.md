@@ -1,5 +1,11 @@
 ## 2026-07-17 Hexagon Blocks
 
+## 2026-07-17 Hexagon Blocks pointer interaction
+
+- **Interaction:** Added pointer-captured left-button dragging for palette and placed blocks, middle-button vertical orientation rotation, and nearest legal precomputed-placement snapping on release.
+- **Safety:** Active placements are excluded from overlap checks, invalid drops restore the original arrangement, and accepted moves create one history snapshot.
+- **Validation:** Focused Hexagon Blocks test, ESLint, and production build passed; `Changelog.txt` was not modified.
+
 ## 2026-07-17 Hexagon Blocks follow-up
 
 <details>

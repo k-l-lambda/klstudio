@@ -63,6 +63,30 @@ export const viewBoxForPoints = (points: PackedPoint[], margin = TRIANGLE_PADDIN
 
 export const boardViewBox = (shape: Shape): string => viewBoxForPoints(shape.boardPoints);
 
+export const placementCenter = (placement: Placement): ScreenPoint => {
+	const vertices = placement.points.flatMap(point => triangleVertices(point));
+	return [
+		vertices.reduce((sum, point) => sum + point[0], 0) / vertices.length,
+		vertices.reduce((sum, point) => sum + point[1], 0) / vertices.length,
+	];
+};
+
+export const nearestPlacement = (placements: Placement[], target: ScreenPoint): Placement | null => {
+	let nearest: Placement | null = null;
+	let nearestDistance = Number.POSITIVE_INFINITY;
+	for (const placement of placements) {
+		const center = placementCenter(placement);
+		const distance = (center[0] - target[0]) ** 2 + (center[1] - target[1]) ** 2;
+		if (distance < nearestDistance) {
+			nearest = placement;
+			nearestDistance = distance;
+		}
+	}
+	return nearest;
+};
+
+export const normalizedOrientation = (orientation: number, count: number): number => count > 0 ? ((orientation % count) + count) % count : 0;
+
 export const rotatePoint = (point: Point, n: number): Point => {
 	const spin = ((n % 6) + 6) % 6;
 	const parity = spin % 2 ? 1 - point[2] : point[2];

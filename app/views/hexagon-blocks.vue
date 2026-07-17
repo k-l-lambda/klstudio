@@ -12,7 +12,34 @@
 			<button :disabled="searching" @click="runRandom">Random solution</button>
 			<button :disabled="searching" @click="runNearest">Nearest solution</button>
 			<button v-if="searching" @click="cancelSearch">Cancel</button>
+			<label class="photo-button">Recognize photo<input type="file" accept="image/*" @change="selectPhoto" /></label>
 		</header>
+		<section v-if="photoUrl" class="photo-panel" aria-live="polite">
+			<div class="photo-preview">
+				<img :src="photoUrl" alt="Selected puzzle photo" />
+				<svg v-if="photoResult && photoResult.image" class="photo-overlay"
+					:viewBox="`0 0 ${photoResult.image.width} ${photoResult.image.height}`" aria-label="Recognition contour overlay">
+					<g v-for="polygon of photoResult.matchedPolygons" :key="`match-${polygon.observationId}`" class="photo-match" :style="{color: blockById(polygon.placement.blockId).color}">
+						<polygon :points="photoContourPoints(polygon.points)" />
+					</g>
+					<g v-for="contour of photoResult.contours" :key="contour.id"
+						:class="['photo-contour', {matched: isMatchedContour(contour.id), unmatched: !isMatchedContour(contour.id)}]">
+						<polygon :points="photoContourPoints(contour.polygon)" />
+						<circle :cx="contour.centroid.x" :cy="contour.centroid.y" r="4" />
+					</g>
+				</svg>
+			</div>
+			<p v-if="recognizing" class="photo-status">Recognizing...</p>
+			<p v-else-if="photoResult" class="photo-status">
+				<strong>{{ photoResult.matches.length }} matched</strong>
+				<span>{{ photoResult.unmatched.length }} unmatched</span>
+				<span>{{ photoResult.contours.length }} retained contours</span>
+			</p>
+			<div class="photo-actions">
+				<button :disabled="recognizing || !photoResult || !photoResult.legal" @click="applyPhoto">Apply</button>
+				<button @click="discardPhoto">Discard</button>
+			</div>
+		</section>
 		<div class="workspace">
 			<section class="board-panel">
 				<svg ref="board" class="board" :viewBox="viewBox" role="img" aria-label="Hexagon Blocks board"
@@ -58,6 +85,8 @@
 	import {nearestSolutionAsync, randomSolutionAsync, validatePlacements} from "../hexagonBlocks/solver";
 	import {Placement, Shape} from "../hexagonBlocks/types";
 	import {RAW_SHAPES} from "../hexagonBlocks/data";
+	import {recognizePhotoCv} from "../hexagonBlocks/recognitionCv";
+	import {RecognitionPoint, RecognitionResult} from "../hexagonBlocks/recognition";
 
 	export default defineComponent({
 		name: "hexagon-blocks",
@@ -88,6 +117,10 @@
 				searching: false,
 				cancelled: false,
 				status: "Select a block or drag one onto the board.",
+				photoUrl: "",
+				photoResult: null as RecognitionResult | null,
+				recognizing: false,
+				photoToken: 0,
 			};
 		},
 		computed: {
@@ -108,9 +141,12 @@
 				return boardViewBox(shape);
 			},
 		},
+		beforeUnmount () {
+			this.discardPhoto();
+		},
 		methods: {
 			blockById (id: number): any {
-				return (this.shape as Shape).blocks[id]; 
+				return (this.shape as Shape).blocks[id];
 			},
 			cellPolygon (point: [number, number]): string {
 				return triangleVertices(point).map(item => item.join(",")).join(" ");
@@ -251,31 +287,31 @@
 				this.selectBlock(id);
 			},
 			startDrag (id: number): void {
-				this.draggedBlock = id; 
+				this.draggedBlock = id;
 			},
 			selectBlock (id: number): void {
-				this.selectedBlock = id; this.status = `Block ${id + 1} selected; click a board triangle.`; 
+				this.selectedBlock = id; this.status = `Block ${id + 1} selected; click a board triangle.`;
 			},
 			dropOnBoard (): void {
-				if (this.draggedBlock >= 0) this.placeBlock(this.draggedBlock); this.draggedBlock = -1; 
+				if (this.draggedBlock >= 0) this.placeBlock(this.draggedBlock); this.draggedBlock = -1;
 			},
 			placeBlock (blockId: number): void {
 				const placement = (this.shape as Shape).placements[blockId][0];
 				if (!placement) return;
 				if (this.placements.some(item => item.blockId === blockId)) {
-					this.status = "That block is already placed."; return; 
+					this.status = "That block is already placed."; return;
 				}
 				if (this.placements.some(item => item.indices.some(index => placement.indices.includes(index)))) {
-					this.status = "That placement overlaps another block."; return; 
+					this.status = "That placement overlaps another block."; return;
 				}
 				this.placements = [...this.placements, placement];
 				this.commit("Block placed.");
 			},
 			removePlacement (blockId: number): void {
-				this.placements = this.placements.filter(placement => placement.blockId !== blockId); this.commit("Block removed."); 
+				this.placements = this.placements.filter(placement => placement.blockId !== blockId); this.commit("Block removed.");
 			},
 			commit (message: string): void {
-				this.history.push({placements: this.placements}); this.status = message; 
+				this.history.push({placements: this.placements}); this.status = message;
 			},
 			apply (result: any, nearest = false): void {
 				if (result.status === "cancelled") {
@@ -312,19 +348,80 @@
 				}
 			},
 			cancelSearch (): void {
-				this.cancelled = true; this.status = "Search cancelled."; 
+				this.cancelled = true; this.status = "Search cancelled.";
 			},
 			undo (): void {
-				this.placements = this.history.undo().placements; this.status = "Undo."; 
+				this.placements = this.history.undo().placements; this.status = "Undo.";
 			},
 			redo (): void {
-				this.placements = this.history.redo().placements; this.status = "Redo."; 
+				this.placements = this.history.redo().placements; this.status = "Redo.";
 			},
 			clearBoard (): void {
-				this.placements = []; this.commit("Board cleared."); 
+				this.placements = []; this.commit("Board cleared.");
+			},
+			photoContourPoints (polygon: RecognitionPoint[]): string {
+				return polygon.map(point => `${point.x},${point.y}`).join(" ");
+			},
+			isMatchedContour (id: string): boolean {
+				return Boolean(this.photoResult && this.photoResult.matches.some(match => match.observationId === id));
+			},
+			selectPhoto (event: Event): void {
+				const input = event.target as HTMLInputElement;
+				const file = input.files && input.files[0];
+				if (!file)
+					return;
+				this.discardPhoto();
+				const token = this.photoToken;
+				this.photoUrl = URL.createObjectURL(file);
+				const image = new Image();
+				image.onload = async () => {
+					if (token !== this.photoToken)
+						return;
+					this.recognizing = true;
+					this.status = "Recognizing photo...";
+					try {
+						const result = await recognizePhotoCv(image, this.shape as Shape);
+						if (token !== this.photoToken)
+							return;
+						this.photoResult = result;
+						this.status = "Photo recognized; review the contour overlay before applying.";
+					}
+					catch (error) {
+						if (token === this.photoToken)
+							this.status = `Photo recognition failed: ${error instanceof Error ? error.message : error}`;
+					}
+					finally {
+						if (token === this.photoToken)
+							this.recognizing = false;
+					}
+				};
+				image.onerror = () => {
+					if (token === this.photoToken) {
+						this.recognizing = false;
+						this.status = "Photo could not be loaded.";
+					}
+				};
+				image.src = this.photoUrl;
+				input.value = "";
+			},
+			applyPhoto (): void {
+				if (!this.photoResult || !this.photoResult.legal)
+					return;
+				this.placements = this.photoResult.matches.map(match => match.placement);
+				this.commit("Photo recognition applied.");
+				this.discardPhoto();
+			},
+			discardPhoto (): void {
+				this.photoToken++;
+				if (this.photoUrl)
+					URL.revokeObjectURL(this.photoUrl);
+				this.photoUrl = "";
+				this.photoResult = null;
+				this.recognizing = false;
 			},
 			resetShape (): void {
-				this.shape = markRaw(buildShape(this.shapeId)); this.placements = []; this.history.reset({placements: []}); this.status = "Board shape changed."; 
+				this.discardPhoto();
+				this.shape = markRaw(buildShape(this.shapeId)); this.placements = []; this.history.reset({placements: []}); this.status = "Board shape changed.";
 			},
 		},
 	});
@@ -336,6 +433,20 @@
 .toolbar h1 { flex: 1 0 100%; margin: 0 0 .5rem; }
 button, select { padding: .4rem .65rem; border: 1px solid #777; border-radius: .25rem; background: #fff; cursor: pointer; }
 button:disabled { cursor: default; opacity: .45; }
+.photo-button { padding: .4rem .65rem; border: 1px solid #777; border-radius: .25rem; background: #fff; cursor: pointer; }
+.photo-button input { display: none; }
+.photo-panel { max-width: 1100px; margin: 1rem auto; padding: .75rem; border: 1px solid #d5cdbc; background: #fffdf7; }
+.photo-preview { position: relative; width: fit-content; max-width: 100%; margin: 0 auto; line-height: 0; }
+.photo-preview img { display: block; max-width: 100%; max-height: 55vh; object-fit: contain; }
+.photo-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.photo-match polygon { fill: currentColor; fill-opacity: .28; stroke: currentColor; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.photo-contour circle { vector-effect: non-scaling-stroke; stroke-width: 1.5; }
+.photo-contour.matched polygon { fill: rgb(29 148 91 / 22%); stroke: #087443; }
+.photo-contour.matched circle { fill: #fff; stroke: #087443; }
+.photo-contour.unmatched polygon { fill: rgb(210 58 48 / 18%); stroke: #b42720; stroke-dasharray: 6 4; }
+.photo-contour.unmatched circle { fill: #fff; stroke: #b42720; }
+.photo-status { display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1rem; margin: .75rem 0; }
+.photo-actions { display: flex; justify-content: center; gap: .5rem; }
 .workspace { display: flex; flex-wrap: wrap; gap: 1rem; max-width: 1100px; margin: 1rem auto; }
 .board-panel { flex: 1 1 620px; min-width: 300px; }
 .board { display: block; width: 100%; max-height: 70vh; border: 1px solid #b8b09f; background: #fffdf7; touch-action: none; }

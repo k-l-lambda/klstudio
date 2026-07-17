@@ -1,3 +1,33 @@
+## 2026-07-17 Hexagon Blocks recognition overlay preview
+
+- Recognition results now retain source image dimensions plus each accepted contour polygon and centroid for pixel-aligned review overlays.
+- The photo panel now layers a responsive SVG over the selected image, distinguishes matched and unmatched contours, reports counts, and keeps Apply/Discard below the preview.
+- Added stale async-result and object-URL cleanup for replacement, discard, shape change, and component teardown.
+- Validation: focused recognition test, focused ESLint, `git diff --check`, and production build passed.
+
+## 2026-07-17 OpenCV reduced-build contour metrics
+
+- The vendored reduced OpenCV build exposes neither `cv.contourArea` nor `cv.moments`.
+- Recognition now calculates polygon area and centroid directly from each contour's `data32S` point buffer using the shoelace formula.
+- Confirmed no unsupported calls remain in source or the production bundle; focused ESLint, `git diff --check`, and `yarn build` passed.
+
+
+- OpenCV build does not expose `cv.contourArea`; contour area is now derived from `cv.moments(contour).m00`.
+- This prevents photo recognition from failing with `cv.contourArea is not a function`.
+- Focused ESLint and `git diff --check` passed.
+
+## 2026-07-17 Hexagon Blocks photo recognition workflow
+
+- Vendored the local OpenCV JavaScript/WASM runtime and added a cached browser loader.
+- Added contour-based `recognizePhotoCv` integration with existing global recognition matching.
+- Added photo upload, preview, recognition status, apply, and discard controls to the Hexagon Blocks page.
+- Validation: production build passed; ESLint passed with existing warnings.
+
+
+- Added pure photo-recognition types, stable placement keys, weighted evidence scoring, and deterministic legal global matching.
+- Added focused recognition regressions for key stability, score aggregation, conflict filtering, and legal matching.
+- Validation: focused ts-node test and ESLint passed; existing app/home.vue change was preserved.
+
 ## 2026-07-17 Hexagon Blocks nearest solver fix
 
 - **Solver:** Nearest searches now treat current placements as preferences, allow blocks to move, and optimize the number of moved existing blocks while requiring a complete tiling.
@@ -2102,3 +2132,11 @@ updateBoard(board: CubeGrid): void {
 **Result:** ✅ Dependencies updated, dev server running without errors
 
 </details>
+
+## 2026-07-17 Hexagon Blocks recognition geometry transform
+
+- Fixed recognitionCv centroid matching to use rendered `placementCenter` geometry instead of packed grid coordinates.
+- Added practical source-image transform metadata and transformed matched placement triangle polygons to `RecognitionResult`.
+- Updated the photo overlay with block-colored matched polygons while retaining contour wireframes and Apply/Discard.
+- Added focused transform assertions; recognition test, focused lint, diff check, and production build passed.
+- Preserved `app/home.vue` and `Changelog.txt`.

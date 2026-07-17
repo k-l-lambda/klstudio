@@ -5,11 +5,18 @@ export interface Orientation {
 	points: PackedPoint[];
 }
 
+export interface OrientationGraph {
+	cw: number[];
+	ccw: number[];
+	mirror: number[];
+}
+
 export interface Block {
 	id: number;
 	name: string;
 	color: string;
 	orientations: Orientation[];
+	orientationGraph: OrientationGraph;
 }
 
 export interface Placement {

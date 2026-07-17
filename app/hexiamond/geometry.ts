@@ -1,5 +1,5 @@
 import {RAW_SHAPES, RawBlock} from "./data";
-import {Block, Orientation, PackedPoint, Placement, Point, Shape} from "./types";
+import {Block, Orientation, OrientationGraph, PackedPoint, Placement, Point, Shape} from "./types";
 
 const rotationMatrix: number[][] = [[1, 1], [-1, 0]];
 
@@ -105,6 +105,12 @@ export const rotatePoint = (point: Point, n: number): Point => {
 
 export const packPoint = (point: Point): PackedPoint => [point[0] * 2 + point[2], point[1]];
 
+/** Mirror a triangular lattice point across a vertical axis, preserving up/down parity. */
+export const reflectPoint = (point: Point): Point =>
+	point[2] ? [point[1] - point[0] - 1, point[1], 1] : [point[1] - point[0], point[1], 0];
+
+const unpackPoint = (point: PackedPoint): Point => [Math.floor(point[0] / 2), point[1], ((point[0] % 2) + 2) % 2];
+
 const normalize = (points: PackedPoint[]): PackedPoint[] => {
 	const minX = Math.min(...points.map(point => point[0]));
 	const minY = Math.min(...points.map(point => point[1]));
@@ -116,15 +122,40 @@ const normalize = (points: PackedPoint[]): PackedPoint[] => {
 
 export const makeOrientations = (block: RawBlock): Orientation[] => {
 	const result: Orientation[] = [];
-	for (const pattern of block.patterns) {
+	const add = (source: Point[]): void => {
 		for (let spin = 0; spin < block.spin; ++spin) {
-			const points = normalize(pattern.map(point => packPoint(rotatePoint(point as Point, spin))));
+			const points = normalize(source.map(point => packPoint(rotatePoint(point, spin))));
 			const key = points.map(pointKey).join(";");
 			if (!result.some(orientation => orientation.points.map(pointKey).join(";") === key))
 				result.push({points});
 		}
+	};
+	for (const pattern of block.patterns) {
+		const source = pattern.map(point => point as Point);
+		// Include the reflected chirality so every physical piece can be flipped. This is a
+		// no-op for achiral pieces and for pieces whose mirror is already a listed pattern.
+		add(source);
+		add(source.map(reflectPoint));
 	}
 	return result;
+};
+
+const orientationKey = (points: PackedPoint[]): string => normalize(points).map(pointKey).join(";");
+
+/** Map each orientation to its clockwise, counter-clockwise, and mirrored sibling by index.
+ * A transform that leaves the block's orientation set (no distinct sibling exists) maps to itself.
+ */
+export const makeOrientationGraph = (orientations: Orientation[]): OrientationGraph => {
+	const keys = orientations.map(orientation => orientationKey(orientation.points));
+	const find = (points: PackedPoint[], fallback: number): number => {
+		const index = keys.indexOf(orientationKey(points));
+		return index < 0 ? fallback : index;
+	};
+	return {
+		cw: orientations.map((orientation, index) => find(orientation.points.map(point => packPoint(rotatePoint(unpackPoint(point), 1))), index)),
+		ccw: orientations.map((orientation, index) => find(orientation.points.map(point => packPoint(rotatePoint(unpackPoint(point), 5))), index)),
+		mirror: orientations.map((orientation, index) => find(orientation.points.map(point => packPoint(reflectPoint(unpackPoint(point)))), index)),
+	};
 };
 
 export const inBoard = (point: PackedPoint, board: number[][]): boolean => {
@@ -143,12 +174,16 @@ export const buildShape = (id: string): Shape => {
 		}
 	}
 	const boardPointIndex = new Map(boardPoints.map((point, index) => [pointKey(point), index]));
-	const blocks: Block[] = raw.blocks.map(block => ({
-		id: block.id,
-		name: block.name,
-		color: block.color,
-		orientations: makeOrientations(block),
-	}));
+	const blocks: Block[] = raw.blocks.map(block => {
+		const orientations = makeOrientations(block);
+		return {
+			id: block.id,
+			name: block.name,
+			color: block.color,
+			orientations,
+			orientationGraph: makeOrientationGraph(orientations),
+		};
+	});
 	const placements = blocks.map(block => {
 		const entries: Placement[] = [];
 		block.orientations.forEach((orientation, orientationId) => {

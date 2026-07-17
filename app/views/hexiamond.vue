@@ -83,7 +83,7 @@
 <script lang="ts">
 	import {defineComponent, markRaw} from "vue";
 	import {History} from "../hexiamond/history";
-	import {boardViewBox, buildShape, nearestPlacement, normalizedOrientation, pointKey, ScreenPoint, triangleVertices, viewBoxForPoints} from "../hexiamond/geometry";
+	import {boardViewBox, buildShape, nearestPlacement, placementCenter, pointKey, ScreenPoint, triangleVertices, viewBoxForPoints} from "../hexiamond/geometry";
 	import {nearestSolutionAsync, randomSolutionAsync, validatePlacements} from "../hexiamond/solver";
 	import {Placement, Shape} from "../hexiamond/types";
 	import {RAW_SHAPES} from "../hexiamond/data";
@@ -107,8 +107,11 @@
 				dragButton: -1,
 				dragStartX: 0,
 				dragStartY: 0,
+				dragLastX: 0,
 				dragLastY: 0,
 				dragRotationDelta: 0,
+				dragFlipDelta: 0,
+				dragAnchor: null as ScreenPoint | null,
 				dragOrientation: 0,
 				dragPreview: null as Placement | null,
 				dragPreviewLegal: false,
@@ -179,7 +182,8 @@
 					placement.orientationId === orientationId && validatePlacements(this.shape as Shape, [...others, placement]));
 			},
 			updateDragPreview (event: PointerEvent): void {
-				const target = this.pointerTarget(event);
+				// Middle button anchors the block: rotate/flip in place instead of panning to the pointer.
+				const target = this.dragButton === 1 && this.dragAnchor ? this.dragAnchor : this.pointerTarget(event);
 				if (!target || this.dragBlockId < 0)
 					return;
 				const candidate = nearestPlacement(this.legalCandidates(this.dragBlockId, this.dragOrientation), target);
@@ -197,14 +201,17 @@
 				this.dragButton = event.button;
 				this.dragStartX = event.clientX;
 				this.dragStartY = event.clientY;
+				this.dragLastX = event.clientX;
 				this.dragLastY = event.clientY;
 				this.dragRotationDelta = 0;
+				this.dragFlipDelta = 0;
+				this.dragAnchor = placementCenter(placement);
 				this.dragOrientation = placement.orientationId;
 				this.dragPreview = placement;
 				this.dragPreviewLegal = true;
 				this.dragMoved = false;
 				this.suppressPlacedClick = event.button === 1;
-				this.status = event.button === 1 ? "Move vertically to rotate; release to snap." : "Drag block; release to snap.";
+				this.status = event.button === 1 ? "Move up/down to rotate, left/right to flip; release to snap." : "Drag block; release to snap.";
 			},
 			moveBlock (event: PointerEvent): void {
 				if (event.pointerId !== this.dragPointerId)
@@ -214,14 +221,21 @@
 					this.suppressPlacedClick = true;
 				}
 				if (this.dragButton === 1) {
+					// Middle button: rotate on vertical travel, flip on horizontal travel; block stays anchored.
+					const graph = this.blockById(this.dragBlockId).orientationGraph;
 					this.dragRotationDelta += event.clientY - this.dragLastY;
-					const count = this.blockById(this.dragBlockId).orientations.length;
 					while (Math.abs(this.dragRotationDelta) >= 28) {
-						const direction = this.dragRotationDelta > 0 ? 1 : -1;
-						this.dragOrientation = normalizedOrientation(this.dragOrientation + direction, count);
-						this.dragRotationDelta -= direction * 28;
+						const up = this.dragRotationDelta < 0;
+						this.dragOrientation = (up ? graph.ccw : graph.cw)[this.dragOrientation];
+						this.dragRotationDelta -= (up ? -1 : 1) * 28;
+					}
+					this.dragFlipDelta += event.clientX - this.dragLastX;
+					while (Math.abs(this.dragFlipDelta) >= 60) {
+						this.dragOrientation = graph.mirror[this.dragOrientation];
+						this.dragFlipDelta -= (this.dragFlipDelta > 0 ? 1 : -1) * 60;
 					}
 				}
+				this.dragLastX = event.clientX;
 				this.dragLastY = event.clientY;
 				this.updateDragPreview(event);
 			},
@@ -251,6 +265,7 @@
 				this.dragSource = "";
 				this.dragPointerId = -1;
 				this.dragButton = -1;
+				this.dragAnchor = null;
 				this.dragPreview = null;
 				this.dragPreviewLegal = false;
 			},
@@ -272,8 +287,11 @@
 				this.dragButton = event.button;
 				this.dragStartX = event.clientX;
 				this.dragStartY = event.clientY;
+				this.dragLastX = event.clientX;
 				this.dragLastY = event.clientY;
 				this.dragRotationDelta = 0;
+				this.dragFlipDelta = 0;
+				this.dragAnchor = event.button === 1 ? this.pointerTarget(event) : null;
 				this.dragOrientation = 0;
 				this.dragPreview = null;
 				this.dragPreviewLegal = false;

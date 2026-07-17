@@ -1,6 +1,6 @@
-import {buildShape} from "../app/hexagonBlocks/geometry";
-import {History} from "../app/hexagonBlocks/history";
-import {nearestSolution, randomSolution, validatePlacements} from "../app/hexagonBlocks/solver";
+import {buildShape} from "../app/hexiamond/geometry";
+import {History} from "../app/hexiamond/history";
+import {nearestSolution, randomSolution, validatePlacements} from "../app/hexiamond/solver";
 
 const shape = buildShape("hexagon4_3");
 console.assert(shape.boardPoints.length === 72, "hexagon board cell count mismatch");
@@ -39,4 +39,4 @@ console.assert(nearestResult.movedExisting === 0, "nearest solver moved unchange
 const cancelledNearest = nearestSolution(rhombus, nearestInitial, {shouldCancel: () => true});
 console.assert(cancelledNearest.cancelled && cancelledNearest.status === "cancelled", "nearest cancellation failed");
 
-console.log(`Hexagon Blocks test passed (${result.covered}/${shape.boardPoints.length} cells, ${result.nodes} nodes; rhombus ${rhombusResult.covered}/72).`);
+console.log(`Hexiamond test passed (${result.covered}/${shape.boardPoints.length} cells, ${result.nodes} nodes; rhombus ${rhombusResult.covered}/72).`);

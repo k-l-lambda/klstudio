@@ -1,3 +1,10 @@
+## 2026-07-17 Renamed hexagonBlocks concept to hexiamond
+
+- Renamed the concept across the codebase: `app/hexagonBlocks/` → `app/hexiamond/`, `app/views/hexagon-blocks.vue` → `app/views/hexiamond.vue`, `tests/hexagonBlocks*.ts` → `tests/hexiamond*.ts` (all via `git mv` to preserve history).
+- Updated import paths, the router entry (`/hexiamond`, name `Hexiamond`, chunk `hexiamond`), the root CSS class/component `name`, the board `aria-label`, and test log labels.
+- Left intentional: the board shape id `hexagon4_3` / "Hexagon 4/3" (names the genuinely hexagon-shaped board, not the hexiamond pieces), the "hexagon board cell count" assertion, historical agentlog entries below, and the unrelated `plotly.min.js` marker symbol.
+- Validation: both focused tests pass, focused ESLint clean, production build succeeds (chunk emitted as `hexiamond-*.js`).
+
 ## 2026-07-17 Hexagon Blocks recognition overlay preview
 
 - Recognition results now retain source image dimensions plus each accepted contour polygon and centroid for pixel-aligned review overlays.

@@ -170,9 +170,9 @@ export const routes = [
 		component: () => import(/* webpackChunkName: "cube-tetris-test", */ "./views/cube-tetris-test.vue"),
 	},
 	{
-		path: "/hexagon-blocks",
-		name: "Hexagon Blocks",
-		component: () => import(/* webpackChunkName: "hexagon-blocks", */ "./views/hexagon-blocks.vue"),
+		path: "/hexiamond",
+		name: "Hexiamond",
+		component: () => import(/* webpackChunkName: "hexiamond", */ "./views/hexiamond.vue"),
 	},
 ];
 

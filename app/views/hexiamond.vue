@@ -1,5 +1,5 @@
 <template>
-	<div class="hexagon-blocks">
+	<div class="hexiamond">
 		<header class="toolbar">
 			<label>Board
 				<select v-model="shapeId" @change="resetShape">
@@ -42,7 +42,7 @@
 		</section>
 		<div class="workspace">
 			<section class="board-panel">
-				<svg ref="board" class="board" :viewBox="viewBox" role="img" aria-label="Hexagon Blocks board"
+				<svg ref="board" class="board" :viewBox="viewBox" role="img" aria-label="Hexiamond board"
 					@dragover.prevent @drop.prevent="dropOnBoard($event)"
 					@pointermove="moveBlock" @pointerup="finishBlockPointer" @pointercancel="cancelBlockPointer">
 					<polygon v-for="cell of boardCells" :key="cell.key" :points="cell.points"
@@ -80,16 +80,16 @@
 
 <script lang="ts">
 	import {defineComponent, markRaw} from "vue";
-	import {History} from "../hexagonBlocks/history";
-	import {boardViewBox, buildShape, nearestPlacement, normalizedOrientation, pointKey, ScreenPoint, triangleVertices, viewBoxForPoints} from "../hexagonBlocks/geometry";
-	import {nearestSolutionAsync, randomSolutionAsync, validatePlacements} from "../hexagonBlocks/solver";
-	import {Placement, Shape} from "../hexagonBlocks/types";
-	import {RAW_SHAPES} from "../hexagonBlocks/data";
-	import {recognizePhotoCv} from "../hexagonBlocks/recognitionCv";
-	import {RecognitionPoint, RecognitionResult} from "../hexagonBlocks/recognition";
+	import {History} from "../hexiamond/history";
+	import {boardViewBox, buildShape, nearestPlacement, normalizedOrientation, pointKey, ScreenPoint, triangleVertices, viewBoxForPoints} from "../hexiamond/geometry";
+	import {nearestSolutionAsync, randomSolutionAsync, validatePlacements} from "../hexiamond/solver";
+	import {Placement, Shape} from "../hexiamond/types";
+	import {RAW_SHAPES} from "../hexiamond/data";
+	import {recognizePhotoCv} from "../hexiamond/recognitionCv";
+	import {RecognitionPoint, RecognitionResult} from "../hexiamond/recognition";
 
 	export default defineComponent({
-		name: "hexagon-blocks",
+		name: "hexiamond",
 		data () {
 			const shape = markRaw(buildShape("std"));
 			return {
@@ -428,7 +428,7 @@
 </script>
 
 <style scoped>
-.hexagon-blocks { min-height: 100%; padding: 1rem; color: #20232a; background: #f5f2e9; }
+.hexiamond { min-height: 100%; padding: 1rem; color: #20232a; background: #f5f2e9; }
 .toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; padding-left: 2rem; }
 .toolbar h1 { flex: 1 0 100%; margin: 0 0 .5rem; }
 button, select { padding: .4rem .65rem; border: 1px solid #777; border-radius: .25rem; background: #fff; cursor: pointer; }
@@ -464,5 +464,5 @@ button:disabled { cursor: default; opacity: .45; }
 .thumbnail { display: block; width: 100%; height: 90px; margin-bottom: .35rem; overflow: visible; }
 .thumbnail polygon { stroke: #32291c; stroke-width: .7; }
 .status { min-height: 1.4em; }
-@media (max-width: 640px) { .hexagon-blocks { padding: .5rem; } .palette { flex-basis: 100%; } }
+@media (max-width: 640px) { .hexiamond { padding: .5rem; } .palette { flex-basis: 100%; } }
 </style>

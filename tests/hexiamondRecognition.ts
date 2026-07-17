@@ -1,6 +1,6 @@
-import {buildShape} from "../app/hexagonBlocks/geometry";
-import {imageTransformForShape, matchRecognitions, matchedPolygon, placementKey, recognizePlacements, recognitionScore, validateRecognitionMatches} from "../app/hexagonBlocks/recognition";
-import {RecognitionObservation} from "../app/hexagonBlocks/recognition";
+import {buildShape} from "../app/hexiamond/geometry";
+import {imageTransformForShape, matchRecognitions, matchedPolygon, placementKey, recognizePlacements, recognitionScore, validateRecognitionMatches} from "../app/hexiamond/recognition";
+import {RecognitionObservation} from "../app/hexiamond/recognition";
 
 const shape = buildShape("hexagon4_3");
 const first = shape.placements[0][0];
@@ -30,4 +30,4 @@ const conflicting = matchRecognitions(shape, [
 ]);
 console.assert(conflicting.matches.length === 1 && conflicting.unmatched.length === 1, "conflicting observations were not globally filtered");
 console.assert(conflicting.legal, "conflicting result should remain legal");
-console.log("Hexagon Blocks recognition test passed.");
+console.log("Hexiamond recognition test passed.");

@@ -47,14 +47,15 @@
 					@pointermove="moveBlock" @pointerup="finishBlockPointer" @pointercancel="cancelBlockPointer">
 					<polygon v-for="cell of boardCells" :key="cell.key" :points="cell.points"
 						:class="{covered: coveredCells.has(cell.index), target: cell.index === hoverIndex}" />
-					<g v-for="placement of placements" v-show="dragSource !== 'placed' || placement.blockId !== dragBlockId" :key="placement.blockId" class="placed"
+					<g v-for="placement of placements" v-show="dragSource !== 'placed' || placement.blockId !== dragBlockId" :key="placement.blockId" class="placed" :class="{hovered: placement.blockId === hoverBlockId}"
 						:style="{color: blockById(placement.blockId).color}"
+						@pointerenter="hoverBlockId = placement.blockId" @pointerleave="clearHover(placement.blockId)"
 						@pointerdown="startPlacedPointer($event, placement)" @click="removePlacementAfterClick($event, placement.blockId)">
-						<polygon v-for="(point, index) of polygonsFor(placement)" :key="index" :points="point" />
+						<path :d="outlineFor(placement)" />
 					</g>
 					<g v-if="dragPreview" class="drag-preview" :class="{invalid: !dragPreviewLegal}"
 						:style="{color: blockById(dragBlockId).color}">
-						<polygon v-for="(point, index) of polygonsFor(dragPreview)" :key="index" :points="point" />
+						<path :d="outlineFor(dragPreview)" />
 					</g>
 				</svg>
 				<p class="status">{{ status }}</p>
@@ -68,13 +69,14 @@
 						@pointerup="finishBlockPointer" @pointercancel="cancelBlockPointer"
 						@click="selectBlockAfterClick(block.id)">
 						<svg class="thumbnail" :viewBox="thumbnailViewBox(block)" aria-hidden="true">
-							<polygon v-for="(point, index) of polygonsForPoints(block.orientations[0].points)" :key="index" :points="point" :style="{fill: block.color}" />
+							<path :d="outlinePath(block.orientations[0].points)" :style="{fill: block.color}" />
 						</svg>
 						<span class="block-label"><strong>{{ block.id + 1 }}</strong>{{ block.name }}</span>
 					</div>
 				</div>
 				<p class="palette-note">{{ coveredCells.size }} / {{ shape.boardPoints.length }} triangles covered</p>
 				<p class="palette-note">Click a placed block to remove it.</p>
+				<p class="palette-note">Hover a placed block, then press <kbd>R</kbd> to rotate (<kbd>Shift</kbd>+<kbd>R</kbd> reverse), <kbd>F</kbd> to flip.</p>
 			</aside>
 		</div>
 	</div>
@@ -83,7 +85,7 @@
 <script lang="ts">
 	import {defineComponent, markRaw} from "vue";
 	import {History} from "../hexiamond/history";
-	import {boardViewBox, buildShape, nearestPlacement, placementCenter, pointKey, ScreenPoint, triangleVertices, viewBoxForPoints} from "../hexiamond/geometry";
+	import {boardViewBox, buildShape, nearestPlacement, outlinePath, placementCenter, pointKey, ScreenPoint, triangleVertices, viewBoxForPoints} from "../hexiamond/geometry";
 	import {nearestSolutionAsync, randomSolutionAsync, validatePlacements} from "../hexiamond/solver";
 	import {Placement, Shape} from "../hexiamond/types";
 	import {RAW_SHAPES} from "../hexiamond/data";
@@ -119,6 +121,7 @@
 				suppressPlacedClick: false,
 				selectedBlock: -1,
 				hoverIndex: -1,
+				hoverBlockId: -1,
 				searching: false,
 				cancelled: false,
 				status: "Select a block or drag one onto the board.",
@@ -147,7 +150,11 @@
 			},
 		},
 		beforeUnmount () {
+			window.removeEventListener("keydown", this.onKeydown);
 			this.discardPhoto();
+		},
+		mounted () {
+			window.addEventListener("keydown", this.onKeydown);
 		},
 		methods: {
 			blockById (id: number): any {
@@ -156,11 +163,9 @@
 			cellPolygon (point: [number, number]): string {
 				return triangleVertices(point).map(item => item.join(",")).join(" ");
 			},
-			polygonsFor (placement: Placement): string[] {
-				return this.polygonsForPoints(placement.points);
-			},
-			polygonsForPoints (points: [number, number][]): string[] {
-				return points.map(point => this.cellPolygon(point));
+			outlinePath,
+			outlineFor (placement: Placement): string {
+				return outlinePath(placement.points);
 			},
 			thumbnailViewBox (block: any): string {
 				return viewBoxForPoints(block.orientations[0].points, 8);
@@ -330,6 +335,45 @@
 			removePlacement (blockId: number): void {
 				this.placements = this.placements.filter(placement => placement.blockId !== blockId); this.commit("Block removed.");
 			},
+			clearHover (blockId: number): void {
+				if (this.hoverBlockId === blockId)
+					this.hoverBlockId = -1;
+			},
+			onKeydown (event: KeyboardEvent): void {
+				if (this.hoverBlockId < 0 || this.dragBlockId >= 0)
+					return;
+				const target = event.target as HTMLElement | null;
+				if (target && (target.tagName === "INPUT" || target.tagName === "SELECT" || target.tagName === "TEXTAREA"))
+					return;
+				const key = event.key.toLowerCase();
+				if (key !== "r" && key !== "f")
+					return;
+				event.preventDefault();
+				const graph = this.blockById(this.hoverBlockId).orientationGraph;
+				const map = key === "f" ? graph.mirror : event.shiftKey ? graph.ccw : graph.cw;
+				this.reorientHovered(map, key === "f" ? "flip" : "rotate");
+			},
+			reorientHovered (map: number[], action: "rotate" | "flip"): void {
+				const current = this.placements.find(placement => placement.blockId === this.hoverBlockId);
+				if (!current)
+					return;
+				const orientationId = map[current.orientationId];
+				if (orientationId === current.orientationId) {
+					this.status = action === "flip" ? "This block's flip matches its current shape." : "This block cannot rotate further.";
+					return;
+				}
+				const anchor = placementCenter(current);
+				const others = this.placements.filter(placement => placement.blockId !== this.hoverBlockId);
+				const candidates = (this.shape as Shape).placements[this.hoverBlockId].filter(placement =>
+					placement.orientationId === orientationId && validatePlacements(this.shape as Shape, [...others, placement]));
+				const next = nearestPlacement(candidates, anchor);
+				if (!next) {
+					this.status = `No legal ${action} nearby; block unchanged.`;
+					return;
+				}
+				this.placements = [...others, next];
+				this.commit(action === "flip" ? "Block flipped." : "Block rotated.");
+			},
 			commit (message: string): void {
 				this.history.push({placements: this.placements}); this.status = message;
 			},
@@ -475,19 +519,22 @@ button:disabled { cursor: default; opacity: .45; }
 .board polygon.covered { fill: #d7d0c0; }
 .board polygon.target { fill: #ffe59c; }
 .placed { cursor: pointer; opacity: .9; }
-.placed polygon { fill: currentColor; stroke: #32291c; stroke-width: .7; }
+.placed path { fill: currentColor; stroke: #32291c; stroke-width: .7; stroke-linejoin: round; }
+.placed.hovered { opacity: 1; }
+.placed.hovered path { stroke: #1a1206; stroke-width: 1.4; }
 .drag-preview { pointer-events: none; opacity: .72; }
-.drag-preview polygon { fill: currentColor; stroke: #32291c; stroke-width: 1.4; stroke-dasharray: 4 2; }
+.drag-preview path { fill: currentColor; stroke: #32291c; stroke-width: 1.4; stroke-dasharray: 4 2; stroke-linejoin: round; }
 .drag-preview.invalid { opacity: .35; }
 .palette { flex: 0 1 300px; padding: .6rem .7rem; background: #fffdf7; border: 1px solid #d5cdbc; display: flex; flex-direction: column; }
 .palette h2 { margin: 0 0 .5rem; font-size: 1.05rem; }
 .palette-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .4rem; }
 .block { display: flex; align-items: center; gap: .4rem; margin: 0; padding: .3rem .4rem; border: 2px solid; border-radius: .35rem; background: #fff; cursor: grab; touch-action: none; user-select: none; min-width: 0; }
 .thumbnail { flex: 0 0 auto; display: block; width: 38px; height: 38px; overflow: visible; }
-.thumbnail polygon { stroke: #32291c; stroke-width: .7; }
+.thumbnail path { stroke: #32291c; stroke-width: .7; stroke-linejoin: round; }
 .block-label { min-width: 0; font-size: .8rem; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .block-label strong { margin-right: .3rem; color: #20232a; }
 .palette-note { margin: .5rem 0 0; font-size: .8rem; color: #5a5346; }
+.palette-note kbd { padding: 0 .3rem; font: inherit; font-size: .75rem; background: #efe9dc; border: 1px solid #cdc4b1; border-radius: .2rem; }
 .status { min-height: 1.4em; }
 @media (max-width: 640px) { .hexiamond { padding: .5rem; } .palette { flex-basis: 100%; } }
 </style>

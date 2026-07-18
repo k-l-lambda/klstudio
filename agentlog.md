@@ -1,3 +1,17 @@
+## 2026-07-18 Hexiamond blocks render as single outlined shapes
+
+- Blocks now draw as one merged SVG `<path>` outline instead of six separate triangle polygons, so the shared internal edges (interior wireframe lines) no longer show. Added `outlinePath()` to `geometry.ts`: it counts each triangle edge, keeps only boundary edges (occurring once), and walks them into a closed `M…L…Z` loop.
+- Applied to placed blocks, the drag preview, and palette thumbnails; the CSS moved from `polygon` to `path` selectors with `stroke-linejoin: round`. Removed the now-unused `polygonsFor`/`polygonsForPoints` helpers.
+- Verified every block in the `std` shape traces to exactly one closed loop.
+- Validation: focused ESLint clean, production build succeeds.
+
+## 2026-07-18 Hexiamond keyboard rotate/flip on hover
+
+- Added keyboard control for placed hexiamond blocks: hover a block and press `R` to rotate clockwise (`Shift`+`R` for counter-clockwise) or `F` to flip. Reuses the existing `orientationGraph` (cw/ccw/mirror) and re-snaps in place via `placementCenter` + `nearestPlacement` over legal, non-overlapping candidates.
+- Tracked the hovered block with `hoverBlockId` via `pointerenter`/`pointerleave`; the hovered placement gets a heavier outline. A window `keydown` listener (added in `mounted`, removed in `beforeUnmount`) ignores keys while typing in inputs and while a pointer drag is active.
+- Added a palette hint line and `kbd` styling documenting the shortcuts.
+- Validation: focused ESLint clean, production build succeeds.
+
 ## 2026-07-17 Renamed hexagonBlocks concept to hexiamond
 
 - Renamed the concept across the codebase: `app/hexagonBlocks/` → `app/hexiamond/`, `app/views/hexagon-blocks.vue` → `app/views/hexiamond.vue`, `tests/hexagonBlocks*.ts` → `tests/hexiamond*.ts` (all via `git mv` to preserve history).

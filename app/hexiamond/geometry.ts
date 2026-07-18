@@ -71,6 +71,70 @@ export const placementCenter = (placement: Placement): ScreenPoint => {
 	];
 };
 
+/** Trace only the outer boundary of a set of triangles as an SVG path, dropping the shared
+ * internal edges so a block renders without interior wireframe lines. Adjacent triangles compute
+ * identical shear vertices for a shared edge, so a boundary edge is one that occurs exactly once.
+ */
+export const outlinePath = (points: PackedPoint[], scale = TRIANGLE_SCALE, padding = TRIANGLE_PADDING): string => {
+	const coords = new Map<string, ScreenPoint>();
+	const keyOf = (point: ScreenPoint): string => `${Math.round(point[0] * 1000)},${Math.round(point[1] * 1000)}`;
+	const edgeKey = (a: string, b: string): string => a < b ? `${a}|${b}` : `${b}|${a}`;
+	const edgeCount = new Map<string, number>();
+	for (const point of points) {
+		const vertices = triangleVertices(point, scale, padding);
+		for (let i = 0; i < 3; ++i) {
+			const a = vertices[i];
+			const b = vertices[(i + 1) % 3];
+			const ka = keyOf(a);
+			const kb = keyOf(b);
+			coords.set(ka, a);
+			coords.set(kb, b);
+			const key = edgeKey(ka, kb);
+			edgeCount.set(key, (edgeCount.get(key) || 0) + 1);
+		}
+	}
+	const adjacency = new Map<string, string[]>();
+	const addNeighbor = (a: string, b: string): void => {
+		const list = adjacency.get(a);
+		if (list)
+			list.push(b);
+		else
+			adjacency.set(a, [b]);
+	};
+	edgeCount.forEach((count, key) => {
+		if (count !== 1)
+			return;
+		const [a, b] = key.split("|");
+		addNeighbor(a, b);
+		addNeighbor(b, a);
+	});
+	const visited = new Set<string>();
+	const segments: string[] = [];
+	for (const start of adjacency.keys()) {
+		if ((adjacency.get(start) || []).every(next => visited.has(edgeKey(start, next))))
+			continue;
+		const loop: string[] = [];
+		let current = start;
+		while (current) {
+			loop.push(current);
+			let next = "";
+			for (const candidate of adjacency.get(current) || []) {
+				if (!visited.has(edgeKey(current, candidate))) {
+					next = candidate;
+					visited.add(edgeKey(current, candidate));
+					break;
+				}
+			}
+			if (!next || next === start)
+				break;
+			current = next;
+		}
+		if (loop.length >= 3)
+			segments.push(loop.map((k, index) => `${index ? "L" : "M"}${coords.get(k)?.join(",")}`).join(" ") + " Z");
+	}
+	return segments.join(" ");
+};
+
 export const nearestPlacement = (placements: Placement[], target: ScreenPoint): Placement | null => {
 	let nearest: Placement | null = null;
 	let nearestDistance = Number.POSITIVE_INFINITY;

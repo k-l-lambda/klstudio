@@ -185,6 +185,11 @@ export const routes = [
 		name: "Hexiamond",
 		component: () => import(/* webpackChunkName: "hexiamond", */ "./views/hexiamond.vue"),
 	},
+	{
+		path: "/s3-simulator",
+		name: "S3 Simulator",
+		component: () => import(/* webpackChunkName: "s3-simulator", */ "./views/s3-simulator.vue"),
+	},
 ];
 
 

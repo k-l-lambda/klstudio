@@ -7,6 +7,13 @@
 - BigInt needs ES2020, so both tools run via `TS_NODE_COMPILER_OPTIONS='{"target":"es2020",...}'` rather than editing the shared `tsconfig.node.json`.
 - Verified by rendering the HTML with headless Chrome (12 cards, correct captions/counts); preview saved to `static/hexiamond-std-frequency.png`.
 
+## 2026-07-19 S³ hypersphere simulator — step 1: cross-shaped puppet
+
+- Started a new three.js app for an S³ (3-sphere) simulator. Route `/s3-simulator`, view `app/views/s3-simulator.vue`, on branch `feature/sphere-4d`.
+- Added `app/s3/puppet.ts`: builds one canvas-2D texture atlas (4×4 grid of 256px tiles — face with eyes/nose/mouth, hair top/side/back, shirt front/back/side, pants, belt, hands, sleeves, shoe) and a cross-shaped figure (head + torso + two arms + legs boxes). Each box face's UVs are remapped to its assigned atlas tile via `applyBoxFaces`, so every viewing angle shows a distinct region. Exposes a `head` anchor for first-person.
+- The view renders the puppet with grid/lighting and switches between third-person (OrbitControls, idle Y-spin) and first-person (drag to yaw/pitch the head anchor) cameras via HUD buttons. Both cameras share one `beforeUnmount` cleanup.
+- Validation: focused ESLint clean, `yarn build` succeeds (dedicated `s3-simulator` chunk emitted).
+
 ## 2026-07-18 Hexiamond blocks render as single outlined shapes
 
 - Blocks now draw as one merged SVG `<path>` outline instead of six separate triangle polygons, so the shared internal edges (interior wireframe lines) no longer show. Added `outlinePath()` to `geometry.ts`: it counts each triangle edge, keeps only boundary edges (occurring once), and walks them into a closed `M…L…Z` loop.

@@ -105,6 +105,17 @@ export const routes = [
 		component: () => import(/* webpackChunkName: "stylegan-mapping" */ "./views/stylegan-mapping.vue"),
 	},
 	{
+		// Standalone static page (public/hexiamond/std-frequency.html), not a Vue view: redirect the
+		// SPA hash route to the real file served by Express from docs/.
+		path: "/documents/hexiamond-frequency",
+		name: "Hexiamond Placement Frequency",
+		beforeEnter () {
+			window.location.href = `${import.meta.env.BASE_URL}hexiamond/std-frequency.html`;
+			return false;
+		},
+		component: () => import(/* webpackChunkName: "hexiamond", */ "./views/hexiamond.vue"),
+	},
+	{
 		path: "/curves-editor",
 		name: "Curves Editor",
 		component: () => import(/* webpackChunkName: "curves-editor" */ "./views/curves-editor.vue"),

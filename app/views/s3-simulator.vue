@@ -1,6 +1,6 @@
 <template>
 	<div class="s3-simulator" v-resize="onResize">
-		<canvas ref="canvas" :width="size.width" :height="size.height" />
+		<canvas ref="canvas" />
 		<div class="hud">
 			<h1>S<sup>3</sup> Hypersphere Simulator</h1>
 			<p class="hint">Step 1 — abstract cross-shaped puppet with UV-mapped canvas texture.</p>
@@ -78,7 +78,7 @@
 				this.scene = scene;
 
 				// Cameras: one for each view mode.
-				const aspect = this.size.width / this.size.height;
+				const aspect = this.size.width / Math.max(this.size.height, 1);
 				this.thirdCamera = markRaw(new THREE.PerspectiveCamera(55, aspect, 0.05, 200));
 				this.thirdCamera.position.set(4, 3, 6);
 
@@ -178,11 +178,12 @@
 
 		watch: {
 			size (value: {width: number; height: number}) {
-				const aspect = value.width / value.height;
+				const aspect = value.width / Math.max(value.height, 1);
 				this.thirdCamera.aspect = aspect;
 				this.thirdCamera.updateProjectionMatrix();
 				this.firstCamera.aspect = aspect;
 				this.firstCamera.updateProjectionMatrix();
+				this.renderer.setPixelRatio(window.devicePixelRatio || 1);
 				this.renderer.setSize(value.width, value.height, false);
 			},
 		},

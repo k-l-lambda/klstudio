@@ -44,6 +44,7 @@
 			<section class="board-panel">
 				<svg ref="board" class="board" :viewBox="viewBox" role="img" aria-label="Hexiamond board"
 					@dragover.prevent @drop.prevent="dropOnBoard($event)"
+					@pointerdown="boardPointerDown"
 					@pointermove="moveBlock" @pointerup="finishBlockPointer" @pointercancel="cancelBlockPointer">
 					<polygon v-for="cell of boardCells" :key="cell.key" :points="cell.points"
 						:class="{covered: coveredCells.has(cell.index), target: cell.index === hoverIndex}" />
@@ -75,8 +76,9 @@
 					</div>
 				</div>
 				<p class="palette-note">{{ coveredCells.size }} / {{ shape.boardPoints.length }} triangles covered</p>
-				<p class="palette-note">Click a placed block to remove it.</p>
-				<p class="palette-note">Hover a placed block, then press <kbd>R</kbd> to rotate (<kbd>Shift</kbd>+<kbd>R</kbd> reverse), <kbd>F</kbd> to flip.</p>
+				<p class="palette-note desktop-hint">Click a placed block to remove it.</p>
+				<p class="palette-note desktop-hint">Hover a placed block, then press <kbd>R</kbd> to rotate (<kbd>Shift</kbd>+<kbd>R</kbd> reverse), <kbd>F</kbd> to flip.</p>
+				<p class="palette-note touch-hint">Tap a placed block to remove · long-press to flip · two-finger twist to rotate.</p>
 			</aside>
 		</div>
 	</div>
@@ -91,6 +93,11 @@
 	import {RAW_SHAPES} from "../hexiamond/data";
 	import {recognizePhotoCv} from "../hexiamond/recognitionCv";
 	import {RecognitionPoint, RecognitionResult} from "../hexiamond/recognition";
+
+	// Touch gesture tuning: hold this long (ms) on a placed block to flip it; accumulate this much
+	// two-finger twist (radians) per rotation step.
+	const LONG_PRESS_MS = 500;
+	const ROTATE_STEP = Math.PI / 4;
 
 	export default defineComponent({
 		name: "hexiamond",
@@ -119,6 +126,13 @@
 				dragPreviewLegal: false,
 				dragMoved: false,
 				suppressPlacedClick: false,
+				touchPointers: markRaw(new Map<number, {x: number; y: number}>()),
+				longPressTimer: 0,
+				twistActive: false,
+				twistPrevAngle: 0,
+				twistAccum: 0,
+				twistBlockId: -1,
+				twistChanged: false,
 				selectedBlock: -1,
 				hoverIndex: -1,
 				hoverBlockId: -1,
@@ -151,6 +165,7 @@
 		},
 		beforeUnmount () {
 			window.removeEventListener("keydown", this.onKeydown);
+			this.clearLongPress();
 			this.discardPhoto();
 		},
 		mounted () {
@@ -196,6 +211,10 @@
 				this.dragPreviewLegal = Boolean(candidate);
 			},
 			startPlacedPointer (event: PointerEvent, placement: Placement): void {
+				if (event.pointerType === "touch") {
+					this.startPlacedTouch(event, placement);
+					return;
+				}
 				if (event.button !== 0 && event.button !== 1)
 					return;
 				event.preventDefault();
@@ -218,7 +237,138 @@
 				this.suppressPlacedClick = event.button === 1;
 				this.status = event.button === 1 ? "Move up/down to rotate, left/right to flip; release to snap." : "Drag block; release to snap.";
 			},
+			startPlacedTouch (event: PointerEvent, placement: Placement): void {
+				// Second (or later) fingers land on the board while the block is hidden mid-drag; they
+				// are picked up by boardPointerDown. Here we only bootstrap the first finger.
+				if (this.touchPointers.size > 0 || this.dragBlockId >= 0)
+					return;
+				event.preventDefault();
+				(event.currentTarget as Element).setPointerCapture(event.pointerId);
+				// Single-finger touch behaves like a left-button drag (move + snap).
+				this.dragBlockId = placement.blockId;
+				this.dragSource = "placed";
+				this.dragPointerId = event.pointerId;
+				this.dragButton = 0;
+				this.dragStartX = event.clientX;
+				this.dragStartY = event.clientY;
+				this.dragLastX = event.clientX;
+				this.dragLastY = event.clientY;
+				this.dragAnchor = placementCenter(placement);
+				this.dragOrientation = placement.orientationId;
+				this.dragPreview = placement;
+				this.dragPreviewLegal = true;
+				this.dragMoved = false;
+				this.suppressPlacedClick = false;
+				this.touchPointers.set(event.pointerId, {x: event.clientX, y: event.clientY});
+				this.twistBlockId = placement.blockId;
+				this.status = "Drag to move · long-press to flip · two-finger twist to rotate.";
+				this.longPressTimer = window.setTimeout(() => this.fireLongPress(), LONG_PRESS_MS);
+			},
+			boardPointerDown (event: PointerEvent): void {
+				// A second finger arriving during a single-finger placed-block drag starts a twist.
+				if (event.pointerType !== "touch")
+					return;
+				if (this.dragSource !== "placed" || this.twistActive)
+					return;
+				if (this.touchPointers.size !== 1 || this.touchPointers.has(event.pointerId))
+					return;
+				event.preventDefault();
+				try {
+					(event.currentTarget as Element).setPointerCapture(event.pointerId);
+				}
+				catch (error) {
+					void error;
+				}
+				this.touchPointers.set(event.pointerId, {x: event.clientX, y: event.clientY});
+				this.beginTwist();
+			},
+			beginTwist (): void {
+				this.clearLongPress();
+				this.twistActive = true;
+				this.twistAccum = 0;
+				this.twistChanged = false;
+				this.twistPrevAngle = this.twoFingerAngle();
+				// Reveal the block and drop the drag preview so the rotation is visible in place.
+				this.dragSource = "twisting";
+				this.dragPreview = null;
+				this.dragPreviewLegal = false;
+				this.status = "Twist to rotate; lift a finger to finish.";
+			},
+			twoFingerAngle (): number {
+				const points = [...this.touchPointers.values()];
+				if (points.length < 2)
+					return this.twistPrevAngle;
+				return Math.atan2(points[1].y - points[0].y, points[1].x - points[0].x);
+			},
+			stepTwist (): void {
+				const current = this.twoFingerAngle();
+				let delta = current - this.twistPrevAngle;
+				while (delta > Math.PI)
+					delta -= 2 * Math.PI;
+				while (delta < -Math.PI)
+					delta += 2 * Math.PI;
+				this.twistPrevAngle = current;
+				this.twistAccum += delta;
+				const graph = this.blockById(this.twistBlockId).orientationGraph;
+				// Screen-space clockwise twist (positive angle, y down) rotates the block clockwise.
+				while (this.twistAccum >= ROTATE_STEP) {
+					if (this.applyReorient(this.twistBlockId, graph.cw, "rotate", true))
+						this.twistChanged = true;
+					this.twistAccum -= ROTATE_STEP;
+				}
+				while (this.twistAccum <= -ROTATE_STEP) {
+					if (this.applyReorient(this.twistBlockId, graph.ccw, "rotate", true))
+						this.twistChanged = true;
+					this.twistAccum += ROTATE_STEP;
+				}
+			},
+			endTwist (): void {
+				this.twistActive = false;
+				if (this.twistChanged)
+					this.commit("Block rotated.");
+				this.suppressPlacedClick = true;
+				this.clearTouchState();
+				this.clearBlockPointer();
+			},
+			fireLongPress (): void {
+				this.longPressTimer = 0;
+				if (this.twistActive || this.dragMoved || this.touchPointers.size !== 1 || this.twistBlockId < 0)
+					return;
+				const graph = this.blockById(this.twistBlockId).orientationGraph;
+				if (this.applyReorient(this.twistBlockId, graph.mirror, "flip")) {
+					const flipped = this.placements.find(placement => placement.blockId === this.twistBlockId);
+					if (flipped) {
+						this.dragPreview = flipped;
+						this.dragAnchor = placementCenter(flipped);
+					}
+				}
+				this.suppressPlacedClick = true;
+			},
+			clearLongPress (): void {
+				if (this.longPressTimer) {
+					window.clearTimeout(this.longPressTimer);
+					this.longPressTimer = 0;
+				}
+			},
+			clearTouchState (): void {
+				this.touchPointers.clear();
+				this.clearLongPress();
+				this.twistActive = false;
+				this.twistBlockId = -1;
+				this.twistAccum = 0;
+				this.twistChanged = false;
+			},
 			moveBlock (event: PointerEvent): void {
+				if (event.pointerType === "touch" && this.touchPointers.has(event.pointerId)) {
+					this.touchPointers.set(event.pointerId, {x: event.clientX, y: event.clientY});
+					if (this.twistActive) {
+						this.stepTwist();
+						return;
+					}
+					// Single-finger touch drag: a move past the threshold cancels the pending long-press flip.
+					if (Math.hypot(event.clientX - this.dragStartX, event.clientY - this.dragStartY) >= 4)
+						this.clearLongPress();
+				}
 				if (event.pointerId !== this.dragPointerId)
 					return;
 				if (Math.hypot(event.clientX - this.dragStartX, event.clientY - this.dragStartY) >= 4) {
@@ -245,6 +395,17 @@
 				this.updateDragPreview(event);
 			},
 			finishBlockPointer (event: PointerEvent): void {
+				if (event.pointerType === "touch" && this.touchPointers.has(event.pointerId)) {
+					this.touchPointers.delete(event.pointerId);
+					if (this.twistActive) {
+						// Lifting either finger ends the twist and commits the accumulated rotation.
+						this.endTwist();
+						return;
+					}
+					// Single finger lifted with no twist: fall through to the normal move/snap, then
+					// clear the long-press timer and touch bookkeeping.
+					this.clearLongPress();
+				}
 				if (event.pointerId !== this.dragPointerId)
 					return;
 				this.updateDragPreview(event);
@@ -259,6 +420,13 @@
 				this.clearBlockPointer();
 			},
 			cancelBlockPointer (event: PointerEvent): void {
+				if (event.pointerType === "touch" && this.touchPointers.has(event.pointerId)) {
+					this.touchPointers.delete(event.pointerId);
+					if (this.twistActive) {
+						this.endTwist();
+						return;
+					}
+				}
 				if (event.pointerId === this.dragPointerId) {
 					this.status = "Block move cancelled.";
 					this.suppressPlacedClick = true;
@@ -273,6 +441,7 @@
 				this.dragAnchor = null;
 				this.dragPreview = null;
 				this.dragPreviewLegal = false;
+				this.clearTouchState();
 			},
 			removePlacementAfterClick (event: MouseEvent, blockId: number): void {
 				if (this.suppressPlacedClick) {
@@ -354,25 +523,38 @@
 				this.reorientHovered(map, key === "f" ? "flip" : "rotate");
 			},
 			reorientHovered (map: number[], action: "rotate" | "flip"): void {
-				const current = this.placements.find(placement => placement.blockId === this.hoverBlockId);
+				this.applyReorient(this.hoverBlockId, map, action);
+			},
+			/** Reorient a placed block in place by an orientation map, snapping to the nearest legal
+			 * placement at its current center. Shared by the desktop R/F keys and the touch gestures.
+			 * When silent is true (live twist stepping) no history commit or status change happens;
+			 * the caller commits once when the gesture ends. Returns true if the placement changed. */
+			applyReorient (blockId: number, map: number[], action: "rotate" | "flip", silent = false): boolean {
+				const current = this.placements.find(placement => placement.blockId === blockId);
 				if (!current)
-					return;
+					return false;
 				const orientationId = map[current.orientationId];
 				if (orientationId === current.orientationId) {
-					this.status = action === "flip" ? "This block's flip matches its current shape." : "This block cannot rotate further.";
-					return;
+					if (!silent)
+						this.status = action === "flip" ? "This block's flip matches its current shape." : "This block cannot rotate further.";
+					return false;
 				}
 				const anchor = placementCenter(current);
-				const others = this.placements.filter(placement => placement.blockId !== this.hoverBlockId);
-				const candidates = (this.shape as Shape).placements[this.hoverBlockId].filter(placement =>
+				const others = this.placements.filter(placement => placement.blockId !== blockId);
+				const candidates = (this.shape as Shape).placements[blockId].filter(placement =>
 					placement.orientationId === orientationId && validatePlacements(this.shape as Shape, [...others, placement]));
 				const next = nearestPlacement(candidates, anchor);
 				if (!next) {
-					this.status = `No legal ${action} nearby; block unchanged.`;
-					return;
+					if (!silent)
+						this.status = `No legal ${action} nearby; block unchanged.`;
+					return false;
 				}
 				this.placements = [...others, next];
-				this.commit(action === "flip" ? "Block flipped." : "Block rotated.");
+				if (silent)
+					this.status = action === "flip" ? "Block flipped." : "Block rotated.";
+				else
+					this.commit(action === "flip" ? "Block flipped." : "Block rotated.");
+				return true;
 			},
 			commit (message: string): void {
 				this.history.push({placements: this.placements}); this.status = message;
@@ -536,5 +718,29 @@ button:disabled { cursor: default; opacity: .45; }
 .palette-note { margin: .5rem 0 0; font-size: .8rem; color: #5a5346; }
 .palette-note kbd { padding: 0 .3rem; font: inherit; font-size: .75rem; background: #efe9dc; border: 1px solid #cdc4b1; border-radius: .2rem; }
 .status { min-height: 1.4em; }
+.touch-hint { display: none; }
+
+/* Narrow desktop window: minor padding tweak only; the full mobile layout is gated on touch capability below. */
 @media (max-width: 640px) { .hexiamond { padding: .5rem; } .palette { flex-basis: 100%; } }
+
+/* Touch device (no hover, coarse pointer): fit the whole UI in the viewport with no scrolling, and
+   swap the hover/keyboard hints for the touch-gesture hint. Detected by capability, not viewport width. */
+@media (hover: none) and (pointer: coarse) {
+	.desktop-hint { display: none; }
+	.touch-hint { display: block; }
+	.hexiamond { box-sizing: border-box; display: flex; flex-direction: column; height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; padding: .4rem; gap: .4rem; }
+	.toolbar { flex: 0 0 auto; padding-left: 0; gap: .35rem; margin: 0; }
+	.toolbar button, .toolbar .photo-button { font-size: 1.05rem; padding: .3rem .4rem; }
+	.workspace { flex: 1 1 auto; min-height: 0; flex-direction: column; flex-wrap: nowrap; gap: .4rem; margin: 0; max-width: none; }
+	.board-panel { flex: 1 1 0; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+	.board { flex: 1 1 0; min-height: 0; max-height: none; }
+	.status { flex: 0 0 auto; min-height: 1.2em; margin: .2rem 0 0; font-size: .85rem; }
+	.palette { flex: 0 0 auto; max-height: 34vh; overflow-y: auto; padding: .4rem .45rem; }
+	.palette h2 { display: none; }
+	.palette-grid { grid-template-columns: repeat(4, 1fr); gap: .3rem; }
+	.block { gap: .25rem; padding: .2rem .25rem; border-width: 1.5px; }
+	.thumbnail { width: 28px; height: 28px; }
+	.block-label { font-size: .68rem; }
+	.palette-note { margin: .3rem 0 0; font-size: .72rem; }
+}
 </style>

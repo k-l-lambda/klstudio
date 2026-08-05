@@ -83,6 +83,14 @@
 
 	const apps = [
 		{
+			name: "Hexiamond",
+			_title: "Hexiamond",
+			path: "/hexiamond",
+			cover: "hexiamond.png",
+			description: `<p>A simulator for the Hexiamond puzzle game: fit all 12 polyiamond pieces onto the board.</p>
+<p>A digitization of a puzzle game popular in the 1980s, whose signature is its roughly 5,000 distinct solutions (5,885 to be exact, excluding chiral symmetry).</p>`,
+		},
+		{
 			name: "Cube Tetris",
 			_title: "Cube Tetris",
 			path: "/cube-tetris",

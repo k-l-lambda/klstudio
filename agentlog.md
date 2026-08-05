@@ -1,3 +1,9 @@
+## 2026-08-05 Hexiamond — homepage cover card + localStorage board persistence
+
+- Added a Hexiamond card to the homepage (`app/home.vue`): first entry in the descending app list, cover `app/assets/app-covers/hexiamond.png` (auto-resolved via the existing `import.meta.glob` cover loader), link `/hexiamond`. Description states it's a simulator/digitization of a puzzle game popular in the 1980s whose signature is ~5,000 distinct solutions (5,885 excluding chiral symmetry, per the earlier census).
+- **Board persistence** (`app/views/hexiamond.vue`): the current board — shape id + placed blocks — is saved to `localStorage` (key `hexiamond.board.v1`) on every mutation (`commit`, `undo`, `redo`, `resetShape`) and restored on `mounted`. Only the identifying fields (`blockId`, `orientationId`, `translation`) are stored; on restore each is re-resolved to a canonical placement of the freshly built shape and re-validated for overlap, so a saved game survives changes to the derived geometry data and silently drops any placement that no longer fits. Save/restore are best-effort (wrapped in try/catch for private-mode/quota).
+- Verified with headless Chrome: place + rotate blocks → reload → board restored identically ("Restored your saved board."); switch to the `rhombus` shape → reload → shape persists. Lint 0 errors, `yarn build` OK.
+
 ## 2026-08-05 Hexiamond mobile — fit-without-scroll layout + touch gestures (twist rotate, long-press flip)
 
 - Made the hexiamond app usable on phones. Two problems addressed: (1) the layout forced scrolling (board `max-height: 70vh` + palette wrapping below); (2) reorienting a placed block was bound to desktop-only inputs (hover + `R`/`F` keys, middle-mouse anchored drag) that touch devices lack.

@@ -99,6 +99,22 @@
 	const LONG_PRESS_MS = 500;
 	const ROTATE_STEP = Math.PI / 4;
 
+	// Persist the board shape and placed blocks across reloads. We store only the identifying fields
+	// (blockId, orientationId, translation) and re-resolve each to a canonical placement of the loaded
+	// shape, so a saved game survives changes to the derived geometry data.
+	const STORAGE_KEY = "hexiamond.board.v1";
+
+	interface SavedPlacement {
+		blockId: number;
+		orientationId: number;
+		translation: [number, number];
+	}
+
+	interface SavedState {
+		shapeId: string;
+		placements: SavedPlacement[];
+	}
+
 	export default defineComponent({
 		name: "hexiamond",
 		data () {
@@ -170,6 +186,7 @@
 		},
 		mounted () {
 			window.addEventListener("keydown", this.onKeydown);
+			this.restoreState();
 		},
 		methods: {
 			blockById (id: number): any {
@@ -558,6 +575,7 @@
 			},
 			commit (message: string): void {
 				this.history.push({placements: this.placements}); this.status = message;
+				this.saveState();
 			},
 			apply (result: any, nearest = false): void {
 				if (result.status === "cancelled") {
@@ -598,9 +616,11 @@
 			},
 			undo (): void {
 				this.placements = this.history.undo().placements; this.status = "Undo.";
+				this.saveState();
 			},
 			redo (): void {
 				this.placements = this.history.redo().placements; this.status = "Redo.";
+				this.saveState();
 			},
 			clearBoard (): void {
 				this.placements = []; this.commit("Board cleared.");
@@ -668,6 +688,58 @@
 			resetShape (): void {
 				this.discardPhoto();
 				this.shape = markRaw(buildShape(this.shapeId)); this.placements = []; this.history.reset({placements: []}); this.status = "Board shape changed.";
+				this.saveState();
+			},
+			saveState (): void {
+				try {
+					const state: SavedState = {
+						shapeId: (this.shape as Shape).id,
+						placements: this.placements.map(placement => ({
+							blockId: placement.blockId,
+							orientationId: placement.orientationId,
+							translation: placement.translation,
+						})),
+					};
+					window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+				}
+				catch (error) {
+					// Storage may be unavailable (private mode, quota); persistence is best-effort.
+					void error;
+				}
+			},
+			restoreState (): void {
+				let state: SavedState | null = null;
+				try {
+					const raw = window.localStorage.getItem(STORAGE_KEY);
+					state = raw ? JSON.parse(raw) as SavedState : null;
+				}
+				catch (error) {
+					void error;
+				}
+				if (!state || !state.shapeId || !Array.isArray(state.placements))
+					return;
+				if (!RAW_SHAPES.some(shape => shape.id === state!.shapeId))
+					return;
+				const shape = markRaw(buildShape(state.shapeId));
+				// Re-resolve each saved block to a canonical placement of this shape by matching
+				// orientation and translation; drop any that no longer exist or overlap.
+				const restored: Placement[] = [];
+				for (const saved of state.placements) {
+					const candidates = shape.placements[saved.blockId];
+					if (!candidates)
+						continue;
+					const match = candidates.find(placement =>
+						placement.orientationId === saved.orientationId
+						&& placement.translation[0] === saved.translation[0]
+						&& placement.translation[1] === saved.translation[1]);
+					if (match && validatePlacements(shape, [...restored, match]))
+						restored.push(match);
+				}
+				this.shape = shape;
+				this.shapeId = shape.id;
+				this.placements = restored;
+				this.history.reset({placements: restored});
+				this.status = restored.length ? "Restored your saved board." : "Select a block or drag one onto the board.";
 			},
 		},
 	});

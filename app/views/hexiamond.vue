@@ -97,7 +97,7 @@
 	// Touch gesture tuning: hold this long (ms) on a placed block to flip it; accumulate this much
 	// two-finger twist (radians) per rotation step.
 	const LONG_PRESS_MS = 500;
-	const ROTATE_STEP = Math.PI / 4;
+	const ROTATE_STEP = Math.PI / 6;
 
 	// Persist the board shape and placed blocks across reloads. We store only the identifying fields
 	// (blockId, orientationId, translation) and re-resolve each to a canonical placement of the loaded

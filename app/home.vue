@@ -484,15 +484,18 @@ This is a music visualization program based on the <em><a href="https://en.wikip
 	// narrow screen
 	@media screen and (max-width: 800px)
 	{
-		.root::-webkit-scrollbar
+		// Use #home-root.root (not .root) so these rules beat the base `#home-root { overflow: hidden }`
+		// ID-specificity rule; otherwise overflow-y stays hidden and the app list can't be drag-scrolled.
+		#home-root.root::-webkit-scrollbar
 		{
 			display: none;
 		}
 
-		.root
+		#home-root.root
 		{
 			height: 100vh;
 			overflow-y: auto;
+			-webkit-overflow-scrolling: touch;
 			position: relative;
 
 			header

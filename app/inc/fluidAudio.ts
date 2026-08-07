@@ -2,6 +2,8 @@
 import {AudioWorkletNodeSynthesizer, type ISequencer} from "js-synthesizer";
 import {MidiAudio as LegacyMidiAudio} from "@k-l-lambda/music-widgets";
 
+import {registerAssetCacheSW} from "./registerAssetCacheSW";
+
 
 
 // FluidSynth-backed audio adapter, shaped to match the subset of the legacy
@@ -85,6 +87,13 @@ const loadPlugin = async (): Promise<void> => {
 		// createAudioNode MUST be called before any other synth method.
 		const node = synth.createAudioNode(audioCtx);
 		node.connect(audioCtx.destination);
+
+		// Register the asset cache service worker and give it a moment to take control, so the fetch
+		// below is served from Cache Storage on repeat loads. Bounded by a short timeout: a slow or
+		// failed activation must never block playback (first visit still fetches from network).
+		await registerAssetCacheSW();
+		if (typeof navigator !== "undefined" && navigator.serviceWorker)
+			await Promise.race([navigator.serviceWorker.ready, new Promise(resolve => setTimeout(resolve, 1500))]);
 
 		const sfontBuffer = await (await fetch(SOUNDFONT_URL)).arrayBuffer();
 		await synth.loadSFont(sfontBuffer);

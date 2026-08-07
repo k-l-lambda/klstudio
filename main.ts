@@ -54,6 +54,17 @@ const app = express();
 
 //express.static.mime.define({"application/wasm": ["wasm"]});
 
+// Long-lived cache for the large fixed-path assets (soundfont ~38 MB, chess opening libraries,
+// FluidSynth/OpenCV wasm) so self-hosted deployments don't re-download them. On static hosts (GitHub
+// Pages) this Express layer doesn't run; the asset cache service worker (public/asset-cache-sw.js)
+// handles caching there. These mirror the SW's RULES table. Bounded max-age (not immutable) since the
+// filenames are unversioned.
+const longCache = {maxAge: "30d"};
+app.use("/soundfont", express.static("./docs/soundfont", longCache));
+app.use("/fluid", express.static("./docs/fluid", longCache));
+app.use("/chess/open-games", express.static("./docs/chess/open-games", longCache));
+app.use("/opencv.min.wasm", express.static("./docs/opencv.min.wasm", longCache));
+
 app.use("/", express.static("./docs"));
 
 

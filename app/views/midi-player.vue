@@ -9,7 +9,17 @@
 		<header>
 			<StoreInput v-show="false" v-model="source" localKey="midiPlayer.source" />
 			<StoreInput v-show="false" v-model="name" localKey="midiPlayer.name" />
-			<span v-if="name" v-text="name"></span>
+			<input
+				ref="fileInput"
+				v-show="false"
+				type="file"
+				accept=".mid,.midi,.json,.txt,audio/midi,audio/mid,application/json,text/plain"
+				@change="onFilePick"
+			/>
+			<span class="file-name" :class="{placeholder: !name}" title="Open a MIDI/JSON/text file" @click="pickFile">
+				<template v-if="name">{{name}}</template>
+				<i v-else>&#xf07c;</i>
+			</span>
 			<button v-if="player" @click="togglePlayer"><i v-if="player">{{player.isPlaying ? "&#xf04c;" : "&#xf04b;"}}</i></button>
 			<ProgressBar v-if="player && player.notation" :cursor.sync="cursorTime" :duration="player.notation.endTime" />
 			<i v-if="audioLoading" class="audio-loading" title="Loading sound library…">&#xf569;</i>
@@ -483,12 +493,33 @@
 				this.dragHover = false;
 
 				const file = event.dataTransfer.files[0];
+				await this.handleFile(file);
+			},
+
+
+			// Open the hidden native file picker (triggered by clicking the name span).
+			pickFile () {
+				this.$refs.fileInput && this.$refs.fileInput.click();
+			},
+
+
+			async onFilePick (event) {
+				const file = event.target.files[0];
+				await this.handleFile(file);
+				// Reset so re-picking the same file still fires @change.
+				event.target.value = "";
+			},
+
+
+			// Load a MIDI/JSON/text file from either drop or the picker. Accepts the same
+			// types as onDrop: raw MIDI (.mid/.midi), notation JSON, or MidiText (.txt).
+			async handleFile (file) {
 				if (!file)
 					return;
 
-				if (["audio/midi", "audio/mid"].includes(file.type))
+				if (["audio/midi", "audio/mid"].includes(file.type) || /\.midi?$/i.test(file.name))
 					this.loadMidiFile(file);
-				else if (file.type === "application/json") {
+				else if (file.type === "application/json" || /\.json$/i.test(file.name)) {
 					const text = await this.readFileText(file);
 					this.name = file.name;
 					const midi = JSON.parse(text);
@@ -599,6 +630,32 @@
 		{
 			width: 8em;
 			height: 1.4em;
+		}
+
+		.file-name
+		{
+			cursor: pointer;
+
+			&:hover
+			{
+				color: #0a0;
+			}
+
+			&.placeholder
+			{
+				color: #aaa;
+
+				i
+				{
+					font-family: "IconFas";
+					font-style: normal;
+				}
+
+				&:hover
+				{
+					color: #0a0;
+				}
+			}
 		}
 	}
 

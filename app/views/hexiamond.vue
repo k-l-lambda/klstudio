@@ -68,7 +68,7 @@
 						:style="{borderColor: block.color}"
 						@pointerdown="startPalettePointer($event, block.id)" @pointermove="moveBlock"
 						@pointerup="finishBlockPointer" @pointercancel="cancelBlockPointer"
-						@click="selectBlockAfterClick(block.id)">
+						@click="placeBlockAfterClick(block.id)">
 						<svg class="thumbnail" :viewBox="thumbnailViewBox(block)" aria-hidden="true">
 							<path :d="outlinePath(block.orientations[0].points)" :style="{fill: block.color}" />
 						</svg>
@@ -76,6 +76,7 @@
 					</div>
 				</div>
 				<p class="palette-note">{{ coveredCells.size }} / {{ shape.boardPoints.length }} triangles covered</p>
+				<p class="palette-note">Click a block above to drop it into the first available gap.</p>
 				<p class="palette-note desktop-hint">Click a placed block to remove it.</p>
 				<p class="palette-note desktop-hint">Hover a placed block, then press <kbd>R</kbd> to rotate (<kbd>Shift</kbd>+<kbd>R</kbd> reverse), <kbd>F</kbd> to flip.</p>
 				<p class="palette-note touch-hint">Tap a placed block to remove · long-press to flip · two-finger twist to rotate.</p>
@@ -149,12 +150,11 @@
 				twistAccum: 0,
 				twistBlockId: -1,
 				twistChanged: false,
-				selectedBlock: -1,
 				hoverIndex: -1,
 				hoverBlockId: -1,
 				searching: false,
 				cancelled: false,
-				status: "Select a block or drag one onto the board.",
+				status: "Click a block to auto-place it, or drag one onto the board.",
 				photoUrl: "",
 				photoResult: null as RecognitionResult | null,
 				recognizing: false,
@@ -490,18 +490,51 @@
 				this.suppressPlacedClick = event.button === 1;
 				this.status = event.button === 1 ? "Move vertically to rotate; release over the board." : "Drag block onto the board.";
 			},
-			selectBlockAfterClick (id: number): void {
+			placeBlockAfterClick (id: number): void {
+				// A drag that travelled past the threshold sets this flag, so dragging never
+				// double-fires as a click-to-place.
 				if (this.suppressPlacedClick) {
 					this.suppressPlacedClick = false;
 					return;
 				}
-				this.selectBlock(id);
+				this.placeBlockAtFirstGap(id);
 			},
 			startDrag (id: number): void {
 				this.draggedBlock = id;
 			},
-			selectBlock (id: number): void {
-				this.selectedBlock = id; this.status = `Block ${id + 1} selected; click a board triangle.`;
+			/** Find where a click (as opposed to a drag) on a palette block should drop it: the legal
+			 * placement that fills the earliest uncovered board triangle. Board triangles are indexed in
+			 * reading order (top to bottom, left to right), so for a non-overlapping candidate the lowest
+			 * of its indices is the earliest gap it fills; minimizing that across candidates lands on the
+			 * first gap this block can actually host, skipping earlier gaps it cannot fit. Ties keep
+			 * generation order, which favours orientation 0. */
+			firstAvailablePlacement (blockId: number): Placement | null {
+				const covered = this.coveredCells;
+				let best: Placement | null = null;
+				let bestIndex = Infinity;
+				for (const candidate of (this.shape as Shape).placements[blockId]) {
+					if (candidate.indices.some(index => covered.has(index)))
+						continue;
+					const first = Math.min(...candidate.indices);
+					if (first < bestIndex) {
+						best = candidate;
+						bestIndex = first;
+					}
+				}
+				return best;
+			},
+			placeBlockAtFirstGap (id: number): void {
+				if (this.placements.some(placement => placement.blockId === id)) {
+					this.status = "That block is already placed.";
+					return;
+				}
+				const placement = this.firstAvailablePlacement(id);
+				if (!placement) {
+					this.status = `Block ${id + 1} fits no remaining gap.`;
+					return;
+				}
+				this.placements = [...this.placements, placement];
+				this.commit(`Block ${id + 1} placed in the first available gap.`);
 			},
 			dropOnBoard (): void {
 				if (this.draggedBlock >= 0) this.placeBlock(this.draggedBlock); this.draggedBlock = -1;

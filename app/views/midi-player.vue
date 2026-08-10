@@ -13,10 +13,10 @@
 				ref="fileInput"
 				v-show="false"
 				type="file"
-				accept=".mid,.midi,.json,.txt,audio/midi,audio/mid,application/json,text/plain"
+				accept=".mid,.midi,.json,.txt,.midiseq2.txt,audio/midi,audio/mid,application/json,text/plain"
 				@change="onFilePick"
 			/>
-			<span class="file-name" :class="{placeholder: !name}" title="Open a MIDI/JSON/text file" @click="pickFile">
+			<span class="file-name" :class="{placeholder: !name}" title="Open a MIDI/JSON/midiseq2/text file" @click="pickFile">
 				<template v-if="name">{{name}}</template>
 				<i v-else>&#xf07c;</i>
 			</span>
@@ -36,6 +36,7 @@
 	import {MIDI, MidiPlayer, MidiText} from "@k-l-lambda/music-widgets";
 
 	import MidiAudio from "../inc/fluidAudio";
+	import {midiseq2ToMidi, isMidiseq2Name} from "../inc/midiseq2";
 	import ProgressBar from "../components/progress-bar.vue";
 	import StoreInput from "../components/store-input.vue";
 	const PADDINGS = {
@@ -512,7 +513,8 @@
 
 
 			// Load a MIDI/JSON/text file from either drop or the picker. Accepts the same
-			// types as onDrop: raw MIDI (.mid/.midi), notation JSON, or MidiText (.txt).
+			// types as onDrop: raw MIDI (.mid/.midi), notation JSON, midiseq2 (.midiseq2.txt),
+			// or MidiText (.txt).
 			async handleFile (file) {
 				if (!file)
 					return;
@@ -523,6 +525,13 @@
 					const text = await this.readFileText(file);
 					this.name = file.name;
 					const midi = JSON.parse(text);
+					this.updatePlayer(midi);
+				}
+				// Checked ahead of the plain .txt branch: a midiseq2 file matches both patterns.
+				else if (isMidiseq2Name(file.name)) {
+					const text = await this.readFileText(file);
+					this.name = file.name;
+					const midi = midiseq2ToMidi(text);
 					this.updatePlayer(midi);
 				}
 				else if (file.type === "text/plain" || /\.txt$/i.test(file.name)) {

@@ -2192,3 +2192,13 @@ updateBoard(board: CubeGrid): void {
 - Updated the photo overlay with block-colored matched polygons while retaining contour wireframes and Apply/Discard.
 - Added focused transform assertions; recognition test, focused lint, diff check, and production build passed.
 - Preserved `app/home.vue` and `Changelog.txt`.
+
+## 2026-08-10 midi-player file picker & midiseq2 import
+
+- `midi-player.vue`: the header filename span now shows a folder placeholder icon when empty and opens a hidden `<input type="file">` on click, reusing the drop path's type dispatch via a shared `handleFile`. Picker `@change` resets `value` so re-picking the same file re-fires.
+- `hexiamond.vue`: clicking (not dragging) a palette block now auto-places it in the first available gap — minimize the lowest board-triangle index among non-overlapping candidates, which works because `boardPoints` is built in reading order. Reuses the drag threshold's `suppressPlacedClick` so a drag never double-fires as a click.
+- Added `.midiseq2.txt` import to `midi-player.vue`, backed by the jison grammar from intelli-piano.
+  - Vendored `inc/midiseq2/midiseq2.jison.js` (generated, 647 lines) as `app/inc/midiseq2.jison.js`. Only its module tail is adapted: jison's CommonJS `exports.*` plus the `require('fs')` CLI `main` are replaced by ESM exports, so Vite neither interops a CJS module nor resolves node builtins. Parser tables are untouched — re-copy from intelli-piano when the grammar changes.
+  - `app/inc/midiseq2.ts` is the typed entry point (`midiseq2ToMidi`, `isMidiseq2Name`). The grammar's action code does the whole decode; `@measure` / `@tick` land on events as `measureIndex` / `tickInMeasure` and are never encoded into MIDI bytes.
+  - The `.midiseq2.txt` branch is checked **before** the plain `.txt` (MidiText) branch, since a midiseq2 file matches both patterns.
+- Verified: round-tripped `footages/af69b22800afd3a29ee2ca957bf4a305.mid` through intelli-piano's `midiToMidiseq2`, then decoded with the vendored ESM parser — note-on/note-off multiset at absolute ticks matched the source exactly (2626 events, 1313 noteOns, ticksPerBeat 480). Bundle check confirmed the parser tables ship in `midi-player-*.js` with no `require("fs")` / `process.argv` leakage. `yarn lint` 0 errors (12 pre-existing warnings) and `yarn build` passed.

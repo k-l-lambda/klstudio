@@ -1,5 +1,7 @@
 # K.L. Studio
 
+![Gh Pages Publish](https://github.com/k-l-lambda/klstudio/actions/workflows/publish.yml/badge.svg)
+
 A collection of interactive web applications for personal interests.
 
 ## Overview

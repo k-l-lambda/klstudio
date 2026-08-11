@@ -23,6 +23,7 @@
 			<button v-if="player" @click="togglePlayer"><i v-if="player">{{player.isPlaying ? "&#xf04c;" : "&#xf04b;"}}</i></button>
 			<ProgressBar v-if="player && player.notation" :cursor.sync="cursorTime" :duration="player.notation.endTime" />
 			<i v-if="audioLoading" class="audio-loading" title="Loading sound library…">&#xf569;</i>
+			<span v-if="parseError" class="parse-error" :title="parseError">&#xf071;</span>
 		</header>
 		<main>
 			<MidiRoll :player="player" :timeScale="viewTimeScale" :height="400" :width="windowSize.width" />
@@ -372,6 +373,7 @@
 				player: null,
 				viewTimeScale: 4e-3,
 				name: null,
+				parseError: null,
 				source: null,
 				audioLoading: false,
 				windowSize: {
@@ -523,23 +525,38 @@
 					this.loadMidiFile(file);
 				else if (file.type === "application/json" || /\.json$/i.test(file.name)) {
 					const text = await this.readFileText(file);
-					this.name = file.name;
-					const midi = JSON.parse(text);
-					this.updatePlayer(midi);
+					this.parseInto(file.name, () => JSON.parse(text));
 				}
 				// Checked ahead of the plain .txt branch: a midiseq2 file matches both patterns.
 				else if (isMidiseq2Name(file.name)) {
 					const text = await this.readFileText(file);
-					this.name = file.name;
-					const midi = midiseq2ToMidi(text);
-					this.updatePlayer(midi);
+					this.parseInto(file.name, () => midiseq2ToMidi(text));
 				}
 				else if (file.type === "text/plain" || /\.txt$/i.test(file.name)) {
 					const text = await this.readFileText(file);
-					this.name = file.name;
-					const midi = MidiText.textToMidi(text);
-					this.updatePlayer(midi);
+					this.parseInto(file.name, () => MidiText.textToMidi(text));
 				}
+			},
+
+
+			// Decode a text file into the player, surfacing a parse failure instead of letting it
+			// escape as an unhandled rejection. The midiseq2 grammar reports malformed input (a bad
+			// field arity, a stray token) rather than inventing values, so a real error can reach
+			// here; the name is only committed once the parse succeeds, leaving the previous file
+			// loaded on failure rather than a broken half-state.
+			parseInto (name, decode) {
+				let midi;
+				try {
+					midi = decode();
+				}
+				catch (error) {
+					this.parseError = `${name}: ${error.message.split("\n")[0]}`;
+					console.warn("failed to load", name, error);
+					return;
+				}
+				this.parseError = null;
+				this.name = name;
+				this.updatePlayer(midi);
 			},
 
 
@@ -679,6 +696,16 @@
 		display: inline-block;
 		color: #888;
 		animation: audio-loading-dance 2s infinite;
+	}
+
+	// a failed decode: the icon carries the message as its tooltip, so a malformed file reports
+	// itself instead of failing silently.
+	.parse-error
+	{
+		display: inline-block;
+		margin-left: 0.4em;
+		color: #c0392b;
+		cursor: help;
 	}
 
 	/* Two up-down bounces, then a single full ease-in-out spin, then loop. */

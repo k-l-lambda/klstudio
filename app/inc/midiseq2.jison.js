@@ -77,27 +77,78 @@
   }
 */
 var parser = (function(){
-var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o};
+var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[1,5],$V1=[1,6],$V2=[1,7],$V3=[1,8],$V4=[5,7,8,10,11],$V5=[1,12],$V6=[1,13],$V7=[1,25],$V8=[1,20],$V9=[1,21],$Va=[1,22],$Vb=[1,23],$Vc=[1,28],$Vd=[5,7,8,10,11,14,18,19,20,23],$Ve=[5,7,8,10,11,21],$Vf=[1,30],$Vg=[5,7,8,10,11,14,21];
 var parser = {trace: function trace () { },
 yy: {},
-symbols_: {"error":2,"start_symbol":3,"SOURCE":4,"EOF":5,"$accept":0,"$end":1},
-terminals_: {2:"error",4:"SOURCE",5:"EOF"},
-productions_: [0,[3,2],[3,1]],
+symbols_: {"error":2,"file":3,"statements":4,"EOF":5,"statement":6,"ELAPSE":7,"AT_MEASURE":8,"decimal":9,"AT_TICK":10,"KEYWORD":11,"args":12,"INT":13,"NIBBLE":14,"prefixes":15,"fields":16,"prefix":17,"CHANNEL":18,"HASH":19,"DOLLAR":20,"UNDERSCORE":21,"wide":22,"MINUS":23,"nibbles":24,"$accept":0,"$end":1},
+terminals_: {2:"error",5:"EOF",7:"ELAPSE",8:"AT_MEASURE",10:"AT_TICK",11:"KEYWORD",13:"INT",14:"NIBBLE",18:"CHANNEL",19:"HASH",20:"DOLLAR",21:"UNDERSCORE",23:"MINUS"},
+productions_: [0,[3,2],[3,1],[4,2],[4,1],[6,1],[6,2],[6,2],[6,2],[6,1],[9,1],[9,1],[12,2],[12,1],[12,1],[15,2],[15,1],[17,1],[17,1],[17,1],[16,3],[16,1],[22,2],[22,1],[24,2],[24,1]],
 performAction: function anonymous(yytext, yyleng, yylineno, yy, yystate /* action[1] */, $$ /* vstack */, _$ /* lstack */) {
 /* this == yyval */
 
 var $0 = $$.length - 1;
 switch (yystate) {
-case 1:
- return decode($$[$0-1]); 
+case 1: case 2:
+ return builderOf(yy).finish(); 
 break;
-case 2:
- return decode(""); 
+case 5:
+ builderOf(yy).addElapse($$[$0]); 
+break;
+case 6:
+ builderOf(yy).setMeasure($$[$0]); 
+break;
+case 7:
+ builderOf(yy).setTick($$[$0]); 
+break;
+case 8:
+ dispatch(builderOf(yy), $$[$0-1], $$[$0], yylineno + 1); 
+break;
+case 9:
+ dispatch(builderOf(yy), $$[$0], emptyArgs(), yylineno + 1); 
+break;
+case 10: case 11: case 13:
+ this.$ = $$[$0]; 
+break;
+case 12:
+ this.$ = withFields($$[$0-1], $$[$0]); 
+break;
+case 14:
+ this.$ = withFields(emptyArgs(), $$[$0]); 
+break;
+case 15:
+ this.$ = mergeArg($$[$0-1], $$[$0]); 
+break;
+case 16:
+ this.$ = mergeArg(emptyArgs(), $$[$0]); 
+break;
+case 17:
+ this.$ = {kind: "channel", value: $$[$0]}; 
+break;
+case 18:
+ this.$ = {kind: "hash", value: $$[$0]}; 
+break;
+case 19:
+ this.$ = {kind: "dollar", value: $$[$0]}; 
+break;
+case 20:
+ $$[$0-2].push($$[$0]); this.$ = $$[$0-2]; 
+break;
+case 21: case 25:
+ this.$ = [$$[$0]]; 
+break;
+case 22:
+ this.$ = wideValue(true, $$[$0]); 
+break;
+case 23:
+ this.$ = wideValue(false, $$[$0]); 
+break;
+case 24:
+ $$[$0-1].push($$[$0]); this.$ = $$[$0-1]; 
 break;
 }
 },
-table: [{3:1,4:[1,2],5:[1,3]},{1:[3]},{5:[1,4]},{1:[2,2]},{1:[2,1]}],
-defaultActions: {3:[2,2],4:[2,1]},
+table: [{3:1,4:2,5:[1,3],6:4,7:$V0,8:$V1,10:$V2,11:$V3},{1:[3]},{5:[1,9],6:10,7:$V0,8:$V1,10:$V2,11:$V3},{1:[2,2]},o($V4,[2,4]),o($V4,[2,5]),{9:11,13:$V5,14:$V6},{9:14,13:$V5,14:$V6},o($V4,[2,9],{12:15,15:16,16:17,17:18,22:19,24:24,14:$V7,18:$V8,19:$V9,20:$Va,23:$Vb}),{1:[2,1]},o($V4,[2,3]),o($V4,[2,6]),o($V4,[2,10]),o($V4,[2,11]),o($V4,[2,7]),o($V4,[2,8]),o($V4,[2,13],{22:19,24:24,16:26,17:27,14:$V7,18:$V8,19:$V9,20:$Va,23:$Vb}),o($V4,[2,14],{21:$Vc}),o($Vd,[2,16]),o($Ve,[2,21]),o($Vd,[2,17]),o($Vd,[2,18]),o($Vd,[2,19]),{14:$V7,24:29},o($Ve,[2,23],{14:$Vf}),o($Vg,[2,25]),o($V4,[2,12],{21:$Vc}),o($Vd,[2,15]),{14:$V7,22:31,23:$Vb,24:24},o($Ve,[2,22],{14:$Vf}),o($Vg,[2,24]),o($Ve,[2,20])],
+defaultActions: {3:[2,2],9:[2,1]},
 parseError: function parseError (str, hash) {
     if (hash.recoverable) {
         this.trace(str);
@@ -245,47 +296,176 @@ parse: function parse(input) {
     return true;
 }};
 
-	const parseWide = (parts) => { const negative = parts[0] === "-"; const digits = (negative ? parts.slice(1) : parts).join(""); const value = parseInt(digits || "0", 16) || 0; return negative ? -value : value; };
-	const parseHex = value => parseInt(value, 16) || 0;
-	const decode = source => {
-		const header = { formatType: 1, trackCount: 1, ticksPerBeat: 480 };
-		const events = []; let elapsed = 0, measureIndex, tickInMeasure;
-		for (const raw of source.split(/\r?\n/)) {
-			const line = raw.trim(); if (!line) continue;
-			if (line.startsWith("@measure ")) { measureIndex = Number(line.slice(9)); continue; }
-			if (line.startsWith("@tick ")) { tickInMeasure = Number(line.slice(6)); continue; }
-			const p = line.split(/\s+/);
-			while (p.length && /^E[0-9a-f]+$/i.test(p[0])) elapsed += parseHex(p.shift().slice(1));
-			const keyword = p.shift();
-			if (!keyword) continue;
-			if (keyword === "ticks_per_beat") { header.ticksPerBeat = parseWide(p); continue; }
-			if (keyword === "format_type") { header.formatType = parseWide(p); continue; }
-			const channelToken = p.find(x => /^C[1-9a-f]$/i.test(x)); const channel = channelToken ? parseHex(channelToken.slice(1)) : 0;
-			const hashToken = p.find(x => /^#[0-9a-f]{2}$/i.test(x)); const dollarToken = p.find(x => /^\$[0-9a-f]{2}$/i.test(x));
-			const bare = p.filter(x => !/^C|^#|^\$/i.test(x));
-			const separated = []; let field = []; for (const x of bare) { if (x === "_") { separated.push(parseWide(field)); field = []; } else if (x !== "-") field.push(x); } if (field.length) separated.push(parseWide(field));
-			const event = { deltaTime: elapsed, type: "channel", subtype: keyword, channel, measureIndex, tickInMeasure }; elapsed = 0; tickInMeasure = undefined;
-			switch (keyword) {
-			case "set_tempo": event.type = "meta"; event.subtype = "setTempo"; event.microsecondsPerBeat = parseWide(bare); break;
-			case "time_signature": event.type = "meta"; event.subtype = "timeSignature"; [event.numerator, event.denominator, event.metronome, event.thirtyseconds] = separated; break;
-			case "key_signature": event.type = "meta"; event.subtype = "keySignature"; [event.key, event.scale] = separated; break;
-			case "sequence_number": event.type = "meta"; event.subtype = "sequenceNumber"; event.number = parseWide(bare); break;
-			case "channel_prefix": event.type = "meta"; event.subtype = "midiChannelPrefix"; event.channel = parseWide(bare); break;
-			case "smpte_offset": event.type = "meta"; event.subtype = "smpteOffset"; [event.frameRate, event.hour, event.min, event.sec, event.frame, event.subframe] = separated; break;
-			case "note_on": event.subtype = "noteOn"; event.noteNumber = parseHex(hashToken?.slice(1) || "0"); event.velocity = parseHex(dollarToken?.slice(1) || "0"); break;
-			case "note_off": event.subtype = "noteOff"; event.noteNumber = parseHex(hashToken?.slice(1) || "0"); event.velocity = parseHex(dollarToken?.slice(1) || "0"); break;
-			case "polytouch": event.subtype = "noteAftertouch"; event.noteNumber = parseHex(hashToken?.slice(1) || "0"); event.amount = parseHex(dollarToken?.slice(1) || "0"); break;
-			case "control_change": event.subtype = "controller"; event.controllerType = parseHex(hashToken?.slice(1) || "0"); event.value = parseHex(dollarToken?.slice(1) || "0"); break;
-			case "program_change": event.subtype = "programChange"; event.programNumber = parseHex(hashToken?.slice(1) || "0"); break;
-			case "aftertouch": event.subtype = "channelAftertouch"; event.amount = parseHex(hashToken?.slice(1) || "0"); break;
-			case "pitchwheel": event.subtype = "pitchBend"; event.value = parseWide(bare); break;
-			case "end_of_track": event.type = "meta"; event.subtype = "endOfTrack"; break;
-			default: throw new Error(`unknown midiseq2 event: ${keyword}`);
-			}
-			events.push(event);
+	const NIBBLE = "0123456789abcdef";
+
+	// A wide field is a nibble run, MSB first, with an optional leading "-".
+	const wideValue = (negative, nibbles) => {
+		let value = 0;
+		for (const n of nibbles)
+			value = value * 16 + n;
+		return negative ? -value : value;
+	};
+
+	// mido-style keyword -> the music-widgets event shape. `args` is the parsed argument bundle:
+	// {channel, hash, dollar, fields} where `fields` is the list of wide values (split on `_`).
+	const buildEvent = (keyword, args, line) => {
+		const need = (count) => {
+			if (args.fields.length < count)
+				throw new Error(`midiseq2: ${keyword} needs ${count} field(s), got ${args.fields.length} (line ${line})`);
+		};
+		// An absent byte token means 0, per the format's zero-elision rule.
+		const byteOr0 = (token) => token === null ? 0 : token;
+		// A meta event carries no channel; rejecting it here catches a malformed line rather than
+		// silently dropping the token.
+		const noChannel = () => {
+			if (args.channel !== null)
+				throw new Error(`midiseq2: ${keyword} is a meta event and takes no channel (line ${line})`);
+		};
+		const event = {type: "channel", subtype: keyword, channel: args.channel === null ? 0 : args.channel};
+
+		switch (keyword) {
+		case "set_tempo":
+			noChannel(); need(1);
+			return Object.assign(event, {type: "meta", subtype: "setTempo", microsecondsPerBeat: args.fields[0]});
+		case "time_signature":
+			noChannel(); need(4);
+			return Object.assign(event, {type: "meta", subtype: "timeSignature",
+				numerator: args.fields[0], denominator: args.fields[1],
+				metronome: args.fields[2], thirtyseconds: args.fields[3]});
+		case "key_signature":
+			noChannel(); need(2);
+			return Object.assign(event, {type: "meta", subtype: "keySignature", key: args.fields[0], scale: args.fields[1]});
+		case "sequence_number":
+			noChannel(); need(1);
+			return Object.assign(event, {type: "meta", subtype: "sequenceNumber", number: args.fields[0]});
+		case "channel_prefix":
+			noChannel(); need(1);
+			// the prefix's payload IS a channel, but it arrives as a wide field, not a C token.
+			return Object.assign(event, {type: "meta", subtype: "midiChannelPrefix", channel: args.fields[0]});
+		case "smpte_offset":
+			noChannel(); need(6);
+			return Object.assign(event, {type: "meta", subtype: "smpteOffset",
+				frameRate: args.fields[0], hour: args.fields[1], min: args.fields[2],
+				sec: args.fields[3], frame: args.fields[4], subframe: args.fields[5]});
+		case "end_of_track":
+			noChannel();
+			return Object.assign(event, {type: "meta", subtype: "endOfTrack"});
+		// Channel events. music-widgets names these after the MIDI wire spec while midiseq2 uses the
+		// mido names, so the subtype is translated here; the serializer accepts both spellings.
+		// Every byte token is OPTIONAL and defaults to 0: the format elides a zero-valued token, so
+		// `program_change` (program 0) and `note_on #3c` (velocity 0) are both well-formed. Demanding
+		// the token here rejected 143 real `program_change` lines.
+		case "note_on":
+			return Object.assign(event, {subtype: "noteOn", noteNumber: byteOr0(args.hash), velocity: byteOr0(args.dollar)});
+		case "note_off":
+			return Object.assign(event, {subtype: "noteOff", noteNumber: byteOr0(args.hash), velocity: byteOr0(args.dollar)});
+		case "polytouch":
+			return Object.assign(event, {subtype: "noteAftertouch", noteNumber: byteOr0(args.hash), amount: byteOr0(args.dollar)});
+		case "control_change":
+			return Object.assign(event, {subtype: "controller", controllerType: byteOr0(args.hash), value: byteOr0(args.dollar)});
+		case "program_change":
+			return Object.assign(event, {subtype: "programChange", programNumber: byteOr0(args.hash)});
+		case "aftertouch":
+			return Object.assign(event, {subtype: "channelAftertouch", amount: byteOr0(args.hash)});
+		case "pitchwheel":
+			// a pitchwheel at centre (0) elides its field too.
+			return Object.assign(event, {subtype: "pitchBend", value: args.fields.length ? args.fields[0] : 0});
+		default:
+			throw new Error(`midiseq2: unknown event \`${keyword}\` (line ${line})`);
 		}
-		if (!events.some(e => e.subtype === "endOfTrack")) events.push({ deltaTime: 0, type: "meta", subtype: "endOfTrack" });
-		return { header, tracks: [events] };
+	};
+
+	const emptyArgs = () => ({channel: null, hash: null, dollar: null, fields: []});
+
+	const withFields = (args, fields) => { args.fields = fields; return args; };
+
+	// Fold one argument into the bundle. A `_` only separates fields, so it carries no value; a
+	// repeated channel/#/$ is a malformed line rather than a last-one-wins.
+	const mergeArg = (args, arg) => {
+		switch (arg.kind) {
+		case "channel":
+			if (args.channel !== null)
+				throw new Error("midiseq2: duplicate channel token");
+			args.channel = arg.value;
+			break;
+		case "hash":
+			if (args.hash !== null)
+				throw new Error("midiseq2: duplicate #xx token");
+			args.hash = arg.value;
+			break;
+		case "dollar":
+			if (args.dollar !== null)
+				throw new Error("midiseq2: duplicate $xx token");
+			args.dollar = arg.value;
+			break;
+		case "field":
+			args.fields.push(arg.value);
+			break;
+		case "separator":
+			break;
+		}
+		return args;
+	};
+
+	// Accumulates statements into a MidiData. Held on the parser instance so a parse is reentrant.
+	class Builder {
+		constructor () {
+			this.header = {formatType: 1, trackCount: 1, ticksPerBeat: 480};
+			this.events = [];
+			this.elapsed = 0;
+			this.measureIndex = undefined;
+			this.tickInMeasure = undefined;
+		}
+
+		setHeader (name, value) {
+			if (name === "ticks_per_beat")
+				this.header.ticksPerBeat = value;
+			else
+				this.header.formatType = value;
+		}
+
+		addElapse (value) { this.elapsed += value; }
+
+		// `@measure` persists across events; `@tick` is consumed by the next event alone.
+		setMeasure (index) { this.measureIndex = index; }
+		setTick (tick) { this.tickInMeasure = tick; }
+
+		addEvent (event) {
+			event.deltaTime = this.elapsed;
+			this.elapsed = 0;
+			if (this.measureIndex !== undefined)
+				event.measureIndex = this.measureIndex;
+			if (this.tickInMeasure !== undefined)
+				event.tickInMeasure = this.tickInMeasure;
+			this.tickInMeasure = undefined;
+			this.events.push(event);
+		}
+
+		finish () {
+			// A file may end without an explicit end_of_track; MIDI requires one, and any trailing
+			// elapse time belongs to it.
+			if (!this.events.some(e => e.subtype === "endOfTrack"))
+				this.events.push({deltaTime: this.elapsed, type: "meta", subtype: "endOfTrack"});
+			return {header: this.header, tracks: [this.events]};
+		}
+	}
+
+	// One builder per parse, created on first use and read back by the `file` rule.
+	const builderOf = (yy) => yy.builder || (yy.builder = new Builder());
+
+	const HEADERS = new Set(["ticks_per_beat", "format_type"]);
+
+	// `KEYWORD args` covers both headers and events (they are the same shape), so split them here.
+	const dispatch = (builder, keyword, args, line) => {
+		if (HEADERS.has(keyword)) {
+			if (args.fields.length !== 1)
+				throw new Error(`midiseq2: ${keyword} needs exactly one value (line ${line})`);
+			if (args.channel !== null || args.hash !== null || args.dollar !== null)
+				throw new Error(`midiseq2: ${keyword} takes no channel or byte token (line ${line})`);
+			builder.setHeader(keyword, args.fields[0]);
+			return;
+		}
+		builder.addEvent(buildEvent(keyword, args, line));
 	};
 /* generated by jison-lex 0.3.4 */
 var lexer = (function(){
@@ -611,18 +791,44 @@ pushState:function pushState (condition) {
 stateStackSize:function stateStackSize() {
         return this.conditionStack.length;
     },
-options: {},
+options: {"flex":true},
 performAction: function anonymous(yy,yy_,$avoiding_name_collisions,YY_START) {
 var YYSTATE=YY_START;
 switch($avoiding_name_collisions) {
-case 0:return 4;
+case 0:/* skip: whitespace separates tokens but carries no meaning */
 break;
-case 1:return 5;
+case 1:return 8;
+break;
+case 2:return 10;
+break;
+case 3:yy_.yytext = parseInt(yy_.yytext.slice(1), 16); return 7;
+break;
+case 4:yy_.yytext = parseInt(yy_.yytext.slice(1), 16); return 18;
+break;
+case 5:yy_.yytext = parseInt(yy_.yytext.slice(1), 16); return 19;
+break;
+case 6:yy_.yytext = parseInt(yy_.yytext.slice(1), 16); return 20;
+break;
+case 7:return 21;
+break;
+case 8:return 23;
+break;
+case 9:yy_.yytext = NIBBLE.indexOf(yy_.yytext.toLowerCase()); return 14;
+break;
+case 10:yy_.yytext = parseInt(yy_.yytext, 10); return 13;
+break;
+case 11:return 11;
+break;
+case 12:return 5;
+break;
+case 13: throw new Error(`midiseq2: unexpected character \`${yy_.yytext}\` at line ${yy_.yylineno + 1}`); 
+break;
+case 14:console.log(yy_.yytext);
 break;
 }
 },
-rules: [/^(?:[\s\S]+)/,/^(?:$)/],
-conditions: {"INITIAL":{"rules":[0,1],"inclusive":true}}
+rules: [/^(?:[ \t\r\n]+)/,/^(?:@measure)/,/^(?:@tick)/,/^(?:E[0-9a-fA-F]+)/,/^(?:C[0-9a-fA-F])/,/^(?:#[0-9a-fA-F]{2})/,/^(?:\$[0-9a-fA-F]{2})/,/^(?:_)/,/^(?:-)/,/^(?:[0-9a-fA-F])/,/^(?:[0-9]+)/,/^(?:[a-z_][a-z0-9_]*)/,/^(?:$)/,/^(?:.)/,/^(?:.)/],
+conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],"inclusive":true}}
 });
 return lexer;
 })();

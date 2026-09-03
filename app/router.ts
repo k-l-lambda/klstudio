@@ -185,6 +185,11 @@ export const routes = [
 		name: "Hexiamond",
 		component: () => import(/* webpackChunkName: "hexiamond", */ "./views/hexiamond.vue"),
 	},
+	{
+		path: "/complex-function",
+		name: "Complex Function Plot",
+		component: () => import(/* webpackChunkName: "complex-function", */ "./views/complex-function.vue"),
+	},
 ];
 
 

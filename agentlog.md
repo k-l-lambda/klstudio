@@ -1,3 +1,26 @@
+## 2026-09-03 complex-function: WebGL domain-coloring plot
+
+- New view `app/views/complex-function.vue` at route `/complex-function`, plotting a user-supplied complex function over the complex plane. No home entry, as requested.
+  - Colour convention: hue carries `arg f` (a full turn maps to the full wheel), lightness carries `|f|` through `atan(|f|) * 2/pi`, so lightness is exactly 0.5 at `|f| = 1` and tends to black at a zero and white at a pole without ever clipping. Optional contours mark modulus doublings (`fract(log2 |f|)`) and twelfths of a turn in phase, which is what makes the rate of change legible.
+  - Poles read white: `!(mag < 1e30)` is the portable NaN/Inf test in GLSL ES 1.00 and matches the limit of the lightness ramp.
+  - Pan by drag, zoom by wheel anchored at the cursor, pinch-zoom on touch. Grid step is 1/2/5 x a power of ten, and axis tick labels are an SVG overlay (the shader draws the lines; text is easier in SVG). Labels ride their own axis while it is on screen and stick to the canvas edge once it is panned off.
+  - Cursor readout prints `z`, `f(z)`, `|f|` and `arg f` in units of pi, evaluated on the CPU from the same AST the shader was compiled from — that is what keeps the number and the picture from disagreeing.
+  - 13 preset examples, favourites with a star toggle, and brightness/contours/grid all persisted to `localStorage`.
+- New module `app/inc/complexExpression.ts`: tokenizer + recursive-descent parser producing one AST that feeds both `compileGLSL` (shader body) and `evaluate` (CPU readout). Hand-written rather than via mathjs, which is a dependency but only evaluates in JS — it cannot emit GLSL, and a second grammar would be a second source of truth.
+  - Grammar: additive, multiplicative, unary minus, then right-associative `^` whose exponent is a unary expression, so `z^-1` and `z^2^3` parse as written. Implicit multiplication (`2z`, `3iz`, `z(z+1)`) is supported because that is how these formulas are written by hand.
+  - `GLSL_PRELUDE` carries complex arithmetic over `vec2`. Written for GLSL ES 1.00: no `sinh`/`cosh`/`isnan` builtins and no array constructors, hence hand-rolled hyperbolics and an unrolled Lanczos gamma (g = 7, with the reflection formula covering the left half-plane).
+  - Small integer powers inline to repeated multiplication instead of `exp(n log z)`: exact at the origin and free of the branch cut the exp/log form carries.
+- Two bugs the tests caught, both fixed:
+  - The tokenizer took `[A-Za-z]+` greedily, so `3iz` lexed `iz` as one unknown name. Names are now split by longest match against the known vocabulary, which also keeps `sinh` from splitting into `sin` + `h`.
+  - `z^-1` parsed its exponent as `neg(num 1)`, which the inline-power check missed. Negation of a literal is now folded at parse time, so `z^-1` compiles to an exact reciprocal.
+- Verified:
+  - `tests/complexExpression.ts` — ~90 `console.assert` checks: precedence and associativity, implicit multiplication, every function against known values (Euler's identity, `gamma(5) = 24`, `gamma(1/2) = sqrt(pi)`, the reflection branch at `-1/2`), `pow` edge cases, that malformed input throws rather than inventing values, and the shape of the generated GLSL.
+  - GPU/CPU agreement, in headless Chrome over real WebGL: 20 expressions rendered and read back with `readPixels`, each compared per-pixel against `evaluate` on the same AST. Worst channel difference 0.002, below the 1/255 quantization step. This is what proves every GLSL helper both compiles and computes the same thing as its JS twin.
+  - Component behaviour, mounting the real view in a harness: 41 assertions — all 13 presets compile on real GL, a malformed expression sets the error and keeps the previous shader (a half-typed formula never blanks the plot), favourites and shading round-trip through `localStorage`, wheel-zoom holds the cursor point to 2e-16, pan holds the grabbed point, view aspect matches canvas aspect, and tick counts stay bounded at 1e-4 zoom.
+  - Argument principle read off the rendered pixels: hue winding number around the origin is +1 for `z`, +2 for `z^2`, -1 for `1/z`. For `(1+z^2)^-1` it is 0 inside `|z| = 1` and -2 outside, jumping exactly as the sampling contour crosses the poles at ±i.
+- `spellcheck="false"` as a literal attribute is coerced to `true` under Vue 2 compat; the bound form `:spellcheck="false"` is required.
+- `yarn lint` 0 errors (12 pre-existing warnings, unchanged) and `yarn build` passed; chunk emits as `complex-function-*.js` (25 kB).
+
 ## 2026-08-07 Client-side asset caching — configurable service worker (Cache Storage) + HTTP backup
 
 - Large fixed-path static assets were re-downloaded on every visit (no SW/PWA/IDB; Express served `docs/` with no cache headers). The worst was the GM soundfont `public/soundfont/gm.sf3` (~38 MB, fetched by `app/inc/fluidAudio.ts` with a bare `fetch().arrayBuffer()`). Added client-side caching so each qualifying asset downloads once per browser. Started soundfont-only, then generalized to a configurable, bucketed asset cache.

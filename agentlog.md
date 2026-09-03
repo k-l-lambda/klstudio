@@ -1,3 +1,24 @@
+## 2026-09-03 complex-function: live expression input and URL-shareable control state
+
+- The expression box now takes effect while typing, debounced 2 s (`EXPRESSION_DEBOUNCE`), instead of waiting for Enter. Every keystroke restarts the timer; Enter and blur clear the pending timer and commit at once, so an explicit commit never races a late one. A half-typed formula during the window shows no error and keeps the previous shader, which is why live compilation does not make the plot flicker between valid states.
+- The hash now carries a query reflecting every control: `f` expression, `cx`/`cy` centre, `w` view width, `b` brightness, `c` contours, `g` grid. A single `urlQuery` computed bundles them, so adding a control means adding one line there rather than touching the read and write paths separately.
+  - Writes are debounced 400 ms and use `replace`, not `push`: a pan updates `center` on every mousemove and only the resting value belongs in the address bar. Measured — a 12-step drag produces exactly one history write, and repeated view changes add no history entries, so the back button still leaves the page instead of walking back through the zoom.
+  - Keys the view does not own are carried through on write rather than dropped.
+  - Reads at init take precedence query -> `localStorage` -> default, so a shared link wins over the recipient's own stored state without erasing it.
+  - `mounted` calls `syncQuery` once. The watcher only fires on change, so a bare URL would otherwise stay empty until some control moved, and a link copied immediately would carry none of what the viewer was looking at.
+  - Coordinates keep enough significant digits to survive a deep zoom: `toPrecision(10)`, or exponential form outside 1e-6..1e6. Verified round-tripping a centre of `(0.001234, -0.005678)` at width 2.5e-3.
+- Three decoding defects the tests caught, all fixed:
+  - `Number("")` is 0, so a bare `cy=` in the URL silently meant the origin instead of "not specified". `decodeNumber` now rejects blank values explicitly.
+  - `w=-5` was clamped to `MIN_SPAN`, dropping the viewer into extreme zoom. A non-positive span is nonsense rather than maximum zoom, so it is now rejected and the current value kept — `decodeNumber` takes an `accept` predicate, and span and brightness pass `isPositive`.
+  - `decodeFlag` read a blank or unrecognised value as false, turning a typo into a state change. It now recognises only the words we emit plus their obvious negations, and otherwise keeps the current setting, matching the number path.
+- The `$route` watcher guards re-entry by comparing values against `urlQuery` rather than with a "currently writing" flag: correctness no longer depends on how the router's promise and the Vue watcher interleave as microtasks.
+- Verified:
+  - 39 assertions against the real mounted component: initialization from a query outranks `localStorage`; the debounce does not commit at 0.6 s or 1.5 s and does commit by 2.4 s; a keystroke restarts the timer; Enter commits immediately with no late double-commit; state reaches the URL; an externally edited query updates the controls; a malformed expression from the URL reports an error and leaves a working shader.
+  - 17 further assertions on the fallback paths: a bare URL still restores from `localStorage` and is then backfilled into the address bar; a query naming only some keys overrides just those; changes still persist to `localStorage`; and a junk query (`cx=abc&cy=&w=-5&b=999&c=maybe&g=`) leaves centre and span at their previous values, clamps brightness, and keeps rendering.
+  - On the production build, screenshots over real WebGL: the same URL twice is byte-identical, and each of expression, width, brightness and the overlay flags changes the rendered pixels. That is what shows the query reaches the GPU rather than merely landing in `data()`.
+- `+` percent-encodes to `%2B` in the hash and round-trips cleanly, so `(1+z^2)^-1` survives a copied link; `^`, `/` and parens are left readable.
+- `yarn lint` 0 errors (12 pre-existing warnings elsewhere, none in these files), `yarn build` passed, and `tests/complexExpression.ts` still clean.
+
 ## 2026-09-03 complex-function: WebGL domain-coloring plot
 
 - New view `app/views/complex-function.vue` at route `/complex-function`, plotting a user-supplied complex function over the complex plane. No home entry, as requested.

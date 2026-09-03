@@ -29,6 +29,7 @@
 					autocapitalize="off"
 					placeholder="(1+z^2)^-1"
 					v-model="expressionInput"
+					@input="onExpressionInput"
 					@keydown.enter="commitExpression"
 					@blur="commitExpression"
 				/>
@@ -94,6 +95,26 @@
 		favorites: "complexFunction.favorites",
 		shading: "complexFunction.shading",
 	};
+
+	/**
+	 * Query keys are short because they end up in a shared URL. `f` is the expression; `cx`/`cy`/`w`
+	 * are the view window; `b`/`c`/`g` are the shading controls.
+	 */
+	const QUERY_KEYS = {
+		expression: "f",
+		centerX: "cx",
+		centerY: "cy",
+		viewWidth: "w",
+		brightness: "b",
+		contours: "c",
+		grid: "g",
+	};
+
+	/** Typing settles before the shader is rebuilt, so a half-typed formula never flashes an error. */
+	const EXPRESSION_DEBOUNCE = 2000;
+
+	/** Panning fires per mousemove; the address bar only needs to catch up once the gesture rests. */
+	const QUERY_DEBOUNCE = 400;
 
 
 	// A short tour of what domain coloring is good at: zeros, poles, branch cuts, essential
@@ -212,6 +233,54 @@
 	};
 
 
+	/**
+	 * Enough significant digits to survive a deep zoom round-trip, without trailing noise in the URL.
+	 * `Number.prototype.toPrecision` keeps exponential form for extremes, which parses back cleanly.
+	 */
+	const encodeNumber = value => {
+		const text = Math.abs(value) >= 1e-6 && Math.abs(value) < 1e6 ? value.toPrecision(10) : value.toExponential(8);
+
+		// Drop trailing zeros (and a bare trailing point) from the fixed form.
+		return text.includes("e") ? text : text.replace(/\.?0+$/, "") || "0";
+	};
+
+
+	/**
+	 * `Number("")` is 0, so a blank value has to be rejected explicitly — otherwise a bare `cy=` in the
+	 * URL would silently mean the origin instead of "not specified". `accept` narrows what counts as
+	 * valid: a span or a brightness may not be zero or negative, and clamping such a value would drop
+	 * the viewer into an extreme zoom rather than ignoring the nonsense.
+	 */
+	const decodeNumber = (raw, fallback, accept = Number.isFinite) => {
+		if (raw === undefined || raw === null || String(raw).trim() === "")
+			return fallback;
+
+		const value = Number(raw);
+
+		return accept(value) ? value : fallback;
+	};
+
+
+	const isPositive = value => Number.isFinite(value) && value > 0;
+
+
+	/**
+	 * Only the words we emit, plus their obvious negations, count. A blank or unrecognised value means
+	 * "not specified" and keeps the current setting, matching `decodeNumber` — silently reading `g=` or
+	 * `g=maybe` as "off" would turn a typo into a state change.
+	 */
+	const decodeFlag = (raw, fallback) => {
+		const text = String(raw === undefined || raw === null ? "" : raw).trim().toLowerCase();
+
+		if (["1", "true", "yes", "on"].includes(text))
+			return true;
+		if (["0", "false", "no", "off"].includes(text))
+			return false;
+
+		return fallback;
+	};
+
+
 	const readJSON = (key, fallback) => {
 		try {
 			const raw = window.localStorage.getItem(key);
@@ -252,7 +321,15 @@
 
 		data () {
 			const shading = readJSON(STORAGE_KEYS.shading, {});
-			const expression = readJSON(STORAGE_KEYS.expression, DEFAULT_EXPRESSION);
+
+			// Precedence: URL query, then localStorage, then the default. A shared link has to
+			// reproduce what the sender saw, so the query outranks whatever this browser had stored.
+			const query = (this.$route && this.$route.query) || {};
+			const expression = query[QUERY_KEYS.expression] || readJSON(STORAGE_KEYS.expression, DEFAULT_EXPRESSION);
+
+			const brightness = query[QUERY_KEYS.brightness] !== undefined
+				? Math.min(Math.max(decodeNumber(query[QUERY_KEYS.brightness], 1, isPositive), 0.2), 3)
+				: (Number.isFinite(shading.brightness) ? shading.brightness : 1);
 
 			return {
 				PRESETS,
@@ -262,13 +339,16 @@
 				error: null,
 				favorites: readJSON(STORAGE_KEYS.favorites, []),
 				panelIsOn: true,
-				brightness: Number.isFinite(shading.brightness) ? shading.brightness : 1,
-				contours: shading.contours !== false,
-				grid: shading.grid !== false,
+				brightness,
+				contours: decodeFlag(query[QUERY_KEYS.contours], shading.contours !== false),
+				grid: decodeFlag(query[QUERY_KEYS.grid], shading.grid !== false),
 				// The complex plane window, in complex units. Height follows from the aspect ratio, so
 				// the picture is never anisotropically stretched.
-				center: {x: 0, y: 0},
-				viewWidth: 8,
+				center: {
+					x: decodeNumber(query[QUERY_KEYS.centerX], 0),
+					y: decodeNumber(query[QUERY_KEYS.centerY], 0),
+				},
+				viewWidth: Math.min(Math.max(decodeNumber(query[QUERY_KEYS.viewWidth], 8, isPositive), MIN_SPAN), MAX_SPAN),
 				cursor: null,
 				cursorValue: null,
 			};
@@ -312,6 +392,23 @@
 			},
 
 
+			/**
+			 * The query this view would write for its current state. Watching one computed means every
+			 * control feeds the URL through a single path — a new control only has to appear here.
+			 */
+			urlQuery () {
+				return {
+					[QUERY_KEYS.expression]: this.expression,
+					[QUERY_KEYS.centerX]: encodeNumber(this.center.x),
+					[QUERY_KEYS.centerY]: encodeNumber(this.center.y),
+					[QUERY_KEYS.viewWidth]: encodeNumber(this.viewWidth),
+					[QUERY_KEYS.brightness]: encodeNumber(this.brightness),
+					[QUERY_KEYS.contours]: this.contours ? "1" : "0",
+					[QUERY_KEYS.grid]: this.grid ? "1" : "0",
+				};
+			},
+
+
 			/** Tick labels for the real axis, pinned to the axis but kept inside the canvas. */
 			realTicks () {
 				return this.ticksAlong("real");
@@ -330,11 +427,20 @@
 
 			this.rendererActive = true;
 			this.requestRender();
+
+			// The watcher only fires on change, so a visit that lands on a bare URL would leave the
+			// address bar empty until some control moved — and a link copied right away would carry
+			// none of what the viewer is actually showing.
+			this.syncQuery();
 		},
 
 
 		beforeUnmount () {
 			this.rendererActive = false;
+
+			this.clearExpressionTimer();
+			if (this.queryTimer)
+				clearTimeout(this.queryTimer);
 
 			if (this.frameHandle)
 				cancelAnimationFrame(this.frameHandle);
@@ -427,12 +533,91 @@
 			},
 
 
+			/**
+			 * Live editing, settled. Every keystroke restarts the timer, so the shader is rebuilt once
+			 * the user pauses rather than on each character — a half-typed `(1+z^` would otherwise
+			 * flash an error on the way to a valid formula.
+			 */
+			onExpressionInput () {
+				this.clearExpressionTimer();
+				this.expressionTimer = setTimeout(() => {
+					this.expressionTimer = null;
+					this.commitExpression();
+				}, EXPRESSION_DEBOUNCE);
+			},
+
+
+			clearExpressionTimer () {
+				if (this.expressionTimer) {
+					clearTimeout(this.expressionTimer);
+					this.expressionTimer = null;
+				}
+			},
+
+
+			// Enter and blur mean "I am done", so they pre-empt the pending debounce.
 			commitExpression () {
+				this.clearExpressionTimer();
+
 				const source = this.expressionInput.trim();
 				if (!source || source === this.expression)
 					return;
 
 				this.updateExpression(source);
+			},
+
+
+			/**
+			 * Mirror the current state into the hash query, debounced: a pan updates `center` on every
+			 * mousemove and the address bar only needs the resting value. `replace` rather than `push`
+			 * so dragging the plot does not bury the back button under history entries.
+			 */
+			syncQuery () {
+				if (this.queryTimer)
+					clearTimeout(this.queryTimer);
+
+				this.queryTimer = setTimeout(() => {
+					this.queryTimer = null;
+
+					const current = this.$route.query;
+					const mine = this.urlQuery;
+					if (Object.keys(mine).every(key => current[key] === mine[key]))
+						return;
+
+					// Keys this view does not own are carried through rather than dropped.
+					this.$router.replace({path: this.$route.path, query: {...current, ...mine}})
+						.catch(error => {
+							// A redundant navigation is not an error worth surfacing.
+							if (!error || error.name !== "NavigationDuplicated")
+								console.warn("cannot sync the URL query", error);
+						});
+				}, QUERY_DEBOUNCE);
+			},
+
+
+			/** Adopt state from the query — back/forward, or a hand-edited URL. */
+			applyQuery (query) {
+				const expression = query[QUERY_KEYS.expression];
+				if (expression && expression !== this.expression) {
+					this.expressionInput = expression;
+					this.clearExpressionTimer();
+					this.updateExpression(expression);
+				}
+
+				const cx = decodeNumber(query[QUERY_KEYS.centerX], this.center.x);
+				const cy = decodeNumber(query[QUERY_KEYS.centerY], this.center.y);
+				if (cx !== this.center.x || cy !== this.center.y)
+					this.center = {x: cx, y: cy};
+
+				const width = Math.min(Math.max(decodeNumber(query[QUERY_KEYS.viewWidth], this.viewWidth, isPositive), MIN_SPAN), MAX_SPAN);
+				if (width !== this.viewWidth)
+					this.viewWidth = width;
+
+				this.brightness = Math.min(Math.max(decodeNumber(query[QUERY_KEYS.brightness], this.brightness, isPositive), 0.2), 3);
+				this.contours = decodeFlag(query[QUERY_KEYS.contours], this.contours);
+				this.grid = decodeFlag(query[QUERY_KEYS.grid], this.grid);
+
+				this.requestRender();
 			},
 
 
@@ -716,6 +901,31 @@
 			shadingState (value) {
 				writeJSON(STORAGE_KEYS.shading, value);
 				this.requestRender();
+			},
+
+
+			// Any control that reaches the URL passes through urlQuery, so one watcher covers them all.
+			urlQuery: {
+				handler () {
+					this.syncQuery();
+				},
+				deep: true,
+			},
+
+
+			/**
+			 * The other direction: back/forward, or a URL the user edited by hand.
+			 *
+			 * The guard is a value comparison rather than an "am I writing" flag: our own replace()
+			 * produces a query that already equals urlQuery, so it is filtered here without depending on
+			 * how the router's promise and this watcher interleave.
+			 */
+			$route (to) {
+				const query = to.query || {};
+				if (Object.keys(this.urlQuery).every(key => query[key] === this.urlQuery[key]))
+					return;
+
+				this.applyQuery(query);
 			},
 		},
 	};

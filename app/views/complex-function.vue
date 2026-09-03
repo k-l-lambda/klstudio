@@ -129,6 +129,7 @@
 	const QUERY_DEBOUNCE = 400;
 
 
+
 	// A short tour of what domain coloring is good at: zeros, poles, branch cuts, essential
 	// singularities, and the lattice of a periodic function.
 	const PRESETS = [
@@ -250,6 +251,10 @@
 	 * `Number.prototype.toPrecision` keeps exponential form for extremes, which parses back cleanly.
 	 */
 	const encodeNumber = value => {
+		// Zero would otherwise take the exponential branch below and read `0.00000000e+0`.
+		if (value === 0)
+			return "0";
+
 		const text = Math.abs(value) >= 1e-6 && Math.abs(value) < 1e6 ? value.toPrecision(10) : value.toExponential(8);
 
 		// Drop trailing zeros (and a bare trailing point) from the fixed form.
@@ -290,6 +295,38 @@
 			return false;
 
 		return fallback;
+	};
+
+
+	const DEFAULT_CENTER = {x: 0, y: 0};
+	const DEFAULT_VIEW_WIDTH = 8;
+	const DEFAULT_BRIGHTNESS = 1;
+	const DEFAULT_CONTOURS = true;
+	const DEFAULT_GRID = true;
+
+	/**
+	 * The formula is what the page is about, so it is always written even at its default — a link without
+	 * it does not say what it is showing. Everything else is omitted when it equals its default.
+	 */
+	const ALWAYS_IN_QUERY = [QUERY_KEYS.expression];
+
+	/**
+	 * A field equal to its default is left out of the URL, which is what keeps a shared link short — the
+	 * common case of an unpanned view drops `cx`, `cy`, `w` and `b` outright.
+	 *
+	 * This is why an absent field has to mean "the default" rather than "whatever this browser last had":
+	 * a link with `cx` omitted must land on the origin for the recipient too, not on the centre they
+	 * happened to leave in `localStorage`. Note this rules out omitting a flag whose value is 0 but whose
+	 * default is on — `c=0` stays in the URL, since dropping it would read back as on.
+	 */
+	const QUERY_DEFAULTS = {
+		[QUERY_KEYS.expression]: DEFAULT_EXPRESSION,
+		[QUERY_KEYS.centerX]: encodeNumber(DEFAULT_CENTER.x),
+		[QUERY_KEYS.centerY]: encodeNumber(DEFAULT_CENTER.y),
+		[QUERY_KEYS.viewWidth]: encodeNumber(DEFAULT_VIEW_WIDTH),
+		[QUERY_KEYS.brightness]: encodeNumber(DEFAULT_BRIGHTNESS),
+		[QUERY_KEYS.contours]: DEFAULT_CONTOURS ? "1" : "0",
+		[QUERY_KEYS.grid]: DEFAULT_GRID ? "1" : "0",
 	};
 
 
@@ -334,14 +371,21 @@
 		data () {
 			const shading = readJSON(STORAGE_KEYS.shading, {});
 
-			// Precedence: URL query, then localStorage, then the default. A shared link has to
-			// reproduce what the sender saw, so the query outranks whatever this browser had stored.
 			const query = (this.$route && this.$route.query) || {};
-			const expression = query[QUERY_KEYS.expression] || readJSON(STORAGE_KEYS.expression, DEFAULT_EXPRESSION);
 
-			const brightness = query[QUERY_KEYS.brightness] !== undefined
-				? Math.min(Math.max(decodeNumber(query[QUERY_KEYS.brightness], 1, isPositive), 0.2), 3)
-				: (Number.isFinite(shading.brightness) ? shading.brightness : 1);
+			// A query that names any of our keys is taken as authoritative, and its absent keys read as
+			// defaults rather than as stored values. Fields at their default are omitted from the URL, so
+			// a link with no `cx` has to land on the origin for the recipient too — not on whatever centre
+			// their own `localStorage` happens to hold. Only a URL that carries none of our keys falls
+			// back to stored state, which is what a returning visitor arrives with.
+			const shared = Object.values(QUERY_KEYS).some(key => query[key] !== undefined);
+			const stored = shared ? {} : shading;
+
+			const expression = query[QUERY_KEYS.expression]
+				|| (shared ? DEFAULT_EXPRESSION : readJSON(STORAGE_KEYS.expression, DEFAULT_EXPRESSION));
+
+			const brightness = Math.min(Math.max(decodeNumber(query[QUERY_KEYS.brightness],
+				Number.isFinite(stored.brightness) ? stored.brightness : DEFAULT_BRIGHTNESS, isPositive), 0.2), 3);
 
 			return {
 				PRESETS,
@@ -352,15 +396,15 @@
 				favorites: readJSON(STORAGE_KEYS.favorites, []),
 				panelIsOn: true,
 				brightness,
-				contours: decodeFlag(query[QUERY_KEYS.contours], shading.contours !== false),
-				grid: decodeFlag(query[QUERY_KEYS.grid], shading.grid !== false),
+				contours: decodeFlag(query[QUERY_KEYS.contours], stored.contours !== undefined ? stored.contours !== false : DEFAULT_CONTOURS),
+				grid: decodeFlag(query[QUERY_KEYS.grid], stored.grid !== undefined ? stored.grid !== false : DEFAULT_GRID),
 				// The complex plane window, in complex units. Height follows from the aspect ratio, so
 				// the picture is never anisotropically stretched.
 				center: {
-					x: decodeNumber(query[QUERY_KEYS.centerX], 0),
-					y: decodeNumber(query[QUERY_KEYS.centerY], 0),
+					x: decodeNumber(query[QUERY_KEYS.centerX], DEFAULT_CENTER.x),
+					y: decodeNumber(query[QUERY_KEYS.centerY], DEFAULT_CENTER.y),
 				},
-				viewWidth: Math.min(Math.max(decodeNumber(query[QUERY_KEYS.viewWidth], 8, isPositive), MIN_SPAN), MAX_SPAN),
+				viewWidth: Math.min(Math.max(decodeNumber(query[QUERY_KEYS.viewWidth], DEFAULT_VIEW_WIDTH, isPositive), MIN_SPAN), MAX_SPAN),
 				cursor: null,
 				cursorValue: null,
 				// Held while a rebuild window is open; applied when it closes.
@@ -411,7 +455,7 @@
 			 * control feeds the URL through a single path — a new control only has to appear here.
 			 */
 			urlQuery () {
-				return {
+				const full = {
 					[QUERY_KEYS.expression]: this.expression,
 					[QUERY_KEYS.centerX]: encodeNumber(this.center.x),
 					[QUERY_KEYS.centerY]: encodeNumber(this.center.y),
@@ -420,6 +464,10 @@
 					[QUERY_KEYS.contours]: this.contours ? "1" : "0",
 					[QUERY_KEYS.grid]: this.grid ? "1" : "0",
 				};
+
+				// Anything at its default is left out, bar the formula; `applyQuery` fills the rest back in.
+				return Object.fromEntries(Object.entries(full)
+					.filter(([key, value]) => ALWAYS_IN_QUERY.includes(key) || value !== QUERY_DEFAULTS[key]));
 			},
 
 
@@ -663,11 +711,16 @@
 
 					const current = this.$route.query;
 					const mine = this.urlQuery;
-					if (Object.keys(mine).every(key => current[key] === mine[key]))
+					if (Object.values(QUERY_KEYS).every(key => current[key] === mine[key]))
 						return;
 
-					// Keys this view does not own are carried through rather than dropped.
-					this.$router.replace({path: this.$route.path, query: {...current, ...mine}})
+					// Keys this view does not own are carried through rather than dropped; our own are
+					// rebuilt from scratch, so one that fell back to its default leaves the URL instead of
+					// lingering at a stale value.
+					const foreign = Object.fromEntries(Object.entries(current)
+						.filter(([key]) => !Object.values(QUERY_KEYS).includes(key)));
+
+					this.$router.replace({path: this.$route.path, query: {...foreign, ...mine}})
 						.catch(error => {
 							// A redundant navigation is not an error worth surfacing.
 							if (!error || error.name !== "NavigationDuplicated")
@@ -677,27 +730,31 @@
 			},
 
 
-			/** Adopt state from the query — back/forward, or a hand-edited URL. */
+			/**
+			 * Adopt state from the query — back/forward, or a hand-edited URL. An absent field reads as its
+			 * default, not as the current value: that is the other half of omitting defaults on write, and
+			 * it is what makes going back from a panned view actually return to the origin.
+			 */
 			applyQuery (query) {
-				const expression = query[QUERY_KEYS.expression];
-				if (expression && expression !== this.expression) {
+				const expression = query[QUERY_KEYS.expression] || DEFAULT_EXPRESSION;
+				if (expression !== this.expression) {
 					this.expressionInput = expression;
 					this.clearExpressionTimer();
 					this.updateExpression(expression);
 				}
 
-				const cx = decodeNumber(query[QUERY_KEYS.centerX], this.center.x);
-				const cy = decodeNumber(query[QUERY_KEYS.centerY], this.center.y);
+				const cx = decodeNumber(query[QUERY_KEYS.centerX], DEFAULT_CENTER.x);
+				const cy = decodeNumber(query[QUERY_KEYS.centerY], DEFAULT_CENTER.y);
 				if (cx !== this.center.x || cy !== this.center.y)
 					this.center = {x: cx, y: cy};
 
-				const width = Math.min(Math.max(decodeNumber(query[QUERY_KEYS.viewWidth], this.viewWidth, isPositive), MIN_SPAN), MAX_SPAN);
+				const width = Math.min(Math.max(decodeNumber(query[QUERY_KEYS.viewWidth], DEFAULT_VIEW_WIDTH, isPositive), MIN_SPAN), MAX_SPAN);
 				if (width !== this.viewWidth)
 					this.viewWidth = width;
 
-				this.brightness = Math.min(Math.max(decodeNumber(query[QUERY_KEYS.brightness], this.brightness, isPositive), 0.2), 3);
-				this.contours = decodeFlag(query[QUERY_KEYS.contours], this.contours);
-				this.grid = decodeFlag(query[QUERY_KEYS.grid], this.grid);
+				this.brightness = Math.min(Math.max(decodeNumber(query[QUERY_KEYS.brightness], DEFAULT_BRIGHTNESS, isPositive), 0.2), 3);
+				this.contours = decodeFlag(query[QUERY_KEYS.contours], DEFAULT_CONTOURS);
+				this.grid = decodeFlag(query[QUERY_KEYS.grid], DEFAULT_GRID);
 
 				this.requestRender();
 			},
@@ -1007,7 +1064,12 @@
 			 */
 			$route (to) {
 				const query = to.query || {};
-				if (Object.keys(this.urlQuery).every(key => query[key] === this.urlQuery[key]))
+
+				// Compared over the fixed key set, not over urlQuery's keys: a key at its default is absent
+				// from both sides, and a key that just became default is absent from one — checking only
+				// the keys urlQuery still has would miss exactly that transition.
+				const mine = this.urlQuery;
+				if (Object.values(QUERY_KEYS).every(key => query[key] === mine[key]))
 					return;
 
 				this.applyQuery(query);

@@ -1,3 +1,10 @@
+## 2026-09-03 complex-function: settings panel starts closed
+
+- `panelIsOn` defaults to false, so the first screen is the plot, the formula box and the gear. The panel holds the presets and favourites, so it is still one click away and its state is deliberately not persisted — a panel that reopens itself on every visit is the thing being fixed.
+- Verified: 14 assertions against the mounted component — the panel is absent from the DOM on load, the gear renders inactive, the formula box and plot are still there, the gear opens the panel with all 13 presets inside and closes it again, a preset applied from the panel still works, and nothing about the panel reaches `localStorage`. Also confirmed by pixel analysis of the built page that the only UI ink on the first screen is the formula row at y=20-33.
+  - One assertion was mine being wrong, not a defect: the cursor readout is bound to `cursor` and so only exists once the pointer is over the plot. Rewritten to check it is absent before a pointer move and present after.
+- Noticed while screenshotting, NOT caused by this change and left alone: the canvas ends at y=513 in a 600px viewport, leaving an 87px strip of white page background at the bottom on both `index.html` and `inner.html`. Confirmed identical on the previous commit, so it predates this work.
+
 ## 2026-09-03 complex-function: omit default-valued fields from the URL query
 
 - The query now carries only what differs from the default, so an unpanned view drops `cx`, `cy`, `w` and `b` outright. `f` is exempt and always written, even at its default: a link that does not say which formula it is showing is not much of a link.

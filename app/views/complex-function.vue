@@ -110,8 +110,20 @@
 		grid: "g",
 	};
 
-	/** Typing settles before the shader is rebuilt, so a half-typed formula never flashes an error. */
-	const EXPRESSION_DEBOUNCE = 2000;
+	/**
+	 * Leading-edge rate limit on shader rebuilds: the first change of a burst lands at once and further
+	 * changes inside the window are held, so continuous typing rebuilds once per window rather than once
+	 * per keystroke. A rebuild measures ~15 ms, so this bounds cost without ever making the first edit
+	 * wait — plain trailing-edge debouncing would.
+	 */
+	const EXPRESSION_WINDOW = 600;
+
+	/**
+	 * How long a formula must stay unparseable before it is reported. Long enough that `(1+z^` on the way
+	 * to `(1+z^2)^-1` never flashes an error, short enough that genuinely broken input does not sit there
+	 * silently doing nothing.
+	 */
+	const ERROR_DELAY = 2000;
 
 	/** Panning fires per mousemove; the address bar only needs to catch up once the gesture rests. */
 	const QUERY_DEBOUNCE = 400;
@@ -351,6 +363,8 @@
 				viewWidth: Math.min(Math.max(decodeNumber(query[QUERY_KEYS.viewWidth], 8, isPositive), MIN_SPAN), MAX_SPAN),
 				cursor: null,
 				cursorValue: null,
+				// Held while a rebuild window is open; applied when it closes.
+				pendingExpression: null,
 			};
 		},
 
@@ -525,6 +539,8 @@
 
 				this.error = null;
 				this.expression = source;
+				// What the GPU is running, so the input path can tell a real change from a cosmetic one.
+				this.shaderBody = body;
 				writeJSON(STORAGE_KEYS.expression, source);
 				this.updateCursorValue();
 				this.requestRender();
@@ -534,28 +550,94 @@
 
 
 			/**
-			 * Live editing, settled. Every keystroke restarts the timer, so the shader is rebuilt once
-			 * the user pauses rather than on each character — a half-typed `(1+z^` would otherwise
-			 * flash an error on the way to a valid formula.
+			 * Live editing. Compiling is ~0.1 ms, so every keystroke is compiled rather than guessed
+			 * about: only input that actually parses AND yields a shader body different from the one on
+			 * the GPU is worth rate limiting. Anything else — half-typed, or a purely cosmetic edit like
+			 * `z ^ 2` for `z^2` — costs nothing and starts no timer.
 			 */
 			onExpressionInput () {
-				this.clearExpressionTimer();
-				this.expressionTimer = setTimeout(() => {
-					this.expressionTimer = null;
-					this.commitExpression();
-				}, EXPRESSION_DEBOUNCE);
+				const source = this.expressionInput.trim();
+
+				let body;
+				try {
+					body = source ? compileGLSL(source) : null;
+				}
+				catch (error) {
+					// Mid-formula. Say nothing yet, but do not stay silent forever if the user stops here.
+					this.armErrorReport(error.message);
+
+					return;
+				}
+
+				this.clearErrorTimer();
+
+				if (!body || body === this.shaderBody) {
+					// The GPU is already showing this. Drop any stale complaint about earlier input.
+					this.error = null;
+
+					return;
+				}
+
+				// Inside an open window a rebuild is deferred; otherwise it happens now.
+				if (this.expressionTimer)
+					this.pendingExpression = source;
+				else
+					this.applyAndHold(source);
 			},
 
 
+			/** Rebuild now, then hold the window open so a fast typist cannot rebuild per keystroke. */
+			applyAndHold (source) {
+				this.pendingExpression = null;
+				this.updateExpression(source);
+
+				this.expressionTimer = setTimeout(() => {
+					this.expressionTimer = null;
+
+					const pending = this.pendingExpression;
+					this.pendingExpression = null;
+
+					// Reopens the window, so continuous typing stays rate limited rather than catching up
+					// in a burst once the first window closes.
+					if (pending && pending !== this.expression)
+						this.applyAndHold(pending);
+				}, EXPRESSION_WINDOW);
+			},
+
+
+			armErrorReport (message) {
+				this.clearErrorTimer();
+				this.errorTimer = setTimeout(() => {
+					this.errorTimer = null;
+					this.error = message;
+				}, ERROR_DELAY);
+			},
+
+
+			clearErrorTimer () {
+				if (this.errorTimer) {
+					clearTimeout(this.errorTimer);
+					this.errorTimer = null;
+				}
+			},
+
+
+			/** Drop every deferred effect of typing, so an explicit choice cannot be overwritten later. */
 			clearExpressionTimer () {
 				if (this.expressionTimer) {
 					clearTimeout(this.expressionTimer);
 					this.expressionTimer = null;
 				}
+
+				this.pendingExpression = null;
+				this.clearErrorTimer();
 			},
 
 
-			// Enter and blur mean "I am done", so they pre-empt the pending debounce.
+			/**
+			 * Enter and blur mean "I am done": apply at once, bypassing the window, and report a bad
+			 * formula immediately rather than after the error delay.
+			 */
 			commitExpression () {
 				this.clearExpressionTimer();
 
@@ -563,7 +645,7 @@
 				if (!source || source === this.expression)
 					return;
 
-				this.updateExpression(source);
+				this.applyAndHold(source);
 			},
 
 
@@ -622,6 +704,9 @@
 
 
 			applyExpression (source) {
+				// An explicit pick outranks whatever was typed a moment ago and is still held.
+				this.clearExpressionTimer();
+
 				this.expressionInput = source;
 				this.updateExpression(source);
 			},

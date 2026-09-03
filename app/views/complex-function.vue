@@ -722,6 +722,11 @@
 </script>
 
 <style lang="scss" scoped>
+	// The host page keeps a logo (and, in the inner viewer, the route box) pinned to the top-left
+	// corner, so the header indents past it. Same value home.vue uses to clear the logo with its title.
+	$logoSize: 46px;
+
+
 	.complex-function
 	{
 		position: relative;
@@ -770,7 +775,7 @@
 		left: 0;
 		top: 0;
 		right: 0;
-		padding: 0.8em 1em;
+		padding: 0.8em 1em 0.8em calc(#{$logoSize} + 0.5em);
 		background: linear-gradient(#000a, #0000);
 	}
 

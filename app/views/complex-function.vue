@@ -29,6 +29,7 @@
 					autocapitalize="off"
 					placeholder="(1+z^2)^-1"
 					v-model="expressionInput"
+					@input="onExpressionInput"
 					@keydown.enter="commitExpression"
 					@blur="commitExpression"
 				/>
@@ -94,6 +95,39 @@
 		favorites: "complexFunction.favorites",
 		shading: "complexFunction.shading",
 	};
+
+	/**
+	 * Query keys are short because they end up in a shared URL. `f` is the expression; `cx`/`cy`/`w`
+	 * are the view window; `b`/`c`/`g` are the shading controls.
+	 */
+	const QUERY_KEYS = {
+		expression: "f",
+		centerX: "cx",
+		centerY: "cy",
+		viewWidth: "w",
+		brightness: "b",
+		contours: "c",
+		grid: "g",
+	};
+
+	/**
+	 * Leading-edge rate limit on shader rebuilds: the first change of a burst lands at once and further
+	 * changes inside the window are held, so continuous typing rebuilds once per window rather than once
+	 * per keystroke. A rebuild measures ~15 ms, so this bounds cost without ever making the first edit
+	 * wait — plain trailing-edge debouncing would.
+	 */
+	const EXPRESSION_WINDOW = 600;
+
+	/**
+	 * How long a formula must stay unparseable before it is reported. Long enough that `(1+z^` on the way
+	 * to `(1+z^2)^-1` never flashes an error, short enough that genuinely broken input does not sit there
+	 * silently doing nothing.
+	 */
+	const ERROR_DELAY = 2000;
+
+	/** Panning fires per mousemove; the address bar only needs to catch up once the gesture rests. */
+	const QUERY_DEBOUNCE = 400;
+
 
 
 	// A short tour of what domain coloring is good at: zeros, poles, branch cuts, essential
@@ -212,6 +246,90 @@
 	};
 
 
+	/**
+	 * Enough significant digits to survive a deep zoom round-trip, without trailing noise in the URL.
+	 * `Number.prototype.toPrecision` keeps exponential form for extremes, which parses back cleanly.
+	 */
+	const encodeNumber = value => {
+		// Zero would otherwise take the exponential branch below and read `0.00000000e+0`.
+		if (value === 0)
+			return "0";
+
+		const text = Math.abs(value) >= 1e-6 && Math.abs(value) < 1e6 ? value.toPrecision(10) : value.toExponential(8);
+
+		// Drop trailing zeros (and a bare trailing point) from the fixed form.
+		return text.includes("e") ? text : text.replace(/\.?0+$/, "") || "0";
+	};
+
+
+	/**
+	 * `Number("")` is 0, so a blank value has to be rejected explicitly — otherwise a bare `cy=` in the
+	 * URL would silently mean the origin instead of "not specified". `accept` narrows what counts as
+	 * valid: a span or a brightness may not be zero or negative, and clamping such a value would drop
+	 * the viewer into an extreme zoom rather than ignoring the nonsense.
+	 */
+	const decodeNumber = (raw, fallback, accept = Number.isFinite) => {
+		if (raw === undefined || raw === null || String(raw).trim() === "")
+			return fallback;
+
+		const value = Number(raw);
+
+		return accept(value) ? value : fallback;
+	};
+
+
+	const isPositive = value => Number.isFinite(value) && value > 0;
+
+
+	/**
+	 * Only the words we emit, plus their obvious negations, count. A blank or unrecognised value means
+	 * "not specified" and keeps the current setting, matching `decodeNumber` — silently reading `g=` or
+	 * `g=maybe` as "off" would turn a typo into a state change.
+	 */
+	const decodeFlag = (raw, fallback) => {
+		const text = String(raw === undefined || raw === null ? "" : raw).trim().toLowerCase();
+
+		if (["1", "true", "yes", "on"].includes(text))
+			return true;
+		if (["0", "false", "no", "off"].includes(text))
+			return false;
+
+		return fallback;
+	};
+
+
+	const DEFAULT_CENTER = {x: 0, y: 0};
+	const DEFAULT_VIEW_WIDTH = 8;
+	const DEFAULT_BRIGHTNESS = 1;
+	const DEFAULT_CONTOURS = true;
+	const DEFAULT_GRID = true;
+
+	/**
+	 * The formula is what the page is about, so it is always written even at its default — a link without
+	 * it does not say what it is showing. Everything else is omitted when it equals its default.
+	 */
+	const ALWAYS_IN_QUERY = [QUERY_KEYS.expression];
+
+	/**
+	 * A field equal to its default is left out of the URL, which is what keeps a shared link short — the
+	 * common case of an unpanned view drops `cx`, `cy`, `w` and `b` outright.
+	 *
+	 * This is why an absent field has to mean "the default" rather than "whatever this browser last had":
+	 * a link with `cx` omitted must land on the origin for the recipient too, not on the centre they
+	 * happened to leave in `localStorage`. Note this rules out omitting a flag whose value is 0 but whose
+	 * default is on — `c=0` stays in the URL, since dropping it would read back as on.
+	 */
+	const QUERY_DEFAULTS = {
+		[QUERY_KEYS.expression]: DEFAULT_EXPRESSION,
+		[QUERY_KEYS.centerX]: encodeNumber(DEFAULT_CENTER.x),
+		[QUERY_KEYS.centerY]: encodeNumber(DEFAULT_CENTER.y),
+		[QUERY_KEYS.viewWidth]: encodeNumber(DEFAULT_VIEW_WIDTH),
+		[QUERY_KEYS.brightness]: encodeNumber(DEFAULT_BRIGHTNESS),
+		[QUERY_KEYS.contours]: DEFAULT_CONTOURS ? "1" : "0",
+		[QUERY_KEYS.grid]: DEFAULT_GRID ? "1" : "0",
+	};
+
+
 	const readJSON = (key, fallback) => {
 		try {
 			const raw = window.localStorage.getItem(key);
@@ -252,7 +370,22 @@
 
 		data () {
 			const shading = readJSON(STORAGE_KEYS.shading, {});
-			const expression = readJSON(STORAGE_KEYS.expression, DEFAULT_EXPRESSION);
+
+			const query = (this.$route && this.$route.query) || {};
+
+			// A query that names any of our keys is taken as authoritative, and its absent keys read as
+			// defaults rather than as stored values. Fields at their default are omitted from the URL, so
+			// a link with no `cx` has to land on the origin for the recipient too — not on whatever centre
+			// their own `localStorage` happens to hold. Only a URL that carries none of our keys falls
+			// back to stored state, which is what a returning visitor arrives with.
+			const shared = Object.values(QUERY_KEYS).some(key => query[key] !== undefined);
+			const stored = shared ? {} : shading;
+
+			const expression = query[QUERY_KEYS.expression]
+				|| (shared ? DEFAULT_EXPRESSION : readJSON(STORAGE_KEYS.expression, DEFAULT_EXPRESSION));
+
+			const brightness = Math.min(Math.max(decodeNumber(query[QUERY_KEYS.brightness],
+				Number.isFinite(stored.brightness) ? stored.brightness : DEFAULT_BRIGHTNESS, isPositive), 0.2), 3);
 
 			return {
 				PRESETS,
@@ -262,15 +395,20 @@
 				error: null,
 				favorites: readJSON(STORAGE_KEYS.favorites, []),
 				panelIsOn: true,
-				brightness: Number.isFinite(shading.brightness) ? shading.brightness : 1,
-				contours: shading.contours !== false,
-				grid: shading.grid !== false,
+				brightness,
+				contours: decodeFlag(query[QUERY_KEYS.contours], stored.contours !== undefined ? stored.contours !== false : DEFAULT_CONTOURS),
+				grid: decodeFlag(query[QUERY_KEYS.grid], stored.grid !== undefined ? stored.grid !== false : DEFAULT_GRID),
 				// The complex plane window, in complex units. Height follows from the aspect ratio, so
 				// the picture is never anisotropically stretched.
-				center: {x: 0, y: 0},
-				viewWidth: 8,
+				center: {
+					x: decodeNumber(query[QUERY_KEYS.centerX], DEFAULT_CENTER.x),
+					y: decodeNumber(query[QUERY_KEYS.centerY], DEFAULT_CENTER.y),
+				},
+				viewWidth: Math.min(Math.max(decodeNumber(query[QUERY_KEYS.viewWidth], DEFAULT_VIEW_WIDTH, isPositive), MIN_SPAN), MAX_SPAN),
 				cursor: null,
 				cursorValue: null,
+				// Held while a rebuild window is open; applied when it closes.
+				pendingExpression: null,
 			};
 		},
 
@@ -312,6 +450,27 @@
 			},
 
 
+			/**
+			 * The query this view would write for its current state. Watching one computed means every
+			 * control feeds the URL through a single path — a new control only has to appear here.
+			 */
+			urlQuery () {
+				const full = {
+					[QUERY_KEYS.expression]: this.expression,
+					[QUERY_KEYS.centerX]: encodeNumber(this.center.x),
+					[QUERY_KEYS.centerY]: encodeNumber(this.center.y),
+					[QUERY_KEYS.viewWidth]: encodeNumber(this.viewWidth),
+					[QUERY_KEYS.brightness]: encodeNumber(this.brightness),
+					[QUERY_KEYS.contours]: this.contours ? "1" : "0",
+					[QUERY_KEYS.grid]: this.grid ? "1" : "0",
+				};
+
+				// Anything at its default is left out, bar the formula; `applyQuery` fills the rest back in.
+				return Object.fromEntries(Object.entries(full)
+					.filter(([key, value]) => ALWAYS_IN_QUERY.includes(key) || value !== QUERY_DEFAULTS[key]));
+			},
+
+
 			/** Tick labels for the real axis, pinned to the axis but kept inside the canvas. */
 			realTicks () {
 				return this.ticksAlong("real");
@@ -330,11 +489,20 @@
 
 			this.rendererActive = true;
 			this.requestRender();
+
+			// The watcher only fires on change, so a visit that lands on a bare URL would leave the
+			// address bar empty until some control moved — and a link copied right away would carry
+			// none of what the viewer is actually showing.
+			this.syncQuery();
 		},
 
 
 		beforeUnmount () {
 			this.rendererActive = false;
+
+			this.clearExpressionTimer();
+			if (this.queryTimer)
+				clearTimeout(this.queryTimer);
 
 			if (this.frameHandle)
 				cancelAnimationFrame(this.frameHandle);
@@ -419,6 +587,8 @@
 
 				this.error = null;
 				this.expression = source;
+				// What the GPU is running, so the input path can tell a real change from a cosmetic one.
+				this.shaderBody = body;
 				writeJSON(STORAGE_KEYS.expression, source);
 				this.updateCursorValue();
 				this.requestRender();
@@ -427,16 +597,173 @@
 			},
 
 
+			/**
+			 * Live editing. Compiling is ~0.1 ms, so every keystroke is compiled rather than guessed
+			 * about: only input that actually parses AND yields a shader body different from the one on
+			 * the GPU is worth rate limiting. Anything else — half-typed, or a purely cosmetic edit like
+			 * `z ^ 2` for `z^2` — costs nothing and starts no timer.
+			 */
+			onExpressionInput () {
+				const source = this.expressionInput.trim();
+
+				let body;
+				try {
+					body = source ? compileGLSL(source) : null;
+				}
+				catch (error) {
+					// Mid-formula. Say nothing yet, but do not stay silent forever if the user stops here.
+					this.armErrorReport(error.message);
+
+					return;
+				}
+
+				this.clearErrorTimer();
+
+				if (!body || body === this.shaderBody) {
+					// The GPU is already showing this. Drop any stale complaint about earlier input.
+					this.error = null;
+
+					return;
+				}
+
+				// Inside an open window a rebuild is deferred; otherwise it happens now.
+				if (this.expressionTimer)
+					this.pendingExpression = source;
+				else
+					this.applyAndHold(source);
+			},
+
+
+			/** Rebuild now, then hold the window open so a fast typist cannot rebuild per keystroke. */
+			applyAndHold (source) {
+				this.pendingExpression = null;
+				this.updateExpression(source);
+
+				this.expressionTimer = setTimeout(() => {
+					this.expressionTimer = null;
+
+					const pending = this.pendingExpression;
+					this.pendingExpression = null;
+
+					// Reopens the window, so continuous typing stays rate limited rather than catching up
+					// in a burst once the first window closes.
+					if (pending && pending !== this.expression)
+						this.applyAndHold(pending);
+				}, EXPRESSION_WINDOW);
+			},
+
+
+			armErrorReport (message) {
+				this.clearErrorTimer();
+				this.errorTimer = setTimeout(() => {
+					this.errorTimer = null;
+					this.error = message;
+				}, ERROR_DELAY);
+			},
+
+
+			clearErrorTimer () {
+				if (this.errorTimer) {
+					clearTimeout(this.errorTimer);
+					this.errorTimer = null;
+				}
+			},
+
+
+			/** Drop every deferred effect of typing, so an explicit choice cannot be overwritten later. */
+			clearExpressionTimer () {
+				if (this.expressionTimer) {
+					clearTimeout(this.expressionTimer);
+					this.expressionTimer = null;
+				}
+
+				this.pendingExpression = null;
+				this.clearErrorTimer();
+			},
+
+
+			/**
+			 * Enter and blur mean "I am done": apply at once, bypassing the window, and report a bad
+			 * formula immediately rather than after the error delay.
+			 */
 			commitExpression () {
+				this.clearExpressionTimer();
+
 				const source = this.expressionInput.trim();
 				if (!source || source === this.expression)
 					return;
 
-				this.updateExpression(source);
+				this.applyAndHold(source);
+			},
+
+
+			/**
+			 * Mirror the current state into the hash query, debounced: a pan updates `center` on every
+			 * mousemove and the address bar only needs the resting value. `replace` rather than `push`
+			 * so dragging the plot does not bury the back button under history entries.
+			 */
+			syncQuery () {
+				if (this.queryTimer)
+					clearTimeout(this.queryTimer);
+
+				this.queryTimer = setTimeout(() => {
+					this.queryTimer = null;
+
+					const current = this.$route.query;
+					const mine = this.urlQuery;
+					if (Object.values(QUERY_KEYS).every(key => current[key] === mine[key]))
+						return;
+
+					// Keys this view does not own are carried through rather than dropped; our own are
+					// rebuilt from scratch, so one that fell back to its default leaves the URL instead of
+					// lingering at a stale value.
+					const foreign = Object.fromEntries(Object.entries(current)
+						.filter(([key]) => !Object.values(QUERY_KEYS).includes(key)));
+
+					this.$router.replace({path: this.$route.path, query: {...foreign, ...mine}})
+						.catch(error => {
+							// A redundant navigation is not an error worth surfacing.
+							if (!error || error.name !== "NavigationDuplicated")
+								console.warn("cannot sync the URL query", error);
+						});
+				}, QUERY_DEBOUNCE);
+			},
+
+
+			/**
+			 * Adopt state from the query — back/forward, or a hand-edited URL. An absent field reads as its
+			 * default, not as the current value: that is the other half of omitting defaults on write, and
+			 * it is what makes going back from a panned view actually return to the origin.
+			 */
+			applyQuery (query) {
+				const expression = query[QUERY_KEYS.expression] || DEFAULT_EXPRESSION;
+				if (expression !== this.expression) {
+					this.expressionInput = expression;
+					this.clearExpressionTimer();
+					this.updateExpression(expression);
+				}
+
+				const cx = decodeNumber(query[QUERY_KEYS.centerX], DEFAULT_CENTER.x);
+				const cy = decodeNumber(query[QUERY_KEYS.centerY], DEFAULT_CENTER.y);
+				if (cx !== this.center.x || cy !== this.center.y)
+					this.center = {x: cx, y: cy};
+
+				const width = Math.min(Math.max(decodeNumber(query[QUERY_KEYS.viewWidth], DEFAULT_VIEW_WIDTH, isPositive), MIN_SPAN), MAX_SPAN);
+				if (width !== this.viewWidth)
+					this.viewWidth = width;
+
+				this.brightness = Math.min(Math.max(decodeNumber(query[QUERY_KEYS.brightness], DEFAULT_BRIGHTNESS, isPositive), 0.2), 3);
+				this.contours = decodeFlag(query[QUERY_KEYS.contours], DEFAULT_CONTOURS);
+				this.grid = decodeFlag(query[QUERY_KEYS.grid], DEFAULT_GRID);
+
+				this.requestRender();
 			},
 
 
 			applyExpression (source) {
+				// An explicit pick outranks whatever was typed a moment ago and is still held.
+				this.clearExpressionTimer();
+
 				this.expressionInput = source;
 				this.updateExpression(source);
 			},
@@ -716,6 +1043,36 @@
 			shadingState (value) {
 				writeJSON(STORAGE_KEYS.shading, value);
 				this.requestRender();
+			},
+
+
+			// Any control that reaches the URL passes through urlQuery, so one watcher covers them all.
+			urlQuery: {
+				handler () {
+					this.syncQuery();
+				},
+				deep: true,
+			},
+
+
+			/**
+			 * The other direction: back/forward, or a URL the user edited by hand.
+			 *
+			 * The guard is a value comparison rather than an "am I writing" flag: our own replace()
+			 * produces a query that already equals urlQuery, so it is filtered here without depending on
+			 * how the router's promise and this watcher interleave.
+			 */
+			$route (to) {
+				const query = to.query || {};
+
+				// Compared over the fixed key set, not over urlQuery's keys: a key at its default is absent
+				// from both sides, and a key that just became default is absent from one — checking only
+				// the keys urlQuery still has would miss exactly that transition.
+				const mine = this.urlQuery;
+				if (Object.values(QUERY_KEYS).every(key => query[key] === mine[key]))
+					return;
+
+				this.applyQuery(query);
 			},
 		},
 	};

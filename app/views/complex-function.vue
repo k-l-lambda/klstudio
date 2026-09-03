@@ -394,7 +394,7 @@
 				expressionInput: expression,
 				error: null,
 				favorites: readJSON(STORAGE_KEYS.favorites, []),
-				panelIsOn: true,
+				panelIsOn: false,
 				brightness,
 				contours: decodeFlag(query[QUERY_KEYS.contours], stored.contours !== undefined ? stored.contours !== false : DEFAULT_CONTOURS),
 				grid: decodeFlag(query[QUERY_KEYS.grid], stored.grid !== undefined ? stored.grid !== false : DEFAULT_GRID),

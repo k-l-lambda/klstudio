@@ -1,3 +1,14 @@
+## 2026-10-04 chess-lab: Stockfish dead as both analyzer and player — wasm 404 from a Vite-bundled worker
+
+- Symptom: picking Stockfish as analyzer or as a player did nothing. Both go through the one factory `createStockfishWorker` in `app/chessEngines.ts`, which is why they failed together.
+- Root cause, from `762e127` ("fixed chess-lab", 2026-05-13, the Vite migration): the worker changed from `new Worker("chess/engines/stockfish.js")` to `new Worker(new URL("../public/chess/engines/stockfish.js", import.meta.url))`. That form makes Vite bundle the worker, emitting `assets/stockfish-<hash>.js`. Stockfish.js is an emscripten build whose loader fetches `stockfish.wasm` relative to its own script URL (`scriptDirectory = self.location.href`), so it asked for `assets/stockfish.wasm`, which does not exist. Observed in Chrome: `wasm streaming compile failed: HTTP status code is not ok`, then `BufferSource argument is empty`, and the worker never answers `uci`. The verbatim copy at `chess/engines/stockfish.js`, run the same way, answered `uciok` at once.
+- Fix: build the URL at runtime, `new URL("chess/engines/stockfish.js", document.baseURI)`. Vite only rewrites a `new URL()` whose base is `import.meta.url`, so this one is opaque to it and the worker runs from `chess/engines/`, beside its wasm — both land there because `viteStaticCopy` copies `public/*` verbatim. `document.baseURI` keeps it right under a subpath host. Side effect: the build no longer emits the 1.4 MB hashed duplicate.
+- Verified:
+  - App's own engine classes, real clock over CDP: `players.Stockfish()` answers `isready`, returns `e2e4` from the start position and finds the mate in one `Qh5xf7#`; `analyzers.Stockfish()` emits 24 multi-PV branches by depth 8 with the mating move on top. (One assertion of mine was wrong: mate in one scores 99 under `MATE_VALUE - scoreMate`, not above 100.)
+  - Built chess-lab page driven through its UI, at the site root and under a symlinked `/studio/` subpath: choosing Stockfish as analyzer streams analysis to depth 18; Stockfish vs Stockfish advances with alternating side to move. Both `chess/engines/stockfish.js` and `stockfish.wasm` return 200 on both paths.
+  - The SW asset cache rules do not match either engine file, so no stale cached copy can mask the fix.
+- Not caused by this and left alone: an `Audio.play()` `NotAllowedError` in headless runs, the browser's autoplay policy blocking the move sound before any user gesture.
+
 ## 2026-09-03 complex-function: settings panel starts closed
 
 - `panelIsOn` defaults to false, so the first screen is the plot, the formula box and the gear. The panel holds the presets and favourites, so it is still one click away and its state is deliberately not persisted — a panel that reopens itself on every visit is the thing being fixed.

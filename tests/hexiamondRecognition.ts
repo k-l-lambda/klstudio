@@ -35,6 +35,9 @@ const main = async (): Promise<void> => {
 	const recognizeMs = Date.now() - started;
 
 	console.assert(result.ok, `recognition failed: ${result.error}`);
+	// A second call on the same instance reuses malloc'd memory; it must see the same board and give the same result.
+	const again = recognizer.recognize(image.data, image.width, image.height, shape.board, {channels: 4});
+	console.assert(JSON.stringify(again.regions) === JSON.stringify(result.regions), "a repeated recognition gave different regions");
 	const {placements, unmatched} = placementsFromResult(shape, result);
 	console.assert(validatePlacements(shape, placements), "recognized placements are not a legal board");
 

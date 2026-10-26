@@ -54,16 +54,25 @@ export const createRecognizerClient = (): RecognizerClient => {
 let canvas: HTMLCanvasElement | null = null;
 
 /** Draw an image or the current video frame scaled to `width` px wide (never enlarged) and read its pixels.
- * 600 px wide gave the same partitions as full-resolution photos in every sample. */
-export const captureFrame = (source: HTMLImageElement | HTMLVideoElement, width = 600): ImageData => {
+ * 600 px wide gave the same partitions as full-resolution photos in every sample. `aspect` (width / height), when
+ * given, first centre-crops the source to that ratio — the same crop as CSS `object-fit: cover` in a box of that
+ * ratio, so an overlay laid over such a box lines up with the frame. */
+export const captureFrame = (source: HTMLImageElement | HTMLVideoElement, width = 600, aspect = 0): ImageData => {
 	const sourceWidth = (source as HTMLVideoElement).videoWidth || (source as HTMLImageElement).naturalWidth || source.width;
 	const sourceHeight = (source as HTMLVideoElement).videoHeight || (source as HTMLImageElement).naturalHeight || source.height;
-	const scale = Math.min(1, width / sourceWidth);
+	let cropWidth = sourceWidth, cropHeight = sourceHeight;
+	if (aspect > 0) {
+		if (sourceWidth / sourceHeight > aspect)
+			cropWidth = sourceHeight * aspect;
+		else
+			cropHeight = sourceWidth / aspect;
+	}
+	const scale = Math.min(1, width / cropWidth);
 	canvas = canvas || document.createElement("canvas");
-	canvas.width = Math.round(sourceWidth * scale);
-	canvas.height = Math.round(sourceHeight * scale);
+	canvas.width = Math.round(cropWidth * scale);
+	canvas.height = Math.round(cropHeight * scale);
 	const context = canvas.getContext("2d", {willReadFrequently: true}) as CanvasRenderingContext2D;
 	context.imageSmoothingQuality = "high";
-	context.drawImage(source, 0, 0, canvas.width, canvas.height);
+	context.drawImage(source, (sourceWidth - cropWidth) / 2, (sourceHeight - cropHeight) / 2, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
 	return context.getImageData(0, 0, canvas.width, canvas.height);
 };

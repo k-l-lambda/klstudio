@@ -1,3 +1,10 @@
+## 2026-10-26 hexiamond: nearest solution keeps the most blocks, wherever they sit
+
+- Symptom: 🧩 (nearest solution) on a partial board kept blocks near the top and moved the rest, even when only one block had to move. Measured on 24 random partial std boards (two random solutions mixed, some blocks dropped) against the exact minimum: the old solver was optimal in 5/12 of the first seed, e.g. 8 moved vs 1.
+- Causes in the cell-order branch and bound (`searchNearest`): its prune used `nearestMoved`, which counts initial blocks *not yet placed* as moved, so it wasn't a lower bound — every branch that hadn't yet reached a block (the board fills top-down) was cut; and a bound prune set `state.stopped`, aborting the whole search while still reporting `optimal`. A corrected bound fixed optimality but each node rescans all 1909 placements, so it hit the 5 s budget.
+- Replaced by a subset search in `app/hexiamond/solver.ts`: for k = 0, 1, 2…, every set of k dropped blocks is tried with the existing fixed-block `solve`/`solveAsync`; the first complete board moves the fewest blocks and no block is favoured by position. Shared time budget (`timeLimitMs`, default 5 s), per-subset node cap 200k; `optimal` is false if any subset solve was cut short instead of proving infeasibility. All 24 trials now equal the exact minimum, in 0–0.4 s.
+- `tests/hexiamond.ts`: regression on that mixed std board (expects exactly 1 moved, `optimal`, and the other 7 blocks kept in place); fails on the old solver with "moved 8 blocks".
+
 ## 2026-10-26 hexiamond: photo chooser (drop / pick / take photo) and live camera recognition with a HUD
 
 - New `app/components/hexiamond-photo.vue`; `hexiamond.vue` keeps only the 📷 toggle and `applyPhoto(placements)`. The 📷 button opens a chooser: drop zone (drag an image anywhere on it), "Choose image" (`accept="image/*"`), "Take photo" (`capture="environment"`, shown only on `(pointer: coarse)` devices), "Live camera" (needs `getUserMedia` and a secure context; disabled with a tooltip otherwise; a denied camera falls back to the chooser with the error).

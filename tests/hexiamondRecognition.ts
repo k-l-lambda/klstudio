@@ -1,33 +1,63 @@
+// Recognize a board photo with the wasm recognizer through app/hexiamond/recognizerWasm.ts; print the result and timings.
+//   npx ts-node --project ./tsconfig.node.json tests/hexiamondRecognition.ts [image.jpg] [shapeId]
+// Default image: footages.local/2026-07-16 23.01.03.jpg (local only, not in the repo; the test is skipped without it).
+// Rebuild the module with tools/hexiamond/recognizer/build.sh after changing the C++ sources.
+import * as fs from "fs";
+import * as path from "path";
+import * as jpeg from "jpeg-js";
+
 import {buildShape} from "../app/hexiamond/geometry";
-import {imageTransformForShape, matchRecognitions, matchedPolygon, placementKey, recognizePlacements, recognitionScore, validateRecognitionMatches} from "../app/hexiamond/recognition";
-import {RecognitionObservation} from "../app/hexiamond/recognition";
+import {instantiateRecognizer, placementsFromResult} from "../app/hexiamond/recognizerWasm";
+import {validatePlacements} from "../app/hexiamond/solver";
 
-const shape = buildShape("hexagon4_3");
-const first = shape.placements[0][0];
-const second = shape.placements[1].find(placement => placement.indices.every(index => !first.indices.includes(index))) as typeof first;
-console.assert(Boolean(second), "test fixture needs a non-overlapping second placement");
-console.assert(placementKey(first) === placementKey({...first, points: first.points.map(point => point.slice() as [number, number])}), "placement key is not stable");
-console.assert(recognitionScore({confidence: 2, geometry: 3, color: 4, orientation: 5}) === 14, "recognition score mismatch");
+const ROOT = path.resolve(__dirname, "..");
 
-const observations: RecognitionObservation[] = [
-	{id: "a", candidates: [{placement: first, score: 10}, {placement: second, score: 1}]},
-	{id: "b", candidates: [{placement: first, score: 9}, {placement: second, score: 8}]},
-];
-const result = matchRecognitions(shape, observations);
-console.assert(result.legal && result.matches.length === 2, "global matching did not select legal matches");
-console.assert(result.matches[0].observationId === "a" && result.matches[0].placement === first, "global matching did not maximize score");
-console.assert(result.score === 18, "global matching score mismatch");
-console.assert(result.image === null && result.contours.length === 0 && result.matchedPolygons.length === 0, "pure recognition should not invent image overlay data");
-const transform = imageTransformForShape(shape, {width: 1000, height: 800});
-const polygon = matchedPolygon({observationId: "a", placement: first, score: 1}, transform);
-console.assert(polygon.points.length === first.points.length * 3 && transform.scaleX > 0, "placement transform mismatch");
-console.assert(validateRecognitionMatches(shape, result.matches), "recognition result is illegal");
-console.assert(recognizePlacements(shape, observations).score === result.score, "recognition alias mismatch");
+const main = async (): Promise<void> => {
+	const imagePath = path.resolve(process.argv[2] || path.join(ROOT, "footages.local", "2026-07-16 23.01.03.jpg"));
+	const shapeId = process.argv[3] || "std";
+	if (!fs.existsSync(imagePath)) {
+		console.log(`Hexiamond recognition test skipped: ${imagePath} not found.`);
+		return;
+	}
 
-const conflicting = matchRecognitions(shape, [
-	{id: "one", candidates: [{placement: first, score: 4}]},
-	{id: "two", candidates: [{placement: first, score: 3}]},
-]);
-console.assert(conflicting.matches.length === 1 && conflicting.unmatched.length === 1, "conflicting observations were not globally filtered");
-console.assert(conflicting.legal, "conflicting result should remain legal");
-console.log("Hexiamond recognition test passed.");
+	let started = Date.now();
+	const recognizer = await instantiateRecognizer(fs.readFileSync(path.join(ROOT, "public", "hexiamond-recognizer.wasm")));
+	const loadMs = Date.now() - started;
+
+	started = Date.now();
+	// jpeg-js does not apply EXIF orientation; the sample photos carry none.
+	const image = jpeg.decode(fs.readFileSync(imagePath), {useTArray: true, formatAsRGBA: true, maxMemoryUsageInMB: 1024});
+	const decodeMs = Date.now() - started;
+
+	const shape = buildShape(shapeId);
+	started = Date.now();
+	const result = recognizer.recognize(image.data, image.width, image.height, shape.board, {channels: 4});
+	const recognizeMs = Date.now() - started;
+
+	console.assert(result.ok, `recognition failed: ${result.error}`);
+	const {placements, unmatched} = placementsFromResult(shape, result);
+	console.assert(validatePlacements(shape, placements), "recognized placements are not a legal board");
+
+	console.log(`image ${path.basename(imagePath)} ${image.width}x${image.height}, shape ${shapeId}`);
+	console.log(`segments ${result.segments} (window ${result.window}), modes ${result.modes.map(mode => (mode % 180).toFixed(2)).join("/")}°, `
+		+ `${result.projective ? "projective" : "affine"} pose, inliers ${(result.inlierShare * 100).toFixed(1)}%`);
+	console.log(`H (board -> input px): [${result.Hsource.map(value => Number(value.toPrecision(6))).join(", ")}]`);
+	console.log(`cuts ${result.edges.filter(edge => edge[3]).length}/${result.edges.length}, regions ${result.regions.length}, `
+		+ `blank ${result.regions.filter(region => region.blank).length}, unmatched ${unmatched}`);
+	for (const placement of placements) {
+		const region = result.regions.find(candidate => [...candidate.cells].sort((a, b) => a - b).join(",") === [...placement.indices].sort((a, b) => a - b).join(","));
+		const block = shape.blocks[placement.blockId];
+		console.log(`  ${block.name.padEnd(6)} id ${String(block.id).padStart(2)}  orientation ${String(placement.orientationId).padStart(2)}  translation [${placement.translation.join(", ")}]`
+			+ (region ? `  photo rgb(${region.rgb.join(", ")})` : ""));
+	}
+	const saved = {shapeId, placements: placements.map(placement => ({blockId: placement.blockId, orientationId: placement.orientationId, translation: placement.translation}))};
+	console.log(`saved board: ${JSON.stringify(saved)}`);
+	console.log(`timing: wasm load ${loadMs} ms, jpeg decode ${decodeMs} ms, recognize ${recognizeMs} ms (`
+		+ Object.entries(result.timing).map(([stage, ms]) => `${stage} ${ms.toFixed(0)}`).join(", ") + ")");
+	console.log(`Hexiamond recognition test ${placements.length === 12 ? "passed" : "finished"}: ${placements.length} blocks.`);
+};
+
+main().catch(error => {
+	console.error(error);
+	process.exit(1);
+});

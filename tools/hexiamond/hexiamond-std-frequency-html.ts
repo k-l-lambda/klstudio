@@ -3,14 +3,14 @@
  * weight proportional to how often that position occurs across all 5,885 solutions. More frequent
  * positions are drawn on top (later in z-order) so hot spots stay visible.
  *
- * Run: npx ts-node --project ./tsconfig.node.json tools/hexiamond-std-frequency-html.ts
+ * Run: npx ts-node --project ./tsconfig.node.json tools/hexiamond/hexiamond-std-frequency-html.ts
  * Reads:  static/hexiamond-std-frequency.json
  * Writes: public/hexiamond/std-frequency.html (served by Express from docs/ at /hexiamond/std-frequency.html)
  */
 import {readFileSync, writeFileSync, mkdirSync} from "fs";
 import {resolve, dirname} from "path";
-import {buildShape, outlinePath, viewBoxForPoints, triangleVertices} from "../app/hexiamond/geometry";
-import {PackedPoint} from "../app/hexiamond/types";
+import {buildShape, outlinePath, viewBoxForPoints, triangleVertices} from "../../app/hexiamond/geometry";
+import {PackedPoint} from "../../app/hexiamond/types";
 
 interface FreqPlacement {
 	orientationId: number;
@@ -22,7 +22,7 @@ interface FreqPlacement {
 interface FreqBlock {id: number; name: string; color: string; placements: FreqPlacement[];}
 interface FreqData {shape: string; cellCount: number; solutions: number; boardPoints: PackedPoint[]; blocks: FreqBlock[];}
 
-const data: FreqData = JSON.parse(readFileSync(resolve(__dirname, "../static/hexiamond-std-frequency.json"), "utf8"));
+const data: FreqData = JSON.parse(readFileSync(resolve(__dirname, "../../static/hexiamond-std-frequency.json"), "utf8"));
 const shape = buildShape(data.shape);
 const viewBox = viewBoxForPoints(shape.boardPoints);
 
@@ -108,7 +108,7 @@ ${cards}
 </body>
 </html>`;
 
-const outPath = resolve(__dirname, "../public/hexiamond/std-frequency.html");
+const outPath = resolve(__dirname, "../../public/hexiamond/std-frequency.html");
 mkdirSync(dirname(outPath), {recursive: true});
 writeFileSync(outPath, html);
 console.log(`Wrote ${outPath} (${data.blocks.length} graphs, ${data.solutions} solutions).`);

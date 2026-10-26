@@ -14,7 +14,7 @@
 			</div>
 		</div>
 		<template v-else>
-			<div class="photo-preview">
+			<div class="photo-preview" :class="{live: mode === 'live'}">
 				<img v-if="mode === 'photo'" :src="photoUrl" alt="Selected puzzle photo" />
 				<video v-else ref="video" playsinline muted autoplay />
 				<svg v-if="frame.width" class="photo-overlay" :viewBox="`0 0 ${frame.width} ${frame.height}`" preserveAspectRatio="xMidYMid meet" aria-label="Recognized blocks overlay">
@@ -58,6 +58,8 @@
 	const LIVE_INTERVAL_MS = 150;
 	// The recognizer's pose prior: board centred, filling 0.7 of the frame. The live guide draws exactly that.
 	const GUIDE_FILL = 0.7;
+	// Live viewport width / height: portrait 1 : 1.5.
+	const LIVE_ASPECT = 2 / 3;
 
 	const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -172,7 +174,8 @@
 				}).join(" ");
 			},
 			async recognize (source: HTMLImageElement | HTMLVideoElement, token: number): Promise<boolean> {
-				const image = captureFrame(source);
+				// Live frames are centre-cropped to the portrait viewport the video is shown in, so the HUD lines up.
+				const image = captureFrame(source, 600, source instanceof HTMLVideoElement ? LIVE_ASPECT : 0);
 				const frame = {width: image.width, height: image.height};
 				const started = performance.now();
 				this.busy = true;
@@ -232,7 +235,8 @@
 				await this.$nextTick();
 				try {
 					const stream = await navigator.mediaDevices.getUserMedia({
-						video: {facingMode: {ideal: "environment"}, width: {ideal: 1280}, height: {ideal: 1280}},
+						// Ask for a portrait stream near the viewport ratio; a landscape one (most webcams) is centre-cropped.
+						video: {facingMode: {ideal: "environment"}, width: {ideal: 960}, height: {ideal: 1440}, aspectRatio: {ideal: LIVE_ASPECT}},
 						audio: false,
 					});
 					if (token !== this.token) {
@@ -317,6 +321,9 @@
 .photo-message { margin: .25rem 0; text-align: center; color: #b42720; }
 .photo-preview { position: relative; width: fit-content; max-width: 100%; margin: 0 auto; line-height: 0; }
 .photo-preview img, .photo-preview video { display: block; max-width: 100%; max-height: 55vh; object-fit: contain; background: #000; }
+/* Live: a fixed 2:3 portrait box, the video centre-cropped into it (object-fit: cover = captureFrame's crop). */
+.photo-preview.live { width: min(100%, 70vh * 2 / 3); aspect-ratio: 2 / 3; }
+.photo-preview.live video { width: 100%; height: 100%; max-height: none; object-fit: cover; }
 .photo-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .photo-region polygon { stroke-width: 1; vector-effect: non-scaling-stroke; }
 .photo-region.matched polygon { fill: currentColor; fill-opacity: .45; stroke: currentColor; }

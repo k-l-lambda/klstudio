@@ -1,3 +1,8 @@
+## 2026-10-26 hexiamond live camera: portrait 2:3 viewport
+
+- Live mode shows the video in a fixed 2:3 portrait box (`aspect-ratio: 2 / 3`, `object-fit: cover`), and `captureFrame(source, 600, aspect)` centre-crops each frame the same way before recognition, so the HUD (viewBox = cropped frame) lines up with what is on screen. `getUserMedia` asks for ~960×1440 with `aspectRatio` ideal 2/3; landscape streams (most webcams) are cropped at the sides. Photos are not cropped.
+- Verified in headless Chrome with a landscape fake camera (960×720 delivered): box 607×910 (0.667), viewBox 480×720, 12 blocks, overlay on the board edges, 0 console errors. A board wider than the crop gets cut and misrecognized (first test clip), so the board must be framed inside the guide.
+
 ## 2026-10-26 hexiamond: nearest solution keeps the most blocks, wherever they sit
 
 - Symptom: 🧩 (nearest solution) on a partial board kept blocks near the top and moved the rest, even when only one block had to move. Measured on 24 random partial std boards (two random solutions mixed, some blocks dropped) against the exact minimum: the old solver was optimal in 5/12 of the first seed, e.g. 8 moved vs 1.

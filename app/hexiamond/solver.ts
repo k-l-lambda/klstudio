@@ -165,19 +165,6 @@ export const solveAsync = async (shape: Shape, initial: Placement[] = [], option
 	return resultFrom(shape, state, complete, Boolean(options.shouldCancel?.()));
 };
 
-interface NearestState {
-	occupied: Set<number>;
-	used: Set<number>;
-	selected: Map<number, Placement>;
-	preferred: Map<number, Placement>;
-	initialIds: Set<number>;
-	best: Placement[] | null;
-	bestMoved: number;
-	bestPartial: Placement[];
-	nodes: number;
-	stopped: boolean;
-}
-
 const normalizeInitial = (shape: Shape, initial: Placement[]): Placement[] => {
 	const result: Placement[] = [];
 	const used = new Set<number>();
@@ -192,149 +179,93 @@ const normalizeInitial = (shape: Shape, initial: Placement[]): Placement[] => {
 	return result;
 };
 
-const nearestState = (shape: Shape, initial: Placement[]): NearestState => {
-	const preferred = new Map(normalizeInitial(shape, initial).map(placement => [placement.blockId, placement]));
-	return {occupied: new Set(), used: new Set(), selected: new Map(), preferred, initialIds: new Set(preferred.keys()), best: null, bestMoved: Number.POSITIVE_INFINITY, bestPartial: [], nodes: 0, stopped: false};
-};
-
-const placementAvailable = (state: NearestState, placement: Placement): boolean => !state.used.has(placement.blockId) && placement.indices.every(index => !state.occupied.has(index));
-
-const nearestMoved = (state: NearestState): number => {
-	let moved = 0;
-	for (const blockId of state.initialIds) {
-		const preferred = state.preferred.get(blockId);
-		const selected = state.selected.get(blockId);
-		if (!selected || !preferred || !samePlacement(selected, preferred))
-			++moved;
-	}
-	return moved;
-};
-
-const chooseNearestCandidates = (shape: Shape, state: NearestState): Placement[] | null => {
-	let best: Placement[] | null = null;
-	for (let cell = 0; cell < shape.boardPoints.length; ++cell) {
-		if (state.occupied.has(cell))
-			continue;
-		const candidates: Placement[] = [];
-		for (let blockId = 0; blockId < shape.blocks.length; ++blockId) {
-			if (state.used.has(blockId))
-				continue;
-			for (const placement of shape.placements[blockId]) {
-				if (placement.indices.includes(cell) && placementAvailable(state, placement))
-					candidates.push(placement);
+// Nearest solution: keep as many of the existing blocks in place as possible. Every subset of k dropped blocks is
+// tried for k = 0, 1, 2…, each checked by the fixed-block solver, so the first complete board found moves the fewest
+// blocks, and no block is favoured by where it sits (a cell-order branch and bound kept the blocks it reached first,
+// i.e. the top of the board). Proving a kept set infeasible is fast, so typical boards finish in well under a second.
+function* keptSubsets (count: number): Generator<number[]> {
+	for (let dropped = 0; dropped <= count; ++dropped) {
+		const keep = count - dropped;
+		const picked: number[] = [];
+		function* choose (start: number): Generator<number[]> {
+			if (picked.length === keep) {
+				yield picked.slice();
+				return;
+			}
+			for (let index = start; index <= count - (keep - picked.length); ++index) {
+				picked.push(index);
+				yield* choose(index + 1);
+				picked.pop();
 			}
 		}
-		if (!candidates.length)
-			return [];
-		if (!best || candidates.length < best.length)
-			best = candidates;
+		yield* choose(0);
 	}
-	return best;
+}
+
+interface NearestSearch {
+	initial: Placement[];
+	subsets: Generator<number[]>;
+	startedAt: number;
+	timeLimitMs: number;
+	maxNodes: number;
+	nodes: number;
+	exhaustive: boolean;
+}
+
+const nearestSearch = (shape: Shape, initial: Placement[], options: SolveOptions): NearestSearch => {
+	const normalized = normalizeInitial(shape, initial);
+	return {initial: normalized, subsets: keptSubsets(normalized.length), startedAt: Date.now(), timeLimitMs: options.timeLimitMs || 5000, maxNodes: options.maxNodes || 1000000, nodes: 0, exhaustive: true};
 };
 
-const orderNearestCandidates = (candidates: Placement[], state: NearestState): Placement[] => candidates.slice().sort((a, b) => {
-	const preferred = state.preferred.has(a.blockId) && samePlacement(state.preferred.get(a.blockId) as Placement, a) ? -1 : 0;
-	const otherPreferred = state.preferred.has(b.blockId) && samePlacement(state.preferred.get(b.blockId) as Placement, b) ? -1 : 0;
-	return preferred - otherPreferred;
-});
-
-const searchNearest = (shape: Shape, state: NearestState, options: SolveOptions): boolean => {
-	++state.nodes;
-	if (state.selected.size > state.bestPartial.length)
-		state.bestPartial = Array.from(state.selected.values());
-	if (state.occupied.size === shape.boardPoints.length) {
-		const moved = nearestMoved(state);
-		if (moved < state.bestMoved) {
-			state.bestMoved = moved;
-			state.best = Array.from(state.selected.values());
-		}
-		return moved === 0;
-	}
-	const currentMoved = nearestMoved(state);
-	if (currentMoved >= state.bestMoved || state.nodes >= (options.maxNodes || 500000) || Date.now() - (options.startedAt || Date.now()) > (options.timeLimitMs || 3000) || options.shouldCancel?.()) {
-		state.stopped = true;
-		return false;
-	}
-	const candidates = chooseNearestCandidates(shape, state);
-	if (!candidates || !candidates.length)
-		return false;
-	for (const placement of orderNearestCandidates(candidates, state)) {
-		state.used.add(placement.blockId);
-		state.selected.set(placement.blockId, placement);
-		placement.indices.forEach(index => state.occupied.add(index));
-		if (searchNearest(shape, state, options))
-			return true;
-		placement.indices.forEach(index => state.occupied.delete(index));
-		state.selected.delete(placement.blockId);
-		state.used.delete(placement.blockId);
-		if (state.stopped)
-			return false;
-	}
-	return false;
+// Options for one fixed-block solve: the remaining shared time, a per-subset node cap.
+const subsetOptions = (search: NearestSearch, options: SolveOptions): SolveOptions | null => {
+	const remaining = search.timeLimitMs - (Date.now() - search.startedAt);
+	if (remaining <= 0 || search.nodes >= search.maxNodes || options.shouldCancel?.())
+		return null;
+	return {...options, random: false, timeLimitMs: remaining, maxNodes: Math.min(search.maxNodes - search.nodes, 200000)};
 };
 
-const searchNearestAsync = async (shape: Shape, state: NearestState, options: SolveOptions): Promise<boolean> => {
-	++state.nodes;
-	if (state.selected.size > state.bestPartial.length)
-		state.bestPartial = Array.from(state.selected.values());
-	if (state.occupied.size === shape.boardPoints.length) {
-		const moved = nearestMoved(state);
-		if (moved < state.bestMoved) {
-			state.bestMoved = moved;
-			state.best = Array.from(state.selected.values());
-		}
-		return moved === 0;
-	}
-	if (state.nodes % (options.yieldAt || 1000) === 0)
-		await new Promise(resolve => setTimeout(resolve, 0));
-	const currentMoved = nearestMoved(state);
-	if (currentMoved >= state.bestMoved || state.nodes >= (options.maxNodes || 500000) || Date.now() - (options.startedAt || Date.now()) > (options.timeLimitMs || 3000) || options.shouldCancel?.()) {
-		state.stopped = true;
-		return false;
-	}
-	const candidates = chooseNearestCandidates(shape, state);
-	if (!candidates || !candidates.length)
-		return false;
-	for (const placement of orderNearestCandidates(candidates, state)) {
-		state.used.add(placement.blockId);
-		state.selected.set(placement.blockId, placement);
-		placement.indices.forEach(index => state.occupied.add(index));
-		if (await searchNearestAsync(shape, state, options))
-			return true;
-		placement.indices.forEach(index => state.occupied.delete(index));
-		state.selected.delete(placement.blockId);
-		state.used.delete(placement.blockId);
-		if (state.stopped)
-			return false;
-	}
-	return false;
+// Record one subset's outcome; returns the final result once a complete board is found.
+const nearestStep = (search: NearestSearch, keep: number[], subset: SolveOptions, result: SolveResult): SolveResult | null => {
+	search.nodes += result.nodes;
+	if (result.complete)
+		return {...result, nodes: search.nodes, movedExisting: search.initial.length - keep.length, optimal: search.exhaustive};
+	// No board, and cut short by its budget rather than having proved the kept set infeasible: a later answer
+	// (more blocks moved) is then not known to be optimal.
+	if (result.cancelled || result.nodes >= (subset.maxNodes as number) || Date.now() - search.startedAt >= search.timeLimitMs)
+		search.exhaustive = false;
+	return null;
 };
 
-const nearestResult = (shape: Shape, state: NearestState, cancelled: boolean): SolveResult => {
-	const complete = Boolean(state.best);
-	const placements = state.best || state.bestPartial;
-	const covered = new Set(placements.flatMap(placement => placement.indices)).size;
-	return {placements, status: complete ? "complete" : cancelled ? "cancelled" : "partial", complete, covered, remaining: shape.boardPoints.length - covered, nodes: state.nodes, cancelled, movedExisting: complete ? state.bestMoved : state.initialIds.size, optimal: complete && !state.stopped};
+const nearestGiveUp = (shape: Shape, search: NearestSearch, cancelled: boolean): SolveResult => {
+	const covered = new Set(search.initial.flatMap(placement => placement.indices)).size;
+	return {placements: search.initial, status: cancelled ? "cancelled" : "partial", complete: false, covered, remaining: shape.boardPoints.length - covered, nodes: search.nodes, cancelled, movedExisting: search.initial.length, optimal: false};
 };
 
 export const nearestSolution = (shape: Shape, initial: Placement[] = [], options: SolveOptions = {}): SolveResult => {
-	const normalized = normalizeInitial(shape, initial);
-	const fixed = solve(shape, normalized, {...options, random: false, timeLimitMs: options.timeLimitMs || 3000, maxNodes: options.maxNodes || 500000});
-	if (fixed.complete)
-		return {...fixed, movedExisting: 0, optimal: true};
-	const state = nearestState(shape, normalized);
-	const complete = searchNearest(shape, state, {...options, startedAt: Date.now()});
-	return nearestResult(shape, state, Boolean(options.shouldCancel?.()) || (!complete && state.stopped && Boolean(options.shouldCancel?.())));
+	const search = nearestSearch(shape, initial, options);
+	for (const keep of search.subsets) {
+		const subset = subsetOptions(search, options);
+		if (!subset)
+			break;
+		const done = nearestStep(search, keep, subset, solve(shape, keep.map(index => search.initial[index]), subset));
+		if (done)
+			return done;
+	}
+	return nearestGiveUp(shape, search, Boolean(options.shouldCancel?.()));
 };
 
 export const nearestSolutionAsync = async (shape: Shape, initial: Placement[] = [], options: SolveOptions = {}): Promise<SolveResult> => {
-	const normalized = normalizeInitial(shape, initial);
-	const fixed = await solveAsync(shape, normalized, {...options, random: false, timeLimitMs: options.timeLimitMs || 5000, maxNodes: options.maxNodes || 1000000});
-	if (fixed.complete)
-		return {...fixed, movedExisting: 0, optimal: true};
-	const state = nearestState(shape, normalized);
-	await searchNearestAsync(shape, state, {...options, startedAt: Date.now(), timeLimitMs: options.timeLimitMs || 5000, maxNodes: options.maxNodes || 1000000});
-	return nearestResult(shape, state, Boolean(options.shouldCancel?.()));
+	const search = nearestSearch(shape, initial, options);
+	for (const keep of search.subsets) {
+		const subset = subsetOptions(search, options);
+		if (!subset)
+			break;
+		const done = nearestStep(search, keep, subset, await solveAsync(shape, keep.map(index => search.initial[index]), subset));
+		if (done)
+			return done;
+	}
+	return nearestGiveUp(shape, search, Boolean(options.shouldCancel?.()));
 };
 
 export const randomSolution = (shape: Shape, initial: Placement[] = []): SolveResult => solve(shape, initial, {random: true, timeLimitMs: 5000, maxNodes: 1000000});

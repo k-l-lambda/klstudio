@@ -51,4 +51,15 @@ console.assert(nearestResult.movedExisting === 0, "nearest solver moved unchange
 const cancelledNearest = nearestSolution(rhombus, nearestInitial, {shouldCancel: () => true});
 console.assert(cancelledNearest.cancelled && cancelledNearest.status === "cancelled", "nearest cancellation failed");
 
+// Partial std board mixing two solutions: one block has to move. The former cell-order branch and bound kept only
+// what it reached first from the top and moved all 8.
+const std = buildShape("std");
+const mixedBoard = ([[0, 3, [1, 2]], [8, 8, [0, 1]], [3, 1, [3, 5]], [1, 11, [0, 6]], [4, 5, [2, 6]], [5, 3, [5, 6]], [6, 8, [2, 7]], [11, 1, [4, 7]]] as [number, number, number[]][])
+	.map(([blockId, orientationId, [x, y]]) => std.placements[blockId].find(placement => placement.orientationId === orientationId && placement.translation[0] === x && placement.translation[1] === y)!);
+const mixedNearest = nearestSolution(std, mixedBoard, {timeLimitMs: 5000, maxNodes: 1000000});
+console.assert(mixedNearest.complete && validatePlacements(std, mixedNearest.placements), "nearest solver did not complete the mixed std board");
+console.assert(mixedNearest.movedExisting === 1 && mixedNearest.optimal, `nearest solver moved ${mixedNearest.movedExisting} blocks, the minimum is 1`);
+const keptCount = mixedBoard.filter(initial => mixedNearest.placements.some(placement => placement.blockId === initial.blockId && placement.indices.join() === initial.indices.join())).length;
+console.assert(keptCount === mixedBoard.length - 1, "nearest result does not keep the reported blocks in place");
+
 console.log(`Hexiamond test passed (${result.covered}/${shape.boardPoints.length} cells, ${result.nodes} nodes; rhombus ${rhombusResult.covered}/72).`);

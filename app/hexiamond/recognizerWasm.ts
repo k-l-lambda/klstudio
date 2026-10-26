@@ -112,39 +112,34 @@ export const loadRecognizer = (url: string): Promise<Recognizer> => {
 	return pending;
 };
 
-/** Draw an image at most `maxSide` px on its long side and recognize it. 2048 gave the same partitions as the
- * full-resolution photos in every sample at roughly half the time; the colour sampling scales with this size. */
-export const recognizeImage = (recognizer: Recognizer, image: CanvasImageSource & {width: number; height: number}, board: number[][], maxSide = 2048): RecognizerResult => {
-	const width = (image as HTMLImageElement).naturalWidth || image.width;
-	const height = (image as HTMLImageElement).naturalHeight || image.height;
-	const scale = Math.min(1, maxSide / Math.max(width, height));
+/** Draw an image scaled to `width` px wide (never enlarged) and recognize it. Hsource maps board units to that
+ * drawn size. At 600 px wide every sample photo gave the same partition as at full resolution (the module
+ * normalizes to a 1024 px long side internally); the run time is then dominated by that fixed normalized size. */
+export const recognizeImage = (recognizer: Recognizer, image: CanvasImageSource & {width: number; height: number}, board: number[][], width = 600): {result: RecognizerResult; width: number; height: number} => {
+	const sourceWidth = (image as HTMLImageElement).naturalWidth || image.width;
+	const sourceHeight = (image as HTMLImageElement).naturalHeight || image.height;
+	const scale = Math.min(1, width / sourceWidth);
 	const canvas = document.createElement("canvas");
-	canvas.width = Math.round(width * scale);
-	canvas.height = Math.round(height * scale);
+	canvas.width = Math.round(sourceWidth * scale);
+	canvas.height = Math.round(sourceHeight * scale);
 	const context = canvas.getContext("2d", {willReadFrequently: true}) as CanvasRenderingContext2D;
 	context.imageSmoothingQuality = "high";
 	context.drawImage(image, 0, 0, canvas.width, canvas.height);
 	const data = context.getImageData(0, 0, canvas.width, canvas.height);
-	return recognizer.recognize(data.data, canvas.width, canvas.height, board);
+	return {result: recognizer.recognize(data.data, canvas.width, canvas.height, board), width: canvas.width, height: canvas.height};
 };
 
-/** Map recognized 6-cell regions onto the shape's placements (the same identity the saved board uses). */
-export const placementsFromResult = (shape: Shape, result: RecognizerResult): {placements: Placement[]; unmatched: number} => {
+/** Map recognized 6-cell regions onto the shape's placements (the same identity the saved board uses).
+ * `byRegion` is aligned with `result.regions`: the placement of each region, or null (blank / no match). */
+export const placementsFromResult = (shape: Shape, result: RecognizerResult): {placements: Placement[]; byRegion: (Placement | null)[]; unmatched: number} => {
+	const key = (cells: number[]): string => [...cells].sort((a, b) => a - b).join(",");
 	const byCells = new Map<string, Placement>();
 	for (const list of shape.placements) {
 		for (const placement of list)
-			byCells.set([...placement.indices].sort((a, b) => a - b).join(","), placement);
+			byCells.set(key(placement.indices), placement);
 	}
-	const placements: Placement[] = [];
-	let unmatched = 0;
-	for (const region of result.regions) {
-		if (region.blank || region.cells.length !== 6)
-			continue;
-		const placement = byCells.get([...region.cells].sort((a, b) => a - b).join(","));
-		if (placement)
-			placements.push(placement);
-		else
-			unmatched++;
-	}
-	return {placements, unmatched};
+	const byRegion = result.regions.map(region => (!region.blank && region.cells.length === 6 && byCells.get(key(region.cells))) || null);
+	const placements = byRegion.filter(Boolean) as Placement[];
+	const unmatched = result.regions.filter((region, index) => !region.blank && !byRegion[index]).length;
+	return {placements, byRegion, unmatched};
 };

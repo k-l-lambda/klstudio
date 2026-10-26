@@ -8,14 +8,14 @@
  * This differs from the app's geometry.ts::makeOrientations, which auto-mirrors every piece and so
  * doubles the chiral Bar's orientations (3 -> 6), doubling the solution count (5885 -> 11770).
  *
- * Run: npx ts-node --project ./tsconfig.node.json tools/hexiamond-std-frequency.ts
+ * Run: npx ts-node --project ./tsconfig.node.json tools/hexiamond/hexiamond-std-frequency.ts
  * Writes: static/hexiamond-std-frequency.json
  */
 import {writeFileSync, mkdirSync} from "fs";
 import {resolve} from "path";
-import {inBoard, packPoint, pointKey, rotatePoint} from "../app/hexiamond/geometry";
-import {RAW_SHAPES} from "../app/hexiamond/data";
-import {Orientation, PackedPoint, Placement, Point, Shape} from "../app/hexiamond/types";
+import {inBoard, packPoint, pointKey, rotatePoint} from "../../app/hexiamond/geometry";
+import {RAW_SHAPES} from "../../app/hexiamond/data";
+import {Orientation, PackedPoint, Placement, Point, Shape} from "../../app/hexiamond/types";
 
 // --- Reference-faithful shape builder: rotation only, no reflection. ---
 const normalize = (points: PackedPoint[]): PackedPoint[] => {
@@ -189,7 +189,7 @@ const output = {
 	})),
 };
 
-const outDir = resolve(__dirname, "../static");
+const outDir = resolve(__dirname, "../../static");
 mkdirSync(outDir, {recursive: true});
 const outPath = resolve(outDir, "hexiamond-std-frequency.json");
 writeFileSync(outPath, JSON.stringify(output));

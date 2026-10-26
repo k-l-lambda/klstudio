@@ -17,26 +17,26 @@
 		<section v-if="photoUrl" class="photo-panel" aria-live="polite">
 			<div class="photo-preview">
 				<img :src="photoUrl" alt="Selected puzzle photo" />
-				<svg v-if="photoResult && photoResult.image" class="photo-overlay"
-					:viewBox="`0 0 ${photoResult.image.width} ${photoResult.image.height}`" aria-label="Recognition contour overlay">
-					<g v-for="polygon of photoResult.matchedPolygons" :key="`match-${polygon.observationId}`" class="photo-match" :style="{color: blockById(polygon.placement.blockId).color}">
-						<polygon :points="photoContourPoints(polygon.points)" />
+				<svg v-if="photoResult && photoResult.ok" class="photo-overlay"
+					:viewBox="`0 0 ${photoSize.width} ${photoSize.height}`" aria-label="Recognized blocks overlay">
+					<g v-for="region of photoRegions" :key="region.key" :class="['photo-region', region.kind]" :style="{color: region.color}">
+						<polygon v-for="(points, index) of region.triangles" :key="index" :points="points" />
 					</g>
-					<g v-for="contour of photoResult.contours" :key="contour.id"
-						:class="['photo-contour', {matched: isMatchedContour(contour.id), unmatched: !isMatchedContour(contour.id)}]">
-						<polygon :points="photoContourPoints(contour.polygon)" />
-						<circle :cx="contour.centroid.x" :cy="contour.centroid.y" r="4" />
-					</g>
+					<path class="photo-outline" :d="photoOutline" />
 				</svg>
 			</div>
 			<p v-if="recognizing" class="photo-status">Recognizing...</p>
 			<p v-else-if="photoResult" class="photo-status">
-				<strong>{{ photoResult.matches.length }} matched</strong>
-				<span>{{ photoResult.unmatched.length }} unmatched</span>
-				<span>{{ photoResult.contours.length }} retained contours</span>
+				<template v-if="photoResult.ok">
+					<strong>{{ photoPlacements.length }} blocks</strong>
+					<span v-if="photoBlankCount">{{ photoBlankCount }} blank regions</span>
+					<span v-if="photoUnmatched">{{ photoUnmatched }} unmatched</span>
+					<span>{{ photoMs }} ms</span>
+				</template>
+				<strong v-else>Not recognized: {{ photoResult.error }}</strong>
 			</p>
 			<div class="photo-actions">
-				<button :disabled="recognizing || !photoResult || !photoResult.legal" @click="applyPhoto">Apply</button>
+				<button :disabled="recognizing || !photoApplicable" @click="applyPhoto">Apply</button>
 				<button @click="discardPhoto">Discard</button>
 			</div>
 		</section>
@@ -92,8 +92,7 @@
 	import {nearestSolutionAsync, randomSolutionAsync, validatePlacements} from "../hexiamond/solver";
 	import {Placement, Shape} from "../hexiamond/types";
 	import {RAW_SHAPES} from "../hexiamond/data";
-	import {recognizePhotoCv} from "../hexiamond/recognitionCv";
-	import {RecognitionPoint, RecognitionResult} from "../hexiamond/recognition";
+	import {loadRecognizer, placementsFromResult, recognizeImage, RecognizerResult} from "../hexiamond/recognizerWasm";
 
 	// Touch gesture tuning: hold this long (ms) on a placed block to flip it; accumulate this much
 	// two-finger twist (radians) per rotation step.
@@ -156,12 +155,60 @@
 				cancelled: false,
 				status: "Click a block to auto-place it, or drag one onto the board.",
 				photoUrl: "",
-				photoResult: null as RecognitionResult | null,
+				photoResult: null as RecognizerResult | null,
+				photoSize: {width: 0, height: 0},
+				photoMs: 0,
 				recognizing: false,
 				photoToken: 0,
 			};
 		},
 		computed: {
+			photoMatch (): ReturnType<typeof placementsFromResult> | null {
+				return this.photoResult && this.photoResult.ok ? placementsFromResult(this.shape as Shape, this.photoResult) : null;
+			},
+			photoPlacements (): Placement[] {
+				return this.photoMatch ? this.photoMatch.placements : [];
+			},
+			photoUnmatched (): number {
+				return this.photoMatch ? this.photoMatch.unmatched : 0;
+			},
+			photoBlankCount (): number {
+				return this.photoResult && this.photoResult.ok ? this.photoResult.regions.filter(region => region.blank).length : 0;
+			},
+			photoApplicable (): boolean {
+				return this.photoPlacements.length > 0 && validatePlacements(this.shape as Shape, this.photoPlacements);
+			},
+			// Recognized regions drawn over the photo: each board cell (board units, as the module uses) through Hsource.
+			photoRegions (): any[] {
+				if (!this.photoResult || !this.photoResult.ok || !this.photoMatch)
+					return [];
+				const shape = this.shape as Shape;
+				return this.photoResult.regions.map((region, index) => {
+					const placement = this.photoMatch!.byRegion[index];
+					return {
+						key: region.cells.join(","),
+						kind: placement ? "matched" : (region.blank ? "blank" : "unmatched"),
+						color: placement ? this.blockById(placement.blockId).color : undefined,
+						triangles: region.cells.map(cell => this.photoProject(triangleVertices(shape.boardPoints[cell], 1, 0))),
+					};
+				});
+			},
+			photoOutline (): string {
+				if (!this.photoResult || !this.photoResult.ok)
+					return "";
+				// Board boundary: triangle edges that belong to a single cell.
+				const counts = new Map<string, [ScreenPoint, ScreenPoint, number]>();
+				for (const point of (this.shape as Shape).boardPoints) {
+					const vertices = triangleVertices(point, 1, 0);
+					vertices.forEach((a, i) => {
+						const b = vertices[(i + 1) % 3];
+						const key = [a, b].map(v => v.map(c => c.toFixed(4)).join(",")).sort().join(";");
+						const entry = counts.get(key);
+						counts.set(key, entry ? [entry[0], entry[1], entry[2] + 1] : [a, b, 1]);
+					});
+				}
+				return [...counts.values()].filter(entry => entry[2] === 1).map(([a, b]) => `M${this.photoProject([a, b])}`).join(" ");
+			},
 			availableBlocks (): any[] {
 				const used = new Set(this.placements.map(placement => placement.blockId));
 				return (this.shape as Shape).blocks.filter(block => !used.has(block.id));
@@ -658,11 +705,13 @@
 			clearBoard (): void {
 				this.placements = []; this.commit("Board cleared.");
 			},
-			photoContourPoints (polygon: RecognitionPoint[]): string {
-				return polygon.map(point => `${point.x},${point.y}`).join(" ");
-			},
-			isMatchedContour (id: string): boolean {
-				return Boolean(this.photoResult && this.photoResult.matches.some(match => match.observationId === id));
+			// Board-unit points -> recognized photo px, as an SVG points list.
+			photoProject (points: ScreenPoint[]): string {
+				const H = (this.photoResult as RecognizerResult).Hsource;
+				return points.map(([x, y]) => {
+					const w = H[6] * x + H[7] * y + H[8];
+					return `${((H[0] * x + H[1] * y + H[2]) / w).toFixed(1)},${((H[3] * x + H[4] * y + H[5]) / w).toFixed(1)}`;
+				}).join(" ");
 			},
 			selectPhoto (event: Event): void {
 				const input = event.target as HTMLInputElement;
@@ -679,11 +728,19 @@
 					this.recognizing = true;
 					this.status = "Recognizing photo...";
 					try {
-						const result = await recognizePhotoCv(image, this.shape as Shape);
+						const recognizer = await loadRecognizer(`${import.meta.env.BASE_URL}hexiamond-recognizer.wasm`);
+						// Let "Recognizing..." paint: the call itself runs synchronously on this thread.
+						await new Promise(resolve => setTimeout(resolve, 30));
 						if (token !== this.photoToken)
 							return;
-						this.photoResult = result;
-						this.status = "Photo recognized; review the contour overlay before applying.";
+						const started = performance.now();
+						const {result, width, height} = recognizeImage(recognizer, image, (this.shape as Shape).board);
+						if (token !== this.photoToken)
+							return;
+						this.photoMs = Math.round(performance.now() - started);
+						this.photoSize = {width, height};
+						this.photoResult = markRaw(result);
+						this.status = result.ok ? "Photo recognized; review the overlay before applying." : `Photo not recognized: ${result.error}`;
 					}
 					catch (error) {
 						if (token === this.photoToken)
@@ -704,9 +761,9 @@
 				input.value = "";
 			},
 			applyPhoto (): void {
-				if (!this.photoResult || !this.photoResult.legal)
+				if (!this.photoApplicable)
 					return;
-				this.placements = this.photoResult.matches.map(match => match.placement);
+				this.placements = this.photoPlacements.slice();
 				this.commit("Photo recognition applied.");
 				this.discardPhoto();
 			},
@@ -791,12 +848,11 @@ button:disabled { cursor: default; opacity: .45; }
 .photo-preview { position: relative; width: fit-content; max-width: 100%; margin: 0 auto; line-height: 0; }
 .photo-preview img { display: block; max-width: 100%; max-height: 55vh; object-fit: contain; }
 .photo-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.photo-match polygon { fill: currentColor; fill-opacity: .28; stroke: currentColor; stroke-width: 2; vector-effect: non-scaling-stroke; }
-.photo-contour circle { vector-effect: non-scaling-stroke; stroke-width: 1.5; }
-.photo-contour.matched polygon { fill: rgb(29 148 91 / 22%); stroke: #087443; }
-.photo-contour.matched circle { fill: #fff; stroke: #087443; }
-.photo-contour.unmatched polygon { fill: rgb(210 58 48 / 18%); stroke: #b42720; stroke-dasharray: 6 4; }
-.photo-contour.unmatched circle { fill: #fff; stroke: #b42720; }
+.photo-region polygon { stroke-width: 1; vector-effect: non-scaling-stroke; }
+.photo-region.matched polygon { fill: currentColor; fill-opacity: .45; stroke: currentColor; }
+.photo-region.blank polygon { fill: rgb(255 255 255 / 60%); stroke: #555; stroke-dasharray: 4 3; }
+.photo-region.unmatched polygon { fill: rgb(210 58 48 / 25%); stroke: #b42720; stroke-dasharray: 6 4; }
+.photo-outline { fill: none; stroke: #fff; stroke-width: 2; vector-effect: non-scaling-stroke; }
 .photo-status { display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1rem; margin: .75rem 0; }
 .photo-actions { display: flex; justify-content: center; gap: .5rem; }
 .workspace { display: flex; flex-wrap: wrap; gap: 1rem; max-width: 1100px; margin: 1rem auto; }

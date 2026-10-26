@@ -20,8 +20,6 @@ const RULES = [
 	{name: "chess-openings", version: "v1", match: (p) => /\/chess\/open-games\/[3-7]\.yaml$/.test(p)},
 	// FluidSynth WASM runtime (~2.3 MB) — audio worklet.
 	{name: "fluidsynth", version: "v1", match: (p) => /\/fluid\/libfluidsynth-.*\.js$/.test(p)},
-	// OpenCV wasm (~1.2 MB) — hexiamond photo recognition.
-	{name: "opencv", version: "v1", match: (p) => /\/opencv(\.min)?\.wasm$/.test(p)},
 ];
 
 const cacheNameFor = (rule) => `${CACHE_PREFIX}${rule.name}-${rule.version}`;

@@ -190,6 +190,11 @@ export const routes = [
 		name: "Complex Function Plot",
 		component: () => import(/* webpackChunkName: "complex-function", */ "./views/complex-function.vue"),
 	},
+	{
+		path: "/rubik-puzzles",
+		name: "Rubik Puzzles",
+		component: () => import(/* webpackChunkName: "rubik-puzzles", */ "./views/rubik-puzzles.vue"),
+	},
 ];
 
 

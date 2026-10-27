@@ -82,6 +82,14 @@
 
 
 	const apps = [
+		/*{
+			name: "Rubik Puzzles",
+			_title: "Rubik Puzzles",
+			path: "/rubik-puzzles",
+			cover: "rubik-puzzles.png",
+			description: `<p>A simulator for twisty puzzles: the 2×2×2, 3×3×3 and 4×4×4 cubes and the Mastermorphix.</p>
+<p>Drag a piece to turn its layer. The Mastermorphix turns exactly like a 3×3×3 cube, but its pieces are cut from a rounded tetrahedron, so it changes shape as you scramble it.</p>`,
+		},*/
 		{
 			name: "Hexiamond",
 			_title: "Hexiamond",

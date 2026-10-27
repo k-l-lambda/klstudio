@@ -72,6 +72,31 @@ export const fromCubies = ({cp, co, ep, eo}: Cubies): CubeN => {
 };
 
 
+// A uniformly random legal 3×3 state (centres home). `random` returns [0, 1).
+export const randomCube = (random: () => number = Math.random): CubeN => {
+	const shuffle = (n: number): number[] => {
+		const a = Array(n).fill(0).map((_, i) => i);
+		for (let i = n - 1; i > 0; --i) {
+			const j = Math.floor(random() * (i + 1));
+			[a[i], a[j]] = [a[j], a[i]];
+		}
+		return a;
+	};
+	const parity = (p: number[]): number => p.reduce((acc, x, i) => acc ^ p.slice(i + 1).filter(y => y < x).length % 2, 0);
+	const orientations = (n: number, base: number): number[] => {
+		const a = Array(n - 1).fill(0).map(() => Math.floor(random() * base));
+		return [...a, (base - a.reduce((sum, x) => sum + x, 0) % base) % base];
+	};
+
+	const cp = shuffle(8);
+	let ep = shuffle(12);
+	if (parity(ep) !== parity(cp))
+		ep = [ep[1], ep[0], ...ep.slice(2)];
+
+	return fromCubies({cp, co: orientations(8, 3), ep, eo: orientations(12, 2)});
+};
+
+
 // Applying move m to s: what was in slot m.cp[j] comes to slot j, with m.co[j] more twist.
 const MOVES: Cubies[] = Array(18).fill(null).map((_, m) => toCubies(new CubeN(3, {twists: [moveTwist(m)]})));
 

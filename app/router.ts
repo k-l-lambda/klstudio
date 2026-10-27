@@ -195,6 +195,12 @@ export const routes = [
 		name: "Rubik Puzzles",
 		component: () => import(/* webpackChunkName: "rubik-puzzles", */ "./views/rubik-puzzles.vue"),
 	},
+	{
+		// synthetic photo samples for cube image recognition (?seed=…&size=640x480)
+		path: "/rubik-samples",
+		name: "Rubik Image Samples",
+		component: () => import(/* webpackChunkName: "rubik-samples", */ "./views/rubik-samples.vue"),
+	},
 ];
 
 

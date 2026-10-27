@@ -117,7 +117,7 @@ export class CubeNModel {
 	slotTransform: Uint16Array;	// [t * pieces + slot] -> slot, for the 48 symmetries (24 rotations, then × -I)
 	orbitOf: Uint16Array;		// piece -> orbit index
 	orbits: Orbit[];
-	facelets: {slot: number; normal: Vector3}[];	// face by face, row by row, N² each
+	facelets: {slot: number; normal: Vector3; right: Vector3; down: Vector3}[];	// face by face, row by row, N² each; right/down: the grid seen from outside
 	private indexOfKey: Map<string, number>;
 	private twistMasks = new Map<number, Uint8Array>();
 
@@ -199,7 +199,7 @@ export class CubeNModel {
 			for (let row = 0; row < n; ++row) {
 				for (let col = 0; col < n; ++col) {
 					const p = [0, 1, 2].map(k => normal[k] * half + right[k] * (2 * col - half) + down[k] * (2 * row - half)) as Vector3;
-					this.facelets.push({slot: this.slotAt(p), normal});
+					this.facelets.push({slot: this.slotAt(p), normal, right, down});
 				}
 			}
 		});

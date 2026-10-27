@@ -1,6 +1,6 @@
 // Run: npx ts-node --project ./tsconfig.node.json tests/cove3.ts [count]
 import {CubeN} from "../inc/cubeN";
-import {MOVE_NAMES, buildTables, fromCubies, moveTwist, solve, stringifyMoves, toCubies, turnCubies} from "../inc/cove3";
+import {MOVE_NAMES, buildTables, fromCubies, moveTwist, randomCube as randomCubeOf, solve, stringifyMoves, toCubies, turnCubies} from "../inc/cove3";
 
 
 
@@ -14,28 +14,7 @@ const check = (condition: boolean, ...message: any[]) => {
 const lcg = (seed: number) => () => (seed = (seed * 1664525 + 1013904223) % 2 ** 32) / 2 ** 32;
 const random = lcg(0x913b5e);
 
-const shuffle = (n: number): number[] => {
-	const a = Array(n).fill(0).map((_, i) => i);
-	for (let i = n - 1; i > 0; --i) {
-		const j = Math.floor(random() * (i + 1));
-		[a[i], a[j]] = [a[j], a[i]];
-	}
-	return a;
-};
-const parity = (p: number[]): number => p.reduce((acc, x, i) => acc ^ p.slice(i + 1).filter(y => y < x).length % 2, 0);
-const orientations = (n: number, base: number): number[] => {
-	const a = Array(n - 1).fill(0).map(() => Math.floor(random() * base));
-	return [...a, (base - a.reduce((s, x) => s + x, 0) % base) % base];
-};
-
-// a uniformly random legal 3×3 state
-const randomCube = (): CubeN => {
-	const cp = shuffle(8);
-	let ep = shuffle(12);
-	if (parity(ep) !== parity(cp))
-		ep = [ep[1], ep[0], ...ep.slice(2)];
-	return fromCubies({cp, co: orientations(8, 3), ep, eo: orientations(12, 2)});
-};
+const randomCube = () => randomCubeOf(random);
 
 const median = (a: number[]) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
 

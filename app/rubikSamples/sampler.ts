@@ -75,8 +75,9 @@ export interface Sample {
 		facelets: string;	// 54 colour letters, CubeN facelet order
 		faceOrder: string;
 		faceFrames: Record<string, {right: Vector3; down: Vector3}>;	// row/column directions of each face in the cube frame
-		scheme: string;
+		scheme: string;		// western / japanese / shuffled, or nonstandard-<vivid|light|deep|mixed> (see nonstandardColors)
 		colors: Record<string, string>;	// sticker colour (sRGB hex) per face letter
+		hueGap: number;		// smallest CIE Lab hue difference (degrees) between the chromatic colours (C* ≥ 20)
 		body: string;
 	};
 	render: {
@@ -112,6 +113,161 @@ const SCHEMES: {name: string; weight: number; faces: string[]}[] = [
 	{name: "shuffled", weight: 0.25, faces: null},
 ];
 const BODIES = [{color: "#111111", weight: 0.65}, {color: "#eeeeea", weight: 0.2}, {color: "#4a4a4a", weight: 0.15}];
+
+// --- non-standard colour schemes ---------------------------------------------------------------------------------
+// Six sticker colours built in CIE LCh (D65), so "hue" is the Lab hue the detector reads.
+//	- near-white: at most one (L* ≥ 88, C* < 8), exempt from the hue rule; no other colour may be whitish
+//	- every other colour saturated: HSV saturation ≥ MIN_SATURATION and C* ≥ MIN_CHROMA (rules out pastels)
+//	- their hues at least MIN_HUE_GAP apart around the circle (6 hues fit 60° each at most; 45° rules out pairs like
+//	  the standard red/orange, ~26° apart)
+// Families by lightness: vivid (mid), light (bright but saturated: lemon, sky, lime), deep (dark, rich), mixed.
+
+export const MIN_HUE_GAP = 45;
+export const MIN_CHROMA = 40;
+export const MIN_SATURATION = 0.6;
+export const isNearWhite = (lch: number[]) => lch[0] >= 88 && lch[1] < 8;
+
+const srgbToLinear = (c: number) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+const linearToSrgb = (c: number) => c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055;
+const D65 = [0.95047, 1, 1.08883];
+
+const labToLinear = (L: number, a: number, b: number): number[] => {
+	const fy = (L + 16) / 116, fx = fy + a / 500, fz = fy - b / 200;
+	const inv = (t: number) => t ** 3 > 0.008856 ? t ** 3 : (t - 16 / 116) / 7.787;
+	const [x, y, z] = [inv(fx) * D65[0], inv(fy) * D65[1], inv(fz) * D65[2]];
+	return [
+		3.2404542 * x - 1.5371385 * y - 0.4985314 * z,
+		-0.9692660 * x + 1.8760108 * y + 0.0415560 * z,
+		0.0556434 * x - 0.2040259 * y + 1.0572252 * z,
+	];
+};
+
+// sRGB hex → [L*, C*, h°]
+export const hexToLch = (hexColor: string): number[] => {
+	const [r, g, b] = [1, 3, 5].map(i => srgbToLinear(parseInt(hexColor.slice(i, i + 2), 16) / 255));
+	const xyz = [
+		(0.4124564 * r + 0.3575761 * g + 0.1804375 * b) / D65[0],
+		(0.2126729 * r + 0.7151522 * g + 0.0721750 * b) / D65[1],
+		(0.0193339 * r + 0.1191920 * g + 0.9503041 * b) / D65[2],
+	];
+	const f = (t: number) => t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+	const [fx, fy, fz] = xyz.map(f);
+	const L = 116 * fy - 16, A = 500 * (fx - fy), B = 200 * (fy - fz);
+	return [L, Math.hypot(A, B), (THREE.MathUtils.radToDeg(Math.atan2(B, A)) + 360) % 360];
+};
+
+const lchToHex = (L: number, C: number, h: number): string | null => {
+	const rad = THREE.MathUtils.degToRad(h);
+	const rgb = labToLinear(L, C * Math.cos(rad), C * Math.sin(rad));
+	if (rgb.some(c => c < -1e-4 || c > 1 + 1e-4))
+		return null;
+	return "#" + rgb.map(c => Math.round(Math.min(1, Math.max(0, linearToSrgb(Math.max(0, c)))) * 255).toString(16).padStart(2, "0")).join("");
+};
+
+// the largest chroma in the sRGB gamut at lightness L and hue h
+const maxChroma = (L: number, h: number): number => {
+	let lo = 0, hi = 150;
+	for (let i = 0; i < 30; ++i) {
+		const mid = (lo + hi) / 2;
+		if (lchToHex(L, mid, h))
+			lo = mid;
+		else
+			hi = mid;
+	}
+	return lo;
+};
+
+// smallest cyclic hue difference among colours with C* ≥ 20 (white excluded); 360 if fewer than two
+export const hueGap = (hexColors: string[]): number => {
+	const hues = hexColors.map(hexToLch).filter(([, C]) => C >= 20).map(([, , h]) => h).sort((a, b) => a - b);
+	if (hues.length < 2)
+		return 360;
+	return Math.min(...hues.map((h, i) => i ? h - hues[i - 1] : hues[0] + 360 - hues[hues.length - 1]));
+};
+
+// HSV saturation of an sRGB hex
+export const saturation = (hexColor: string): number => {
+	const [r, g, b] = [1, 3, 5].map(i => parseInt(hexColor.slice(i, i + 2), 16));
+	const max = Math.max(r, g, b);
+	return max ? (max - Math.min(r, g, b)) / max : 0;
+};
+
+const FAMILIES = {	// preferred lightness, and chroma as a share of the gamut's maximum at (L, h)
+	vivid: {L: [45, 75], C: [0.85, 1]},
+	light: {L: [72, 92], C: [0.85, 1]},
+	deep: {L: [25, 45], C: [0.8, 1]},
+};
+const FAMILY_WEIGHTS = [{name: "vivid", weight: 0.45}, {name: "light", weight: 0.2}, {name: "deep", weight: 0.15}, {name: "mixed", weight: 0.2}];
+
+const saturated = (hexColor: string) => saturation(hexColor) >= MIN_SATURATION && hexToLch(hexColor)[1] >= MIN_CHROMA;
+
+// A saturated colour at hue h, its lightness within the family's range if this hue allows it there, else the
+// nearest lightness that does (blue and violet only saturate dark, yellow only light); null if none at all.
+type Uniform = typeof Math.min;	// (a, b) → a value in [a, b); typed via a built-in to keep parameter names out of the signature
+
+const saturatedColour = (h: number, fam: {L: number[]; C: number[]}, uniform: Uniform): string | null => {
+	const options: {L: number; hex: string}[] = [];
+	for (let L = 18; L <= 96; L += 2) {
+		const Cmax = maxChroma(L, h);
+		const hex = lchToHex(L, Cmax * uniform(fam.C[0], fam.C[1]), h);
+		const top = lchToHex(L, Cmax * 0.995, h);
+		const pick = hex && saturated(hex) ? hex : top && saturated(top) ? top : null;
+		if (pick)
+			options.push({L, hex: pick});
+	}
+	if (!options.length)
+		return null;
+	const inRange = options.filter(o => o.L >= fam.L[0] && o.L <= fam.L[1]);
+	const pool = inRange.length ? inRange : (() => {
+		const d = (o: {L: number}) => Math.max(fam.L[0] - o.L, o.L - fam.L[1], 0);
+		const near = Math.min(...options.map(d));
+		return options.filter(o => d(o) <= near + 6);
+	})();
+	return pool[Math.floor(uniform(0, pool.length - 1e-9))].hex;
+};
+
+export const nonstandardColors = (random: () => number): {family: string; colors: string[]} => {
+	const uniform = (a: number, b: number) => a + (b - a) * random();
+	let r = random() * FAMILY_WEIGHTS.reduce((sum, f) => sum + f.weight, 0);
+	const family = (FAMILY_WEIGHTS.find(f => (r -= f.weight) < 0) || FAMILY_WEIGHTS[0]).name;
+	const withWhite = random() < 0.6;
+	const n = withWhite ? 5 : 6;
+
+	for (let attempt = 0; ; ++attempt) {
+		// hues: random gaps, each MIN_HUE_GAP plus a share of the slack (+3° margin for hex rounding), random start
+		const slack = 360 - n * (MIN_HUE_GAP + 3);
+		const parts = Array(n).fill(0).map(() => -Math.log(1 - random()));
+		const sum = parts.reduce((a, b) => a + b, 0);
+		let h = uniform(0, 360);
+		const hues = parts.map(p => {
+			const here = h;
+			h += MIN_HUE_GAP + 3 + slack * p / sum;
+			return here % 360;
+		});
+
+		const colours = hues.map(hue => saturatedColour(hue, FAMILIES[family === "mixed" ? ["vivid", "light", "deep"][Math.floor(random() * 3)] : family], uniform));
+		if (withWhite) {
+			// a white: very light, a faint warm or cool cast
+			colours.push(lchToHex(uniform(92, 97), uniform(0, 4), uniform(0, 360)));
+		}
+
+		const lch = colours.every(Boolean) ? colours.map(hexToLch) : null;
+		const ok = lch && hueGap(colours) >= MIN_HUE_GAP && new Set(colours).size === 6
+			&& lch.filter(isNearWhite).length === (withWhite ? 1 : 0)
+			&& colours.every((c, i) => isNearWhite(lch[i]) || saturated(c));
+		if (ok) {
+			// colours to faces at random
+			for (let i = colours.length - 1; i > 0; --i) {
+				const j = Math.floor(random() * (i + 1));
+				[colours[i], colours[j]] = [colours[j], colours[i]];
+			}
+			return {family, colors: colours};
+		}
+		if (attempt > 200)
+			throw new Error("nonstandardColors: no valid scheme found");
+	}
+};
+
 
 // three corners covering all faces, every pair sharing one face
 const CORNER_SETS: Vector3[][] = (() => {
@@ -155,13 +311,16 @@ const sightAngles = (camera: THREE.Vector3 | Vector3, corner: Vector3): number[]
 const faceLetter = (axis: number, sign: number): string => FACE_LETTERS[axis * 2 + (sign > 0 ? 1 : 0)];
 
 
+export type SchemeSet = "standard" | "nonstandard" | "all";
+
 export interface SampleOptions {
 	width?: number;
 	height?: number;
+	schemes?: SchemeSet;	// standard (default; the draws of earlier versions, so old seeds reproduce), nonstandard, all
 }
 
 
-export const generateSample = (seed: number, {width = 640, height = 480}: SampleOptions = {}): Sample => {
+export const generateSample = (seed: number, {width = 640, height = 480, schemes = "standard"}: SampleOptions = {}): Sample => {
 	const random = mulberry32(seed);
 	const uniform = (a: number, b: number) => a + (b - a) * random();
 	const pick = <T extends {weight: number}>(items: T[]): T => {
@@ -181,21 +340,30 @@ export const generateSample = (seed: number, {width = 640, height = 480}: Sample
 
 	// cube state and colours
 	const cube = randomCube(random);
-	const scheme = pick(SCHEMES);
-	const roles = scheme.faces || (() => {
-		const roles = Object.keys(PALETTE);
-		for (let i = roles.length - 1; i > 0; --i) {
-			const j = Math.floor(random() * (i + 1));
-			[roles[i], roles[j]] = [roles[j], roles[i]];
-		}
-		return roles;
-	})();
 	const colors: Record<string, string> = {};
-	FACE_LETTERS.split("").forEach((face, i) => {
-		const color = new THREE.Color(PALETTE[roles[i]]);
-		color.offsetHSL(uniform(-0.015, 0.015), uniform(-0.12, 0.05), uniform(-0.07, 0.05));
-		colors[face] = hex(color);
-	});
+	let schemeName: string;
+	if (schemes === "standard" || (schemes === "all" && random() < 0.5)) {
+		const scheme = pick(SCHEMES);
+		schemeName = scheme.name;
+		const roles = scheme.faces || (() => {
+			const roles = Object.keys(PALETTE);
+			for (let i = roles.length - 1; i > 0; --i) {
+				const j = Math.floor(random() * (i + 1));
+				[roles[i], roles[j]] = [roles[j], roles[i]];
+			}
+			return roles;
+		})();
+		FACE_LETTERS.split("").forEach((face, i) => {
+			const color = new THREE.Color(PALETTE[roles[i]]);
+			color.offsetHSL(uniform(-0.015, 0.015), uniform(-0.12, 0.05), uniform(-0.07, 0.05));
+			colors[face] = hex(color);
+		});
+	}
+	else {
+		const generated = nonstandardColors(random);
+		schemeName = "nonstandard-" + generated.family;
+		FACE_LETTERS.split("").forEach((face, i) => colors[face] = generated.colors[i]);
+	}
 	const body = hex(new THREE.Color(pick(BODIES).color).offsetHSL(0, 0, uniform(-0.03, 0.03)));
 
 	// cube build
@@ -411,8 +579,9 @@ export const generateSample = (seed: number, {width = 640, height = 480}: Sample
 			facelets: Array.from(faceletColors, c => FACE_LETTERS[c]).join(""),
 			faceOrder: FACE_LETTERS,
 			faceFrames,
-			scheme: scheme.name,
+			scheme: schemeName,
 			colors,
+			hueGap: hueGap(Object.values(colors)),
 			body,
 		},
 		render: {style, gap, cubieRadius, border, sticker, stickerRadius, stickerPlane,

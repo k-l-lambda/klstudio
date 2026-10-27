@@ -10,6 +10,13 @@
 					<option v-for="size of sizes" :key="size.id" :value="size.id">{{ size.width }}×{{ size.height }}</option>
 				</select>
 			</label>
+			<label>Colours
+				<select v-model="schemes" @change="generate(seed)">
+					<option value="standard">standard</option>
+					<option value="nonstandard">non-standard</option>
+					<option value="all">all</option>
+				</select>
+			</label>
 			<label class="check"><input v-model="overlay" type="checkbox" /> Labels</label>
 			<button :disabled="!images.length" title="Download images and labels (zip)" aria-label="Download" @click="download">⬇️</button>
 			<span class="status">{{ status }}</span>
@@ -43,7 +50,7 @@
 			</div>
 			<dl class="summary">
 				<dt>State</dt><dd><code>{{ sample.cube.facelets }}</code></dd>
-				<dt>Scheme</dt><dd>{{ sample.cube.scheme }}, body <span class="swatch" :style="{background: sample.cube.body}" /> {{ sample.cube.body }}</dd>
+				<dt>Scheme</dt><dd>{{ sample.cube.scheme }}, hue gap {{ sample.cube.hueGap.toFixed(0) }}°, body <span class="swatch" :style="{background: sample.cube.body}" /> {{ sample.cube.body }}</dd>
 				<dt>Camera</dt><dd>fovY {{ sample.intrinsics.fovY.toFixed(1) }}°, f {{ sample.intrinsics.fx.toFixed(1) }} px</dd>
 				<dt>Build</dt><dd>gap {{ fixed(sample.render.gap) }}, cubie radius {{ fixed(sample.render.cubieRadius) }}, border {{ fixed(sample.render.border) }}, sticker radius {{ fixed(sample.render.stickerRadius) }}</dd>
 				<dt>Material</dt><dd>roughness sticker {{ fixed(sample.render.stickerRoughness) }}, body {{ fixed(sample.render.bodyRoughness) }}</dd>
@@ -67,7 +74,7 @@
 	import {defineComponent, markRaw} from "vue";
 	import JSZip from "jszip";
 
-	import {FACE_LETTERS, Sample, generateSample} from "../rubikSamples/sampler";
+	import {FACE_LETTERS, Sample, SchemeSet, generateSample} from "../rubikSamples/sampler";
 	import SampleRenderer from "../rubikSamples/sampleRenderer";
 
 
@@ -88,6 +95,7 @@
 			return {
 				sizes: SIZES,
 				sizeId: SIZES[0].id,
+				schemes: "standard" as SchemeSet,
 				seed: 1,
 				seedInput: 1,
 				sample: null as Sample,
@@ -124,6 +132,8 @@
 			const size = SIZES.find(size => size.id === this.$route.query.size);
 			if (size)
 				this.sizeId = size.id;
+			if (["standard", "nonstandard", "all"].includes(this.$route.query.schemes as string))
+				this.schemes = this.$route.query.schemes as SchemeSet;
 			this.generate(seed > 0 ? seed : this.randomSeed());
 		},
 
@@ -151,13 +161,13 @@
 				const size = SIZES.find(size => size.id === this.sizeId);
 				const started = performance.now();
 				this.seed = this.seedInput = seed;
-				this.sample = markRaw(generateSample(seed, {width: size.width, height: size.height}));
+				this.sample = markRaw(generateSample(seed, {width: size.width, height: size.height, schemes: this.schemes}));
 				this.renderer.load(this.sample);
 				this.images = this.renderer.renderAll();
 				this.status = `${(performance.now() - started).toFixed(0)} ms`;
 
-				if (Number(this.$route.query.seed) !== seed || this.$route.query.size !== size.id)
-					this.$router.replace({query: {...this.$route.query, seed: String(seed), size: size.id}});
+				if (Number(this.$route.query.seed) !== seed || this.$route.query.size !== size.id || (this.$route.query.schemes || "standard") !== this.schemes)
+					this.$router.replace({query: {...this.$route.query, seed: String(seed), size: size.id, schemes: this.schemes}});
 			},
 
 

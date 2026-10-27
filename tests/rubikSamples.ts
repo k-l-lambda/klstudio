@@ -1,7 +1,7 @@
 // Run: npx ts-node --project ./tsconfig.node.json tests/rubikSamples.ts [count]
 import * as THREE from "three";
 
-import {FACE_LETTERS, MIN_SIGHT_ANGLE, generateSample, sampleCube} from "../app/rubikSamples/sampler";
+import {FACE_LETTERS, MIN_CHROMA, MIN_HUE_GAP, MIN_SATURATION, MIN_SIGHT_ANGLE, generateSample, hexToLch, isNearWhite, sampleCube, saturation} from "../app/rubikSamples/sampler";
 
 
 
@@ -14,16 +14,17 @@ const check = (condition: boolean, ...message: any[]) => {
 
 
 const count = Number(process.argv[2]) || 500;
-const stats = {fovY: [], fill: [], points: [0, 0, 0, 0], schemes: {}, sightAngle: [], hiddenAngle: [], coverage: [], styles: {}, cropped: 0, partial: 0, pointDistance: [], offsets: [], bleeds: [], projectionError: 0};
+const schemeSet = (process.argv[3] || "standard") as "standard" | "nonstandard" | "all";
+const stats = {fovY: [], fill: [], points: [0, 0, 0, 0], schemes: {}, sightAngle: [], hiddenAngle: [], coverage: [], styles: {}, cropped: 0, partial: 0, pointDistance: [], nonstandard: 0, saturation: [], offsets: [], bleeds: [], projectionError: 0};
 
 for (let seed = 1; seed <= count; ++seed) {
 	const width = seed % 3 ? 640 : 480, height = seed % 3 ? 480 : 640;
-	const sample = generateSample(seed, {width, height});
+	const sample = generateSample(seed, {width, height, schemes: schemeSet});
 	const tag = `seed ${seed}`;
 
 	// determinism
 	if (seed <= 20)
-		check(JSON.stringify(generateSample(seed, {width, height})) === JSON.stringify(sample), tag, "deterministic");
+		check(JSON.stringify(generateSample(seed, {width, height, schemes: schemeSet})) === JSON.stringify(sample), tag, "deterministic");
 
 	// the state
 	const cube = sampleCube(sample);
@@ -34,6 +35,18 @@ for (let seed = 1; seed <= count; ++seed) {
 		check(sample.cube.facelets[f * 9 + 4] === face, tag, "centre", face);
 	});
 	check(new Set(Object.values(sample.cube.colors)).size === 6, tag, "six distinct colours");
+	if (sample.cube.scheme.startsWith("nonstandard")) {
+		// at most one near-white; every other colour saturated (HSV S and C*); their Lab hues MIN_HUE_GAP apart
+		const hexes = Object.values(sample.cube.colors);
+		const lch = hexes.map(hexToLch);
+		const whites = lch.filter(isNearWhite).length;
+		const others = hexes.filter((c, i) => !isNearWhite(lch[i]));
+		check(whites <= 1, tag, "near-whites", whites);
+		check(others.every(c => saturation(c) >= MIN_SATURATION && hexToLch(c)[1] >= MIN_CHROMA), tag, "saturated", JSON.stringify(others.map(c => [c, saturation(c).toFixed(2)])));
+		check(sample.cube.hueGap >= MIN_HUE_GAP, tag, "hue gap", sample.cube.hueGap);
+		others.forEach(c => stats.saturation.push(saturation(c)));
+		stats.nonstandard += 1;
+	}
 
 	// coverage: 3 faces per view, all 6 together, one shared face per pair
 	const sets = sample.views.map(view => new Set(view.visibleFaces.split("")));
@@ -140,6 +153,7 @@ for (let seed = 1; seed <= count; ++seed) {
 check(stats.projectionError < 1e-6, "projection error", stats.projectionError);
 
 const range = (a: number[]) => `${Math.min(...a).toFixed(2)}..${Math.max(...a).toFixed(2)}`;
+console.log(`schemes ${schemeSet}: ${stats.nonstandard} non-standard` + (stats.saturation.length ? `, saturation of the non-white colours ${range(stats.saturation)}` : ""));
 console.log(`${count} samples: fovY ${range(stats.fovY)}, fill ${range(stats.fill)}, sight angles visible ${range(stats.sightAngle)}°, hidden ${range(stats.hiddenAngle)}°`);
 const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length;
 console.log(`fill mean ${mean(stats.fill).toFixed(3)}, centre offset ≤ ${Math.max(...stats.offsets).toFixed(3)}, cropped views ${stats.cropped}/${count * 3} (bleed ≤ ${Math.max(...stats.bleeds).toFixed(1)} px), partly cut stickers ${stats.partial}`);

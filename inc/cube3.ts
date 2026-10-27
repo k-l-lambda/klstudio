@@ -348,6 +348,7 @@ const TWIST_PERMUTATION_48 = [
 export {
 	//pointRotationTable,
 	//axisPointsTable,
+	rotationMatrices,
 	twistToAxisRotation,
 	invertTwist,
 	invertPath,

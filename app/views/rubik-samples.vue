@@ -222,7 +222,9 @@
 			makeVideo () {
 				const started = performance.now();
 				this.stopVideo();
-				this.video = markRaw(generateVideo(this.sample));
+				// ?videoFps=&videoHold=&videoTurn= (seconds) override the defaults (5 fps, 2 s holds, 1.2 s turns)
+				const option = (name: string) => Number(this.$route.query[name]) > 0 ? Number(this.$route.query[name]) : undefined;
+				this.video = markRaw(generateVideo(this.sample, {fps: option("videoFps"), hold: option("videoHold"), turn: option("videoTurn")}));
 				this.renderer.load(this.video as unknown as Sample);
 				this.videoFrames = markRaw(this.renderer.renderAll());
 				this.renderer.load(this.sample);

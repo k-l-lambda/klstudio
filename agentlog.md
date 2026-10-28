@@ -1,3 +1,7 @@
+## 2026-10-28 rubik-samples: video timing from the query
+
+- `rubik-samples.vue`: `?videoFps=`, `?videoHold=`, `?videoTurn=` go to `generateVideo` (defaults 5 fps, 2 s, 1.2 s). Rendered `~/data/rubik-renderer/videos/v102` (seed 102, 4 s holds, 98 frames) for rubik-detector's `engine/tools/state_tracker.py` (FOV → evidence accumulation → state on a video with the engine's latency): state exact from 3 views at 1× and 2× latency; at 3× only 2 views are caught.
+
 ## 2026-10-28 rubik-samples: anti-pop build and per-cubie pose errors
 
 - Reference: `footages.local/rubik-samples/IMG_20190901_150650.jpg` (anti-pop speed cube: round centre caps, edge pieces rounded on the inner side, dark gaps). `generateSample(seed, {builds})`: `classic` (default; no new draws, old seeds reproduce — g01, g02, g17, n03 regenerated identical to the stored labels), `antipop`, `all` (a third anti-pop). Page: "Build" selector, `?builds=`.

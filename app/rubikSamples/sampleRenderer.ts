@@ -1,4 +1,5 @@
-// WebGL renderer for sampler.ts samples: builds the scene a Sample describes and renders its three views.
+// WebGL renderer for sampler.ts samples: builds the scene a Sample describes and renders its three views (or a
+// video's frames: a frame with its own `facelets` is painted with them, a frame with a `twist` has that layer turned).
 // Also renders exact sticker-id masks (per pixel: which facelet shows), which the browser test uses to check that
 // the label corners sit on the rendered stickers.
 import * as THREE from "three";
@@ -42,6 +43,10 @@ export default class SampleRenderer {
 	stickerMeshes: THREE.Mesh[] = [];	// stickered: by facelet index
 	cubies: {mesh: THREE.Mesh; facelets: number[]}[] = [];	// facelets: facelet index per box face group (+x -x +y -y +z -z), or -1
 	materials: THREE.Material[] = [];	// by facelet index (shared per colour)
+	byColor: Record<string, THREE.Material> = {};
+	facelets = "";	// the state painted
+	// everything that turns with a layer: its lattice cubie and its rest pose in the cube group
+	movable: {object: THREE.Object3D; lattice: number[]; position: THREE.Vector3; quaternion: THREE.Quaternion}[] = [];
 	bodyMaterial: THREE.Material;
 	disposables: {dispose: () => void}[] = [];
 	sample: Sample;
@@ -67,6 +72,9 @@ export default class SampleRenderer {
 		this.stickerMeshes = [];
 		this.cubies = [];
 		this.materials = [];
+		this.byColor = {};
+		this.facelets = "";
+		this.movable = [];
 		this.scene = null;
 	}
 
@@ -118,11 +126,14 @@ export default class SampleRenderer {
 				polygonOffset: !stickerless, polygonOffsetFactor: -1, polygonOffsetUnits: -4});
 			this.disposables.push(byColor[face]);
 		});
+		this.byColor = byColor;
+		this.facelets = sample.cube.facelets;
 		this.materials = Array.from(sample.cube.facelets, color => byColor[color]);
 
 		if (r.style === "antipop") {
 			this.buildAntipop(sample);
 			this.paint(k => this.materials[k], this.bodyMaterial);
+			this.collectMovable();
 			return;
 		}
 
@@ -170,10 +181,44 @@ export default class SampleRenderer {
 				mesh.position.copy(normal.clone().multiplyScalar(r.stickerPlane)).addScaledVector(right, col - 1).addScaledVector(down, row - 1);
 				this.cube.add(mesh);
 				this.stickerMeshes.push(mesh);
+				mesh.userData.lattice = faceletFrame(k).centre.toArray().map(c => Math.round(c));
 			}
 		}
 
 		this.paint(k => this.materials[k], this.bodyMaterial);
+		this.collectMovable();
+	}
+
+
+	// the cube group's children with their lattice cubie (cubie meshes and anti-pop groups by position, stickers set
+	// theirs) and rest poses
+	collectMovable (): void {
+		this.movable = this.cube.children.map(object => ({
+			object,
+			lattice: object.userData.lattice || object.userData.position || object.position.toArray().map(c => Math.round(c)),
+			position: object.position.clone(),
+			quaternion: object.quaternion.clone(),
+		}));
+	}
+
+
+	// a frame's state and turning layer (views without them: the sample's state, no turn)
+	setFrame (facelets: string, twist?: {axis: number; layer: number; angle: number}): void {
+		if (facelets !== this.facelets) {
+			this.facelets = facelets;
+			this.materials = Array.from(facelets, color => this.byColor[color]);
+			this.paint(k => this.materials[k], this.bodyMaterial);
+		}
+		const turn = twist && new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3().setComponent(twist.axis, 1), twist.angle);
+		this.movable.forEach(({object, lattice, position, quaternion}) => {
+			const moving = twist && lattice[twist.axis] === twist.layer - 1;
+			object.position.copy(position);
+			object.quaternion.copy(quaternion);
+			if (moving) {
+				object.position.applyQuaternion(turn);
+				object.quaternion.premultiply(turn);
+			}
+		});
 	}
 
 
@@ -221,6 +266,7 @@ export default class SampleRenderer {
 			const group = new THREE.Group();
 			group.position.set(c.position[0] + c.offset[0], c.position[1] + c.offset[1], c.position[2] + c.offset[2]);
 			group.quaternion.set(...c.quaternion);
+			group.userData.position = c.position.slice();
 			const mesh = new THREE.Mesh(core, this.bodyMaterial);
 			group.add(mesh);
 			this.cube.add(group);
@@ -268,7 +314,9 @@ export default class SampleRenderer {
 
 	// Pose the cube as in view i: label (R, t) in the camera frame → three.js frame = diag(1, -1, -1)·(R, t).
 	pose (index: number): void {
-		const {rotation: R, translation: t} = this.sample.views[index];
+		const view = this.sample.views[index] as Sample["views"][0] & {facelets?: string; twist?: {axis: number; layer: number; angle: number}};
+		this.setFrame(view.facelets || this.sample.cube.facelets, view.twist);
+		const {rotation: R, translation: t} = view;
 		this.cube.quaternion.setFromRotationMatrix(new THREE.Matrix4().set(
 			R[0], R[1], R[2], 0,
 			-R[3], -R[4], -R[5], 0,
@@ -302,10 +350,10 @@ export default class SampleRenderer {
 			polygonOffset: stickered, polygonOffsetFactor: -1, polygonOffsetUnits: -4}));
 		const black = new THREE.MeshBasicMaterial({color: 0x000000});
 		const target = new THREE.WebGLRenderTarget(width, height);	// linear, not multisampled
+		this.pose(index);	// first: a frame's own state repaints
 		this.paint(k => flat[k], black);
 		this.scene.background = new THREE.Color(0, 0, 0);
 
-		this.pose(index);
 		this.renderer.setRenderTarget(target);
 		this.renderer.render(this.scene, this.camera);
 		const pixels = new Uint8Array(width * height * 4);

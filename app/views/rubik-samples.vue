@@ -64,6 +64,8 @@
 					<button :aria-label="videoTimer ? 'Pause' : 'Play'" @click="toggleVideo">{{ videoTimer ? "⏸️" : "▶️" }}</button>
 					<input v-model.number="videoIndex" type="range" min="0" :max="videoFrames.length - 1" aria-label="Frame" />
 					frame {{ videoIndex + 1 }}/{{ videoFrames.length }} · {{ videoLabel.time.toFixed(1) }} s · {{ videoLabel.phase }} {{ videoLabel.hold + 1 }}
+					<template v-if="videoLabel.twist">· {{ videoLabel.twist.move }}</template>
+					<template v-if="videoLabel.step">· {{ videoLabel.step }} turns done</template>
 					· faces {{ videoLabel.visibleFaces }}
 				</figcaption>
 			</figure>
@@ -222,9 +224,11 @@
 			makeVideo () {
 				const started = performance.now();
 				this.stopVideo();
-				// ?videoFps=&videoHold=&videoTurn= (seconds) override the defaults (5 fps, 2 s holds, 1.2 s turns)
+				// ?videoFps=&videoHold=&videoTurn= (seconds) override the defaults (5 fps, 2 s holds, 1.2 s turns);
+				// ?videoTwists=N adds N random face turns after the holds (?videoTwistHold=, ?videoTwistTime=, ?videoReorient=: seconds)
 				const option = (name: string) => Number(this.$route.query[name]) > 0 ? Number(this.$route.query[name]) : undefined;
-				this.video = markRaw(generateVideo(this.sample, {fps: option("videoFps"), hold: option("videoHold"), turn: option("videoTurn")}));
+				this.video = markRaw(generateVideo(this.sample, {fps: option("videoFps"), hold: option("videoHold"), turn: option("videoTurn"),
+					twists: option("videoTwists"), twistHold: option("videoTwistHold"), twistTime: option("videoTwistTime"), reorient: option("videoReorient")}));
 				this.renderer.load(this.video as unknown as Sample);
 				this.videoFrames = markRaw(this.renderer.renderAll());
 				this.renderer.load(this.sample);

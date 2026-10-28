@@ -1,4 +1,4 @@
-// Run: npx ts-node --project ./tsconfig.node.json tests/rubikSamples.ts [count]
+// Run: npx ts-node --project ./tsconfig.node.json tests/rubikSamples.ts [count] [schemes] [builds]
 import * as THREE from "three";
 
 import {FACE_LETTERS, MIN_CHROMA, MIN_HUE_GAP, MIN_SATURATION, MIN_SIGHT_ANGLE, generateSample, hexToLch, isNearWhite, sampleCube, saturation} from "../app/rubikSamples/sampler";
@@ -15,16 +15,17 @@ const check = (condition: boolean, ...message: any[]) => {
 
 const count = Number(process.argv[2]) || 500;
 const schemeSet = (process.argv[3] || "standard") as "standard" | "nonstandard" | "all";
+const buildSet = (process.argv[4] || "classic") as "classic" | "antipop" | "all";
 const stats = {fovY: [], fill: [], points: [0, 0, 0, 0], schemes: {}, sightAngle: [], hiddenAngle: [], coverage: [], styles: {}, cropped: 0, partial: 0, pointDistance: [], nonstandard: 0, saturation: [], offsets: [], bleeds: [], projectionError: 0};
 
 for (let seed = 1; seed <= count; ++seed) {
 	const width = seed % 3 ? 640 : 480, height = seed % 3 ? 480 : 640;
-	const sample = generateSample(seed, {width, height, schemes: schemeSet});
+	const sample = generateSample(seed, {width, height, schemes: schemeSet, builds: buildSet});
 	const tag = `seed ${seed}`;
 
 	// determinism
 	if (seed <= 20)
-		check(JSON.stringify(generateSample(seed, {width, height, schemes: schemeSet})) === JSON.stringify(sample), tag, "deterministic");
+		check(JSON.stringify(generateSample(seed, {width, height, schemes: schemeSet, builds: buildSet})) === JSON.stringify(sample), tag, "deterministic");
 
 	// the state
 	const cube = sampleCube(sample);
@@ -116,7 +117,21 @@ for (let seed = 1; seed <= count; ++seed) {
 			const f = FACE_LETTERS.indexOf(s.face), axis = Math.floor(f / 2), sign = f % 2 ? 1 : -1;
 			const local = new THREE.Vector3().setComponent(axis, sign * sample.render.stickerPlane);
 			local.addScaledVector(new THREE.Vector3(...frame.right), s.col - 1).addScaledVector(new THREE.Vector3(...frame.down), s.row - 1);
-			const ndc = group.localToWorld(local).project(camera);
+			// antipop: the cubie's pose error as a child object (rotation about its lattice centre, then the offset)
+			let holder: THREE.Object3D = group;
+			const lattice = new THREE.Vector3().setComponent(axis, sign).addScaledVector(new THREE.Vector3(...frame.right), s.col - 1).addScaledVector(new THREE.Vector3(...frame.down), s.row - 1);
+			const cubie = (sample.render.cubies || []).find(c => c.position.every((v, i) => v === Math.round(lattice.getComponent(i))));
+			if (cubie) {
+				holder = new THREE.Object3D();
+				holder.position.copy(lattice).add(new THREE.Vector3(...cubie.offset));
+				holder.quaternion.set(...cubie.quaternion);
+				group.add(holder);
+				holder.updateMatrixWorld();
+				local.sub(lattice);
+			}
+			const ndc = holder.localToWorld(local).project(camera);
+			if (holder !== group)
+				group.remove(holder);
 			const u = (ndc.x + 1) / 2 * width, v = (1 - ndc.y) / 2 * height;
 			const error = Math.hypot(u - s.center[0], v - s.center[1]);
 			stats.projectionError = Math.max(stats.projectionError, error);
@@ -132,6 +147,14 @@ for (let seed = 1; seed <= count; ++seed) {
 	const r = sample.render;
 	if (r.style === "stickerless")
 		check(r.border === 0 && Math.abs(r.sticker - (1 - r.gap)) < 1e-12, tag, "stickerless covers the face");
+	else if (r.style === "antipop") {
+		const a = r.antipop;
+		check(r.border === 0 && Math.abs(r.sticker - (1 - r.gap)) < 1e-12 && r.cubies.length === 26, tag, "antipop build");
+		check(a.centre >= a.edge && a.edge >= a.corner && a.corner >= a.outer && a.centre <= 0.5, tag, "antipop radii ordered");
+		check(r.cubies.every(c => c.offset.every(o => Math.abs(o) <= a.jitter)
+			&& 2 * Math.acos(Math.min(1, Math.abs(c.quaternion[3]))) <= THREE.MathUtils.degToRad(a.tilt) + 1e-9), tag, "cubie offsets bounded");
+		stats.coverage.push(1);
+	}
 	else {
 		check(r.border >= r.cubieRadius && Math.abs(r.sticker + 2 * r.border - (1 - r.gap)) < 1e-12, tag, "sticker on the flat part");
 		stats.coverage.push(r.sticker / (1 - r.gap));

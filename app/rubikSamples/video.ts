@@ -7,7 +7,7 @@
 // detector harness take it unchanged), plus `video` with the timeline. Reproducible from the sample seed.
 import * as THREE from "three";
 
-import {FACE_LETTERS, MIN_SIGHT_ANGLE, Sample, ViewLabel, mulberry32} from "./sampler";
+import {FACE_LETTERS, MIN_SIGHT_ANGLE, Sample, ViewLabel, faceletCubie, mulberry32, placeOnCubie} from "./sampler";
 
 type Vector3 = [number, number, number];
 type Point2 = [number, number];
@@ -128,8 +128,10 @@ export const generateVideo = (sample: Sample, {fps = 5, hold = 2, turn = 1.2, tr
 			const {right, down} = faceFrames[face];
 			const normal = [0, 0, 0];
 			normal[axis] = sign;
-			const centre = [0, 1, 2].map(i => normal[i] * stickerPlane + right[i] * (col - 1) + down[i] * (row - 1)) as Vector3;
-			const at = (a: number, b: number): Vector3 => centre.map((c, i) => c + right[i] * a * half + down[i] * b * half) as Vector3;
+			const onCubie = faceletCubie(normal, right, down, row, col);
+			const flat = [0, 1, 2].map(i => normal[i] * stickerPlane + right[i] * (col - 1) + down[i] * (row - 1)) as Vector3;
+			const centre = placeOnCubie(flat, onCubie, sample.render.cubies);
+			const at = (a: number, b: number): Vector3 => placeOnCubie(flat.map((c, i) => c + right[i] * a * half + down[i] * b * half) as Vector3, onCubie, sample.render.cubies);
 			const quad = [at(-1, -1), at(1, -1), at(1, 1), at(-1, 1)].map(p => project(toCamera(p)));
 			// inFrame here is the share of the square's corners inside the image (the photo samples clip the area)
 			const inside = quad.filter(([u, v]) => u >= 0 && u <= width && v >= 0 && v <= height).length / 4;

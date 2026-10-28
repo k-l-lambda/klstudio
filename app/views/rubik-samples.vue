@@ -17,6 +17,13 @@
 					<option value="all">all</option>
 				</select>
 			</label>
+			<label>Build
+				<select v-model="builds" @change="generate(seed)">
+					<option value="classic">classic</option>
+					<option value="antipop">anti-pop</option>
+					<option value="all">all</option>
+				</select>
+			</label>
 			<label class="check"><input v-model="overlay" type="checkbox" /> Labels</label>
 			<button :disabled="!images.length" title="Download images and labels (zip)" aria-label="Download" @click="download">⬇️</button>
 			<button :disabled="!sample" title="Test video: the cube turned by hand to show four corners (5 fps)" aria-label="Video" @click="makeVideo">🎬</button>
@@ -96,7 +103,7 @@
 	import {defineComponent, markRaw} from "vue";
 	import JSZip from "jszip";
 
-	import {FACE_LETTERS, Sample, SchemeSet, generateSample} from "../rubikSamples/sampler";
+	import {BuildSet, FACE_LETTERS, Sample, SchemeSet, generateSample} from "../rubikSamples/sampler";
 	import SampleRenderer from "../rubikSamples/sampleRenderer";
 	import {VideoSample, generateVideo} from "../rubikSamples/video";
 
@@ -119,6 +126,7 @@
 				sizes: SIZES,
 				sizeId: SIZES[0].id,
 				schemes: "standard" as SchemeSet,
+				builds: "classic" as BuildSet,
 				seed: 1,
 				seedInput: 1,
 				sample: null as Sample,
@@ -166,6 +174,8 @@
 				this.sizeId = size.id;
 			if (["standard", "nonstandard", "all"].includes(this.$route.query.schemes as string))
 				this.schemes = this.$route.query.schemes as SchemeSet;
+			if (["classic", "antipop", "all"].includes(this.$route.query.builds as string))
+				this.builds = this.$route.query.builds as BuildSet;
 			this.generate(seed > 0 ? seed : this.randomSeed());
 		},
 
@@ -197,13 +207,14 @@
 				this.stopVideo();
 				this.video = null;
 				this.videoFrames = [];
-				this.sample = markRaw(generateSample(seed, {width: size.width, height: size.height, schemes: this.schemes}));
+				this.sample = markRaw(generateSample(seed, {width: size.width, height: size.height, schemes: this.schemes, builds: this.builds}));
 				this.renderer.load(this.sample);
 				this.images = this.renderer.renderAll();
 				this.status = `${(performance.now() - started).toFixed(0)} ms`;
 
-				if (Number(this.$route.query.seed) !== seed || this.$route.query.size !== size.id || (this.$route.query.schemes || "standard") !== this.schemes)
-					this.$router.replace({query: {...this.$route.query, seed: String(seed), size: size.id, schemes: this.schemes}});
+				if (Number(this.$route.query.seed) !== seed || this.$route.query.size !== size.id || (this.$route.query.schemes || "standard") !== this.schemes
+					|| (this.$route.query.builds || "classic") !== this.builds)
+					this.$router.replace({query: {...this.$route.query, seed: String(seed), size: size.id, schemes: this.schemes, builds: this.builds}});
 			},
 
 

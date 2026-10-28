@@ -59,6 +59,43 @@ export interface ViewLabel {
 	stickers: StickerLabel[];
 }
 
+// Anti-pop tiles: per corner of a facelet's coloured square, a radius as a share of the square's side, by what the
+// corner points at — the face centre (inner) or not (outer). Centre caps: all four corners `centre` (0.5 = a disc);
+// edge pieces: the two corners towards the centre `edge`; corner pieces: the corner towards the centre `corner`.
+// Tiles are extruded by `depth` with a bevel of `bevel` (rounded tile edges), on a dark core; on the cube's edges a tile
+// stops depth + 2·bevel short of the label square (the core's rounded edge shows there).
+export interface AntipopBuild {
+	centre: number;
+	edge: number;
+	corner: number;
+	outer: number;
+	depth: number;
+	bevel: number;
+	jitter: number;		// max cubie offset per axis, cubie pitches
+	tilt: number;		// max cubie rotation, degrees
+}
+
+// a cubie's actual pose: rotated by `quaternion` (x, y, z, w) about its lattice centre `position`, then moved by `offset`
+export interface CubieOffset {
+	position: Vector3;
+	offset: Vector3;
+	quaternion: [number, number, number, number];
+}
+
+// Where point p (cube frame, on cubie `position`) really is, given the cubies' pose errors (none: p itself).
+export const placeOnCubie = (p: Vector3, position: Vector3, cubies?: CubieOffset[]): Vector3 => {
+	const c = cubies && cubies.find(item => item.position.every((v, i) => v === position[i]));
+	if (!c)
+		return p;
+	const q = new THREE.Quaternion(...c.quaternion);
+	const local = new THREE.Vector3(p[0] - position[0], p[1] - position[1], p[2] - position[2]).applyQuaternion(q);
+	return [0, 1, 2].map(i => position[i] + c.offset[i] + local.getComponent(i)) as Vector3;
+};
+
+// the cubie a facelet sits on: its centre on the face plane at 1 → the lattice point
+export const faceletCubie = (normal: number[], right: number[], down: number[], row: number, col: number): Vector3 =>
+	[0, 1, 2].map(i => normal[i] + right[i] * (col - 1) + down[i] * (row - 1)) as Vector3;
+
 export interface Light {
 	color: string;
 	intensity: number;
@@ -81,7 +118,10 @@ export interface Sample {
 		body: string;
 	};
 	render: {
-		style: "stickered" | "stickerless";	// stickerless: the colour covers the whole cubie face, rounded edges included
+		// stickerless: the colour covers the whole cubie face, rounded edges included. antipop: an anti-pop speed cube
+		// (stickerless tiles with strongly rounded inner corners, round centre caps, dark core in wider gaps, see
+		// AntipopBuild), each cubie slightly off its lattice place (cubies)
+		style: "stickered" | "stickerless" | "antipop";
 		gap: number;		// space between cubies
 		cubieRadius: number;	// rounded cubie edges
 		border: number;		// cubie face margin around the sticker (0 when stickerless)
@@ -91,6 +131,8 @@ export interface Sample {
 		sticker: number;
 		stickerRadius: number;	// rounded sticker corners (the label corners are the square's)
 		stickerPlane: number;	// distance of the coloured surface from the cube centre
+		antipop?: AntipopBuild;
+		cubies?: CubieOffset[];	// antipop: every cubie's pose error; the labels include it
 		stickerRoughness: number;
 		bodyRoughness: number;
 		background: string;
@@ -313,14 +355,17 @@ const faceLetter = (axis: number, sign: number): string => FACE_LETTERS[axis * 2
 
 export type SchemeSet = "standard" | "nonstandard" | "all";
 
+export type BuildSet = "classic" | "antipop" | "all";
+
 export interface SampleOptions {
 	width?: number;
 	height?: number;
 	schemes?: SchemeSet;	// standard (default; the draws of earlier versions, so old seeds reproduce), nonstandard, all
+	builds?: BuildSet;	// classic (default; stickered / stickerless, old seeds reproduce), antipop, all (a third antipop)
 }
 
 
-export const generateSample = (seed: number, {width = 640, height = 480, schemes = "standard"}: SampleOptions = {}): Sample => {
+export const generateSample = (seed: number, {width = 640, height = 480, schemes = "standard", builds = "classic"}: SampleOptions = {}): Sample => {
 	const random = mulberry32(seed);
 	const uniform = (a: number, b: number) => a + (b - a) * random();
 	const pick = <T extends {weight: number}>(items: T[]): T => {
@@ -364,16 +409,45 @@ export const generateSample = (seed: number, {width = 640, height = 480, schemes
 		schemeName = "nonstandard-" + generated.family;
 		FACE_LETTERS.split("").forEach((face, i) => colors[face] = generated.colors[i]);
 	}
-	const body = hex(new THREE.Color(pick(BODIES).color).offsetHSL(0, 0, uniform(-0.03, 0.03)));
+	let body = hex(new THREE.Color(pick(BODIES).color).offsetHSL(0, 0, uniform(-0.03, 0.03)));
 
 	// cube build
 	// cube build: a quarter stickerless; stickered mostly with a thin border (the sticker covers 84–94 % of the cubie
 	// face's width), a few with a thick one (72–84 %). A sticker sits on the flat part, so border ≥ the cubie radius.
-	const style = random() < 0.25 ? "stickerless" : "stickered";
-	const gap = uniform(0.005, 0.03);
+	// classic draws exactly as before; antipop draws its own build after the style choice
+	const antipop = builds === "antipop" || (builds === "all" && random() < 1 / 3);
+	const style = antipop ? "antipop" : random() < 0.25 ? "stickerless" : "stickered";
+	const gap = antipop ? uniform(0.02, 0.045) : uniform(0.005, 0.03);
 	const side = 1 - gap;
 	let cubieRadius: number, border: number, sticker: number, stickerRadius: number;
-	if (style === "stickerless") {
+	let antipopBuild: AntipopBuild, cubies: CubieOffset[];
+	if (style === "antipop") {
+		// radii ordered centre ≥ edge ≥ corner ≥ outer (shares of the tile side; centre 0.5 = a disc)
+		const centre = uniform(0.36, 0.5), edge = uniform(0.2, Math.min(0.42, centre)), corner = uniform(0.04, Math.min(0.2, edge));
+		antipopBuild = {
+			centre, edge, corner, outer: uniform(0.02, Math.min(0.07, corner)),
+			depth: uniform(0.008, 0.02), bevel: uniform(0.012, 0.025), jitter: uniform(0.004, 0.02), tilt: uniform(0.2, 1.2),
+		};
+		cubieRadius = antipopBuild.bevel;
+		body = hex(new THREE.Color("#101010").offsetHSL(0, 0, uniform(0, 0.08)));	// the dark core seen in the gaps
+		border = 0;
+		sticker = side;
+		stickerRadius = 0;
+		// each cubie a little off: offset up to `jitter` per axis, rotation up to `tilt` about a random axis
+		cubies = [];
+		for (let x = -1; x <= 1; ++x) {
+			for (let y = -1; y <= 1; ++y) {
+				for (let z = -1; z <= 1; ++z) {
+					if (!(x || y || z))
+						continue;
+					const offset = [0, 1, 2].map(() => uniform(-1, 1) * antipopBuild.jitter) as Vector3;
+					const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(...unit()), THREE.MathUtils.degToRad(uniform(0, antipopBuild.tilt)));
+					cubies.push({position: [x, y, z], offset, quaternion: [q.x, q.y, q.z, q.w]});
+				}
+			}
+		}
+	}
+	else if (style === "stickerless") {
 		cubieRadius = uniform(0.02, 0.12);
 		border = 0;
 		sticker = side;
@@ -508,9 +582,11 @@ export const generateSample = (seed: number, {width = 640, height = 480, schemes
 			const visible = [0, 1, 2].map(k => faceLetter(k, corner[k]));
 			const stickers: StickerLabel[] = model.facelets.map(({normal, right, down}, k) => {
 				const face = FACE_LETTERS[Math.floor(k / 9)], row = Math.floor((k % 9) / 3), col = k % 3;
-				const centre = [0, 1, 2].map(i => normal[i] * stickerPlane + right[i] * (col - 1) + down[i] * (row - 1)) as Vector3;
+				const onCubie = faceletCubie(normal, right, down, row, col);
+				const flat = [0, 1, 2].map(i => normal[i] * stickerPlane + right[i] * (col - 1) + down[i] * (row - 1)) as Vector3;
+				const centre = placeOnCubie(flat, onCubie, cubies);
 				const s = sticker / 2;
-				const at = (a: number, b: number): Vector3 => centre.map((c, i) => c + right[i] * a * s + down[i] * b * s) as Vector3;
+				const at = (a: number, b: number): Vector3 => placeOnCubie(flat.map((c, i) => c + right[i] * a * s + down[i] * b * s) as Vector3, onCubie, cubies);
 				const corners = [at(-1, -1), at(1, -1), at(1, 1), at(-1, 1)].map(p => project(toCamera(p)));
 				const inFrame = visible.includes(face) ? inFrameShare(corners) : 0;
 				return {
@@ -584,7 +660,7 @@ export const generateSample = (seed: number, {width = 640, height = 480, schemes
 			hueGap: hueGap(Object.values(colors)),
 			body,
 		},
-		render: {style, gap, cubieRadius, border, sticker, stickerRadius, stickerPlane,
+		render: {style, gap, cubieRadius, border, sticker, stickerRadius, stickerPlane, antipop: antipopBuild, cubies,
 			stickerRoughness: uniform(0.15, 0.9), bodyRoughness: uniform(0.3, 0.9),
 			background, ambient, main, points},
 		views,

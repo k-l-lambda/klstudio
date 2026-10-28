@@ -120,6 +120,12 @@ export default class SampleRenderer {
 		});
 		this.materials = Array.from(sample.cube.facelets, color => byColor[color]);
 
+		if (r.style === "antipop") {
+			this.buildAntipop(sample);
+			this.paint(k => this.materials[k], this.bodyMaterial);
+			return;
+		}
+
 		// which facelet each cubie face group shows
 		const cubieAt = new Map<string, number[]>();
 		for (let x = -1; x <= 1; ++x) {
@@ -168,6 +174,83 @@ export default class SampleRenderer {
 		}
 
 		this.paint(k => this.materials[k], this.bodyMaterial);
+	}
+
+
+	// Anti-pop cube: per cubie a group at its actual pose (lattice + offset, small rotation; render.cubies), holding a dark
+	// core and its coloured tiles — extruded rounded squares whose corner radii depend on what the corner points at
+	// (see AntipopBuild). The tile's top is the label plane (stickerPlane), its outline the label square (sticker), except
+	// on the cube's edges: there a tile stops its own thickness short, so the two tiles of a cubie don't intersect, and
+	// the core's rounded edge shows between them.
+	buildAntipop (sample: Sample): void {
+		const r = sample.render, a = r.antipop;
+		const side = 1 - r.gap;
+		const lift = a.depth + 2 * a.bevel;	// tile thickness above the core
+		const core = new RoundedBoxGeometry(side - 2 * lift + 0.01, side - 2 * lift + 0.01, side - 2 * lift + 0.01, 4, lift * 0.8);
+		this.disposables.push(core);
+		const half = r.sticker / 2 - a.bevel;	// the bevel grows the shape by its size
+		const tileGeometries = new Map<string, THREE.ExtrudeGeometry>();
+		// radii: corners TL TR BR BL; extent: the sides' distances from the centre, left right bottom top (shape x → right,
+		// y → up)
+		const tile = (radii: number[], extent: number[]): THREE.ExtrudeGeometry => {
+			const key = radii.concat(extent).map(x => x.toFixed(5)).join();
+			if (tileGeometries.has(key))
+				return tileGeometries.get(key);
+			const [x0, x1, y0, y1] = [-extent[0], extent[1], -extent[2], extent[3]];
+			const fit = Math.min(...extent);
+			const [tl, tr, br, bl] = radii.map(x => Math.min(Math.max(x - a.bevel, 0.002), fit - 1e-4));
+			const shape = new THREE.Shape();
+			shape.moveTo(x0 + bl, y0);
+			shape.lineTo(x1 - br, y0);
+			shape.absarc(x1 - br, y0 + br, br, -Math.PI / 2, 0, false);
+			shape.lineTo(x1, y1 - tr);
+			shape.absarc(x1 - tr, y1 - tr, tr, 0, Math.PI / 2, false);
+			shape.lineTo(x0 + tl, y1);
+			shape.absarc(x0 + tl, y1 - tl, tl, Math.PI / 2, Math.PI, false);
+			shape.lineTo(x0, y0 + bl);
+			shape.absarc(x0 + bl, y0 + bl, bl, Math.PI, Math.PI * 1.5, false);
+			const geometry = new THREE.ExtrudeGeometry(shape, {depth: a.depth, bevelEnabled: true, bevelThickness: a.bevel, bevelSize: a.bevel,
+				bevelSegments: 4, curveSegments: 16});
+			this.disposables.push(geometry);
+			tileGeometries.set(key, geometry);
+			return geometry;
+		};
+		const frames = sample.cube.faceFrames;
+		const groups = new Map<string, THREE.Group>();
+		(r.cubies || []).forEach(c => {
+			const group = new THREE.Group();
+			group.position.set(c.position[0] + c.offset[0], c.position[1] + c.offset[1], c.position[2] + c.offset[2]);
+			group.quaternion.set(...c.quaternion);
+			const mesh = new THREE.Mesh(core, this.bodyMaterial);
+			group.add(mesh);
+			this.cube.add(group);
+			this.cubies.push({mesh, facelets: []});
+			groups.set(c.position.join(), group);
+		});
+		this.stickerMeshes = Array(54).fill(null);
+		for (let k = 0; k < 54; ++k) {
+			const face = FACE_LETTERS[Math.floor(k / 9)], row = Math.floor((k % 9) / 3), col = k % 3;
+			const f = Math.floor(k / 9), axis = Math.floor(f / 2), sign = f % 2 ? 1 : -1;
+			const right = new THREE.Vector3(...frames[face].right), down = new THREE.Vector3(...frames[face].down);
+			const normal = new THREE.Vector3().setComponent(axis, sign);
+			const lattice = normal.clone().addScaledVector(right, col - 1).addScaledVector(down, row - 1);
+			// towards the face centre, in (right, down); a corner (sx, sy) of the square in (right, down) is inner when it
+			// points there (centre caps: all four)
+			const dr = 1 - col, dd = 1 - row;
+			const kind = dr === 0 && dd === 0 ? "centre" : dr === 0 || dd === 0 ? "edge" : "corner";
+			const radii = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) => {
+				const inner = kind === "centre" || (kind === "edge" ? sx * dr + sy * dd > 0 : sx === dr && sy === dd);
+				return (inner ? a[kind] : a.outer) * r.sticker;
+			});
+			// sides on the cube's edge (left: col 0, right: col 2, top: row 0, bottom: row 2) stop the tile's thickness short
+			const extent = [col === 0, col === 2, row === 2, row === 0].map(onEdge => half - (onEdge ? lift : 0));
+			const mesh = new THREE.Mesh(tile(radii, extent), this.materials[k]);
+			mesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, down.clone().negate(), normal));
+			// in the cubie's frame: the tile's top (shape z = depth + bevel) on the label plane
+			mesh.position.copy(normal.clone().multiplyScalar(r.stickerPlane - 1 - a.depth - a.bevel));
+			groups.get(lattice.toArray().map(c => Math.round(c)).join()).add(mesh);
+			this.stickerMeshes[k] = mesh;
+		}
 	}
 
 

@@ -19,6 +19,8 @@
 			</label>
 			<label class="check"><input v-model="overlay" type="checkbox" /> Labels</label>
 			<button :disabled="!images.length" title="Download images and labels (zip)" aria-label="Download" @click="download">⬇️</button>
+			<button :disabled="!sample" title="Test video: the cube turned by hand to show four corners (5 fps)" aria-label="Video" @click="makeVideo">🎬</button>
+			<button v-if="videoFrames.length" title="Download the video frames and labels (zip)" aria-label="Download video" @click="downloadVideo">⬇️🎬</button>
 			<span class="status">{{ status }}</span>
 		</header>
 
@@ -36,6 +38,26 @@
 				<figcaption>
 					<strong>{{ i + 1 }}</strong> corner {{ view.corner }} · faces {{ view.visibleFaces }} · fill {{ view.fill.toFixed(2) }}
 					· angles {{ Object.entries(view.faceAngles).map(([face, angle]) => `${face} ${angle.toFixed(0)}°`).join(" ") }}
+				</figcaption>
+			</figure>
+		</section>
+
+		<section v-if="videoFrames.length" class="video">
+			<figure class="view">
+				<div class="frame" :style="{aspectRatio: `${sample.image.width} / ${sample.image.height}`}">
+					<img :src="videoFrames[videoIndex]" :alt="`video frame ${videoIndex + 1}`" />
+					<svg v-if="overlay" class="overlay" :viewBox="`0 0 ${sample.image.width} ${sample.image.height}`" aria-hidden="true">
+						<g v-for="sticker of videoLabel.stickers.filter(s => s.visible)" :key="sticker.index">
+							<polygon :points="sticker.corners.map(p => p.join(',')).join(' ')" />
+							<text :x="sticker.center[0]" :y="sticker.center[1]">{{ sticker.color }}</text>
+						</g>
+					</svg>
+				</div>
+				<figcaption>
+					<button :aria-label="videoTimer ? 'Pause' : 'Play'" @click="toggleVideo">{{ videoTimer ? "⏸️" : "▶️" }}</button>
+					<input v-model.number="videoIndex" type="range" min="0" :max="videoFrames.length - 1" aria-label="Frame" />
+					frame {{ videoIndex + 1 }}/{{ videoFrames.length }} · {{ videoLabel.time.toFixed(1) }} s · {{ videoLabel.phase }} {{ videoLabel.hold + 1 }}
+					· faces {{ videoLabel.visibleFaces }}
 				</figcaption>
 			</figure>
 		</section>
@@ -76,6 +98,7 @@
 
 	import {FACE_LETTERS, Sample, SchemeSet, generateSample} from "../rubikSamples/sampler";
 	import SampleRenderer from "../rubikSamples/sampleRenderer";
+	import {VideoSample, generateVideo} from "../rubikSamples/video";
 
 
 
@@ -102,6 +125,10 @@
 				images: [] as string[],
 				overlay: true,
 				status: "",
+				video: null as VideoSample,
+				videoFrames: [] as string[],
+				videoIndex: 0,
+				videoTimer: 0,
 			};
 		},
 
@@ -121,6 +148,11 @@
 			labelsJson () {
 				return JSON.stringify(this.sample, null, "\t");
 			},
+
+
+			videoLabel () {
+				return this.video ? this.video.views[this.videoIndex] : null;
+			},
 		},
 
 
@@ -139,6 +171,7 @@
 
 
 		beforeUnmount () {
+			this.stopVideo();
 			this.renderer.dispose();
 		},
 
@@ -161,6 +194,9 @@
 				const size = SIZES.find(size => size.id === this.sizeId);
 				const started = performance.now();
 				this.seed = this.seedInput = seed;
+				this.stopVideo();
+				this.video = null;
+				this.videoFrames = [];
 				this.sample = markRaw(generateSample(seed, {width: size.width, height: size.height, schemes: this.schemes}));
 				this.renderer.load(this.sample);
 				this.images = this.renderer.renderAll();
@@ -168,6 +204,48 @@
 
 				if (Number(this.$route.query.seed) !== seed || this.$route.query.size !== size.id || (this.$route.query.schemes || "standard") !== this.schemes)
 					this.$router.replace({query: {...this.$route.query, seed: String(seed), size: size.id, schemes: this.schemes}});
+			},
+
+
+			// the scene's test video: frames rendered with the same renderer (a video is a sample whose views are frames)
+			makeVideo () {
+				const started = performance.now();
+				this.stopVideo();
+				this.video = markRaw(generateVideo(this.sample));
+				this.renderer.load(this.video as unknown as Sample);
+				this.videoFrames = markRaw(this.renderer.renderAll());
+				this.renderer.load(this.sample);
+				this.videoIndex = 0;
+				this.status = `video: ${this.videoFrames.length} frames at ${this.video.video.fps} fps in ${(performance.now() - started).toFixed(0)} ms`;
+				this.toggleVideo();
+			},
+
+
+			toggleVideo () {
+				if (this.videoTimer)
+					return this.stopVideo();
+				this.videoTimer = window.setInterval(() => this.videoIndex = (this.videoIndex + 1) % this.videoFrames.length, 1000 / this.video.video.fps);
+			},
+
+
+			stopVideo () {
+				if (this.videoTimer)
+					window.clearInterval(this.videoTimer);
+				this.videoTimer = 0;
+			},
+
+
+			async downloadVideo () {
+				const zip = new JSZip();
+				const name = `rubik-video-${this.seed}`;
+				this.videoFrames.forEach((url, i) => zip.file(`${name}/frame${String(i + 1).padStart(4, "0")}.png`, url.split(",")[1], {base64: true}));
+				zip.file(`${name}/labels.json`, JSON.stringify(this.video, null, "\t"));
+				const blob = await zip.generateAsync({type: "blob"});
+				const link = document.createElement("a");
+				link.href = URL.createObjectURL(blob);
+				link.download = `${name}.zip`;
+				link.click();
+				setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 			},
 
 
@@ -199,6 +277,8 @@ button:disabled { cursor: default; opacity: .45; }
 .status { color: #5a5346; font-size: .9rem; }
 .views { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0; }
 .view { margin: 0; }
+.video { max-width: 760px; margin: 1rem 0; }
+.video figcaption { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
 .frame { position: relative; width: 100%; border: 1px solid #b8b09f; background: #ddd; }
 .frame img, .overlay { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .overlay polygon { fill: none; stroke: #fff; stroke-width: 1.2; mix-blend-mode: difference; }

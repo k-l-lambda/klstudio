@@ -4,7 +4,9 @@
 // the label corners sit on the rendered stickers.
 import * as THREE from "three";
 import {RoundedBoxGeometry} from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import {RoomEnvironment} from "three/examples/jsm/environments/RoomEnvironment.js";
 
+import {applyImaging, drawBackdrop} from "./realism";
 import {FACE_LETTERS, Sample} from "./sampler";
 
 
@@ -49,6 +51,11 @@ export default class SampleRenderer {
 	movable: {object: THREE.Object3D; lattice: number[]; position: THREE.Vector3; quaternion: THREE.Quaternion}[] = [];
 	bodyMaterial: THREE.Material;
 	disposables: {dispose: () => void}[] = [];
+	// realism (render.realism): the desk behind the cube, drawn in its own pass, and the camera's imaging after
+	backdropScene: THREE.Scene = null;
+	backdropCamera: THREE.PerspectiveCamera = null;
+	backdropPlane: THREE.Mesh = null;
+	backdropTexture: THREE.CanvasTexture = null;
 	sample: Sample;
 
 
@@ -72,6 +79,9 @@ export default class SampleRenderer {
 		this.stickerMeshes = [];
 		this.cubies = [];
 		this.materials = [];
+		this.backdropScene = null;
+		this.backdropPlane = null;
+		this.backdropTexture = null;
 		this.byColor = {};
 		this.facelets = "";
 		this.movable = [];
@@ -89,6 +99,29 @@ export default class SampleRenderer {
 		this.scene = new THREE.Scene();
 		// r126 writes a Color background as the clear colour, without output encoding: give it the sRGB value as is
 		this.scene.background = new THREE.Color(r.background);
+		const realism = r.realism;
+		if (realism) {
+			// reflections of a room (gloss), and the desk behind
+			const pmrem = new THREE.PMREMGenerator(this.renderer);
+			const environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+			this.scene.environment = environment;
+			this.disposables.push(pmrem, environment);
+			const canvas = document.createElement("canvas");
+			canvas.width = canvas.height = 1024;
+			drawBackdrop(canvas, realism.backdrop);
+			this.backdropTexture = new THREE.CanvasTexture(canvas);
+			this.backdropTexture.encoding = THREE.sRGBEncoding;
+			this.backdropTexture.wrapS = this.backdropTexture.wrapT = THREE.MirroredRepeatWrapping;
+			this.backdropTexture.repeat.set(1, 1);
+			this.backdropTexture.center.set(0.5, 0.5);
+			const plane = new THREE.PlaneGeometry(1, 1);
+			const material = new THREE.MeshBasicMaterial({map: this.backdropTexture, color: linear(r.main.color).multiplyScalar(Math.min(1.2, 0.55 + 0.35 * r.main.intensity))});
+			this.backdropPlane = new THREE.Mesh(plane, material);
+			this.backdropScene = new THREE.Scene();
+			this.backdropScene.add(this.backdropPlane);
+			this.backdropCamera = new THREE.PerspectiveCamera(sample.intrinsics.fovY, width / height, 0.1, 1000);
+			this.disposables.push(this.backdropTexture, plane, material);
+		}
 
 		// near/far hug the cube so depth precision separates the stickers from the cubie faces. Clipping is by depth
 		// (camera z), not distance: off-centre framing puts the cube centre's depth below its distance, so bound the
@@ -117,13 +150,18 @@ export default class SampleRenderer {
 		const stickerless = r.style === "stickerless";
 		const size = 1 - r.gap;
 		const cubie = new RoundedBoxGeometry(size, size, size, 5, r.cubieRadius);
-		this.bodyMaterial = new THREE.MeshStandardMaterial({color: linear(sample.cube.body), roughness: r.bodyRoughness, metalness: 0});
+		// realism: glossy plastic (a clear coat, the room's reflections)
+		const surface = (color: string, roughness: number, extra: object = {}): THREE.Material => realism
+			? new THREE.MeshPhysicalMaterial({color: linear(color), roughness, metalness: 0, clearcoat: realism.gloss.clearcoat,
+				clearcoatRoughness: realism.gloss.clearcoatRoughness, envMapIntensity: realism.gloss.envIntensity, ...extra})
+			: new THREE.MeshStandardMaterial({color: linear(color), roughness, metalness: 0, ...extra});
+		this.bodyMaterial = surface(sample.cube.body, r.bodyRoughness);
 		this.disposables.push(cubie, this.bodyMaterial);
 
 		const byColor = {};
 		FACE_LETTERS.split("").forEach(face => {
-			byColor[face] = new THREE.MeshStandardMaterial({color: linear(sample.cube.colors[face]), roughness: r.stickerRoughness, metalness: 0,
-				polygonOffset: !stickerless, polygonOffsetFactor: -1, polygonOffsetUnits: -4});
+			byColor[face] = surface(sample.cube.colors[face], r.stickerRoughness,
+				{polygonOffset: !stickerless, polygonOffsetFactor: -1, polygonOffsetUnits: -4});
 			this.disposables.push(byColor[face]);
 		});
 		this.byColor = byColor;
@@ -326,12 +364,37 @@ export default class SampleRenderer {
 	}
 
 
-	// PNG data URL of view i.
+	// view i as a data URL: PNG, or with realism the desk behind, the camera's imaging and JPEG.
 	renderView (index: number): string {
 		this.pose(index);
+		const realism = this.sample.render.realism;
+		if (!realism) {
+			this.renderer.render(this.scene, this.camera);
+			return this.canvas.toDataURL("image/png");
+		}
+		// the desk: a tilted plane behind the cube in the camera frame, this view's patch of its texture
+		const view = this.sample.views[index] as Sample["views"][0] & {motion?: {length: number; angle: number}};
+		const b = realism.backdrop;
+		const depth = view.translation[2] + b.depth;
+		const tanY = Math.tan(THREE.MathUtils.degToRad(this.sample.intrinsics.fovY) / 2);
+		// the frame shows about the texture's width (its clutter at the size it was drawn for)
+		const size = 2 * depth * tanY * Math.max(1, this.sample.image.width / this.sample.image.height) * 1.4;
+		this.backdropPlane.position.set(0, 0, -depth);
+		this.backdropPlane.rotation.set(-b.tilt, 0, 0);
+		this.backdropPlane.scale.set(size, size, 1);
+		const patch = view.backdrop || {u: 0, v: 0, turn: 0};
+		this.backdropTexture.offset.set(patch.u * 0.4, patch.v * 0.4);
+		this.backdropTexture.rotation = patch.turn;
+		const background = this.scene.background;
+		this.renderer.autoClear = false;
+		this.renderer.clear();
+		this.renderer.render(this.backdropScene, this.backdropCamera);
+		this.renderer.clearDepth();
+		this.scene.background = null;
 		this.renderer.render(this.scene, this.camera);
-
-		return this.canvas.toDataURL("image/png");
+		this.scene.background = background;
+		this.renderer.autoClear = true;
+		return applyImaging(this.canvas, realism.imaging, this.sample.seed * 31 + index, view.motion);
 	}
 
 

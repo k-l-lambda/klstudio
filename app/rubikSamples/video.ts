@@ -28,6 +28,10 @@ export interface VideoOptions {
 	twistHold?: number;	// seconds held after each face turn
 	reorient?: number;	// seconds for the whole-cube turn before each face turn
 	twistTime?: number;	// seconds per quarter turn (a half turn takes 1.6×)
+	// a hand-held phone's shot (with render.realism the frames get its imaging): stronger tremor, the cube wandering
+	// and now and then flicked, half the twists already after the second hold (before every face was seen), quicker
+	// turns, per frame a motion-blur vector from the cube's motion within the shutter time
+	handheld?: boolean;
 }
 
 // a layer turning: the face turn `move` (R L U D F B, ' or 2), as CubeN's Twist (axis, layer 0 = negative side,
@@ -42,6 +46,7 @@ export interface TwistLabel {
 }
 
 export interface FrameLabel extends ViewLabel {
+	motion?: {length: number; angle: number};	// handheld: this frame's motion blur (px at 1024 width, direction)
 	frame: number;
 	time: number;		// seconds
 	phase: "hold" | "turn" | "reorient" | "twist" | "settle";	// settle: held after a face turn
@@ -72,8 +77,11 @@ const TETRAHEDRA: Vector3[][] = [
 
 const cornerName = (c: Vector3): string => (c[0] > 0 ? "R" : "L") + (c[1] > 0 ? "U" : "D") + (c[2] > 0 ? "F" : "B");
 
-export const generateVideo = (sample: Sample, {fps = 5, hold = 2, turn = 1.2, tremor = 0.6, twists = 0, twistHold = 1.5, reorient = 0.8,
-	twistTime = 0.5}: VideoOptions = {}): VideoSample => {
+export const generateVideo = (sample: Sample, options: VideoOptions = {}): VideoSample => {
+	const handheld = !!options.handheld;
+	// hand-held defaults: a stronger tremor, quicker turns and twists (explicit options win)
+	const {fps = 5, hold = 2, turn = handheld ? 0.7 : 1.2, tremor = handheld ? 1.6 : 0.6, twists = 0, twistHold = handheld ? 0.8 : 1.5,
+		reorient = handheld ? 0.45 : 0.8, twistTime = handheld ? 0.25 : 0.5} = options;
 	const random = mulberry32(sample.seed * 7919 + 17);
 	const uniform = (a: number, b: number) => a + (b - a) * random();
 	const {width, height} = sample.image;
@@ -120,27 +128,13 @@ export const generateVideo = (sample: Sample, {fps = 5, hold = 2, turn = 1.2, tr
 	const frames: Frame[] = [];
 	const ranges: VideoSample["video"]["holds"] = [];
 	const smooth = (s: number) => s * s * (3 - 2 * s);
-	holds.forEach((h, i) => {
-		ranges.push({corner: cornerName(h.corner), visibleFaces: "", start: frames.length, end: frames.length + holdFrames});
-		for (let f = 0; f < holdFrames; ++f)
-			frames.push({quaternion: h.quaternion.clone(), translation: h.translation.clone(), phase: "hold", hold: i, progress: (f + 0.5) / holdFrames, step: 0});
-		if (i + 1 < holds.length) {
-			const next = holds[i + 1];
-			for (let f = 1; f <= turnFrames; ++f) {
-				const s = f / (turnFrames + 1), e = smooth(s);
-				frames.push({quaternion: h.quaternion.clone().slerp(next.quaternion, e), translation: h.translation.clone().lerp(next.translation, e),
-					phase: "turn", hold: i, progress: s, step: 0});
-			}
-		}
-	});
-
 	// face turns: a random outer face, not on the axis of the previous one; quarter (either way) or half turn
 	const states = [sample.cube.facelets];
 	const twistRanges: VideoSample["video"]["twists"] = [];
-	let current = holds[holds.length - 1], lastAxis = -1;
+	let current = holds[0], lastAxis = -1, stepsDone = 0;
 	const cube = new CubeN(3, {code: sample.cube.code});
 	const letters = () => Array.from(cube.facelets, c => FACE_LETTERS[c]).join("");
-	for (let step = 0; step < twists; ++step) {
+	const twistOnce = (step: number): void => {
 		let face: string;
 		do
 			face = "RLUDFB"[Math.floor(random() * 6)];
@@ -211,14 +205,65 @@ export const generateVideo = (sample: Sample, {fps = 5, hold = 2, turn = 1.2, tr
 		range.facelets = states[states.length - 1];
 		twistRanges.push(range);
 		current = {corner: target.corner, quaternion: drifted, translation: target.translation};
+	};
+	// hand-held, half the twists come after the second hold (the faces not all seen yet)
+	const early = handheld ? Math.ceil(twists / 2) : 0;
+	holds.forEach((h, i) => {
+		ranges.push({corner: cornerName(h.corner), visibleFaces: "", start: frames.length, end: frames.length + holdFrames});
+		for (let f = 0; f < holdFrames; ++f)
+			frames.push({quaternion: h.quaternion.clone(), translation: h.translation.clone(), phase: "hold", hold: i, progress: (f + 0.5) / holdFrames, step: stepsDone});
+		current = h;
+		if (early && i === 1) {
+			for (; stepsDone < early; ++stepsDone)
+				twistOnce(stepsDone);
+		}
+		if (i + 1 < holds.length) {
+			const from = current, next = holds[i + 1];
+			for (let f = 1; f <= turnFrames; ++f) {
+				const s = f / (turnFrames + 1), e = smooth(s);
+				frames.push({quaternion: from.quaternion.clone().slerp(next.quaternion, e), translation: from.translation.clone().lerp(next.translation, e),
+					phase: "turn", hold: i, progress: s, step: stepsDone});
+			}
+		}
+	});
+	for (; stepsDone < twists; ++stepsDone)
+		twistOnce(stepsDone);
+
+
+
+	// hand-held: the cube wanders slowly (two slow sinusoids, up to ~8°) and is now and then flicked (a bump of 15–45°
+	// over 0.15–0.35 s about a random axis, ~1 every 4 s); its own random stream. Exposure 6–25 ms (motion blur).
+	const extra = mulberry32(sample.seed * 6007 + 11);
+	const span = frames.length / fps;
+	const flicks: {at: number; length: number; axis: THREE.Vector3; amplitude: number}[] = [];
+	if (handheld) {
+		for (let at = -Math.log(1 - extra()) * 4; at < span; at += 0.6 - Math.log(1 - extra()) * 4) {
+			flicks.push({at, length: 0.15 + 0.2 * extra(), axis: new THREE.Vector3(extra() - 0.5, extra() - 0.5, extra() - 0.5).normalize(),
+				amplitude: THREE.MathUtils.degToRad(15 + 30 * extra()) * (extra() < 0.5 ? 1 : -1)});
+		}
 	}
+	const wanderAxis = [0, 1, 2].map(() => ({f: 0.05 + 0.15 * extra(), p: 2 * Math.PI * extra(), a: THREE.MathUtils.degToRad(3 + 5 * extra())}));
+	const exposure = 0.006 + 0.019 * extra();
+	const handAt = (time: number): THREE.Quaternion => {
+		const q = new THREE.Quaternion();
+		if (!handheld)
+			return q;
+		const e = wanderAxis.map(w => w.a * Math.sin(2 * Math.PI * w.f * time + w.p));
+		q.setFromEuler(new THREE.Euler(e[0], e[1], e[2]));
+		for (const f of flicks) {
+			const u = (time - f.at) / f.length;
+			if (u > 0 && u < 1)
+				q.premultiply(new THREE.Quaternion().setFromAxisAngle(f.axis, f.amplitude * Math.sin(Math.PI * u)));
+		}
+		return q;
+	};
 
 	const stickerPlane = sample.render.stickerPlane, half = sample.render.sticker / 2;
 	const frameLabels: FrameLabel[] = frames.map((frame, index) => {
 		const time = index / fps;
 		const w = tremorAt(time);
 		const rad = THREE.MathUtils.degToRad(tremor);
-		const quaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(w[0] * rad, w[1] * rad, w[2] * rad)).multiply(frame.quaternion);
+		const quaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(w[0] * rad, w[1] * rad, w[2] * rad)).multiply(handAt(time)).multiply(frame.quaternion);
 		const t = frame.translation.clone().add(new THREE.Vector3(w[3], w[4], w[5]).multiplyScalar(tremor * 0.02));
 		const e = new THREE.Matrix4().makeRotationFromQuaternion(quaternion).elements;	// column-major
 		const rotation = [e[0], e[4], e[8], e[1], e[5], e[9], e[2], e[6], e[10]];
@@ -299,6 +344,21 @@ export const generateVideo = (sample: Sample, {fps = 5, hold = 2, turn = 1.2, tr
 		};
 	});
 	ranges.forEach(range => range.visibleFaces = frameLabels[range.start].visibleFaces);
+	// hand-held: per frame the motion blur — the cube's image speed (centre, plus its rotation at the outline's radius)
+	// over the exposure, px at 1024 width, along the centre's direction
+	if (handheld) {
+		frameLabels.forEach((label, i) => {
+			const a = frameLabels[Math.max(0, i - 1)], b = frameLabels[Math.min(frameLabels.length - 1, i + 1)];
+			const dt = (b.frame - a.frame) / fps || 1 / fps;
+			const ca = a.stickers.filter(s => s.visible).map(s => s.center), cb = b.stickers.filter(s => s.visible).map(s => s.center);
+			const mean = (c: Point2[]) => c.reduce((m, p) => [m[0] + p[0] / c.length, m[1] + p[1] / c.length], [0, 0]);
+			const [ax, ay] = mean(ca.length ? ca : [[0, 0]]), [bx, by] = mean(cb.length ? cb : [[0, 0]]);
+			const angle = new THREE.Quaternion(...a.quaternion).angleTo(new THREE.Quaternion(...b.quaternion));
+			const radius = label.fill * Math.max(width, height) / 2;
+			const vx = (bx - ax) / dt, vy = (by - ay) / dt, vr = angle / dt * radius;
+			label.motion = {length: Math.hypot(Math.hypot(vx, vy), vr) * exposure * 1024 / width, angle: Math.atan2(vy, vx)};
+		});
+	}
 
 	return {...sample, views: frameLabels, video: {fps, frames: frameLabels.length, holds: ranges, twists: twistRanges, facelets: states[states.length - 1]}};
 };

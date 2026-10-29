@@ -24,6 +24,7 @@
 					<option value="all">all</option>
 				</select>
 			</label>
+			<label class="check" title="Phone-photo realism: imaging (blur, noise, white balance, JPEG), a desk behind, gloss, smaller off-centre framing"><input v-model="realism" type="checkbox" @change="generate(seed)" /> Real</label>
 			<label class="check"><input v-model="overlay" type="checkbox" /> Labels</label>
 			<button :disabled="!images.length" title="Download images and labels (zip)" aria-label="Download" @click="download">⬇️</button>
 			<button :disabled="!sample" title="Test video: the cube turned by hand to show four corners (5 fps)" aria-label="Video" @click="makeVideo">🎬</button>
@@ -116,6 +117,9 @@
 		{id: "480x640", width: 480, height: 640},
 		{id: "512x512", width: 512, height: 512},
 		{id: "1024x768", width: 1024, height: 768},
+		{id: "768x1024", width: 768, height: 1024},
+		{id: "1280x720", width: 1280, height: 720},
+		{id: "720x1280", width: 720, height: 1280},
 	];
 
 
@@ -129,6 +133,7 @@
 				sizeId: SIZES[0].id,
 				schemes: "standard" as SchemeSet,
 				builds: "classic" as BuildSet,
+				realism: false,
 				seed: 1,
 				seedInput: 1,
 				sample: null as Sample,
@@ -178,6 +183,7 @@
 				this.schemes = this.$route.query.schemes as SchemeSet;
 			if (["classic", "antipop", "all"].includes(this.$route.query.builds as string))
 				this.builds = this.$route.query.builds as BuildSet;
+			this.realism = this.$route.query.realism === "1";
 			this.generate(seed > 0 ? seed : this.randomSeed());
 		},
 
@@ -209,14 +215,16 @@
 				this.stopVideo();
 				this.video = null;
 				this.videoFrames = [];
-				this.sample = markRaw(generateSample(seed, {width: size.width, height: size.height, schemes: this.schemes, builds: this.builds}));
+				this.sample = markRaw(generateSample(seed, {width: size.width, height: size.height, schemes: this.schemes, builds: this.builds, realism: this.realism}));
 				this.renderer.load(this.sample);
 				this.images = this.renderer.renderAll();
 				this.status = `${(performance.now() - started).toFixed(0)} ms`;
 
 				if (Number(this.$route.query.seed) !== seed || this.$route.query.size !== size.id || (this.$route.query.schemes || "standard") !== this.schemes
-					|| (this.$route.query.builds || "classic") !== this.builds)
-					this.$router.replace({query: {...this.$route.query, seed: String(seed), size: size.id, schemes: this.schemes, builds: this.builds}});
+					|| (this.$route.query.builds || "classic") !== this.builds || (this.$route.query.realism === "1") !== this.realism) {
+					this.$router.replace({query: {...this.$route.query, seed: String(seed), size: size.id, schemes: this.schemes, builds: this.builds,
+						...this.realism ? {realism: "1"} : {realism: undefined}}});
+				}
 			},
 
 
@@ -227,8 +235,10 @@
 				// ?videoFps=&videoHold=&videoTurn= (seconds) override the defaults (5 fps, 2 s holds, 1.2 s turns);
 				// ?videoTwists=N adds N random face turns after the holds (?videoTwistHold=, ?videoTwistTime=, ?videoReorient=: seconds)
 				const option = (name: string) => Number(this.$route.query[name]) > 0 ? Number(this.$route.query[name]) : undefined;
+				// ?videoHandheld=1: a hand-held phone shot (wander, flicks, early quick twists, motion blur)
 				this.video = markRaw(generateVideo(this.sample, {fps: option("videoFps"), hold: option("videoHold"), turn: option("videoTurn"),
-					twists: option("videoTwists"), twistHold: option("videoTwistHold"), twistTime: option("videoTwistTime"), reorient: option("videoReorient")}));
+					twists: option("videoTwists"), twistHold: option("videoTwistHold"), twistTime: option("videoTwistTime"), reorient: option("videoReorient"),
+					handheld: this.$route.query.videoHandheld === "1"}));
 				this.renderer.load(this.video as unknown as Sample);
 				this.videoFrames = markRaw(this.renderer.renderAll());
 				this.renderer.load(this.sample);
@@ -255,7 +265,8 @@
 			async downloadVideo () {
 				const zip = new JSZip();
 				const name = `rubik-video-${this.seed}`;
-				this.videoFrames.forEach((url, i) => zip.file(`${name}/frame${String(i + 1).padStart(4, "0")}.png`, url.split(",")[1], {base64: true}));
+				const ext = (url: string) => url.startsWith("data:image/jpeg") ? "jpg" : "png";
+				this.videoFrames.forEach((url, i) => zip.file(`${name}/frame${String(i + 1).padStart(4, "0")}.${ext(url)}`, url.split(",")[1], {base64: true}));
 				zip.file(`${name}/labels.json`, JSON.stringify(this.video, null, "\t"));
 				const blob = await zip.generateAsync({type: "blob"});
 				const link = document.createElement("a");
@@ -269,7 +280,7 @@
 			async download () {
 				const zip = new JSZip();
 				const name = `rubik-sample-${this.seed}`;
-				this.images.forEach((url, i) => zip.file(`${name}/view${i + 1}.png`, url.split(",")[1], {base64: true}));
+				this.images.forEach((url, i) => zip.file(`${name}/view${i + 1}.${url.startsWith("data:image/jpeg") ? "jpg" : "png"}`, url.split(",")[1], {base64: true}));
 				zip.file(`${name}/labels.json`, this.labelsJson);
 				const blob = await zip.generateAsync({type: "blob"});
 				const link = document.createElement("a");

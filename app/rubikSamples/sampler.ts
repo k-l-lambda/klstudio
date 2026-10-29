@@ -15,6 +15,7 @@ import * as THREE from "three";
 
 import {CubeN, cubeModel} from "../../inc/cubeN";
 import {randomCube} from "../../inc/cove3";
+import {Realism, drawRealism} from "./realism";
 
 
 
@@ -55,6 +56,7 @@ export interface ViewLabel {
 	faceAngles: Record<string, number>;	// per visible face: degrees between its plane and the sight line from its centre to the camera (> MIN_SIGHT_ANGLE)
 	fill: number;		// projected cube outline: larger of width / image width, height / image height
 	offset: Point2;		// projected cube centre from the image centre, in half image sizes (NDC-like, y down)
+	backdrop?: {u: number; v: number; turn: number};	// realism: this view's patch of the backdrop texture (offset 0–1, radians)
 	bleed: number;		// px of the outline past the image border (0 = whole cube in frame)
 	stickers: StickerLabel[];
 }
@@ -139,6 +141,7 @@ export interface Sample {
 		ambient: Light;
 		main: Light & {direction: Vector3};	// camera frame, from the scene towards the light
 		points: (Light & {position: Vector3; distance: number; decay: number})[];	// camera frame
+		realism?: Realism;	// phone-photo realism (realism.ts): imaging, a desk behind, gloss; absent = clean renders
 	};
 	views: ViewLabel[];
 }
@@ -362,10 +365,13 @@ export interface SampleOptions {
 	height?: number;
 	schemes?: SchemeSet;	// standard (default; the draws of earlier versions, so old seeds reproduce), nonstandard, all
 	builds?: BuildSet;	// classic (default; stickered / stickerless, old seeds reproduce), antipop, all (a third antipop)
+	// phone-photo realism (realism.ts): the cube smaller (0.25–0.5 of the long side) and further off centre, a dark red for red in a
+	// third of the standard schemes, a desk behind, the camera's imaging; its own random stream after the sample's draws
+	realism?: boolean;
 }
 
 
-export const generateSample = (seed: number, {width = 640, height = 480, schemes = "standard", builds = "classic"}: SampleOptions = {}): Sample => {
+export const generateSample = (seed: number, {width = 640, height = 480, schemes = "standard", builds = "classic", realism = false}: SampleOptions = {}): Sample => {
 	const random = mulberry32(seed);
 	const uniform = (a: number, b: number) => a + (b - a) * random();
 	const pick = <T extends {weight: number}>(items: T[]): T => {
@@ -387,6 +393,7 @@ export const generateSample = (seed: number, {width = 640, height = 480, schemes
 	const cube = randomCube(random);
 	const colors: Record<string, string> = {};
 	let schemeName: string;
+	let redFace: string = null;	// standard schemes: the face of the red role
 	if (schemes === "standard" || (schemes === "all" && random() < 0.5)) {
 		const scheme = pick(SCHEMES);
 		schemeName = scheme.name;
@@ -399,6 +406,8 @@ export const generateSample = (seed: number, {width = 640, height = 480, schemes
 			return roles;
 		})();
 		FACE_LETTERS.split("").forEach((face, i) => {
+			if (roles[i] === "red")
+				redFace = face;
 			const color = new THREE.Color(PALETTE[roles[i]]);
 			color.offsetHSL(uniform(-0.015, 0.015), uniform(-0.12, 0.05), uniform(-0.07, 0.05));
 			colors[face] = hex(color);
@@ -482,13 +491,14 @@ export const generateSample = (seed: number, {width = 640, height = 480, schemes
 	const fy = height / 2 / tanY, fx = fy, cx = width / 2, cy = height / 2;
 	// framing: the projected outline fills 0.5–0.95 of the image (per scene, ±0.04 per view); the cube centre stays
 	// within ±OFFSET of the image centre (half sizes); the outline may run up to BLEED of the smaller side past the border
-	const fill = uniform(0.5, 0.95);
+	// realism: the outline 0.25–0.5 of the long side (a real hand-held video: 0.32–0.45); fill is of the shorter side
+	const fill = realism ? uniform(0.25, 0.5) * Math.max(width, height) / Math.min(width, height) : uniform(0.5, 0.95);
 	const tanMin = Math.min(tanX, tanY);
 	const baseDistance = 2.4 / (fill * tanMin);	// rough: outline half-extent ≈ 2.4 cubie pitches
 
 
 	const project = (p: Vector3): Point2 => [fx * p[0] / p[2] + cx, fy * p[1] / p[2] + cy];
-	const OFFSET = 0.12, BLEED = 0.04 * Math.min(width, height);
+	const OFFSET = realism ? 0.35 : 0.12, BLEED = 0.04 * Math.min(width, height);
 
 	const model = cubeModel(3);
 	const faceletColors = cube.facelets;
@@ -644,6 +654,17 @@ export const generateSample = (seed: number, {width = 640, height = 480, schemes
 		faceFrames[face] = {right, down};
 	});
 
+	// realism: its own stream (the sample's draws above are untouched)
+	let realismDraw: Realism;
+	if (realism) {
+		realismDraw = drawRealism(seed);
+		const extra = mulberry32(seed * 7907 + 3);
+		// a dark red (maroon, as on many speed cubes) for the red role of a standard scheme, a third of the time
+		if (redFace && extra() < 1 / 3)
+			colors[redFace] = hex(new THREE.Color("#7a1424").offsetHSL((extra() - 0.5) * 0.02, (extra() - 0.5) * 0.2, (extra() - 0.5) * 0.08));
+		views.forEach(view => view.backdrop = {u: extra(), v: extra(), turn: (extra() - 0.5) * 0.6});
+	}
+
 	return {
 		version: 1,
 		seed,
@@ -662,7 +683,7 @@ export const generateSample = (seed: number, {width = 640, height = 480, schemes
 		},
 		render: {style, gap, cubieRadius, border, sticker, stickerRadius, stickerPlane, antipop: antipopBuild, cubies,
 			stickerRoughness: uniform(0.15, 0.9), bodyRoughness: uniform(0.3, 0.9),
-			background, ambient, main, points},
+			background, ambient, main, points, ...realismDraw ? {realism: realismDraw} : {}},
 		views,
 	};
 };

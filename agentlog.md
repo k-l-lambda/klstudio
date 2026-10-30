@@ -1,3 +1,9 @@
+## 2026-10-30 rubik-detector on the r samples and the hand-held video v104
+
+- Engine (`c78aa16`): the wide search tries up to 8 cube-axes hypotheses and keeps the most present (desk rectangles won the single RANSAC); the photo path drops views without a cube before fusing (two left: five-face completion). r renders 94 → 98/100 exact (r026: one view with a cube; r068: red/orange, 4 wrong at 0.999), r edits bg 1/2, hand 2/2, g/n/a all exact (164/167 scenarios). Real video per frame 69 % → 72 %, wide detection 304 → 481 ms.
+- App pipeline (`601f95a`): after a layer turn the link to the last frame breaks on colour and the new chain was placed by colour — the rotation hiding the turn, so the colour check saw "0/9 changed" and old evidence stayed. Such a chain now keeps the placement the geometry carries over (from the last good frame within 0.8 s), applied when the turn hint arrives (it comes 0.3–0.6 s late). v104: all 5 turns before the lock confirmed and dropped (were 1–3), the acquiring estimate right from 9.5 s; v103 unchanged (lock = truth, 0 wrong switches of 8).
+- Host check: `FIXED=track,detect` ms per step makes runs deterministic (measured times varied the outcome run to run); a switch a frame before the twist's end counts as right. Open: v104 still locks only at some timings — at 51 observed facelets it locks right at 250 ms detections but wrong at 150 ms (a chain misplaced, confidence 1.00), so `lockCoverage` stays 54.
+
 ## 2026-10-29 rubik-samples: phone-photo realism; the sample sets regenerated (r001–r100)
 
 - Calibrated on a real hand-held video (GAN cube on a desk, 720×1280 H.264) against the clean renders: sharpness (Laplacian var / var in the cube's box) 0.030 vs 0.095, noise in a sticker (high-pass std) 0.95 vs 0, colour spread in a sticker 1.3 vs 0, white b* +3.9 vs −0.6, the cube 0.32–0.45 of the long side and off centre, a desk behind (lattice support 0.56 vs 0.88).

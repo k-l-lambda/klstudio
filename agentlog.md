@@ -1,3 +1,7 @@
+## 2026-11-01 rubik-detector: phone dumps — logo on a centre cap, wrong focal estimate
+
+- With the threaded engine the phone's detection is 0.7–0.9 s (segments 2.1–2.8 → 0.43–0.56 s). New dumps showed two faults: the white centre's printed blue logo read it as light blue (the centres seed the colour clusters; confidence stuck at ~0.50) → rubik-detector c03c9e7 samples centres from the ring between the sample quad and 0.8 of the cubie; and a focal estimate of 1239 px vs the lens's 1004 (fits costlier, one rejected as evidence) → 52e4cf1 takes the lens's value when the estimate is over 12 % off. Parity 164/167 and v103 / v104 unchanged; pushed.
+
 ## 2026-10-31 rubik-detector: phone latency, threaded engine, v104 locks
 
 - Phone dumps (OnePlus 5T): a wide detection 3.2–3.5 s, worst 10.2 s (desktop 0.6–1.4 s on the same frames). Distance is not the cause: real frames shrunk to simulate a farther cube are accepted as often as by the phone's old build, with almost no wrong fits (old: 6–10 per scale); both fail under ~0.2 of the long side. Dumps paired the newest camera frame with a detection seconds older (853cc29: the detected frame, a flash / toast / count as feedback). App wide detections use 2 cube-axes hypotheses (209fca4: p90 745 → 457 ms).

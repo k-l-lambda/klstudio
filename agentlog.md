@@ -1,3 +1,8 @@
+## 2026-11-04 rubik-detector: chain placement corrected inside the solve
+
+- A phone dump had a confident (0.998) wrong estimate, 7 of 27 visible facelets off, no turn made. Experiment (`engine/tools/placement_check.py`, misplaced chains injected on v103 / v104): correcting before the solve (leave-one-out per chain) vs inside it (re-score every chain under the estimate, move the worst, re-solve). Both fix one misplaced chain (v104 40/40 vs 15/40 uncorrected); with two, the step before spoiled 5 right chains, inside none; inside costs 2–3 solves instead of one per chain. `modes_check.py`: two colour modes in 1.4 % of quads on v103 (median reads 37 % of them right, the major mode 70 %), 5.5 % on the real video.
+- rubik-detector `Pipeline.replaceWorstChain` (method C, placeTau 1.0 per sample, ≤ 3 rounds): v104 locks at 5.9–6.4 s at every timing and follows all 6 twists (was 13–15 s or none, 3 twists); v103 unchanged.
+
 ## 2026-11-01 rubik-detector: phone dumps — logo on a centre cap, wrong focal estimate
 
 - With the threaded engine the phone's detection is 0.7–0.9 s (segments 2.1–2.8 → 0.43–0.56 s). New dumps showed two faults: the white centre's printed blue logo read it as light blue (the centres seed the colour clusters; confidence stuck at ~0.50) → rubik-detector c03c9e7 samples centres from the ring between the sample quad and 0.8 of the cubie; and a focal estimate of 1239 px vs the lens's 1004 (fits costlier, one rejected as evidence) → 52e4cf1 takes the lens's value when the estimate is over 12 % off. Parity 164/167 and v103 / v104 unchanged; pushed.

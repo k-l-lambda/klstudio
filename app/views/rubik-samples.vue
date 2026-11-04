@@ -134,6 +134,7 @@
 				schemes: "standard" as SchemeSet,
 				builds: "classic" as BuildSet,
 				realism: false,
+				realismLevel: 1,
 				seed: 1,
 				seedInput: 1,
 				sample: null as Sample,
@@ -183,7 +184,9 @@
 				this.schemes = this.$route.query.schemes as SchemeSet;
 			if (["classic", "antipop", "all"].includes(this.$route.query.builds as string))
 				this.builds = this.$route.query.builds as BuildSet;
-			this.realism = this.$route.query.realism === "1";
+			// ?realism=1 phone-photo realism, ?realism=2 also the studio (a room reflected, gloss, shadows, a logo)
+			this.realism = ["1", "2"].includes(this.$route.query.realism as string);
+			this.realismLevel = this.$route.query.realism === "2" ? 2 : 1;
 			this.generate(seed > 0 ? seed : this.randomSeed());
 		},
 
@@ -215,15 +218,16 @@
 				this.stopVideo();
 				this.video = null;
 				this.videoFrames = [];
-				this.sample = markRaw(generateSample(seed, {width: size.width, height: size.height, schemes: this.schemes, builds: this.builds, realism: this.realism}));
+				this.sample = markRaw(generateSample(seed, {width: size.width, height: size.height, schemes: this.schemes, builds: this.builds,
+					realism: this.realism ? this.realismLevel : false}));
 				this.renderer.load(this.sample);
 				this.images = this.renderer.renderAll();
 				this.status = `${(performance.now() - started).toFixed(0)} ms`;
 
 				if (Number(this.$route.query.seed) !== seed || this.$route.query.size !== size.id || (this.$route.query.schemes || "standard") !== this.schemes
-					|| (this.$route.query.builds || "classic") !== this.builds || (this.$route.query.realism === "1") !== this.realism) {
+					|| (this.$route.query.builds || "classic") !== this.builds || ["1", "2"].includes(this.$route.query.realism as string) !== this.realism) {
 					this.$router.replace({query: {...this.$route.query, seed: String(seed), size: size.id, schemes: this.schemes, builds: this.builds,
-						...this.realism ? {realism: "1"} : {realism: undefined}}});
+						...this.realism ? {realism: String(this.realismLevel)} : {realism: undefined}}});
 				}
 			},
 
@@ -240,7 +244,14 @@
 					twists: option("videoTwists"), twistHold: option("videoTwistHold"), twistTime: option("videoTwistTime"), reorient: option("videoReorient"),
 					handheld: this.$route.query.videoHandheld === "1"}));
 				this.renderer.load(this.video as unknown as Sample);
-				this.videoFrames = markRaw(this.renderer.renderAll());
+				// per frame the image, and with the studio each visible sticker's glare (labels)
+				this.videoFrames = markRaw(this.video.views.map((view, i) => {
+					const url = this.renderer.renderView(i);
+					const glare = this.renderer.renderGlare(i);
+					if (glare)
+						view.stickers.forEach((st, k) => st.visible && (st.glare = glare[k]));
+					return url;
+				}));
 				this.renderer.load(this.sample);
 				this.videoIndex = 0;
 				this.status = `video: ${this.videoFrames.length} frames at ${this.video.video.fps} fps in ${(performance.now() - started).toFixed(0)} ms`;

@@ -15,7 +15,7 @@ import * as THREE from "three";
 
 import {CubeN, cubeModel} from "../../inc/cubeN";
 import {randomCube} from "../../inc/cove3";
-import {Realism, drawRealism} from "./realism";
+import {Realism, drawRealism, drawStudio} from "./realism";
 
 
 
@@ -44,6 +44,9 @@ export interface StickerLabel {
 	inFrame: number;	// share of the sticker square's image area inside the image (1 = fully in frame)
 	corners: Point2[];	// sticker square, seen from outside: top-left, top-right, bottom-right, bottom-left
 	center: Point2;
+	// studio realism, video frames: the reflection over the sticker (SampleRenderer.renderGlare): mean luminance 0–1 and
+	// the share of its pixels in a highlight
+	glare?: {mean: number; share: number};
 }
 
 export interface ViewLabel {
@@ -366,8 +369,9 @@ export interface SampleOptions {
 	schemes?: SchemeSet;	// standard (default; the draws of earlier versions, so old seeds reproduce), nonstandard, all
 	builds?: BuildSet;	// classic (default; stickered / stickerless, old seeds reproduce), antipop, all (a third antipop)
 	// phone-photo realism (realism.ts): the cube smaller (0.25–0.5 of the long side) and further off centre, a dark red for red in a
-	// third of the standard schemes, a desk behind, the camera's imaging; its own random stream after the sample's draws
-	realism?: boolean;
+	// third of the standard schemes, a desk behind, the camera's imaging; its own random stream after the sample's draws.
+	// true / 1; 2: also the studio (a room reflected, gloss, tone mapping, shadows, a centre logo; realism.ts Studio)
+	realism?: boolean | number;
 }
 
 
@@ -663,6 +667,8 @@ export const generateSample = (seed: number, {width = 640, height = 480, schemes
 		if (redFace && extra() < 1 / 3)
 			colors[redFace] = hex(new THREE.Color("#7a1424").offsetHSL((extra() - 0.5) * 0.02, (extra() - 0.5) * 0.2, (extra() - 0.5) * 0.08));
 		views.forEach(view => view.backdrop = {u: extra(), v: extra(), turn: (extra() - 0.5) * 0.6});
+		if (Number(realism) >= 2)
+			realismDraw.studio = drawStudio(seed, main.direction, realismDraw.backdrop.base);
 	}
 
 	return {

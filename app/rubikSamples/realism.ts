@@ -38,6 +38,25 @@ export interface Realism {
 	imaging: Imaging;
 	backdrop: Backdrop;
 	gloss: {envIntensity: number; clearcoat: number; clearcoatRoughness: number};
+	studio?: Studio;	// level 2: the room the plastic reflects, its gloss, tone mapping, shadows, a centre logo
+}
+
+// Level 2 (calibrated on phone dumps of a glossy stickerless cube: soft window reflections across whole tiles, bright
+// rims along the bevels, a brightness gradient within a tile, dark gaps, a printed logo on the white centre): the
+// environment the cube reflects is a room drawn for the scene — a window (mullions) near the main light's direction, 1–2
+// ceiling lamps, walls / floor / ceiling — instead of the generic RoomEnvironment; filmic tone mapping (the highlights
+// roll off as on a phone), shadows between the cubies. Directions in the label camera frame (y down, z forward), as
+// render.main.direction.
+export interface Studio {
+	window: {direction: [number, number, number]; width: number; height: number; intensity: number; mullions: number; tint: string};	// angular size, radians
+	lamps: {direction: [number, number, number]; size: number; intensity: number}[];
+	walls: string;
+	floor: string;
+	ceiling: string;
+	surface: {roughness: number; bodyRoughness: number; clearcoat: number; clearcoatRoughness: number; envIntensity: number};
+	exposure: number;	// ACES filmic tone mapping exposure
+	shadows: boolean;
+	logo: null | {color: string; size: number; shape: "ring" | "disc" | "letter"};	// on the brightest (white) centre; size: of the tile
 }
 
 export const drawRealism = (seed: number): Realism => {
@@ -73,6 +92,48 @@ export const drawRealism = (seed: number): Realism => {
 			seed: Math.floor(random() * 1e9),
 		},
 		gloss: {envIntensity: uniform(0.15, 0.9), clearcoat: uniform(0, 0.8), clearcoatRoughness: uniform(0.05, 0.4)},
+	};
+};
+
+
+// Level 2's room and gloss, its own random stream (level 1 draws untouched). light: render.main.direction; desk: the
+// backdrop's base colour (the floor in the reflections).
+export const drawStudio = (seed: number, light: [number, number, number], desk: string): Studio => {
+	const random = mulberry32(seed * 6151 + 17);
+	const uniform = (a: number, b: number) => a + (b - a) * random();
+	const unit = (v: number[]): [number, number, number] => {
+		const n = Math.hypot(...v);
+		return v.map(c => c / n) as [number, number, number];
+	};
+	// the window about the main light (± 25°), on the camera's side (z ≤ 0.3: the faces turned to the camera mirror it)
+	const w = unit(light.map(c => c + uniform(-0.45, 0.45)));
+	w[2] = Math.min(w[2], 0.3);
+	const lamps = Array(random() < 0.5 ? 1 : 2).fill(null).map(() => ({
+		direction: unit([uniform(-0.8, 0.8), -uniform(0.7, 1), uniform(-0.6, 0.4)]),
+		size: uniform(0.05, 0.14),
+		intensity: uniform(6, 20),
+	}));
+	const grey = (l: number, warm: number) => {
+		const v = Math.round(255 * l);
+		const r = Math.min(255, Math.round(v * (1 + warm))), b = Math.min(255, Math.round(v * (1 - warm)));
+		return "#" + [r, v, b].map(c => c.toString(16).padStart(2, "0")).join("");
+	};
+	const shapes: Studio["logo"]["shape"][] = ["ring", "disc", "letter"];
+	return {
+		// the window and lamps are for the reflections: the main light already lights the cube (its diffuse share kept small:
+		// first renders at 4–14 over 0.5–1.2 rad came out pastel)
+		window: {direction: unit(w), width: uniform(0.35, 0.9), height: uniform(0.35, 0.8), intensity: uniform(3, 9), mullions: Math.floor(uniform(0, 4)),
+			tint: grey(1, uniform(-0.06, 0.04))},
+		lamps,
+		walls: grey(uniform(0.18, 0.45), uniform(-0.03, 0.08)),
+		floor: desk,
+		ceiling: grey(uniform(0.35, 0.65), uniform(0, 0.05)),
+		surface: {roughness: uniform(0.18, 0.45), bodyRoughness: uniform(0.35, 0.7), clearcoat: uniform(0.3, 1), clearcoatRoughness: uniform(0.03, 0.25),
+			envIntensity: uniform(0.6, 1.2)},
+		exposure: uniform(0.75, 1.05),
+		shadows: random() < 0.85,
+		logo: random() < 0.6 ? {color: ["#2a58b8", "#1f2a44", "#3a3a3a", "#b01e2a"][Math.floor(random() * 4)], size: uniform(0.35, 0.6),
+			shape: shapes[Math.floor(random() * 3)]} : null,
 	};
 };
 
@@ -195,6 +256,67 @@ export const drawBackdrop = (canvas: HTMLCanvasElement, b: Backdrop): void => {
 		c.drawImage(canvas, 0, 0);
 		g.clearRect(0, 0, W, H);
 		g.drawImage(copy, 0, 0);
+	}
+};
+
+
+// --- the studio: a window's texture, the centre logo -----------------------------------------------------------
+
+// a window seen from inside: sky brighter at the top, the frame and its mullions dark (linear values, × intensity)
+export const drawWindow = (canvas: HTMLCanvasElement, w: Studio["window"]): void => {
+	const W = canvas.width, H = canvas.height;
+	const g = canvas.getContext("2d");
+	const sky = g.createLinearGradient(0, 0, 0, H);
+	sky.addColorStop(0, w.tint);
+	sky.addColorStop(1, "#8a8f96");
+	g.fillStyle = sky;
+	g.fillRect(0, 0, W, H);
+	g.fillStyle = "#101010";
+	const bar = Math.max(2, Math.round(W * 0.03));
+	g.fillRect(0, 0, W, bar);
+	g.fillRect(0, H - bar, W, bar);
+	g.fillRect(0, 0, bar, H);
+	g.fillRect(W - bar, 0, bar, H);
+	for (let i = 1; i <= w.mullions; ++i)
+		g.fillRect(Math.round(i * W / (w.mullions + 1)) - bar / 2, 0, bar, H);
+	if (w.mullions > 1)
+		g.fillRect(0, Math.round(H * 0.45), W, bar);
+};
+
+// a printed logo on a transparent canvas (alpha the print)
+export const drawLogo = (canvas: HTMLCanvasElement, logo: Studio["logo"]): void => {
+	const S = canvas.width;
+	const g = canvas.getContext("2d");
+	g.clearRect(0, 0, S, S);
+	g.fillStyle = g.strokeStyle = logo.color;
+	const c = S / 2, r = S * 0.42;
+	if (logo.shape === "ring") {
+		g.lineWidth = S * 0.12;
+		g.beginPath();
+		g.arc(c, c, r - g.lineWidth / 2, 0, 2 * Math.PI);
+		g.stroke();
+		g.beginPath();
+		g.arc(c, c, r * 0.32, 0, 2 * Math.PI);
+		g.fill();
+	}
+	else if (logo.shape === "disc") {
+		g.beginPath();
+		g.arc(c, c, r, 0, 2 * Math.PI);
+		g.fill();
+		g.globalCompositeOperation = "destination-out";
+		g.beginPath();
+		g.moveTo(c - r * 0.45, c + r * 0.4);
+		g.lineTo(c, c - r * 0.55);
+		g.lineTo(c + r * 0.45, c + r * 0.4);
+		g.closePath();
+		g.fill();
+		g.globalCompositeOperation = "source-over";
+	}
+	else {
+		g.font = `bold ${Math.round(S * 0.8)}px sans-serif`;
+		g.textAlign = "center";
+		g.textBaseline = "middle";
+		g.fillText("G", c, c * 1.04);
 	}
 };
 

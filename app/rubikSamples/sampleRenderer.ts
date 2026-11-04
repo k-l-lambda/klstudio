@@ -6,7 +6,7 @@ import * as THREE from "three";
 import {RoundedBoxGeometry} from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import {RoomEnvironment} from "three/examples/jsm/environments/RoomEnvironment.js";
 
-import {applyImaging, drawBackdrop} from "./realism";
+import {Studio, applyImaging, drawBackdrop, drawLogo, drawWindow} from "./realism";
 import {FACE_LETTERS, Sample} from "./sampler";
 
 
@@ -36,6 +36,51 @@ const roundedSquare = (side: number, radius: number): THREE.ShapeGeometry => {
 export const maskColor = (index: number): number => index + 1;
 
 
+// three.js frame (y up, z backward) of a label camera-frame direction (y down, z forward)
+const flipped = ([x, y, z]: number[]): THREE.Vector3 => new THREE.Vector3(x, -y, -z);
+
+
+// The studio's room as an environment scene (realism.ts Studio): a box of walls / floor / ceiling (dim, linear) and
+// the emitters — a window with mullions, ceiling lamps — at HDR intensity, as three's RoomEnvironment does. In the
+// three.js camera frame (the camera at the origin looking down −z; the cube turns, the room stays).
+const studioScene = (st: Studio): {scene: THREE.Scene; dispose: () => void} => {
+	const scene = new THREE.Scene();
+	const owned: {dispose: () => void}[] = [];
+	const R = 20;
+	const box = new THREE.BoxGeometry(2 * R, 2 * R, 2 * R);
+	const shade = (hex: string, k: number) => new THREE.MeshBasicMaterial({color: linear(hex).multiplyScalar(k), side: THREE.BackSide});
+	// group order +x −x +y −y +z −z; +y is up (ceiling), −y the floor
+	const walls = [shade(st.walls, 0.9), shade(st.walls, 0.75), shade(st.ceiling, 1), shade(st.floor, 0.6), shade(st.walls, 0.6), shade(st.walls, 0.8)];
+	scene.add(new THREE.Mesh(box, walls));
+	owned.push(box, ...walls);
+	const facing = (mesh: THREE.Mesh, direction: number[], distance: number) => {
+		mesh.position.copy(flipped(direction).normalize().multiplyScalar(distance));
+		mesh.lookAt(0, 0, 0);
+		scene.add(mesh);
+	};
+	const D = R * 0.9;
+	const canvas = document.createElement("canvas");
+	canvas.width = 256;
+	canvas.height = 192;
+	drawWindow(canvas, st.window);
+	const texture = new THREE.CanvasTexture(canvas);
+	texture.encoding = THREE.sRGBEncoding;
+	const windowMaterial = new THREE.MeshBasicMaterial({map: texture, side: THREE.DoubleSide});
+	windowMaterial.color.setScalar(st.window.intensity);
+	const windowPlane = new THREE.PlaneGeometry(2 * D * Math.tan(st.window.width / 2), 2 * D * Math.tan(st.window.height / 2));
+	facing(new THREE.Mesh(windowPlane, windowMaterial), st.window.direction, D);
+	owned.push(texture, windowMaterial, windowPlane);
+	st.lamps.forEach(lamp => {
+		const disc = new THREE.CircleGeometry(D * Math.tan(lamp.size), 24);
+		const material = new THREE.MeshBasicMaterial({side: THREE.DoubleSide});
+		material.color.setScalar(lamp.intensity);
+		facing(new THREE.Mesh(disc, material), lamp.direction, D);
+		owned.push(disc, material);
+	});
+	return {scene, dispose: () => owned.forEach(item => item.dispose())};
+};
+
+
 export default class SampleRenderer {
 	canvas: HTMLCanvasElement;
 	renderer: THREE.WebGLRenderer;
@@ -50,6 +95,7 @@ export default class SampleRenderer {
 	// everything that turns with a layer: its lattice cubie and its rest pose in the cube group
 	movable: {object: THREE.Object3D; lattice: number[]; position: THREE.Vector3; quaternion: THREE.Quaternion}[] = [];
 	bodyMaterial: THREE.Material;
+	mainLight: THREE.DirectionalLight = null;
 	disposables: {dispose: () => void}[] = [];
 	// realism (render.realism): the desk behind the cube, drawn in its own pass, and the camera's imaging after
 	backdropScene: THREE.Scene = null;
@@ -86,6 +132,7 @@ export default class SampleRenderer {
 		this.facelets = "";
 		this.movable = [];
 		this.scene = null;
+		this.mainLight = null;
 	}
 
 
@@ -100,10 +147,23 @@ export default class SampleRenderer {
 		// r126 writes a Color background as the clear colour, without output encoding: give it the sRGB value as is
 		this.scene.background = new THREE.Color(r.background);
 		const realism = r.realism;
+		const studio = realism && realism.studio;
+		// level 2 (studio): filmic tone mapping and shadows; else as before
+		this.renderer.toneMapping = studio ? THREE.ACESFilmicToneMapping : THREE.NoToneMapping;
+		this.renderer.toneMappingExposure = studio ? studio.exposure : 1;
+		this.renderer.shadowMap.enabled = Boolean(studio && studio.shadows);
+		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		if (realism) {
-			// reflections of a room (gloss), and the desk behind
+			// reflections of a room (gloss): the scene's own room (studio), else three's generic one; the desk behind
 			const pmrem = new THREE.PMREMGenerator(this.renderer);
-			const environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+			let environment: THREE.Texture;
+			if (studio) {
+				const room = studioScene(studio);
+				environment = pmrem.fromScene(room.scene, 0.02).texture;
+				room.dispose();
+			}
+			else
+				environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 			this.scene.environment = environment;
 			this.disposables.push(pmrem, environment);
 			const canvas = document.createElement("canvas");
@@ -115,7 +175,8 @@ export default class SampleRenderer {
 			this.backdropTexture.repeat.set(1, 1);
 			this.backdropTexture.center.set(0.5, 0.5);
 			const plane = new THREE.PlaneGeometry(1, 1);
-			const material = new THREE.MeshBasicMaterial({map: this.backdropTexture, color: linear(r.main.color).multiplyScalar(Math.min(1.2, 0.55 + 0.35 * r.main.intensity))});
+			const material = new THREE.MeshBasicMaterial({map: this.backdropTexture, color: linear(r.main.color).multiplyScalar(Math.min(1.2, 0.55 + 0.35 * r.main.intensity)),
+				toneMapped: false});	// the desk as drawn, with or without the studio's tone mapping
 			this.backdropPlane = new THREE.Mesh(plane, material);
 			this.backdropScene = new THREE.Scene();
 			this.backdropScene.add(this.backdropPlane);
@@ -131,11 +192,26 @@ export default class SampleRenderer {
 			Math.max(0.1, Math.min(...depths) - 2.7), Math.max(...depths) + 2.7);
 
 		// lights, given in the label camera frame (y down, z forward) → three.js camera frame (y up, z backward)
-		const flip = ([x, y, z]: number[]) => new THREE.Vector3(x, -y, -z);
-		this.scene.add(new THREE.AmbientLight(linear(r.ambient.color), r.ambient.intensity));
-		const main = new THREE.DirectionalLight(linear(r.main.color), r.main.intensity);
+		const flip = flipped;
+		// the studio's room lights the cube too (its irradiance): the ambient and the main light lowered
+		this.scene.add(new THREE.AmbientLight(linear(r.ambient.color), r.ambient.intensity * (studio ? 0.35 : 1)));
+		const main = new THREE.DirectionalLight(linear(r.main.color), r.main.intensity * (studio ? 0.75 : 1));
 		main.position.copy(flip(r.main.direction));
 		this.scene.add(main);
+		this.mainLight = main;
+		if (studio && studio.shadows) {
+			// cubies shading each other (the gaps, a turning layer); the light's box follows the cube (pose)
+			main.castShadow = true;
+			main.shadow.mapSize.set(1024, 1024);
+			const c = main.shadow.camera as THREE.OrthographicCamera;
+			c.left = c.bottom = -3;
+			c.right = c.top = 3;
+			c.near = 1;
+			c.far = 30;
+			main.shadow.bias = -0.0005;
+			main.shadow.normalBias = 0.01;
+			this.scene.add(main.target);
+		}
 		r.points.forEach(point => {
 			const light = new THREE.PointLight(linear(point.color), point.intensity, point.distance, point.decay);
 			light.position.copy(flip(point.position));
@@ -151,16 +227,18 @@ export default class SampleRenderer {
 		const size = 1 - r.gap;
 		const cubie = new RoundedBoxGeometry(size, size, size, 5, r.cubieRadius);
 		// realism: glossy plastic (a clear coat, the room's reflections)
+		// studio: its own gloss (calibrated on phone dumps: soft reflections across whole tiles)
+		const gloss = studio ? studio.surface : realism && realism.gloss;
 		const surface = (color: string, roughness: number, extra: object = {}): THREE.Material => realism
-			? new THREE.MeshPhysicalMaterial({color: linear(color), roughness, metalness: 0, clearcoat: realism.gloss.clearcoat,
-				clearcoatRoughness: realism.gloss.clearcoatRoughness, envMapIntensity: realism.gloss.envIntensity, ...extra})
+			? new THREE.MeshPhysicalMaterial({color: linear(color), roughness, metalness: 0, clearcoat: gloss.clearcoat,
+				clearcoatRoughness: gloss.clearcoatRoughness, envMapIntensity: gloss.envIntensity, ...extra})
 			: new THREE.MeshStandardMaterial({color: linear(color), roughness, metalness: 0, ...extra});
-		this.bodyMaterial = surface(sample.cube.body, r.bodyRoughness);
+		this.bodyMaterial = surface(sample.cube.body, studio ? studio.surface.bodyRoughness : r.bodyRoughness);
 		this.disposables.push(cubie, this.bodyMaterial);
 
 		const byColor = {};
 		FACE_LETTERS.split("").forEach(face => {
-			byColor[face] = surface(sample.cube.colors[face], r.stickerRoughness,
+			byColor[face] = surface(sample.cube.colors[face], studio ? studio.surface.roughness : r.stickerRoughness,
 				{polygonOffset: !stickerless, polygonOffsetFactor: -1, polygonOffsetUnits: -4});
 			this.disposables.push(byColor[face]);
 		});
@@ -170,6 +248,7 @@ export default class SampleRenderer {
 
 		if (r.style === "antipop") {
 			this.buildAntipop(sample);
+			this.finishStudio(sample);
 			this.paint(k => this.materials[k], this.bodyMaterial);
 			this.collectMovable();
 			return;
@@ -223,8 +302,63 @@ export default class SampleRenderer {
 			}
 		}
 
+		this.finishStudio(sample);
 		this.paint(k => this.materials[k], this.bodyMaterial);
 		this.collectMovable();
+	}
+
+
+	// studio: the printed logo on the brightest (white) centre (it turns with its layer; a centre keeps its colour), and
+	// every cube mesh casting / receiving shadows
+	finishStudio (sample: Sample): void {
+		const r = sample.render, studio = r.realism && r.realism.studio;
+		if (!studio)
+			return;
+		const logo = studio.logo;
+		if (logo) {
+			const luminance = (hex: string) => {
+				const c = linear(hex);
+				return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+			};
+			const face = FACE_LETTERS.split("").reduce((best, f) => luminance(sample.cube.colors[f]) > luminance(sample.cube.colors[best]) ? f : best);
+			const k = FACE_LETTERS.indexOf(face) * 9 + 4;
+			const canvas = document.createElement("canvas");
+			canvas.width = canvas.height = 256;
+			drawLogo(canvas, logo);
+			const texture = new THREE.CanvasTexture(canvas);
+			texture.encoding = THREE.sRGBEncoding;
+			const material = new THREE.MeshPhysicalMaterial({map: texture, transparent: true, roughness: studio.surface.roughness, metalness: 0,
+				clearcoat: studio.surface.clearcoat, clearcoatRoughness: studio.surface.clearcoatRoughness, envMapIntensity: studio.surface.envIntensity,
+				polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8});
+			const size = r.sticker * logo.size;
+			const plane = new THREE.PlaneGeometry(size, size);
+			const mesh = new THREE.Mesh(plane, material);
+			mesh.userData.logo = true;
+			if (r.style === "stickerless") {
+				// on the centre cubie's face: in the cubie's frame the face at normal · stickerPlane − 1
+				const f = FACE_LETTERS.indexOf(face), axis = Math.floor(f / 2), sign = f % 2 ? 1 : -1;
+				const right = new THREE.Vector3(...sample.cube.faceFrames[face].right), down = new THREE.Vector3(...sample.cube.faceFrames[face].down);
+				const normal = new THREE.Vector3().setComponent(axis, sign);
+				const cubie = this.cubies.find(c => c.mesh.position.distanceTo(normal) < 0.01);
+				mesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, down.clone().negate(), normal));
+				mesh.position.copy(normal.clone().multiplyScalar(r.stickerPlane - 1 + 0.002));
+				cubie.mesh.add(mesh);
+			}
+			else {
+				// on the sticker / tile: its shape frame (z outward); an anti-pop tile's top at depth + bevel
+				mesh.position.z = r.style === "antipop" ? r.antipop.depth + r.antipop.bevel + 0.002 : 0.001;
+				this.stickerMeshes[k].add(mesh);
+			}
+			this.disposables.push(texture, material, plane);
+		}
+		if (studio.shadows) {
+			this.cube.traverse(object => {
+				if ((object as THREE.Mesh).isMesh) {
+					object.castShadow = !object.userData.logo;
+					object.receiveShadow = true;
+				}
+			});
+		}
 	}
 
 
@@ -361,6 +495,10 @@ export default class SampleRenderer {
 			-R[6], -R[7], -R[8], 0,
 			0, 0, 0, 1));
 		this.cube.position.set(t[0], -t[1], -t[2]);
+		if (this.mainLight && this.mainLight.castShadow) {
+			this.mainLight.target.position.copy(this.cube.position);
+			this.mainLight.position.copy(this.cube.position).add(flipped(this.sample.render.main.direction).multiplyScalar(12));
+		}
 	}
 
 
@@ -400,6 +538,81 @@ export default class SampleRenderer {
 
 	renderAll (): string[] {
 		return this.sample.views.map((_, i) => this.renderView(i));
+	}
+
+
+	// Glare of view i (studio): the view rendered with every colour's albedo black (gloss, lights and room kept), so a
+	// pixel holds only the reflection over the sticker's colour, tone mapped and encoded like the image; per visible
+	// sticker over its label quad: the mean of that reflection (0–1, luminance) and the share of its pixels above
+	// GLARE_LEVEL (a highlight that washes the colour out). Null without the studio.
+	renderGlare (index: number): {mean: number; share: number}[] {
+		const studio = this.sample.render.realism && this.sample.render.realism.studio;
+		if (!studio)
+			return null;
+		const GLARE_LEVEL = 0.25;
+		const {width, height} = this.sample.image;
+		this.pose(index);
+		const black = new Map<THREE.Material, THREE.Material>();
+		const blackOf = (m: THREE.Material) => {
+			if (!black.has(m)) {
+				const c = (m as THREE.MeshPhysicalMaterial).clone();
+				c.color.setRGB(0, 0, 0);
+				black.set(m, c);
+			}
+			return black.get(m);
+		};
+		const restore: [THREE.Mesh, THREE.Material | THREE.Material[]][] = [];
+		this.cube.traverse(object => {
+			const mesh = object as THREE.Mesh;
+			if (mesh.isMesh && !mesh.userData.logo) {
+				restore.push([mesh, mesh.material]);
+				mesh.material = Array.isArray(mesh.material) ? mesh.material.map(blackOf) : blackOf(mesh.material);
+			}
+		});
+		const background = this.scene.background;
+		this.scene.background = new THREE.Color(0, 0, 0);
+		const target = new THREE.WebGLRenderTarget(width, height, {encoding: THREE.sRGBEncoding});
+		this.renderer.setRenderTarget(target);
+		this.renderer.render(this.scene, this.camera);
+		const pixels = new Uint8Array(width * height * 4);
+		this.renderer.readRenderTargetPixels(target, 0, 0, width, height, pixels);
+		this.renderer.setRenderTarget(null);
+		this.scene.background = background;
+		restore.forEach(([mesh, material]) => mesh.material = material);
+		black.forEach(material => material.dispose());
+		target.dispose();
+		// per sticker over its label quad (pixels top row first: GL rows bottom-up)
+		const view = this.sample.views[index];
+		return view.stickers.map(st => {
+			if (!st.visible)
+				return {mean: 0, share: 0};
+			const q = st.corners;
+			const xs = q.map(p => p[0]), ys = q.map(p => p[1]);
+			const x0 = Math.max(0, Math.floor(Math.min(...xs))), x1 = Math.min(width - 1, Math.ceil(Math.max(...xs)));
+			const y0 = Math.max(0, Math.floor(Math.min(...ys))), y1 = Math.min(height - 1, Math.ceil(Math.max(...ys)));
+			let area = 0;
+			for (let i = 0; i < 4; ++i)
+				area += q[i][0] * q[(i + 1) % 4][1] - q[(i + 1) % 4][0] * q[i][1];
+			const sgn = area >= 0 ? 1 : -1;
+			let n = 0, sum = 0, high = 0;
+			for (let y = y0; y <= y1; ++y) {
+				for (let x = x0; x <= x1; ++x) {
+					let inside = true;
+					for (let i = 0; i < 4 && inside; ++i) {
+						const [ax, ay] = q[i], [bx, by] = q[(i + 1) % 4];
+						inside = sgn * ((bx - ax) * (y + 0.5 - ay) - (by - ay) * (x + 0.5 - ax)) >= 0;
+					}
+					if (!inside)
+						continue;
+					const o = ((height - 1 - y) * width + x) * 4;
+					const l = (0.2126 * pixels[o] + 0.7152 * pixels[o + 1] + 0.0722 * pixels[o + 2]) / 255;
+					n++;
+					sum += l;
+					high += l > GLARE_LEVEL ? 1 : 0;
+				}
+			}
+			return n ? {mean: Number((sum / n).toFixed(4)), share: Number((high / n).toFixed(4))} : {mean: 0, share: 0};
+		});
 	}
 
 

@@ -1,3 +1,8 @@
+## 2026-11-05 rubik-detector: early wrong evidence could not be overturned
+
+- Two phone dumps 17 s apart (a whole-cube turn only, no twist): 7 facelets of the estimate changed, confidence 0.91 → 0.50, and the sharp newest frame (cost 0.03) still disagreed with it on 5 stickers. Cause, confirmed on v105's pipeline: the consensus filter keeps per facelet the colour most (√size-weighted) chains agree on and drops the rest, so once a wrong colour has the majority the new right samples are the outliers (the newest chain kept 0/54); a long hold also counted as one reliability group per 0.5 s.
+- rubik-detector e4cf1d9: a chain's consensus vote capped at √4 samples; a second far colour with ≥ half the first's votes keeps its samples (contested: both weighed, confidence lower); ≤ 4 reliability groups per chain. CoordCheck PLANT=s plants a consistent wrong colour on one face's 8 stickers until s: old code locked wrong 3 times (v106 measured: 7/7 wrong switches), new never; clean v103 / v106 unchanged; v104 at 400 ms locks later (14.4 vs 6.4 s) — an ablation of the three parts is running.
+
 ## 2026-11-05 rubik-detector: where v105 (studio, hand-held) fails, and the fix
 
 - Per frame (`engine/tools/video_accuracy.py`, against labels): v105 accepts 64 % of frames (others ~90 %), almost no wrong accepted pose outside twists. Its 24 rejected still frames: 21 with weak evidence (the true pose also costs > 0.15) — motion blur of 43–68 px (fx 1870: the same hand shake as v104 blurs twice as much) leaves one line family. Not a detector fault.
